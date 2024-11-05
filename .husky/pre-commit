@@ -1,1 +1,6 @@
-pnpm test
+#!/usr/bin/env sh
+
+# Run type checking
+npm run type-check
+# Run linting
+npm run lint
