@@ -4,3 +4,5 @@
 npm run type-check
 # Run linting
 npm run lint
+# Run talisman to check for any secret leakages
+talisman --githook pre-commit
