@@ -3,4 +3,11 @@ fileignoreconfig:
     checksum: ""
     ignore_detectors:
       - filecontent
-
+  - filename: prisma/migrations/**/migration.sql
+    checksum: ""
+    ignore_detectors:
+      - filename
+  - filename: docker-compose.yaml
+    checksum: ""
+    ignore_detectors:
+      - filecontent
