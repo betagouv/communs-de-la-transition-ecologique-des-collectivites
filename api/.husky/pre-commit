@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 
+cd api
 # Run type checking
 npm run type-check
 # Run linting
