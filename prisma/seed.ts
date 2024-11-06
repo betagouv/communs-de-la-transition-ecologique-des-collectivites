@@ -19,10 +19,10 @@ const projectsData: Prisma.ProjectCreateInput[] = [
 async function main() {
   console.log(`Start seeding ...`);
   for (const u of projectsData) {
-    const project = await prisma.project.create({
+    const user = await prisma.project.create({
       data: u,
     });
-    console.log(`Created project with id: ${project.id}`);
+    console.log(`Created project with id: ${user.id}`);
   }
   console.log(`Seeding finished.`);
 }
