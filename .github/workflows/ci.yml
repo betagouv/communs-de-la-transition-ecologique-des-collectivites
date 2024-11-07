@@ -3,12 +3,10 @@ name: Deploy API
 on:
   push:
     branches: [staging]
-    paths:
-      - 'api/**'
+
   pull_request:
     branches: [staging]
-    paths:
-      - 'api/**'
+
 
 defaults:
   run:
