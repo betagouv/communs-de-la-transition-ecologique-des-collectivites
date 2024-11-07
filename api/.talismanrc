@@ -3,6 +3,7 @@ fileignoreconfig:
     checksum: ""
     ignore_detectors:
       - filecontent
+      - filesize
   - filename: prisma/migrations/**/migration.sql
     checksum: ""
     ignore_detectors:
