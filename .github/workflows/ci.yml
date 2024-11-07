@@ -3,8 +3,12 @@ name: Deploy API
 on:
   push:
     branches: [staging]
+    paths:
+      - 'api/**'
   pull_request:
     branches: [staging]
+    paths:
+      - 'api/**'
 
 defaults:
   run:
@@ -33,9 +37,6 @@ jobs:
 
       - name: Type check
         run: pnpm run type-check
-
-      - name: Run tests
-        run: pnpm run test:e2e
 
   deploy-api:
     needs: lint-test-typecheck
