@@ -34,28 +34,8 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
-      - name: Debug Git state
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "\nGit status:"
-          git status
-          echo "\nLocal tags:"
-          git tag
-          echo "\nRemote tags:"
-          git ls-remote --tags origin
-          echo "\nGit config:"
-          git config --list
-          echo "\nGit log (last 5 commits):"
-          git log -n 5 --oneline
-          echo "\nList all files in .git/refs/tags:"
-          ls -la .git/refs/tags || true
-
       - name: Generate new version
-        run: |
-          # Clean any potential tag artifacts
-          rm -rf .git/refs/tags/* || true
-          HUSKY=0 pnpm run release
+        run: HUSKY=0 pnpm run release #do not need precommit check there
 
       - name: Push changes and tags
         run: |
@@ -72,4 +52,4 @@ jobs:
       - name: Deploy to Scalingo Production
         # should be changed to main once we have only one branch
         run: |
-          git push git@ssh.osc-secnum-fr1.scalingo.com:test-les-communs-api-prod.git main
+          git push git@ssh.osc-fr1.scalingo.com:test-les-communs-api-prod.git main
