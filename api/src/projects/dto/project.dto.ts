@@ -1,32 +1,34 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
-import { Prisma } from '@prisma/client';
+import { Project } from '@prisma/client';
 
-export class CreateProjectDto
-  implements
-    Pick<Prisma.ProjectCreateInput, 'name' | 'description' | 'ownerUserId'>
-{
+export class ProjectDto implements Project {
+  @ApiProperty({
+    example: 'clg2x3e4h0000ml0g8vfy1q1x',
+    description: 'The unique identifier of the project',
+  })
+  id: string;
+
+  @ApiProperty({
+    example: '2024-03-19T12:00:00Z',
+    description: 'When the project was created',
+  })
+  createdAt: Date;
+
   @ApiProperty({
     example: 'My Awesome Project',
     description: 'The name of the project',
   })
-  @IsString()
-  @IsNotEmpty()
   name: string;
 
   @ApiProperty({
     example: 'This is a detailed description of my project',
     description: 'The description of the project',
   })
-  @IsString()
-  @IsNotEmpty()
   description: string;
 
   @ApiProperty({
     example: 'user123',
     description: 'The ID of the user who owns this project',
   })
-  @IsString()
-  @IsNotEmpty()
   ownerUserId: string;
-}
+} 
