@@ -63,4 +63,4 @@ jobs:
           git branch -a
           
           # Push the staging branch to Scalingo's main branch
-          git push git@ssh.osc-fr1.scalingo.com:test-les-communs-api-staging.git main
+          git push git@ssh.osc-fr1.scalingo.com:matt-test-les-communs-api-staging.git main
