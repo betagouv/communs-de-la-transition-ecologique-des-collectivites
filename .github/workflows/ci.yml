@@ -8,13 +8,12 @@ on:
     branches: [staging]
 
 
-defaults:
-  run:
-    working-directory: api
-
 jobs:
   lint-test-typecheck:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
     steps:
       - uses: actions/checkout@v4
 
@@ -22,10 +21,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'pnpm'
 
       - name: Install pnpm
-        shell: bash
-        run: npm install -g pnpm@latest
+        run: npm install -g pnpm
 
       - name: Install dependencies
         run: pnpm install
@@ -36,13 +35,14 @@ jobs:
       - name: Type check
         run: pnpm run type-check
 
+      - name: Run tests
+        run: pnpm run test
+
   deploy-api:
     needs: lint-test-typecheck
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
-    defaults:
-      run:
-        working-directory: ./api
+
     steps:
       - uses: actions/checkout@v4
 
@@ -55,5 +55,4 @@ jobs:
 
       - name: Deploy to Scalingo (Staging)
         run: |
-          git remote add scalingo git@ssh.osc-fr1.scalingo.com:les-communs-api-staging.git
-          git push scalingo staging
+          git push git@ssh.osc-fr1.scalingo.com:les-communs-api-staging.git main
