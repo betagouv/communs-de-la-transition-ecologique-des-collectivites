@@ -18,6 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: staging
           fetch-depth: 0  # This fetches all history as per https://doc.scalingo.com/platform/deployment/deploy-with-git#shallow-error
 
       - name: Setup Node.js
