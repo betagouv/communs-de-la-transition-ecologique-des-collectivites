@@ -35,7 +35,7 @@ jobs:
           git config user.email "actions@github.com"
 
       - name: Generate new version
-        run: pnpm run release
+        run: HUSKY=0 pnpm run release #do not need precommit check there
 
       - name: Push changes and tags
         run: |
