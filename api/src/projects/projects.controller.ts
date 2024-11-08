@@ -10,7 +10,7 @@ import {
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { Project } from '@prisma/client';
+import { ProjectDto } from './dto/project.dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -27,13 +27,13 @@ export class ProjectsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Project> {
+  findOne(@Param('id') id: string): Promise<ProjectDto> {
     return this.projectsService.findOne({ id });
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(+id, updateProjectDto);
+    return this.projectsService.update(id, updateProjectDto);
   }
 
   @Delete(':id')

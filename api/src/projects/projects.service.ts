@@ -22,7 +22,7 @@ export class ProjectsService {
     });
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
+  update(id: string, updateProjectDto: UpdateProjectDto) {
     console.log(updateProjectDto);
     return `This action updates a #${id} project`;
   }

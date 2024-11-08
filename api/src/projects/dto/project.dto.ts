@@ -31,4 +31,4 @@ export class ProjectDto implements Project {
     description: 'The ID of the user who owns this project',
   })
   ownerUserId: string;
-} 
+}
