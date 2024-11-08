@@ -1,0 +1,57 @@
+name: Production Deployment
+
+# Manual trigger with a button in GitHub interface
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: api
+
+jobs:
+  release-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        shell: bash
+        run: npm install -g pnpm@latest
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Configure Git #change the user/email
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+      - name: Generate new version
+        run: pnpm run release
+
+      - name: Push changes and tags
+        run: |
+          git push --follow-tags origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
+      - name: Deploy to Scalingo Production
+        # should be changed to main once we have only one branch
+        run: |
+          git push git@ssh.osc-secnum-fr1.scalingo.com:test-les-communs-api-prod.git staging:main

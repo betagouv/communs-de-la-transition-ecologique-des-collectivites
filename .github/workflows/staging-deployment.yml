@@ -36,7 +36,7 @@ jobs:
       - name: Type check
         run: pnpm run type-check
 
-  deploy-api:
+  deploy-staging:
     needs: lint-test-typecheck
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
