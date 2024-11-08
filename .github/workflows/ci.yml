@@ -17,9 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: staging
-          fetch-depth: 0  # This fetches all history as per https://doc.scalingo.com/platform/deployment/deploy-with-git#shallow-error
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -64,4 +61,4 @@ jobs:
           git branch -a
           
           # Push the staging branch to Scalingo's main branch
-          git push git@ssh.osc-fr1.scalingo.com:test-les-communs-api-staging.git staging
+          git push git@ssh.osc-fr1.scalingo.com:test-les-communs-api-staging.git main:staging
