@@ -1,4 +1,4 @@
-name: Deploy API
+name: Staging Deployment
 
 on:
   push:
@@ -13,7 +13,7 @@ defaults:
     working-directory: api
 
 jobs:
-  lint-test-typecheck:
+  lint-test-typecheck: #might split the steps once the tests become heavier
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,10 +36,14 @@ jobs:
       - name: Type check
         run: pnpm run type-check
 
+      - name: Unit tests
+        run: pnpm run test
+
+
   deploy-staging:
     needs: lint-test-typecheck
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' # Only deploy when the PR is merged
 
     steps:
       - uses: actions/checkout@v4
@@ -54,13 +58,6 @@ jobs:
           ssh-keyscan -H ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
 
       - name: Deploy to Scalingo (Staging)
-        run: |
-          # Debug information
-          echo "Current branch:"
-          git branch --show-current
-          
-          echo "Available branches:"
-          git branch -a
-          
+        run: |    
           # Push the staging branch to Scalingo's main branch
           git push git@ssh.osc-fr1.scalingo.com:matt-test-les-communs-api-staging.git main

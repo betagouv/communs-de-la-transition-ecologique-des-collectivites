@@ -7,9 +7,11 @@ import { Prisma, Project } from '@prisma/client';
 @Injectable()
 export class ProjectsService {
   constructor(private prisma: PrismaService) {}
+
   create(createProjectDto: CreateProjectDto) {
-    console.log(createProjectDto);
-    return 'This action adds a new project';
+    return this.prisma.project.create({
+      data: createProjectDto,
+    });
   }
 
   findAll() {
