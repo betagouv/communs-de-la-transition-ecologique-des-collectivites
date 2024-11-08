@@ -2,10 +2,10 @@ name: Deploy API
 
 on:
   push:
-    branches: [staging]
+    branches: [main]
 
   pull_request:
-    branches: [staging]
+    branches: [main]
 
 
 defaults:
@@ -63,4 +63,4 @@ jobs:
           git branch -a
           
           # Push the staging branch to Scalingo's main branch
-          git push git@ssh.osc-fr1.scalingo.com:test-les-communs-api-staging.git staging:main
+          git push git@ssh.osc-fr1.scalingo.com:test-les-communs-api-staging.git main

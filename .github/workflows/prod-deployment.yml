@@ -11,8 +11,6 @@ defaults:
 jobs:
   release-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: production
 
     steps:
       - uses: actions/checkout@v4
@@ -54,4 +52,4 @@ jobs:
       - name: Deploy to Scalingo Production
         # should be changed to main once we have only one branch
         run: |
-          git push git@ssh.osc-secnum-fr1.scalingo.com:test-les-communs-api-prod.git staging:main
+          git push git@ssh.osc-secnum-fr1.scalingo.com:test-les-communs-api-prod.git main
