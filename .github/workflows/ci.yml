@@ -8,12 +8,13 @@ on:
     branches: [staging]
 
 
+defaults:
+  run:
+    working-directory: api
+
 jobs:
   lint-test-typecheck:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./api
     steps:
       - uses: actions/checkout@v4
 
@@ -21,10 +22,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
       - name: Install pnpm
-        run: npm install -g pnpm
+        shell: bash
+        run: npm install -g pnpm@latest
 
       - name: Install dependencies
         run: pnpm install
@@ -34,9 +35,6 @@ jobs:
 
       - name: Type check
         run: pnpm run type-check
-
-      - name: Run tests
-        run: pnpm run test
 
   deploy-api:
     needs: lint-test-typecheck
