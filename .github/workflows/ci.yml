@@ -53,4 +53,12 @@ jobs:
 
       - name: Deploy to Scalingo (Staging)
         run: |
-          git push git@ssh.osc-fr1.scalingo.com:les-communs-api-staging.git main
+          # Debug information
+          echo "Current branch:"
+          git branch --show-current
+          
+          echo "Available branches:"
+          git branch -a
+          
+          # Push the staging branch to Scalingo's main branch
+          git push git@ssh.osc-fr1.scalingo.com:les-communs-api-staging.git staging:main
