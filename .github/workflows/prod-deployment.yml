@@ -41,7 +41,7 @@ jobs:
         run: |
           git push --follow-tags origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BETA_GOUV_GITHUB_ACCESS_TOKEN }}
 
       - name: Setup SSH
         run: |
