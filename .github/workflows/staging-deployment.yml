@@ -57,11 +57,11 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SCALINGO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
 
       - name: Deploy to Scalingo (Staging)
         run: |    
           # Push the staging branch to Scalingo's main branch
-          git push git@ssh.osc-fr1.scalingo.com:matt-test-les-communs-api-staging.git main
+          git push git@ssh.osc-fr1.scalingo.com:les-communs-transition-ecologique-api-staging.git main
