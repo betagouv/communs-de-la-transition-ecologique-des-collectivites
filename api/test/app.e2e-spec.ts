@@ -1,12 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { setupApp } from '../src/setup-app';
-import { testDbSetup } from './testDbSetup';
-import { tearDownSetup } from './tearDownSetup';
+import { Test, TestingModule } from "@nestjs/testing";
+import { INestApplication } from "@nestjs/common";
+import * as request from "supertest";
+import { AppModule } from "../src/app.module";
+import { setupApp } from "../src/setup-app";
+import { testDbSetup } from "./testDbSetup";
+import { tearDownSetup } from "./tearDownSetup";
 
-describe('AppController (e2e)', () => {
+describe("AppController (e2e)", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -30,34 +30,34 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it("/ (GET)", () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get("/")
       .expect(200)
-      .expect('Hello World!');
+      .expect("Hello World!");
   });
 
-  describe('Projects (e2e)', () => {
-    describe('POST /projects', () => {
-      it('should reject when name is empty', () => {
+  describe("Projects (e2e)", () => {
+    describe("POST /projects", () => {
+      it("should reject when name is empty", () => {
         return request(app.getHttpServer())
-          .post('/projects')
+          .post("/projects")
           .send({
-            name: '',
-            description: 'Test Description',
-            ownerUserId: 'user1',
+            name: "",
+            description: "Test Description",
+            ownerUserId: "user1",
           })
           .expect(400)
           .expect((res) => {
-            expect(res.body.message).toContain('name should not be empty');
+            expect(res.body.message).toContain("name should not be empty");
           });
       });
 
-      it('should reject when required fields are missing', () => {
+      it("should reject when required fields are missing", () => {
         return request(app.getHttpServer())
-          .post('/projects')
+          .post("/projects")
           .send({
-            name: 'Test Project',
+            name: "Test Project",
             // missing fields
           })
           .expect(400);

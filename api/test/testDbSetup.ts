@@ -1,12 +1,12 @@
-import { join } from 'path';
-import dockerCompose from 'docker-compose';
-import { execSync } from 'child_process';
+import { join } from "path";
+import dockerCompose from "docker-compose";
+import { execSync } from "child_process";
 
 export const testDbSetup = async () => {
-  console.time('testDbSetup');
+  console.time("testDbSetup");
   // Set test database URL
   const DATABASE_URL =
-    'postgres://postgres:mypassword@localhost:5433/e2e_test_db';
+    "postgres://postgres:mypassword@localhost:5433/e2e_test_db";
   process.env.DATABASE_URL = DATABASE_URL;
 
   await dockerCompose.upAll({
@@ -15,22 +15,22 @@ export const testDbSetup = async () => {
   });
 
   await dockerCompose.exec(
-    'e2e_test_db',
-    ['sh', '-c', 'until pg_isready ; do sleep 1; done'],
+    "e2e_test_db",
+    ["sh", "-c", "until pg_isready ; do sleep 1; done"],
     {
       cwd: join(__dirname),
     },
   );
 
   // Run migration with explicit env
-  execSync('npx prisma migrate deploy', {
+  execSync("npx prisma migrate deploy", {
     env: {
       ...process.env,
       DATABASE_URL,
     },
   });
 
-  execSync('npm run db:migrate', {
+  execSync("npm run db:migrate", {
     env: {
       ...process.env,
       DATABASE_URL,
@@ -38,5 +38,5 @@ export const testDbSetup = async () => {
   });
 
   // 👍🏼 We're ready
-  console.timeEnd('global-setup');
+  console.timeEnd("global-setup");
 };
