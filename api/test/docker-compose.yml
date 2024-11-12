@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  e2e_test_db:
+    image: postgres:14
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: e2e_test_db
+      POSTGRES_USER: postgres

@@ -75,6 +75,9 @@ importers:
       commit-and-tag-version:
         specifier: ^12.5.0
         version: 12.5.0
+      docker-compose:
+        specifier: ^1.1.0
+        version: 1.1.0
       eslint:
         specifier: ^8.0.0
         version: 8.57.1
@@ -1427,6 +1430,10 @@ packages:
   diff@4.0.2:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
     engines: {node: '>=0.3.1'}
+
+  docker-compose@1.1.0:
+    resolution: {integrity: sha512-VrkQJNafPQ5d6bGULW0P6KqcxSkv3ZU5Wn2wQA19oB71o7+55vQ9ogFe2MMeNbK+jc9rrKVy280DnHO5JLMWOQ==}
+    engines: {node: '>= 6.0.0'}
 
   doctrine@3.0.0:
     resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
@@ -4986,6 +4993,10 @@ snapshots:
   diff-sequences@29.6.3: {}
 
   diff@4.0.2: {}
+
+  docker-compose@1.1.0:
+    dependencies:
+      yaml: 2.6.0
 
   doctrine@3.0.0:
     dependencies:

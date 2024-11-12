@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
-import { PrismaService } from '../prisma.service';
-import { Prisma, Project } from '@prisma/client';
+import { Injectable } from "@nestjs/common";
+import { CreateProjectDto } from "./dto/create-project.dto";
+import { UpdateProjectDto } from "./dto/update-project.dto";
+import { PrismaService } from "../prisma.service";
+import { Prisma, Project } from "@prisma/client";
 
 @Injectable()
 export class ProjectsService {
@@ -29,7 +29,7 @@ export class ProjectsService {
     return `This action updates a #${id} project`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} project`;
   }
 }
