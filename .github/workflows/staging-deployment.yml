@@ -39,6 +39,9 @@ jobs:
       - name: Unit tests
         run: pnpm run test
 
+      - name: Integrated tests
+        run: pnpm run test:e2e
+
 
   deploy-staging:
     needs: lint-test-typecheck
