@@ -29,7 +29,7 @@ export class ProjectsService {
     return `This action updates a #${id} project`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} project`;
   }
 }

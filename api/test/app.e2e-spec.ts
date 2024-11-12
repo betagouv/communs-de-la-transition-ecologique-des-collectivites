@@ -3,9 +3,22 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { setupApp } from '../src/setup-app';
+import { testDbSetup } from './testDbSetup';
+import { tearDownSetup } from './tearDownSetup';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
+
+  beforeAll(async () => {
+    // 👍🏼 We're ready
+    await testDbSetup();
+  });
+
+  afterAll(async () => {
+    // 👋🏼 We're done
+    await app?.close();
+    await tearDownSetup();
+  });
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
