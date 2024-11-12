@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.3...v0.0.4) (2024-11-12)
+
+
+### Features
+
+* add project creation ([34d3cb6](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/34d3cb603e28ebb65f08733f834139ceec22698a))
+
+
+### Bug Fixes
+
+* add missing e2e steps in github action ([b96471c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/b96471c844abecc0c489f90f57834864ce91b30e))
+* add missing setup file ([6c8e836](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6c8e836c43aa0a7381e6435871b7c98a146f2332))
+* add missing updated lockfile ([887aa81](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/887aa818a184d1bb212b4a23b36a5b77dbf0edd2))
+* increase e2e timeout to allow time for db to spin up ([e21b29c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e21b29c908f6c8b8679cea683fffc6c0b2ae8229))
+* make jest timeout in beforeAll test setup ([bcd3039](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/bcd3039d2ee5d176ef1c4558bf2a06a5705a5700))
+* use proper syntax for jest hook timeout ([f68ea64](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f68ea64a382a4193ff542948989b062164ad9226))
+
 ## 0.0.3 (2024-11-08)
 
 
