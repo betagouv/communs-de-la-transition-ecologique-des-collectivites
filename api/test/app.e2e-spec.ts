@@ -6,18 +6,16 @@ import { setupApp } from "../src/setup-app";
 import { testDbSetup } from "./testDbSetup";
 import { tearDownSetup } from "./tearDownSetup";
 
-// temporary solution to allow time for the database to start
-// will be changed once the pipelines are splited into different stages with specific
-// service postgres db in github Action - see ticket https://github.com/orgs/betagouv/projects/129/views/1?pane=issue&itemId=86927723
-
 describe("AppController (e2e)", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
     // 👍🏼 We're ready
-    jest.setTimeout(30000);
     await testDbSetup();
-  });
+    // temporary solution to allow time for the database to start
+    // will be changed once the pipelines are splited into different stages with specific
+    // service postgres db in github Action - see ticket https://github.com/orgs/betagouv/projects/129/views/1?pane=issue&itemId=86927723
+  }, 30000);
 
   afterAll(async () => {
     // 👋🏼 We're done
