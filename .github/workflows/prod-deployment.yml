@@ -47,12 +47,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          # Explicitly scan for all key types and show output for debugging
-          ssh-keyscan -H -t rsa,ecdsa,ed25519 ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
-          # Show what keys were actually stored
-          ssh-keygen -l -f ~/.ssh/known_hosts
+          # Explicitly scan for all key types to avoid issues with the host key not being found
+          ssh-keyscan -H -t rsa,ecdsa,ed25519 ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts 
 
       - name: Deploy to Scalingo Production
         run: |
+          # Push the prod branch to Scalingo's main branch
           # Add verbose flag to see more details about the SSH connection
           GIT_SSH_COMMAND="ssh -v" git push git@ssh.osc-fr1.scalingo.com:les-communs-transition-ecologique-api-prod.git main
