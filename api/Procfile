@@ -1,1 +1,1 @@
-postdeploy: npx prisma migrate deploy
+postdeploy: npx drizzle-kit migrate

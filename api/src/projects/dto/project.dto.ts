@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Project } from "@prisma/client";
+import { projects } from "../../database/schema";
+import { InferSelectModel } from "drizzle-orm";
 
-export class ProjectDto implements Project {
+export class ProjectDto implements InferSelectModel<typeof projects> {
   @ApiProperty({
     example: "clg2x3e4h0000ml0g8vfy1q1x",
     description: "The unique identifier of the project",

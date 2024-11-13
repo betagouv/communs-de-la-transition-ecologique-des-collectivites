@@ -22,15 +22,7 @@ export const testDbSetup = async () => {
     },
   );
 
-  // Run migration with explicit env
-  execSync("npx prisma migrate deploy", {
-    env: {
-      ...process.env,
-      DATABASE_URL,
-    },
-  });
-
-  execSync("npm run db:migrate", {
+  execSync("npm run db:migrate:drizzle", {
     env: {
       ...process.env,
       DATABASE_URL,

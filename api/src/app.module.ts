@@ -6,13 +6,13 @@ import { ConfigModule } from "@nestjs/config";
 import { ApiKeyGuardProvider } from "./auth/api-key-guard";
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    ProjectsModule,
-  ],
-  controllers: [AppController],
-  providers: [AppService, ApiKeyGuardProvider],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
+        ProjectsModule,
+    ],
+    controllers: [AppController],
+    providers: [AppService, ApiKeyGuardProvider],
 })
 export class AppModule {}

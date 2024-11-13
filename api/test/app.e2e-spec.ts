@@ -16,7 +16,7 @@ describe("AppController (e2e)", () => {
     await testDbSetup();
     // temporary solution to allow time for the database to start
     // will be changed once the pipelines are splited into different stages with specific
-    // service postgres db in github Action - see ticket https://github.com/orgs/betagouv/projects/129/views/1?pane=issue&itemId=86927723
+    // service postgres database in github Action - see ticket https://github.com/orgs/betagouv/projects/129/views/1?pane=issue&itemId=86927723
   }, 30000);
 
   afterAll(async () => {
