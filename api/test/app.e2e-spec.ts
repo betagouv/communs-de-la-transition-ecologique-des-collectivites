@@ -5,6 +5,8 @@ import { AppModule } from "../src/app.module";
 import { setupApp } from "../src/setup-app";
 import { testDbSetup } from "./testDbSetup";
 import { tearDownSetup } from "./tearDownSetup";
+import { ConfigService } from "@nestjs/config";
+import { describe } from "node:test";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -12,6 +14,7 @@ describe("AppController (e2e)", () => {
   beforeAll(async () => {
     // 👍🏼 We're ready
     await testDbSetup();
+    process.env.API_KEY = "test-api-key";
     // temporary solution to allow time for the database to start
     // will be changed once the pipelines are splited into different stages with specific
     // service postgres db in github Action - see ticket https://github.com/orgs/betagouv/projects/129/views/1?pane=issue&itemId=86927723
@@ -26,7 +29,15 @@ describe("AppController (e2e)", () => {
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(ConfigService)
+      .useValue({
+        get: jest.fn((key) => {
+          if (key === "API_KEY") return "test-api-key";
+          return null;
+        }),
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     setupApp(app);
@@ -42,9 +53,25 @@ describe("AppController (e2e)", () => {
 
   describe("Projects (e2e)", () => {
     describe("POST /projects", () => {
+      it("should reject when wrong api key", () => {
+        return request(app.getHttpServer())
+          .post("/projects")
+          .set("X-API-Key", "wrong-api-key") // Add this line
+          .send({
+            name: "",
+            description: "Test Description",
+            ownerUserId: "user1",
+          })
+          .expect(401)
+          .expect((res) => {
+            expect(res.body.message).toContain("Invalid API key");
+          });
+      });
+
       it("should reject when name is empty", () => {
         return request(app.getHttpServer())
           .post("/projects")
+          .set("X-API-Key", "test-api-key") // Add this line
           .send({
             name: "",
             description: "Test Description",
@@ -59,6 +86,7 @@ describe("AppController (e2e)", () => {
       it("should reject when required fields are missing", () => {
         return request(app.getHttpServer())
           .post("/projects")
+          .set("X-API-Key", "test-api-key")
           .send({
             name: "Test Project",
             // missing fields

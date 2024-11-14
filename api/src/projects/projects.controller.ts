@@ -11,7 +11,9 @@ import { ProjectsService } from "./projects.service";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { ProjectDto } from "./dto/project.dto";
+import { ApiKeyAuth } from "../auth/api-key-auth.decorator";
 
+@ApiKeyAuth() // Protect all routes in this controller
 @Controller("projects")
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}

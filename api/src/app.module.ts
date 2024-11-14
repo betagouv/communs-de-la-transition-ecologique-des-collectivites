@@ -5,7 +5,12 @@ import { ProjectsModule } from "./projects/projects.module";
 import { ConfigModule } from "@nestjs/config";
 
 @Module({
-  imports: [ProjectsModule, ConfigModule.forRoot()],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    ProjectsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
