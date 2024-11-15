@@ -10,11 +10,10 @@ import { describe } from "node:test";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
-
+  const apiKey = "test-api-key";
   beforeAll(async () => {
     // 👍🏼 We're ready
     await testDbSetup();
-    process.env.API_KEY = "test-api-key";
     // temporary solution to allow time for the database to start
     // will be changed once the pipelines are splited into different stages with specific
     // service postgres db in github Action - see ticket https://github.com/orgs/betagouv/projects/129/views/1?pane=issue&itemId=86927723
@@ -33,7 +32,7 @@ describe("AppController (e2e)", () => {
       .overrideProvider(ConfigService)
       .useValue({
         get: jest.fn((key) => {
-          if (key === "API_KEY") return "test-api-key";
+          if (key === "API_KEY") return apiKey;
           return null;
         }),
       })
@@ -48,7 +47,7 @@ describe("AppController (e2e)", () => {
     return request(app.getHttpServer())
       .get("/")
       .expect(200)
-      .expect("Hello World!");
+      .expect("Les communs API");
   });
 
   describe("Projects (e2e)", () => {
@@ -56,7 +55,7 @@ describe("AppController (e2e)", () => {
       it("should reject when wrong api key", () => {
         return request(app.getHttpServer())
           .post("/projects")
-          .set("X-API-Key", "wrong-api-key") // Add this line
+          .set("Authorization", `Bearer wrong-${apiKey}`)
           .send({
             name: "",
             description: "Test Description",
@@ -71,7 +70,7 @@ describe("AppController (e2e)", () => {
       it("should reject when name is empty", () => {
         return request(app.getHttpServer())
           .post("/projects")
-          .set("X-API-Key", "test-api-key") // Add this line
+          .set("Authorization", `Bearer ${apiKey}`)
           .send({
             name: "",
             description: "Test Description",
@@ -86,7 +85,7 @@ describe("AppController (e2e)", () => {
       it("should reject when required fields are missing", () => {
         return request(app.getHttpServer())
           .post("/projects")
-          .set("X-API-Key", "test-api-key")
+          .set("Authorization", `Bearer ${apiKey}`)
           .send({
             name: "Test Project",
             // missing fields
