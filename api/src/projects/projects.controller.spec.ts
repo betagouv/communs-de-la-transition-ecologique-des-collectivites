@@ -2,8 +2,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ProjectsController } from "./projects.controller";
 import { ProjectsService } from "./projects.service";
 import { CreateProjectDto } from "./dto/create-project.dto";
-import {ConfigModule} from "@nestjs/config";
-import {DATABASE} from "../database/database.module";
+import { ConfigModule } from "@nestjs/config";
+import { DATABASE } from "../database/database.module";
 
 describe("ProjectsController", () => {
   let controller: ProjectsController;

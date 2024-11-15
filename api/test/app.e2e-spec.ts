@@ -5,12 +5,11 @@ import { AppModule } from "../src/app.module";
 import { setupApp } from "../src/setup-app";
 import { testDbSetup } from "./testDbSetup";
 import { tearDownSetup } from "./tearDownSetup";
-import { ConfigService } from "@nestjs/config";
 import { describe } from "node:test";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
-  const apiKey = "test-api-key";
+  const apiKey = process.env.API_KEY;
   beforeAll(async () => {
     // 👍🏼 We're ready
     await testDbSetup();
@@ -28,15 +27,7 @@ describe("AppController (e2e)", () => {
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    })
-      .overrideProvider(ConfigService)
-      .useValue({
-        get: jest.fn((key) => {
-          if (key === "API_KEY") return apiKey;
-          return null;
-        }),
-      })
-      .compile();
+    }).compile();
 
     app = moduleFixture.createNestApplication();
     setupApp(app);
