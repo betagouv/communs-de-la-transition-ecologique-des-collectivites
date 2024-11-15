@@ -5,10 +5,12 @@ import { AppModule } from "../src/app.module";
 import { setupApp } from "../src/setup-app";
 import { testDbSetup } from "./testDbSetup";
 import { tearDownSetup } from "./tearDownSetup";
+import { ConfigService } from "@nestjs/config";
+import { describe } from "node:test";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
-
+  const apiKey = "test-api-key";
   beforeAll(async () => {
     // 👍🏼 We're ready
     await testDbSetup();
@@ -26,7 +28,15 @@ describe("AppController (e2e)", () => {
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(ConfigService)
+      .useValue({
+        get: jest.fn((key) => {
+          if (key === "API_KEY") return apiKey;
+          return null;
+        }),
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     setupApp(app);
@@ -37,14 +47,30 @@ describe("AppController (e2e)", () => {
     return request(app.getHttpServer())
       .get("/")
       .expect(200)
-      .expect("Hello World!");
+      .expect("Les communs API");
   });
 
   describe("Projects (e2e)", () => {
     describe("POST /projects", () => {
+      it("should reject when wrong api key", () => {
+        return request(app.getHttpServer())
+          .post("/projects")
+          .set("Authorization", `Bearer wrong-${apiKey}`)
+          .send({
+            name: "",
+            description: "Test Description",
+            ownerUserId: "user1",
+          })
+          .expect(401)
+          .expect((res) => {
+            expect(res.body.message).toContain("Invalid API key");
+          });
+      });
+
       it("should reject when name is empty", () => {
         return request(app.getHttpServer())
           .post("/projects")
+          .set("Authorization", `Bearer ${apiKey}`)
           .send({
             name: "",
             description: "Test Description",
@@ -59,6 +85,7 @@ describe("AppController (e2e)", () => {
       it("should reject when required fields are missing", () => {
         return request(app.getHttpServer())
           .post("/projects")
+          .set("Authorization", `Bearer ${apiKey}`)
           .send({
             name: "Test Project",
             // missing fields

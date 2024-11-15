@@ -14,10 +14,15 @@ export function setupApp(app: INestApplication) {
     .setTitle("API Documentation")
     .setDescription("API description")
     .setVersion("1.0")
+    .addBearerAuth()
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api", app, documentFactory);
+  SwaggerModule.setup("api", app, documentFactory, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
 
   app.useGlobalPipes(new ValidationPipe());
   // Add any other global configurations here
