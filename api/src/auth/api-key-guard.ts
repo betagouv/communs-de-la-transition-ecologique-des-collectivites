@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Reflector } from "@nestjs/core";
+import { APP_GUARD, Reflector } from "@nestjs/core";
 import { Request } from "express";
 
 @Injectable()
@@ -47,3 +47,8 @@ export class ApiKeyGuard implements CanActivate {
     return true;
   }
 }
+
+export const ApiKeyGuardProvider = {
+  provide: APP_GUARD,
+  useClass: ApiKeyGuard,
+};

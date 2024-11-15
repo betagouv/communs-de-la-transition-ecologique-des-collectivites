@@ -11,9 +11,9 @@ import { ProjectsService } from "./projects.service";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { ProjectDto } from "./dto/project.dto";
-import { ApiKeyAuth } from "../auth/api-key-auth.decorator";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
-@ApiKeyAuth()
+@ApiBearerAuth()
 @Controller("projects")
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
