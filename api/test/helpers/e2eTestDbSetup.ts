@@ -2,7 +2,7 @@ import { join } from "path";
 import dockerCompose from "docker-compose";
 import { execSync } from "child_process";
 
-export const testDbSetup = async () => {
+export const e2eTestDbSetup = async () => {
   console.time("testDbSetup");
   // Set test database URL
   const DATABASE_URL =
@@ -22,15 +22,7 @@ export const testDbSetup = async () => {
     },
   );
 
-  // Run migration with explicit env
-  execSync("npx prisma migrate deploy", {
-    env: {
-      ...process.env,
-      DATABASE_URL,
-    },
-  });
-
-  execSync("npm run db:migrate", {
+  execSync("npm run db:migrate:drizzle", {
     env: {
       ...process.env,
       DATABASE_URL,

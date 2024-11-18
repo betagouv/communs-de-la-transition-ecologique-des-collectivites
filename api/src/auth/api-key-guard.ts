@@ -10,7 +10,7 @@ import { APP_GUARD, Reflector } from "@nestjs/core";
 import { Request } from "express";
 
 @Injectable()
-export class ApiKeyGuard implements CanActivate {
+class ApiKeyGuard implements CanActivate {
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
     private readonly reflector: Reflector,

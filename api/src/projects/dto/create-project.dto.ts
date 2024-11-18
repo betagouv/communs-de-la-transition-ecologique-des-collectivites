@@ -1,10 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString } from "class-validator";
-import { Prisma } from "@prisma/client";
+import { projects } from "../../database/schema";
+import { InferInsertModel } from "drizzle-orm";
 
+// Omit id and createdAt as they're auto-generated
 export class CreateProjectDto
-  implements
-    Pick<Prisma.ProjectCreateInput, "name" | "description" | "ownerUserId">
+  implements Omit<InferInsertModel<typeof projects>, "id" | "createdAt">
 {
   @ApiProperty({
     example: "My Awesome Project",

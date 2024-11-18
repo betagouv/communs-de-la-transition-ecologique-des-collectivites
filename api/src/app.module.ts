@@ -4,12 +4,14 @@ import { AppService } from "./app.service";
 import { ProjectsModule } from "./projects/projects.module";
 import { ConfigModule } from "@nestjs/config";
 import { ApiKeyGuardProvider } from "./auth/api-key-guard";
+import { DatabaseModule } from "./database/database.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    DatabaseModule,
     ProjectsModule,
   ],
   controllers: [AppController],
