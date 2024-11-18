@@ -4,9 +4,7 @@ import { projects } from "../../database/schema";
 import { InferInsertModel } from "drizzle-orm";
 
 // Omit id and createdAt as they're auto-generated
-export class CreateProjectDto
-  implements Omit<InferInsertModel<typeof projects>, "id" | "createdAt">
-{
+export class CreateProjectDto implements InferInsertModel<typeof projects> {
   @ApiProperty({
     example: "My Awesome Project",
     description: "The name of the project",

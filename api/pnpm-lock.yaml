@@ -32,6 +32,9 @@ importers:
       class-validator:
         specifier: ^0.14.1
         version: 0.14.1
+      drizzle-kit:
+        specifier: ^0.28.0
+        version: 0.28.0
       drizzle-orm:
         specifier: ^0.36.1
         version: 0.36.1(@types/pg@8.11.10)(pg@8.13.1)
@@ -84,9 +87,6 @@ importers:
       docker-compose:
         specifier: ^1.1.0
         version: 1.1.0
-      drizzle-kit:
-        specifier: ^0.28.0
-        version: 0.28.0
       eslint:
         specifier: ^8.0.0
         version: 8.57.1
