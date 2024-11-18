@@ -4,17 +4,36 @@ import { UpdateProjectDto } from "./dto/update-project.dto";
 import { projects } from "../database/schema";
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "../database/database.service";
+import { CustomLogger } from "../../logger/logger.service";
 
 @Injectable()
 export class ProjectsService {
-  constructor(private dbService: DatabaseService) {}
+  constructor(
+    private dbService: DatabaseService,
+    private logger: CustomLogger,
+  ) {}
 
   async create(createProjectDto: CreateProjectDto) {
-    const [newProject] = await this.dbService.database
-      .insert(projects)
-      .values(createProjectDto)
-      .returning();
-    return newProject;
+    this.logger.debug("Creating new project", { dto: createProjectDto });
+
+    try {
+      const [newProject] = await this.dbService.database
+        .insert(projects)
+        .values(createProjectDto)
+        .returning();
+
+      this.logger.log("Project created successfully", {
+        projectId: newProject.id,
+      });
+
+      return newProject;
+    } catch (error) {
+      this.logger.error("Failed to create project", {
+        error: error.message,
+        dto: createProjectDto,
+      });
+      throw error;
+    }
   }
 
   async findAll() {
