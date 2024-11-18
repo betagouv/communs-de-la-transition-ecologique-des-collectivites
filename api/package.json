@@ -37,6 +37,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "drizzle-orm": "^0.36.1",
+    "drizzle-kit": "^0.28.0",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
@@ -55,7 +56,6 @@
     "@typescript-eslint/parser": "^8.0.0",
     "commit-and-tag-version": "^12.5.0",
     "docker-compose": "^1.1.0",
-    "drizzle-kit": "^0.28.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
