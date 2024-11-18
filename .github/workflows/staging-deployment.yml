@@ -53,6 +53,11 @@ jobs:
       - name: Type check
         run: pnpm run type-check
 
+      - name: Run database migrations
+        run: pnpm run drizzle:migrate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+
       - name: Unit tests
         run: pnpm run test
         env:
