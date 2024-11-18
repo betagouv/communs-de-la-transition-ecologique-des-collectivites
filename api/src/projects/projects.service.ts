@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
-import { projects } from "../database/schema";
+import { projects } from "@database/schema";
 import { eq } from "drizzle-orm";
-import { DatabaseService } from "../database/database.service";
+import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "../../logger/logger.service";
 
 @Injectable()

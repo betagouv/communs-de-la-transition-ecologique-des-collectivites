@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ProjectsController } from "./projects.controller";
 import { ProjectsService } from "./projects.service";
 import { CreateProjectDto } from "./dto/create-project.dto";
-import { AppModule } from "../app.module";
+import { AppModule } from "@/app.module";
 import { afterEach } from "node:test";
 
 describe("ProjectsController", () => {

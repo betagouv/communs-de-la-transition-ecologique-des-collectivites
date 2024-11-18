@@ -1,8 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
-import { AppModule } from "../src/app.module";
-import { setupApp } from "../src/setup-app";
+import { AppModule } from "@/app.module";
+import { setupApp } from "@/setup-app";
 import { e2eTestDbSetup } from "./helpers/e2eTestDbSetup";
 import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
 import { describe } from "node:test";
