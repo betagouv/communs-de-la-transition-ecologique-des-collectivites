@@ -5,6 +5,7 @@ import { createLogger, format, transports } from "winston";
 export class CustomLogger implements LoggerService {
   private logger = createLogger({
     level: process.env.NODE_ENV === "production" ? "info" : "debug",
+    silent: process.env.NODE_ENV === "test",
     transports: [
       new transports.Console({
         format: format.combine(
