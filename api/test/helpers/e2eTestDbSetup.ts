@@ -2,7 +2,7 @@ import { join } from "path";
 import dockerCompose from "docker-compose";
 import { execSync } from "child_process";
 
-export const testDbSetup = async () => {
+export const e2eTestDbSetup = async () => {
   console.time("testDbSetup");
   // Set test database URL
   const DATABASE_URL =

@@ -3,8 +3,8 @@ import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
 import { AppModule } from "../src/app.module";
 import { setupApp } from "../src/setup-app";
-import { testDbSetup } from "./testDbSetup";
-import { tearDownSetup } from "./tearDownSetup";
+import { e2eTestDbSetup } from "./helpers/e2eTestDbSetup";
+import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
 import { describe } from "node:test";
 
 describe("AppController (e2e)", () => {
@@ -12,7 +12,7 @@ describe("AppController (e2e)", () => {
   const apiKey = process.env.API_KEY;
   beforeAll(async () => {
     // 👍🏼 We're ready
-    await testDbSetup();
+    await e2eTestDbSetup();
     // temporary solution to allow time for the database to start
     // will be changed once the pipelines are splited into different stages with specific
     // service postgres database in github Action - see ticket https://github.com/orgs/betagouv/projects/129/views/1?pane=issue&itemId=86927723
@@ -21,7 +21,7 @@ describe("AppController (e2e)", () => {
   afterAll(async () => {
     // 👋🏼 We're done
     await app?.close();
-    await tearDownSetup();
+    await e2eTearDownSetup();
   });
 
   beforeEach(async () => {
