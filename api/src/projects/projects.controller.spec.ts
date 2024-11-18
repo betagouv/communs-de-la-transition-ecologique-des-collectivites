@@ -3,6 +3,7 @@ import { ProjectsController } from "./projects.controller";
 import { ProjectsService } from "./projects.service";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { AppModule } from "../app.module";
+import { afterEach } from "node:test";
 
 describe("ProjectsController", () => {
   let controller: ProjectsController;
@@ -16,6 +17,10 @@ describe("ProjectsController", () => {
 
     controller = app.get<ProjectsController>(ProjectsController);
     projectsService = app.get<ProjectsService>(ProjectsService);
+  });
+
+  afterEach(async () => {
+    await app.close();
   });
 
   describe("create", () => {

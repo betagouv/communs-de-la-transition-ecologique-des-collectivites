@@ -15,6 +15,7 @@ export async function testModule(additionalProviders: any[] = []) {
 
   // Initialize module first
   await module.init();
+
   // Get services AFTER module initialization
   const testDbService = module.get<TestDatabaseService>(DatabaseService);
   // Get ProjectsService AFTER database is initialized
@@ -23,6 +24,10 @@ export async function testModule(additionalProviders: any[] = []) {
   return { module, testDbService, projectsService };
 }
 
-export async function teardownTestModule(testDbService: TestDatabaseService) {
+export async function teardownTestModule(
+  testDbService: TestDatabaseService,
+  module: TestingModule,
+) {
   await testDbService.cleanDatabase();
+  await module.close();
 }

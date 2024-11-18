@@ -3,19 +3,22 @@ import { TestDatabaseService } from "../../test/helpers/test-database.service";
 
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { teardownTestModule, testModule } from "../../test/helpers/testModule";
+import { TestingModule } from "@nestjs/testing";
 
 describe("ProjectsService", () => {
   let service: ProjectsService;
   let testDbService: TestDatabaseService;
+  let module: TestingModule;
 
   beforeAll(async () => {
-    const { module, testDbService: tds } = await testModule();
-    service = module.get<ProjectsService>(ProjectsService);
+    const { module: internalModule, testDbService: tds } = await testModule();
+    module = internalModule;
     testDbService = tds;
+    service = module.get<ProjectsService>(ProjectsService);
   });
 
   afterAll(async () => {
-    await teardownTestModule(testDbService);
+    await teardownTestModule(testDbService, module);
   });
 
   beforeEach(async () => {
@@ -32,7 +35,7 @@ describe("ProjectsService", () => {
 
       const result = await service.create(createDto);
 
-      expect(result).toMatchObject({
+      expect(result).toEqual({
         id: expect.any(String),
         createdAt: expect.any(Date),
         ...createDto,
