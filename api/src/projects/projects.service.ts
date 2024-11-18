@@ -1,20 +1,16 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { projects } from "../database/schema";
 import { eq } from "drizzle-orm";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import * as schema from "../database/schema";
-import { DATABASE } from "../database/database.module";
+import { DatabaseService } from "../database/database.service";
 
 @Injectable()
 export class ProjectsService {
-  constructor(
-    @Inject(DATABASE) private readonly database: NodePgDatabase<typeof schema>,
-  ) {}
+  constructor(private dbService: DatabaseService) {}
 
   async create(createProjectDto: CreateProjectDto) {
-    const [newProject] = await this.database
+    const [newProject] = await this.dbService.database
       .insert(projects)
       .values(createProjectDto)
       .returning();
@@ -22,16 +18,17 @@ export class ProjectsService {
   }
 
   async findAll() {
-    return await this.database.select().from(projects);
+    return this.dbService.database.select().from(projects);
   }
 
   async findOne(id: string) {
-    const [project] = await this.database
+    const [project] = await this.dbService.database
       .select()
       .from(projects)
       .where(eq(projects.id, id));
     return project || null;
   }
+
   update(id: string, updateProjectDto: UpdateProjectDto) {
     console.log(updateProjectDto);
     return `This action updates a #${id} project`;

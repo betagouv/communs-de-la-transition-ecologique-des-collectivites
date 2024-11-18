@@ -1,106 +1,85 @@
-import { Test, TestingModule } from "@nestjs/testing";
 import { ProjectsService } from "./projects.service";
-import { projects } from "../database/schema";
-import { DATABASE } from "../database/database.module";
+import { TestDatabaseService } from "../../test/helpers/test-database.service";
+
+import { CreateProjectDto } from "./dto/create-project.dto";
+import { teardownTestModule, testModule } from "../../test/helpers/testModule";
 
 describe("ProjectsService", () => {
   let service: ProjectsService;
-  let db: any;
+  let testDbService: TestDatabaseService;
+
+  beforeAll(async () => {
+    const { module, testDbService: tds } = await testModule();
+    service = module.get<ProjectsService>(ProjectsService);
+    testDbService = tds;
+  });
+
+  afterAll(async () => {
+    await teardownTestModule(testDbService);
+  });
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ProjectsService,
-        {
-          provide: DATABASE,
-          useValue: {
-            select: jest.fn(),
-            insert: jest.fn(),
-            delete: jest.fn(),
-            update: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
-
-    service = module.get<ProjectsService>(ProjectsService);
-    db = module.get(DATABASE);
+    await testDbService.cleanDatabase();
   });
 
   describe("create", () => {
     it("should create a new project", async () => {
-      const createDto = {
+      const createDto: CreateProjectDto = {
         name: "Test Project",
         description: "Test Description",
         ownerUserId: "user1",
       };
 
-      const expectedProject = {
-        id: "generated-id",
-        createdAt: new Date(),
-        ...createDto,
-      };
-
-      db.insert.mockReturnValue({
-        values: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([expectedProject]),
-      });
-
       const result = await service.create(createDto);
-      expect(result).toEqual(expectedProject);
-      expect(db.insert).toHaveBeenCalledWith(projects);
+
+      expect(result).toMatchObject({
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        ...createDto,
+      });
     });
   });
 
   describe("findAll", () => {
     it("should return all projects", async () => {
-      const expectedProjects = [
-        {
-          id: "1",
-          name: "Project 1",
-          description: "Description 1",
-          ownerUserId: "user1",
-          createdAt: new Date(),
-        },
-      ];
+      const createDto1: CreateProjectDto = {
+        name: "Project 1",
+        description: "Description 1",
+        ownerUserId: "user1",
+      };
+      const createDto2: CreateProjectDto = {
+        name: "Project 2",
+        description: "Description 2",
+        ownerUserId: "user2",
+      };
 
-      db.select.mockReturnValue({
-        from: jest.fn().mockResolvedValue(expectedProjects),
-      });
+      await service.create(createDto1);
+      await service.create(createDto2);
 
       const result = await service.findAll();
-      expect(result).toEqual(expectedProjects);
-      expect(db.select).toHaveBeenCalled();
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toMatchObject(createDto1);
+      expect(result[1]).toMatchObject(createDto2);
     });
   });
 
   describe("findOne", () => {
     it("should return a project by id", async () => {
-      const expectedProject = {
-        id: "1",
-        name: "Project 1",
-        description: "Description 1",
+      const createDto: CreateProjectDto = {
+        name: "Test Project",
+        description: "Test Description",
         ownerUserId: "user1",
-        createdAt: new Date(),
       };
 
-      db.select.mockReturnValue({
-        from: jest.fn().mockReturnThis(),
-        where: jest.fn().mockResolvedValue([expectedProject]),
-      });
+      const createdProject = await service.create(createDto);
+      const result = await service.findOne(createdProject.id);
 
-      const result = await service.findOne("1");
-      expect(result).toEqual(expectedProject);
-      expect(db.select).toHaveBeenCalled();
+      expect(result).toMatchObject(createDto);
     });
 
     it("should return null when project not found", async () => {
-      db.select.mockReturnValue({
-        from: jest.fn().mockReturnThis(),
-        where: jest.fn().mockResolvedValue([]),
-      });
-
-      const result = await service.findOne("999");
+      const result = await service.findOne("non-existent-id");
       expect(result).toBeNull();
     });
   });

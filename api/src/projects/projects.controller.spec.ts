@@ -2,8 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ProjectsController } from "./projects.controller";
 import { ProjectsService } from "./projects.service";
 import { CreateProjectDto } from "./dto/create-project.dto";
-import { ConfigModule } from "@nestjs/config";
-import { DATABASE } from "../database/database.module";
+import { AppModule } from "../app.module";
 
 describe("ProjectsController", () => {
   let controller: ProjectsController;
@@ -12,20 +11,7 @@ describe("ProjectsController", () => {
 
   beforeEach(async () => {
     app = await Test.createTestingModule({
-      imports: [ConfigModule],
-      controllers: [ProjectsController],
-      providers: [
-        ProjectsService,
-        {
-          provide: DATABASE,
-          useValue: {
-            select: jest.fn(),
-            insert: jest.fn(),
-            delete: jest.fn(),
-            update: jest.fn(),
-          },
-        },
-      ],
+      imports: [AppModule],
     }).compile();
 
     controller = app.get<ProjectsController>(ProjectsController);
