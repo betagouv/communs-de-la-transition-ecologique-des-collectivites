@@ -1,7 +1,11 @@
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { RequestLoggingInterceptor } from "../logging/request-logging.interceptor";
 
 export function setupApp(app: INestApplication) {
+  const loggingInterceptor = app.get(RequestLoggingInterceptor);
+  app.useGlobalInterceptors(loggingInterceptor);
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -23,8 +27,6 @@ export function setupApp(app: INestApplication) {
       persistAuthorization: true,
     },
   });
-
-  app.useGlobalPipes(new ValidationPipe());
 
   return app;
 }
