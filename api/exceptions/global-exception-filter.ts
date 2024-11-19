@@ -6,9 +6,8 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { Response } from "express";
-import { CustomLogger } from "logging/logger.service";
 import { randomUUID } from "crypto";
-
+import { CustomLogger } from "../logging/logger.service";
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(private logger: CustomLogger) {}
