@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { Response } from "express";
 import { CustomLogger } from "logging/logger.service";
+import { randomUUID } from "crypto";
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -29,13 +30,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       return response.status(status).json({
         statusCode: status,
-        timestamp: new Date().toISOString(),
-        path: request.url,
-        error: errorResponse,
+        ...(typeof errorResponse === "object"
+          ? errorResponse
+          : { message: errorResponse }),
       });
     }
 
+    const errorInstanceId = randomUUID();
+
     this.logger.error("Unhandled Exception", {
+      errorInstanceId,
       exception: exception instanceof Error ? exception.message : exception,
       stack: exception instanceof Error ? exception.stack : undefined,
       path: request.url,
@@ -43,6 +47,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      errorInstanceId,
       timestamp: new Date().toISOString(),
       path: request.url,
       message: "Internal server error",
