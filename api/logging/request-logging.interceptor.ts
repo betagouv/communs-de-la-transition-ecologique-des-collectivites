@@ -17,14 +17,12 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     const startTime = Date.now();
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<Request>();
-    const { method, originalUrl, ip, body } = request;
+    const { method, originalUrl, ip } = request;
 
-    // Log the incoming request
     this.logger.log("Incoming Request", {
       method,
       url: originalUrl,
       ip,
-      body: this.sanitizeBody(body),
     });
 
     return next.handle().pipe(
@@ -42,20 +40,5 @@ export class RequestLoggingInterceptor implements NestInterceptor {
         },
       }),
     );
-  }
-
-  private sanitizeBody(body: any): any {
-    if (!body) return undefined;
-
-    const sanitized = { ...body };
-
-    const sensitiveFields = ["password", "token", "apiKey", "secret"];
-    sensitiveFields.forEach((field) => {
-      if (field in sanitized) {
-        sanitized[field] = "[REDACTED]";
-      }
-    });
-
-    return sanitized;
   }
 }
