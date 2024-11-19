@@ -11,7 +11,7 @@ const commonConfig: Config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@test/(.*)$": "<rootDir>/test/$1",
-    "^@logger/(.*)$": "<rootDir>/src/logger/$1",
+    "^@logging/(.*)$": "<rootDir>/src/logging/$1",
     "^@database/(.*)$": "<rootDir>/src/database/$1",
     "^@projects/(.*)$": "<rootDir>/src/projects/$1",
   },

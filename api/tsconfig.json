@@ -20,7 +20,7 @@
     "paths": {
       "@/*": ["src/*"],
       "@test/*": ["test/*"],
-      "@logger/*": ["src/logger/*"],
+      "@logging/*": ["src/logging/*"],
       "@database/*": ["src/database/*"],
       "@projects/*": ["src/projects/*"]
     }
