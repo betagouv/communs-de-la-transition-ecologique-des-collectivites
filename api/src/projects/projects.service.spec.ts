@@ -3,6 +3,7 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
+import { NotFoundException } from "@nestjs/common";
 
 describe("ProjectsService", () => {
   let service: ProjectsService;
@@ -80,9 +81,15 @@ describe("ProjectsService", () => {
       expect(result).toMatchObject(createDto);
     });
 
-    it("should return null when project not found", async () => {
-      const result = await service.findOne("non-existent-id");
-      expect(result).toBeNull();
+    it("should throw NotFoundException when project not found", async () => {
+      const nonExistentId = "non-existent-id";
+
+      await expect(service.findOne(nonExistentId)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.findOne(nonExistentId)).rejects.toThrow(
+        `Project with ID ${nonExistentId} not found`,
+      );
     });
   });
 });

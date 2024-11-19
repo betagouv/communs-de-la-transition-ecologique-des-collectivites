@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { projects } from "@database/schema";
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
-import { CustomLogger } from "../../logger/logger.service";
+import { CustomLogger } from "../../logging/logger.service";
 
 @Injectable()
 export class ProjectsService {
@@ -45,7 +45,12 @@ export class ProjectsService {
       .select()
       .from(projects)
       .where(eq(projects.id, id));
-    return project || null;
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${id} not found`);
+    }
+
+    return project;
   }
 
   update(id: string, updateProjectDto: UpdateProjectDto) {
