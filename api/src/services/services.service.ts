@@ -10,18 +10,22 @@ export class ServicesService {
   private mockServices = [
     {
       id: "1",
-      name: "GitHub",
-      description: "Version control and collaboration platform",
-      logoUrl: "https://github.com/logo.png",
-      url: "https://github.com",
+      name: "Facili-Tacct",
+      description:
+        "Objectivez votre diagnostic avec les données socio-économiques qui rendent votre territoire unique et découvrez des arguments et ressources pour mobiliser vos collègues et partenaires externes sur l'adaptation au changement climatique.",
+      logoUrl:
+        "https://facili-tacct.beta.gouv.fr/_next/static/media/favicon.f453a8cf.svg",
+      url: "https://facili-tacct.beta.gouv.fr/thematiques?codgeo=01010&codepci=200070852",
       createdAt: new Date(),
     },
     {
       id: "2",
-      name: "Jira",
-      description: "Project management tool",
-      logoUrl: "https://jira.com/logo.png",
-      url: "https://jira.com",
+      name: "La boussole de la transition écologique",
+      description:
+        "Accompagner le porteur de projet tout au long de sa réflexion, le plus en amont possible, pour améliorer son projet quelle qu’en soit sa nature, en prenant en compte les impacts environnementaux.",
+      logoUrl:
+        "https://www.boussole-te.ecologie.gouv.fr//IMG/svg/img_boussole.svg",
+      url: "https://www.boussole-te.ecologie.gouv.fr/",
       createdAt: new Date(),
     },
   ];

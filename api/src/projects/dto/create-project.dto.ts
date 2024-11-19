@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString } from "class-validator";
-import { projects } from "../../database/schema";
+import { projects } from "@database/schema";
 import { InferInsertModel } from "drizzle-orm";
 
 // Omit id and createdAt as they're auto-generated
