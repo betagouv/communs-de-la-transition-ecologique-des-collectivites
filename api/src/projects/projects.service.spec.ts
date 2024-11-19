@@ -81,7 +81,7 @@ describe("ProjectsService", () => {
       expect(result).toMatchObject(createDto);
     });
 
-    it("should return NotFoundException when project not found", async () => {
+    it("should throw NotFoundException when project not found", async () => {
       const nonExistentId = "non-existent-id";
 
       await expect(service.findOne(nonExistentId)).rejects.toThrow(
