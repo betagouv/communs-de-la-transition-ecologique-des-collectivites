@@ -4,7 +4,7 @@ import { UpdateProjectDto } from "./dto/update-project.dto";
 import { projects } from "@database/schema";
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
-import { CustomLogger } from "../../logging/logger.service";
+import { CustomLogger } from "@/logging/logger.service";
 
 @Injectable()
 export class ProjectsService {

@@ -5,8 +5,8 @@ import { ProjectsModule } from "@projects/projects.module";
 import { ConfigModule } from "@nestjs/config";
 import { ApiKeyGuardProvider } from "./auth/api-key-guard";
 import { DatabaseModule } from "@database/database.module";
-import { LoggerModule } from "../logging/logger.module";
-import { RequestLoggingInterceptor } from "../logging/request-logging.interceptor";
+import { LoggerModule } from "@/logging/logger.module";
+import { RequestLoggingInterceptor } from "@/logging/request-logging.interceptor";
 
 @Module({
   imports: [
