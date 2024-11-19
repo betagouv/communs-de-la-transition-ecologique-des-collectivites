@@ -1,8 +1,7 @@
 import { ProjectsService } from "./projects.service";
-import { TestDatabaseService } from "../../test/helpers/test-database.service";
-
+import { TestDatabaseService } from "@test/helpers/test-database.service";
+import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { CreateProjectDto } from "./dto/create-project.dto";
-import { teardownTestModule, testModule } from "../../test/helpers/testModule";
 import { TestingModule } from "@nestjs/testing";
 
 describe("ProjectsService", () => {

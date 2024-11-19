@@ -25,8 +25,6 @@ export function setupApp(app: INestApplication) {
   });
 
   app.useGlobalPipes(new ValidationPipe());
-  // Add any other global configurations here
-  // like app.enableCors(), app.setGlobalPrefix(), etc.
 
   return app;
 }
