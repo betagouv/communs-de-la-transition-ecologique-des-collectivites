@@ -3,6 +3,7 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { RequestLoggingInterceptor } from "@/logging/request-logging.interceptor";
 import { GlobalExceptionFilter } from "@/exceptions/global-exception-filter";
 import { CustomLogger } from "@/logging/logger.service";
+import helmet from "helmet";
 
 export function setupApp(app: INestApplication) {
   const logger = app.get(CustomLogger);
@@ -21,6 +22,8 @@ export function setupApp(app: INestApplication) {
       transform: true,
     }),
   );
+
+  app.use(helmet());
 
   const config = new DocumentBuilder()
     .setTitle("API Documentation")
