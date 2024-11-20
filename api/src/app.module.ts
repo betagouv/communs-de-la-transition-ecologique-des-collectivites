@@ -10,6 +10,7 @@ import { RequestLoggingInterceptor } from "@/logging/request-logging.interceptor
 import { ThrottlerModule } from "@nestjs/throttler";
 import { ThrottlerGuardProvider } from "./security/throttler.provider";
 import { throttlerConfig } from "./security/throttler.config";
+import { ServicesModule } from "./services/services.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { throttlerConfig } from "./security/throttler.config";
     ThrottlerModule.forRoot(throttlerConfig),
     DatabaseModule,
     ProjectsModule,
+    ServicesModule,
     LoggerModule,
   ],
   controllers: [AppController],

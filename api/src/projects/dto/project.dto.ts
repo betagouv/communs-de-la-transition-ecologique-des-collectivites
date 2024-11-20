@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { projects } from "../../database/schema";
+import { projects } from "@database/schema";
 import { InferSelectModel } from "drizzle-orm";
 
 export class ProjectDto implements InferSelectModel<typeof projects> {
