@@ -5,7 +5,7 @@ import { services } from "@database/schema";
 
 export class CreateServiceDto implements InferInsertModel<typeof services> {
   @ApiProperty({
-    example: "GitHub",
+    example: "Facili-Tacct",
     description: "The name of the service",
   })
   @IsString()
@@ -14,14 +14,16 @@ export class CreateServiceDto implements InferInsertModel<typeof services> {
 
   @ApiProperty({
     example: "Version control and collaboration platform",
-    description: "The description of the service",
+    description:
+      "Objectivez votre diagnostic avec les données socio-économiques qui rendent votre territoire unique et découvrez des arguments et ressources pour mobiliser vos collègues et partenaires externes sur l'adaptation au changement climatique.",
   })
   @IsString()
   @IsNotEmpty()
   description: string;
 
   @ApiProperty({
-    example: "https://github.com/logo.png",
+    example:
+      "https://facili-tacct.beta.gouv.fr/_next/static/media/favicon.f453a8cf.svg",
     description: "The URL of the service logo",
   })
   @IsString()
@@ -30,7 +32,7 @@ export class CreateServiceDto implements InferInsertModel<typeof services> {
   logoUrl: string;
 
   @ApiProperty({
-    example: "https://github.com",
+    example: "https://www.boussole-te.ecologie.gouv.fr/",
     description: "The URL of the service",
   })
   @IsString()
