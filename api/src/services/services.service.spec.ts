@@ -47,8 +47,11 @@ describe("ServicesService", () => {
     it("should return mock services for now", async () => {
       const result = await service.getServicesByProjectId("any-id");
       expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty("name", "GitHub");
-      expect(result[1]).toHaveProperty("name", "Jira");
+      expect(result[0]).toHaveProperty("name", "Facili-Tacct");
+      expect(result[1]).toHaveProperty(
+        "name",
+        "La boussole de la transition écologique",
+      );
     });
   });
 });
