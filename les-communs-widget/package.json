@@ -1,0 +1,24 @@
+{
+  "name": "les-communs-widget",
+  "version": "0.0.1",
+  "type": "module",
+  "files": ["dist"],
+  "main": "./dist/les-communs-widget.umd.js",
+  "module": "./dist/les-communs-widget.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/les-communs-widget.es.js",
+      "require": "./dist/les-communs-widget.umd.js"
+    }
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  }
+}
