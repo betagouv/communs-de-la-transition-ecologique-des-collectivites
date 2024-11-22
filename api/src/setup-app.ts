@@ -22,6 +22,13 @@ export function setupApp(app: INestApplication) {
     }),
   );
 
+  // Enable CORS
+  app.enableCors({
+    origin: ["http://localhost:5173"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  });
+
   const config = new DocumentBuilder()
     .setTitle("API Documentation")
     .setDescription("API description")

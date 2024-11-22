@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param } from "@nestjs/common";
 import { ServicesService } from "./services.service";
 import { CreateServiceDto } from "./dto/create-service.dto";
 import { ApiBearerAuth } from "@nestjs/swagger";
+import { Public } from "@/auth/public.decorator";
 
 @ApiBearerAuth()
 @Controller("services")
@@ -23,6 +24,7 @@ export class ServicesController {
     return this.servicesService.findOne(id);
   }
 
+  @Public()
   @Get("project/:projectId")
   getServicesByProjectId(@Param("projectId") projectId: string) {
     return this.servicesService.getServicesByProjectId(projectId);
