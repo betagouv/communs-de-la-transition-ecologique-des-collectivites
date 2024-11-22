@@ -1,0 +1,42 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      '@codegouvfr/react-dsfr':
+        specifier: ^1.14.6
+        version: 1.14.6
+
+packages:
+
+  '@codegouvfr/react-dsfr@1.14.6':
+    resolution: {integrity: sha512-bprwQ5hB03KJ6vtrvDJ8jQjxzLQIVTT7APp9wxQ0TqxCtW292eUNbIr8yVmskLwpdUwNh3RJ/V2RMHF0jbw9JQ==}
+    hasBin: true
+    peerDependencies:
+      '@gouvfr/dsfr-chart': ^1.0.0
+    peerDependenciesMeta:
+      '@gouvfr/dsfr-chart':
+        optional: true
+
+  tsafe@1.8.5:
+    resolution: {integrity: sha512-LFWTWQrW6rwSY+IBNFl2ridGfUzVsPwrZ26T4KUJww/py8rzaQ/SY+MIz6YROozpUCaRcuISqagmlwub9YT9kw==}
+
+  yargs-parser@21.1.1:
+    resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
+    engines: {node: '>=12'}
+
+snapshots:
+
+  '@codegouvfr/react-dsfr@1.14.6':
+    dependencies:
+      tsafe: 1.8.5
+      yargs-parser: 21.1.1
+
+  tsafe@1.8.5: {}
+
+  yargs-parser@21.1.1: {}
