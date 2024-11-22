@@ -2,7 +2,9 @@
   "name": "les-communs-widget",
   "version": "0.0.1",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/les-communs-widget.umd.js",
   "module": "./dist/les-communs-widget.es.js",
   "types": "./dist/index.d.ts",
@@ -20,5 +22,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
+  },
+  "dependencies": {
+    "@codegouvfr/react-dsfr": "^1.14.6"
   }
 }

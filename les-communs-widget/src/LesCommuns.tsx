@@ -1,9 +1,14 @@
-import { useEffect, useState } from 'react';
-import { Service } from '../types';
+import { useEffect, useState } from "react";
 
 interface LesCommunsProps {
   projectId: string;
 }
+
+type Service = {
+  id: string;
+  name: string;
+  description: string;
+};
 
 export const LesCommuns = ({ projectId }: LesCommunsProps) => {
   const [services, setServices] = useState<Service[]>([]);
@@ -14,14 +19,16 @@ export const LesCommuns = ({ projectId }: LesCommunsProps) => {
     const fetchServices = async () => {
       try {
         // Replace with your actual API endpoint
-        const response = await fetch(`/api/projects/${projectId}/services`);
+        const response = await fetch(
+          `http://localhost:3000/services/project/${projectId}`,
+        );
         if (!response.ok) {
-          throw new Error('Failed to fetch services');
+          throw new Error("Failed to fetch services");
         }
         const data = await response.json();
         setServices(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
       }
@@ -32,22 +39,22 @@ export const LesCommuns = ({ projectId }: LesCommunsProps) => {
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
-  if (services.length === 0) return <div>No services found for this project</div>;
+  if (services.length === 0)
+    return <div>No services found for this project</div>;
 
   return (
-    <div className="fr-container">
+    <div
+      className="fr-container fr-pb-2w fr-shadow-md"
+      style={{ border: "black solid 1px" }}
+    >
       <h2>Services associés</h2>
       <div className="fr-grid-row fr-grid-row--gutters">
         {services.map((service) => (
           <div key={service.id} className="fr-col-12 fr-col-md-4">
             <div className="fr-card fr-enlarge-link">
               <div className="fr-card__body">
-                <h3 className="fr-card__title">
-                  {service.name}
-                </h3>
-                <p className="fr-card__desc">
-                  {service.description}
-                </p>
+                <h3 className="fr-card__title">{service.name}</h3>
+                <p className="fr-card__desc">{service.description}</p>
               </div>
             </div>
           </div>
@@ -55,4 +62,4 @@ export const LesCommuns = ({ projectId }: LesCommunsProps) => {
       </div>
     </div>
   );
-}; 
+};
