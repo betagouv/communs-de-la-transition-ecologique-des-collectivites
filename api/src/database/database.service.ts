@@ -4,7 +4,8 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 
-export type Database = ReturnType<typeof drizzle>;
+export type Schema = typeof schema;
+export type Database = ReturnType<typeof drizzle<Schema>>;
 
 @Injectable()
 export class DatabaseService implements OnModuleDestroy {

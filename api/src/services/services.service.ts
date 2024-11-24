@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateServiceDto } from "./dto/create-service.dto";
-import { services } from "@database/schema";
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@logging/logger.service";
+import { services } from "@database/schema";
 
 @Injectable()
 export class ServicesService {

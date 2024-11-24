@@ -2,9 +2,10 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { projects } from "@database/schema";
-import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@/logging/logger.service";
+import { ProjectDto } from "./dto/project.dto";
+import { hashEmail } from "@projects/utils";
 
 @Injectable()
 export class ProjectsService {
@@ -13,20 +14,30 @@ export class ProjectsService {
     private logger: CustomLogger,
   ) {}
 
-  async create(createProjectDto: CreateProjectDto) {
+  async create(createProjectDto: CreateProjectDto): Promise<ProjectDto> {
     this.logger.debug("Creating new project", { dto: createProjectDto });
 
     try {
-      const [newProject] = await this.dbService.database
-        .insert(projects)
-        .values(createProjectDto)
-        .returning();
+      return await this.dbService.database.transaction(async (tx) => {
+        // fake insee codes for now till we have a real source
+        const communes = ["01001", "75056", "97A01"];
 
-      this.logger.log("Project created successfully", {
-        projectId: newProject.id,
+        const [project] = await tx
+          .insert(projects)
+          .values({
+            nom: createProjectDto.nom,
+            description: createProjectDto.description,
+            codeSiret: createProjectDto.codeSiret,
+            porteurEmailHash: hashEmail(createProjectDto.porteurEmail),
+            communeInseeCodes: communes,
+            budget: createProjectDto.budget,
+            forecastedStartDate: createProjectDto.forecastedStartDate,
+            status: createProjectDto.status,
+          })
+          .returning();
+
+        return project;
       });
-
-      return newProject;
     } catch (error) {
       this.logger.error("Failed to create project", {
         error: error.message,
@@ -36,15 +47,14 @@ export class ProjectsService {
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<ProjectDto[]> {
     return this.dbService.database.select().from(projects);
   }
 
-  async findOne(id: string) {
-    const [project] = await this.dbService.database
-      .select()
-      .from(projects)
-      .where(eq(projects.id, id));
+  async findOne(id: string): Promise<ProjectDto> {
+    const project = await this.dbService.database.query.projects.findFirst({
+      where: (projects, { eq }) => eq(projects.id, id),
+    });
 
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);

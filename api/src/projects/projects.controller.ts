@@ -19,13 +19,15 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  create(@Body() createProjectDto: CreateProjectDto) {
+  create(@Body() createProjectDto: CreateProjectDto): Promise<ProjectDto> {
     return this.projectsService.create(createProjectDto);
   }
 
   @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(): Promise<ProjectDto[]> {
+    const projects = this.projectsService.findAll();
+
+    return projects;
   }
 
   @Get(":id")
@@ -33,13 +35,18 @@ export class ProjectsController {
     return this.projectsService.findOne(id);
   }
 
+  //todo to implement
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateProjectDto: UpdateProjectDto) {
+  update(
+    @Param("id") id: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+  ): string {
     return this.projectsService.update(id, updateProjectDto);
   }
 
+  //todo to implement
   @Delete(":id")
-  remove(@Param("id") id: string) {
+  remove(@Param("id") id: string): string {
     return this.projectsService.remove(id);
   }
 }

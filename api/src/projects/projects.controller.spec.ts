@@ -4,6 +4,8 @@ import { ProjectsService } from "./projects.service";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { AppModule } from "@/app.module";
 import { afterEach } from "node:test";
+import { ProjectStatus } from "@/database/schema";
+import { ProjectDto } from "./dto/project.dto";
 
 describe("ProjectsController", () => {
   let controller: ProjectsController;
@@ -26,15 +28,23 @@ describe("ProjectsController", () => {
   describe("create", () => {
     it("should create a new project", async () => {
       const createProjectDto: CreateProjectDto = {
-        name: "Test Project",
+        nom: "Test Project",
         description: "Test Description",
-        ownerUserId: "user1",
+        codeSiret: "12345678901234",
+        porteurEmail: "test@example.com",
+        budget: 100000,
+        forecastedStartDate: "2025-01-01",
+        status: "DRAFT" as keyof typeof ProjectStatus,
+        communeInseeCodes: ["75056"],
       };
 
-      const expectedProject = {
-        id: "generated-id",
+      const expectedProject: ProjectDto = {
+        id: "test-id",
         createdAt: new Date(),
+        updatedAt: new Date(),
         ...createProjectDto,
+        porteurEmailHash: expect.any(String), // Hash will be generated
+        communeInseeCodes: ["75056"],
       };
 
       jest.spyOn(projectsService, "create").mockResolvedValue(expectedProject);
@@ -50,18 +60,17 @@ describe("ProjectsController", () => {
     it("should return an array of projects", async () => {
       const expectedProjects = [
         {
-          id: "1",
-          name: "Project 1",
-          description: "Description 1",
-          ownerUserId: "user1",
+          id: "test-id",
           createdAt: new Date(),
-        },
-        {
-          id: "2",
-          name: "Project 2",
-          description: "Description 2",
-          ownerUserId: "user1",
-          createdAt: new Date(),
+          updatedAt: new Date(),
+          nom: "Test Project",
+          description: "Test Description",
+          codeSiret: "12345678901234",
+          porteurEmailHash: "hashed-email",
+          budget: 100000,
+          forecastedStartDate: "2024-01-01",
+          status: ProjectStatus.DRAFT,
+          communeInseeCodes: ["75056"],
         },
       ];
 
@@ -77,11 +86,17 @@ describe("ProjectsController", () => {
   describe("findOne", () => {
     it("should return a single project", async () => {
       const expectedProject = {
-        id: "1",
-        name: "Project 1",
-        description: "Description 1",
-        ownerUserId: "user1",
+        id: "test-id",
         createdAt: new Date(),
+        updatedAt: new Date(),
+        nom: "Test Project",
+        description: "Test Description",
+        codeSiret: "12345678901234",
+        porteurEmailHash: "hashed-email",
+        budget: 100000,
+        forecastedStartDate: "2024-01-01",
+        status: ProjectStatus.DRAFT,
+        communeInseeCodes: ["75056"],
       };
 
       jest.spyOn(projectsService, "findOne").mockResolvedValue(expectedProject);
