@@ -1,12 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
-  IsNotEmpty,
-  IsString,
-  IsNumber,
-  IsEnum,
   IsArray,
+  IsDateString,
   IsEmail,
-  Matches,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ProjectStatus } from "@database/schema";
@@ -36,8 +36,17 @@ export class CreateProjectDto {
   @Type(() => Number)
   budget: number;
 
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({
+    description: "Forecasted start date in YYYY-MM-DD format",
+    example: "2024-03-01",
+    type: String,
+  })
+  @IsDateString(
+    {},
+    {
+      message: "Date must be in YYYY-MM-DD format (e.g., 2024-03-01)",
+    },
+  )
   forecastedStartDate: string;
 
   @ApiProperty({ enum: ProjectStatus })
@@ -51,11 +60,5 @@ export class CreateProjectDto {
   })
   @IsArray()
   @IsString({ each: true })
-  // todo - confirm regex
-  @Matches(/^\d{2,3}[A-Z]?\d{3}$/, {
-    each: true,
-    message:
-      'Each INSEE code must be in the correct format (e.g., "01001", "75056", or "97A01")',
-  })
   communeInseeCodes: string[];
 }

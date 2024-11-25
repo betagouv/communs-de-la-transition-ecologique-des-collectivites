@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { projects } from "@database/schema";
@@ -14,10 +18,24 @@ export class ProjectsService {
     private logger: CustomLogger,
   ) {}
 
+  private validateDate(dateStr: string): void {
+    const inputDate = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (inputDate < today) {
+      throw new BadRequestException(
+        "Forecasted start date must be in the future",
+      );
+    }
+  }
+
   async create(createProjectDto: CreateProjectDto): Promise<ProjectDto> {
     this.logger.debug("Creating new project", { dto: createProjectDto });
 
     try {
+      this.validateDate(createProjectDto.forecastedStartDate);
+
       return await this.dbService.database.transaction(async (tx) => {
         // fake insee codes for now till we have a real source
         const communes = ["01001", "75056", "97A01"];

@@ -6,6 +6,7 @@ import { AppModule } from "@/app.module";
 import { afterEach } from "node:test";
 import { ProjectStatus } from "@/database/schema";
 import { ProjectDto } from "./dto/project.dto";
+import { getFutureDate } from "@test/helpers/getFutureDate";
 
 describe("ProjectsController", () => {
   let controller: ProjectsController;
@@ -25,6 +26,7 @@ describe("ProjectsController", () => {
     await app.close();
   });
 
+
   describe("create", () => {
     it("should create a new project", async () => {
       const createProjectDto: CreateProjectDto = {
@@ -33,7 +35,7 @@ describe("ProjectsController", () => {
         codeSiret: "12345678901234",
         porteurEmail: "test@example.com",
         budget: 100000,
-        forecastedStartDate: "2025-01-01",
+        forecastedStartDate: getFutureDate(),
         status: "DRAFT" as keyof typeof ProjectStatus,
         communeInseeCodes: ["75056"],
       };
@@ -68,7 +70,7 @@ describe("ProjectsController", () => {
           codeSiret: "12345678901234",
           porteurEmailHash: "hashed-email",
           budget: 100000,
-          forecastedStartDate: "2024-01-01",
+          forecastedStartDate: getFutureDate(),
           status: ProjectStatus.DRAFT,
           communeInseeCodes: ["75056"],
         },
@@ -94,7 +96,7 @@ describe("ProjectsController", () => {
         codeSiret: "12345678901234",
         porteurEmailHash: "hashed-email",
         budget: 100000,
-        forecastedStartDate: "2024-01-01",
+        forecastedStartDate: getFutureDate(),
         status: ProjectStatus.DRAFT,
         communeInseeCodes: ["75056"],
       };

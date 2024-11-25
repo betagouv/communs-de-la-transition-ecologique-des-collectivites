@@ -27,7 +27,10 @@ export class ProjectDto implements InferSelectModel<typeof projects> {
   @ApiProperty()
   budget: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: "Forecasted start date in YYYY-MM-DD format",
+    example: "2024-03-01",
+  })
   forecastedStartDate: string;
 
   @ApiProperty({ enum: ["DRAFT", "READY", "IN_PROGRESS", "DONE", "CANCELLED"] })

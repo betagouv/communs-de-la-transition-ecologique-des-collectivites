@@ -5,6 +5,7 @@ import { CreateProjectDto } from "./dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
 import { hashEmail } from "@projects/utils";
+import { getFutureDate } from "@test/helpers/getFutureDate";
 
 describe("ProjectsService", () => {
   let service: ProjectsService;
@@ -36,7 +37,7 @@ describe("ProjectsService", () => {
         porteurEmail: "porteurEmail@beta.gouv.fr",
         codeSiret: "12345678901234",
         budget: 100000,
-        forecastedStartDate: "2024-11-24",
+        forecastedStartDate: getFutureDate(),
         status: "DRAFT",
         communeInseeCodes: mockedCommunes,
       };
@@ -58,13 +59,14 @@ describe("ProjectsService", () => {
 
   describe("findAll", () => {
     it("should return all projects", async () => {
+      const futureDate = getFutureDate();
       const createDto1: CreateProjectDto = {
         nom: "Project 1",
         description: "Description 1",
         porteurEmail: "porteurEmail1@beta.gouv.fr",
         codeSiret: "12345678901234",
         budget: 100000,
-        forecastedStartDate: "2024-11-24",
+        forecastedStartDate: futureDate,
         status: "DRAFT",
         communeInseeCodes: mockedCommunes,
       };
@@ -74,7 +76,7 @@ describe("ProjectsService", () => {
         porteurEmail: "porteurEmail2@beta.gouv.fr",
         codeSiret: "12345678901234",
         budget: 100000,
-        forecastedStartDate: "2024-11-24",
+        forecastedStartDate: futureDate,
         status: "DRAFT",
         communeInseeCodes: mockedCommunes,
       };
@@ -115,7 +117,7 @@ describe("ProjectsService", () => {
         porteurEmail: "porteurEmail@beta.gouv.fr",
         codeSiret: "12345678901234",
         budget: 100000,
-        forecastedStartDate: "2024-11-24",
+        forecastedStartDate: getFutureDate(),
         status: "DRAFT",
         communeInseeCodes: mockedCommunes,
       };
