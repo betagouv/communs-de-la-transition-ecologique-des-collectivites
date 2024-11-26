@@ -1,35 +1,45 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { projects } from "@database/schema";
+import { projects, ProjectStatus, projectStatusEnum } from "@database/schema";
 import { InferSelectModel } from "drizzle-orm";
 
 export class ProjectDto implements InferSelectModel<typeof projects> {
-  @ApiProperty({
-    example: "clg2x3e4h0000ml0g8vfy1q1x",
-    description: "The unique identifier of the project",
-  })
+  @ApiProperty()
   id: string;
 
-  @ApiProperty({
-    example: "2024-03-19T12:00:00Z",
-    description: "When the project was created",
-  })
+  @ApiProperty()
   createdAt: Date;
 
-  @ApiProperty({
-    example: "My Awesome Project",
-    description: "The name of the project",
-  })
-  name: string;
+  @ApiProperty()
+  updatedAt: Date;
 
-  @ApiProperty({
-    example: "This is a detailed description of my project",
-    description: "The description of the project",
-  })
+  @ApiProperty()
+  nom: string;
+
+  @ApiProperty()
   description: string;
 
+  @ApiProperty()
+  codeSiret: string;
+
+  @ApiProperty()
+  porteurEmailHash: string;
+
+  @ApiProperty()
+  budget: number;
+
   @ApiProperty({
-    example: "user123",
-    description: "The ID of the user who owns this project",
+    description: "Forecasted start date in YYYY-MM-DD format",
+    example: "2024-03-01",
   })
-  ownerUserId: string;
+  forecastedStartDate: string;
+
+  @ApiProperty({ enum: projectStatusEnum.enumValues })
+  status: ProjectStatus;
+
+  @ApiProperty({
+    type: [String],
+    description: "Array of INSEE codes for the communes",
+    example: ["01001", "75056", "97A01"],
+  })
+  communeInseeCodes: string[];
 }

@@ -1,19 +1,39 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  integer,
+  pgEnum,
+  uuid,
+} from "drizzle-orm/pg-core";
+
+//todo still in discussion
+export const projectStatusEnum = pgEnum("project_status", [
+  "DRAFT",
+  "READY",
+  "IN_PROGRESS",
+  "DONE",
+  "CANCELLED",
+]);
+
+export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
 export const projects = pgTable("projects", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  createdAt: timestamp("createdAt").defaultNow(),
-  name: text("name").notNull(),
+  id: uuid("id").primaryKey().defaultRandom(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  nom: text("nom").notNull(),
   description: text("description").notNull(),
-  ownerUserId: text("ownerUserId").notNull(),
+  codeSiret: text("code_siret").notNull(),
+  porteurEmailHash: text("porteur_email_hash").notNull(),
+  communeInseeCodes: text("commune_insee_codes").array().notNull(),
+  budget: integer("budget").notNull(),
+  forecastedStartDate: text("forecasted_start_date").notNull(),
+  status: projectStatusEnum().notNull(),
 });
 
 export const services = pgTable("services", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  id: uuid("id").primaryKey().defaultRandom(),
   createdAt: timestamp("createdAt").defaultNow(),
   name: text("name").notNull(),
   description: text("description").notNull(),

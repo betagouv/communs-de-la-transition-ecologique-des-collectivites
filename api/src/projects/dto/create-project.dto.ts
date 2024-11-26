@@ -1,31 +1,64 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
-import { projects } from "@database/schema";
-import { InferInsertModel } from "drizzle-orm";
+import {
+  IsArray,
+  IsDateString,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+} from "class-validator";
+import { Type } from "class-transformer";
+import { ProjectStatus, projectStatusEnum } from "@database/schema";
 
-// Omit id and createdAt as they're auto-generated
-export class CreateProjectDto implements InferInsertModel<typeof projects> {
-  @ApiProperty({
-    example: "My Awesome Project",
-    description: "The name of the project",
-  })
+export class CreateProjectDto {
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  name: string;
+  nom: string;
 
-  @ApiProperty({
-    example: "This is a detailed description of my project",
-    description: "The description of the project",
-  })
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty({
-    example: "user123",
-    description: "The ID of the user who owns this project",
-  })
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  ownerUserId: string;
+  codeSiret: string;
+
+  @ApiProperty()
+  @IsEmail()
+  porteurEmail: string;
+
+  @ApiProperty()
+  @IsNumber()
+  @Type(() => Number)
+  budget: number;
+
+  @ApiProperty({
+    description: "Forecasted start date in YYYY-MM-DD format",
+    example: "2024-03-01",
+    type: String,
+  })
+  @IsDateString(
+    {},
+    {
+      message: "Date must be in YYYY-MM-DD format (e.g., 2024-03-01)",
+    },
+  )
+  forecastedStartDate: string;
+
+  @ApiProperty({ enum: projectStatusEnum.enumValues })
+  @IsEnum(projectStatusEnum.enumValues)
+  status: ProjectStatus;
+
+  @ApiProperty({
+    type: [String],
+    description: "Array of INSEE codes for the communes",
+    example: ["01001", "75056", "97A01"],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  communeInseeCodes: string[];
 }
