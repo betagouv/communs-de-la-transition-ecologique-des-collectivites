@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { projects, ProjectStatus } from "@database/schema";
+import { projects, ProjectStatus, projectStatusEnum } from "@database/schema";
 import { InferSelectModel } from "drizzle-orm";
 
 export class ProjectDto implements InferSelectModel<typeof projects> {
@@ -33,8 +33,8 @@ export class ProjectDto implements InferSelectModel<typeof projects> {
   })
   forecastedStartDate: string;
 
-  @ApiProperty({ enum: ["DRAFT", "READY", "IN_PROGRESS", "DONE", "CANCELLED"] })
-  status: keyof typeof ProjectStatus;
+  @ApiProperty({ enum: projectStatusEnum.enumValues })
+  status: ProjectStatus;
 
   @ApiProperty({
     type: [String],

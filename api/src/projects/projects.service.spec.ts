@@ -138,8 +138,7 @@ describe("ProjectsService", () => {
     });
 
     it("should throw NotFoundException when project not found", async () => {
-      const nonExistentId = "non-existent-id";
-
+      const nonExistentId = "00000000-0000-0000-0000-000000000000";
       await expect(service.findOne(nonExistentId)).rejects.toThrow(
         NotFoundException,
       );

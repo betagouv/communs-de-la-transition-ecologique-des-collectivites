@@ -22,6 +22,7 @@
     "prepare": "cd .. && husky api/.husky",
     "release": "commit-and-tag-version",
     "db:start": "docker-compose up -d",
+    "db:clean": "docker-compose down -v",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push:pg",
     "db:migrate:drizzle": "drizzle-kit migrate",

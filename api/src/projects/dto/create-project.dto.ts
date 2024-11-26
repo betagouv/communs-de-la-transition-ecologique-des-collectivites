@@ -9,7 +9,7 @@ import {
   IsString,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { ProjectStatus } from "@database/schema";
+import { ProjectStatus, projectStatusEnum } from "@database/schema";
 
 export class CreateProjectDto {
   @ApiProperty()
@@ -49,9 +49,9 @@ export class CreateProjectDto {
   )
   forecastedStartDate: string;
 
-  @ApiProperty({ enum: ProjectStatus })
-  @IsEnum(ProjectStatus)
-  status: keyof typeof ProjectStatus;
+  @ApiProperty({ enum: projectStatusEnum.enumValues })
+  @IsEnum(projectStatusEnum.enumValues)
+  status: ProjectStatus;
 
   @ApiProperty({
     type: [String],
