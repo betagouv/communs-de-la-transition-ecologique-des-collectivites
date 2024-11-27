@@ -8,6 +8,20 @@
       "when": 1732555154581,
       "tag": "0000_swift_george_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1732631148403,
+      "tag": "0001_deep_speed",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1732634389980,
+      "tag": "0002_lean_galactus",
+      "breakpoints": true
     }
   ]
 }

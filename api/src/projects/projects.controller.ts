@@ -19,15 +19,13 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  create(@Body() createProjectDto: CreateProjectDto): Promise<ProjectDto> {
+  create(@Body() createProjectDto: CreateProjectDto): Promise<{ id: string }> {
     return this.projectsService.create(createProjectDto);
   }
 
   @Get()
   findAll(): Promise<ProjectDto[]> {
-    const projects = this.projectsService.findAll();
-
-    return projects;
+    return this.projectsService.findAll();
   }
 
   @Get(":id")

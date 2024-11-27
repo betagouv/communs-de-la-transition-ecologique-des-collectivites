@@ -2,7 +2,23 @@ import { ApiProperty } from "@nestjs/swagger";
 import { projects, ProjectStatus, projectStatusEnum } from "@database/schema";
 import { InferSelectModel } from "drizzle-orm";
 
-export class ProjectDto implements InferSelectModel<typeof projects> {
+class PorteurReferentDto {
+  @ApiProperty()
+  email: string;
+
+  @ApiProperty()
+  telephone: string | null;
+
+  @ApiProperty()
+  prenom: string | null;
+
+  @ApiProperty()
+  nom: string | null;
+}
+
+export class ProjectDto
+  implements Omit<InferSelectModel<typeof projects>, "porteurReferentId">
+{
   @ApiProperty()
   id: string;
 
@@ -21,8 +37,8 @@ export class ProjectDto implements InferSelectModel<typeof projects> {
   @ApiProperty()
   codeSiret: string;
 
-  @ApiProperty()
-  porteurEmailHash: string;
+  @ApiProperty({ type: PorteurReferentDto })
+  porteurReferent: PorteurReferentDto | null;
 
   @ApiProperty()
   budget: number;

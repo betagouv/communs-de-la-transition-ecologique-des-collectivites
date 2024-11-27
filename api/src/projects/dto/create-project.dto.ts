@@ -11,6 +11,24 @@ import {
 import { Type } from "class-transformer";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
 
+class CreatePorteurReferentDto {
+  @ApiProperty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  telephone?: string;
+
+  @ApiProperty()
+  @IsString()
+  prenom?: string;
+
+  @ApiProperty()
+  @IsString()
+  nom?: string;
+}
+
 export class CreateProjectDto {
   @ApiProperty()
   @IsString()
@@ -27,9 +45,8 @@ export class CreateProjectDto {
   @IsNotEmpty()
   codeSiret: string;
 
-  @ApiProperty()
-  @IsEmail()
-  porteurEmail: string;
+  @ApiProperty({ required: false })
+  porteurReferent?: CreatePorteurReferentDto;
 
   @ApiProperty()
   @IsNumber()

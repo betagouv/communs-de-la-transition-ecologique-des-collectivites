@@ -5,11 +5,11 @@ import {
 } from "@nestjs/common";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
-import { projects } from "@database/schema";
+import { porteurReferents, projects } from "@database/schema";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@/logging/logger.service";
 import { ProjectDto } from "./dto/project.dto";
-import { hashEmail } from "@projects/utils";
+import { eq } from "drizzle-orm";
 
 @Injectable()
 export class ProjectsService {
@@ -30,31 +30,51 @@ export class ProjectsService {
     }
   }
 
-  async create(createProjectDto: CreateProjectDto): Promise<ProjectDto> {
+  async create(createProjectDto: CreateProjectDto): Promise<{ id: string }> {
     this.logger.debug("Creating new project", { dto: createProjectDto });
 
     try {
       this.validateDate(createProjectDto.forecastedStartDate);
 
       return await this.dbService.database.transaction(async (tx) => {
-        // fake insee codes for now till we have a real source
-        const communes = ["01001", "75056", "97A01"];
+        let porteurId: string | null = null;
 
-        const [project] = await tx
+        if (createProjectDto.porteurReferent) {
+          const existingPorteur = await tx.query.porteurReferents.findFirst({
+            where: eq(
+              porteurReferents.email,
+              createProjectDto.porteurReferent.email,
+            ),
+          });
+
+          if (existingPorteur) {
+            porteurId = existingPorteur.id;
+          } else {
+            const [newPorteur] = await tx
+              .insert(porteurReferents)
+              .values({
+                ...createProjectDto.porteurReferent,
+              })
+              .returning();
+            porteurId = newPorteur.id;
+          }
+        }
+
+        const [createdProject] = await tx
           .insert(projects)
           .values({
             nom: createProjectDto.nom,
             description: createProjectDto.description,
             codeSiret: createProjectDto.codeSiret,
-            porteurEmailHash: hashEmail(createProjectDto.porteurEmail),
-            communeInseeCodes: communes,
+            ...(porteurId ? { porteurReferentId: porteurId } : {}),
             budget: createProjectDto.budget,
             forecastedStartDate: createProjectDto.forecastedStartDate,
+            communeInseeCodes: createProjectDto.communeInseeCodes,
             status: createProjectDto.status,
           })
           .returning();
 
-        return project;
+        return { id: createdProject.id };
       });
     } catch (error) {
       this.logger.error("Failed to create project", {
@@ -66,19 +86,57 @@ export class ProjectsService {
   }
 
   async findAll(): Promise<ProjectDto[]> {
-    return this.dbService.database.select().from(projects);
+    this.logger.debug("Finding all projects");
+
+    try {
+      const results = await this.dbService.database.query.projects.findMany({
+        with: {
+          porteurReferent: true,
+        },
+        columns: {
+          porteurReferentId: false,
+        },
+      });
+
+      this.logger.debug(`Found ${results.length} projects`);
+      return results;
+    } catch (error) {
+      this.logger.error("Failed to find projects", { error: error.message });
+      throw error;
+    }
   }
 
   async findOne(id: string): Promise<ProjectDto> {
-    const project = await this.dbService.database.query.projects.findFirst({
-      where: (projects, { eq }) => eq(projects.id, id),
-    });
+    this.logger.debug("Finding project by id", { projectId: id });
 
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${id} not found`);
+    try {
+      const result = await this.dbService.database.query.projects.findFirst({
+        where: eq(projects.id, id),
+        with: {
+          porteurReferent: true,
+        },
+        columns: {
+          porteurReferentId: false,
+        },
+      });
+
+      if (!result) {
+        this.logger.warn("Project not found", { projectId: id });
+        throw new NotFoundException(`Project with ID ${id} not found`);
+      }
+
+      this.logger.debug("Found project", { projectId: id });
+      return result;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error("Failed to find project", {
+        projectId: id,
+        error: error.message,
+      });
+      throw error;
     }
-
-    return project;
   }
 
   update(id: string, updateProjectDto: UpdateProjectDto) {

@@ -4,7 +4,6 @@ import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
-import { hashEmail } from "@projects/utils";
 import { getFutureDate } from "@test/helpers/getFutureDate";
 
 describe("ProjectsService", () => {
@@ -34,7 +33,10 @@ describe("ProjectsService", () => {
       const createDto: CreateProjectDto = {
         nom: "Test Project",
         description: "Test Description",
-        porteurEmail: "porteurEmail@beta.gouv.fr",
+        porteurReferent: {
+          email: "porteurEmail@beta.gouv.fr",
+          nom: "Name",
+        },
         codeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
@@ -44,15 +46,8 @@ describe("ProjectsService", () => {
 
       const result = await service.create(createDto);
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { porteurEmail, ...expectedFields } = createDto;
-
       expect(result).toEqual({
         id: expect.any(String),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-        ...expectedFields,
-        porteurEmailHash: hashEmail(createDto.porteurEmail),
       });
     });
   });
@@ -63,7 +58,10 @@ describe("ProjectsService", () => {
       const createDto1: CreateProjectDto = {
         nom: "Project 1",
         description: "Description 1",
-        porteurEmail: "porteurEmail1@beta.gouv.fr",
+        porteurReferent: {
+          email: "porteurEmail@beta.gouv.fr",
+          nom: "Name",
+        },
         codeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: futureDate,
@@ -73,7 +71,6 @@ describe("ProjectsService", () => {
       const createDto2: CreateProjectDto = {
         nom: "Project 2",
         description: "Description 2",
-        porteurEmail: "porteurEmail2@beta.gouv.fr",
         codeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: futureDate,
@@ -86,22 +83,22 @@ describe("ProjectsService", () => {
 
       const result = await service.findAll();
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { porteurEmail: porteurEmail1, ...expectedFieldsDto1 } = createDto1;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { porteurEmail: porteurEmail2, ...expectedFieldsDto2 } = createDto2;
-
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
-        ...expectedFieldsDto1,
-        porteurEmailHash: hashEmail(createDto1.porteurEmail),
+        ...createDto1,
+        porteurReferent: {
+          ...createDto1.porteurReferent,
+          prenom: null,
+          telephone: null,
+          id: expect.any(String),
+        },
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
       });
       expect(result[1]).toEqual({
-        ...expectedFieldsDto2,
-        porteurEmailHash: hashEmail(createDto2.porteurEmail),
+        ...createDto2,
+        porteurReferent: null,
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
@@ -114,7 +111,6 @@ describe("ProjectsService", () => {
       const createDto: CreateProjectDto = {
         nom: "Test Project",
         description: "Test Description",
-        porteurEmail: "porteurEmail@beta.gouv.fr",
         codeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
@@ -122,15 +118,12 @@ describe("ProjectsService", () => {
         communeInseeCodes: mockedCommunes,
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { porteurEmail, ...expectedFields } = createDto;
-
       const createdProject = await service.create(createDto);
       const result = await service.findOne(createdProject.id);
 
       expect(result).toEqual({
-        ...expectedFields,
-        porteurEmailHash: hashEmail(createDto.porteurEmail),
+        ...createDto,
+        porteurReferent: null,
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
