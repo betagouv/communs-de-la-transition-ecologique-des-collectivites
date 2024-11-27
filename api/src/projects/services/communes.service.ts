@@ -1,14 +1,14 @@
 import { Injectable } from "@nestjs/common";
-import { DatabaseService } from "@database/database.service";
+import { Tx } from "@database/database.service";
 import { communes } from "@database/schema";
 import { inArray } from "drizzle-orm";
 
 @Injectable()
 export class CommunesService {
-  constructor(private readonly dbService: DatabaseService) {}
+  async findOrCreateMany(inseeCodes: string[], tx: Tx) {
+    const db = tx;
 
-  async findOrCreateMany(inseeCodes: string[]) {
-    const existingCommunes = await this.dbService.database
+    const existingCommunes = await tx
       .select()
       .from(communes)
       .where(inArray(communes.inseeCode, inseeCodes));
@@ -21,7 +21,7 @@ export class CommunesService {
     );
 
     if (newInseeCodes.length > 0) {
-      const newCommunes = await this.dbService.database
+      const newCommunes = await db
         .insert(communes)
         .values(newInseeCodes.map((inseeCode) => ({ inseeCode })))
         .returning();

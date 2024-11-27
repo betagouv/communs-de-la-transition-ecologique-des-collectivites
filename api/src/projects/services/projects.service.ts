@@ -54,6 +54,7 @@ export class ProjectsService {
 
         const communes = await this.communesService.findOrCreateMany(
           createProjectDto.communeInseeCodes,
+          tx,
         );
 
         const [createdProject] = await tx
