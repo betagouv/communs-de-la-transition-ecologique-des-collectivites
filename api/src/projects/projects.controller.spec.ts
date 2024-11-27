@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ProjectsController } from "./projects.controller";
-import { ProjectsService } from "./projects.service";
+import { ProjectsService } from "./services/projects.service";
 import { CreateProjectDto } from "./dto/create-project.dto";
 import { ProjectDto } from "./dto/project.dto";
 import { getFutureDate } from "@test/helpers/getFutureDate";
@@ -69,7 +69,12 @@ describe("ProjectsController", () => {
           budget: 100000,
           forecastedStartDate: getFutureDate(),
           status: "DRAFT",
-          communeInseeCodes: ["75056"],
+          communes: [
+            {
+              id: expect.any(String),
+              inseeCode: "75056",
+            },
+          ],
         },
       ];
 
@@ -95,7 +100,12 @@ describe("ProjectsController", () => {
         budget: 100000,
         forecastedStartDate: getFutureDate(),
         status: "DRAFT",
-        communeInseeCodes: ["75056"],
+        communes: [
+          {
+            id: expect.any(String),
+            inseeCode: "75056",
+          },
+        ],
       };
 
       jest.spyOn(projectsService, "findOne").mockResolvedValue(expectedProject);

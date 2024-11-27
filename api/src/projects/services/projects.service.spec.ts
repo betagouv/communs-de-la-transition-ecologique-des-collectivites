@@ -1,7 +1,7 @@
 import { ProjectsService } from "./projects.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
-import { CreateProjectDto } from "./dto/create-project.dto";
+import { CreateProjectDto } from "../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
 import { getFutureDate } from "@test/helpers/getFutureDate";
@@ -81,11 +81,22 @@ describe("ProjectsService", () => {
       await service.create(createDto1);
       await service.create(createDto2);
 
+      const {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        communeInseeCodes: communeCodesInProject1,
+        ...expectedFieldsProject1
+      } = createDto1;
+      const {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        communeInseeCodes: communeCodesInProject2,
+        ...expectedFieldsProject2
+      } = createDto2;
+
       const result = await service.findAll();
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
-        ...createDto1,
+        ...expectedFieldsProject1,
         porteurReferent: {
           ...createDto1.porteurReferent,
           prenom: null,
@@ -95,13 +106,25 @@ describe("ProjectsService", () => {
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
+        communes: expect.arrayContaining(
+          mockedCommunes.map((code) => ({
+            id: expect.any(String),
+            inseeCode: code,
+          })),
+        ),
       });
       expect(result[1]).toEqual({
-        ...createDto2,
+        ...expectedFieldsProject2,
         porteurReferent: null,
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
+        communes: expect.arrayContaining(
+          mockedCommunes.map((code) => ({
+            id: expect.any(String),
+            inseeCode: code,
+          })),
+        ),
       });
     });
   });
@@ -120,10 +143,17 @@ describe("ProjectsService", () => {
 
       const createdProject = await service.create(createDto);
       const result = await service.findOne(createdProject.id);
-
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { communeInseeCodes, ...expectedFields } = createDto;
       expect(result).toEqual({
-        ...createDto,
+        ...expectedFields,
         porteurReferent: null,
+        communes: expect.arrayContaining(
+          mockedCommunes.map((code) => ({
+            id: expect.any(String),
+            inseeCode: code,
+          })),
+        ),
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),

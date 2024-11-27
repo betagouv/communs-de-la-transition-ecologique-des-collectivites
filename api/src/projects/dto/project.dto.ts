@@ -16,6 +16,14 @@ class PorteurReferentDto {
   nom: string | null;
 }
 
+class CommuneDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  inseeCode: string;
+}
+
 export class ProjectDto
   implements Omit<InferSelectModel<typeof projects>, "porteurReferentId">
 {
@@ -40,6 +48,9 @@ export class ProjectDto
   @ApiProperty({ type: PorteurReferentDto })
   porteurReferent: PorteurReferentDto | null;
 
+  @ApiProperty({ type: [CommuneDto] })
+  communes: CommuneDto[];
+
   @ApiProperty()
   budget: number;
 
@@ -51,11 +62,4 @@ export class ProjectDto
 
   @ApiProperty({ enum: projectStatusEnum.enumValues })
   status: ProjectStatus;
-
-  @ApiProperty({
-    type: [String],
-    description: "Array of INSEE codes for the communes",
-    example: ["01001", "75056", "97A01"],
-  })
-  communeInseeCodes: string[];
 }

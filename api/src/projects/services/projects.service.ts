@@ -3,36 +3,28 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
-import { CreateProjectDto } from "./dto/create-project.dto";
-import { UpdateProjectDto } from "./dto/update-project.dto";
-import { porteurReferents, projects } from "@database/schema";
+import { CreateProjectDto } from "../dto/create-project.dto";
+import { UpdateProjectDto } from "../dto/update-project.dto";
+import {
+  porteurReferents,
+  projects,
+  projectsToCommunes,
+} from "@database/schema";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@/logging/logger.service";
-import { ProjectDto } from "./dto/project.dto";
+import { ProjectDto } from "../dto/project.dto";
 import { eq } from "drizzle-orm";
+import { CommunesService } from "./communes.service";
 
 @Injectable()
 export class ProjectsService {
   constructor(
     private dbService: DatabaseService,
+    private readonly communesService: CommunesService,
     private logger: CustomLogger,
   ) {}
 
-  private validateDate(dateStr: string): void {
-    const inputDate = new Date(dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (inputDate < today) {
-      throw new BadRequestException(
-        "Forecasted start date must be in the future",
-      );
-    }
-  }
-
   async create(createProjectDto: CreateProjectDto): Promise<{ id: string }> {
-    this.logger.debug("Creating new project", { dto: createProjectDto });
-
     try {
       this.validateDate(createProjectDto.forecastedStartDate);
 
@@ -60,6 +52,10 @@ export class ProjectsService {
           }
         }
 
+        const communes = await this.communesService.findOrCreateMany(
+          createProjectDto.communeInseeCodes,
+        );
+
         const [createdProject] = await tx
           .insert(projects)
           .values({
@@ -69,10 +65,17 @@ export class ProjectsService {
             ...(porteurId ? { porteurReferentId: porteurId } : {}),
             budget: createProjectDto.budget,
             forecastedStartDate: createProjectDto.forecastedStartDate,
-            communeInseeCodes: createProjectDto.communeInseeCodes,
             status: createProjectDto.status,
           })
           .returning();
+
+        // Create project-commune relationships
+        await tx.insert(projectsToCommunes).values(
+          communes.map((commune) => ({
+            projectId: createdProject.id,
+            communeId: commune.id,
+          })),
+        );
 
         return { id: createdProject.id };
       });
@@ -88,55 +91,51 @@ export class ProjectsService {
   async findAll(): Promise<ProjectDto[]> {
     this.logger.debug("Finding all projects");
 
-    try {
-      const results = await this.dbService.database.query.projects.findMany({
-        with: {
-          porteurReferent: true,
+    const results = await this.dbService.database.query.projects.findMany({
+      with: {
+        porteurReferent: true,
+        communes: {
+          with: {
+            commune: true,
+          },
         },
-        columns: {
-          porteurReferentId: false,
-        },
-      });
+      },
+      columns: {
+        porteurReferentId: false,
+      },
+    });
 
-      this.logger.debug(`Found ${results.length} projects`);
-      return results;
-    } catch (error) {
-      this.logger.error("Failed to find projects", { error: error.message });
-      throw error;
-    }
+    return results.map((result) => ({
+      ...result,
+      communes: result.communes.map((c) => c.commune),
+    }));
   }
 
   async findOne(id: string): Promise<ProjectDto> {
-    this.logger.debug("Finding project by id", { projectId: id });
-
-    try {
-      const result = await this.dbService.database.query.projects.findFirst({
-        where: eq(projects.id, id),
-        with: {
-          porteurReferent: true,
+    const result = await this.dbService.database.query.projects.findFirst({
+      where: eq(projects.id, id),
+      with: {
+        porteurReferent: true,
+        communes: {
+          with: {
+            commune: true,
+          },
         },
-        columns: {
-          porteurReferentId: false,
-        },
-      });
+      },
+      columns: {
+        porteurReferentId: false,
+      },
+    });
 
-      if (!result) {
-        this.logger.warn("Project not found", { projectId: id });
-        throw new NotFoundException(`Project with ID ${id} not found`);
-      }
-
-      this.logger.debug("Found project", { projectId: id });
-      return result;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      this.logger.error("Failed to find project", {
-        projectId: id,
-        error: error.message,
-      });
-      throw error;
+    if (!result) {
+      this.logger.warn("Project not found", { projectId: id });
+      throw new NotFoundException(`Project with ID ${id} not found`);
     }
+
+    return {
+      ...result,
+      communes: result.communes.map((c) => c.commune),
+    };
   }
 
   update(id: string, updateProjectDto: UpdateProjectDto) {
@@ -146,5 +145,17 @@ export class ProjectsService {
 
   remove(id: string) {
     return `This action removes a #${id} project`;
+  }
+
+  private validateDate(dateStr: string): void {
+    const inputDate = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (inputDate < today) {
+      throw new BadRequestException(
+        "Forecasted start date must be in the future",
+      );
+    }
   }
 }
