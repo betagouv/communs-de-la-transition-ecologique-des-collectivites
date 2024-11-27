@@ -5,22 +5,20 @@ import {
 } from "@nestjs/common";
 import { CreateProjectDto } from "../dto/create-project.dto";
 import { UpdateProjectDto } from "../dto/update-project.dto";
-import {
-  porteurReferents,
-  projects,
-  projectsToCommunes,
-} from "@database/schema";
+import { projects, projectsToCommunes } from "@database/schema";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@/logging/logger.service";
 import { ProjectDto } from "../dto/project.dto";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "./communes.service";
+import { PorteurReferentsService } from "@projects/services/porteur-referents.service";
 
 @Injectable()
 export class ProjectsService {
   constructor(
     private dbService: DatabaseService,
     private readonly communesService: CommunesService,
+    private readonly porteurReferentsService: PorteurReferentsService,
     private logger: CustomLogger,
   ) {}
 
@@ -29,32 +27,14 @@ export class ProjectsService {
       this.validateDate(createProjectDto.forecastedStartDate);
 
       return await this.dbService.database.transaction(async (tx) => {
-        let porteurId: string | null = null;
-
-        if (createProjectDto.porteurReferent) {
-          const existingPorteur = await tx.query.porteurReferents.findFirst({
-            where: eq(
-              porteurReferents.email,
-              createProjectDto.porteurReferent.email,
-            ),
-          });
-
-          if (existingPorteur) {
-            porteurId = existingPorteur.id;
-          } else {
-            const [newPorteur] = await tx
-              .insert(porteurReferents)
-              .values({
-                ...createProjectDto.porteurReferent,
-              })
-              .returning();
-            porteurId = newPorteur.id;
-          }
-        }
+        const porteurId = await this.porteurReferentsService.findOrCreate(
+          tx,
+          createProjectDto.porteurReferent,
+        );
 
         const communes = await this.communesService.findOrCreateMany(
-          createProjectDto.communeInseeCodes,
           tx,
+          createProjectDto.communeInseeCodes,
         );
 
         const [createdProject] = await tx

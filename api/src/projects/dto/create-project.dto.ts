@@ -2,7 +2,6 @@ import { ApiProperty } from "@nestjs/swagger";
 import {
   IsArray,
   IsDateString,
-  IsEmail,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -10,24 +9,7 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
-
-class CreatePorteurReferentDto {
-  @ApiProperty()
-  @IsEmail()
-  email: string;
-
-  @ApiProperty()
-  @IsString()
-  telephone?: string;
-
-  @ApiProperty()
-  @IsString()
-  prenom?: string;
-
-  @ApiProperty()
-  @IsString()
-  nom?: string;
-}
+import { CreatePorteurReferentDto } from "@projects/dto/create-porteur-referent.dto";
 
 export class CreateProjectDto {
   @ApiProperty()
@@ -45,7 +27,7 @@ export class CreateProjectDto {
   @IsNotEmpty()
   codeSiret: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty()
   porteurReferent?: CreatePorteurReferentDto;
 
   @ApiProperty()

@@ -5,9 +5,7 @@ import { inArray } from "drizzle-orm";
 
 @Injectable()
 export class CommunesService {
-  async findOrCreateMany(inseeCodes: string[], tx: Tx) {
-    const db = tx;
-
+  async findOrCreateMany(tx: Tx, inseeCodes: string[]) {
     const existingCommunes = await tx
       .select()
       .from(communes)
@@ -21,7 +19,7 @@ export class CommunesService {
     );
 
     if (newInseeCodes.length > 0) {
-      const newCommunes = await db
+      const newCommunes = await tx
         .insert(communes)
         .values(newInseeCodes.map((inseeCode) => ({ inseeCode })))
         .returning();
