@@ -50,7 +50,6 @@ export class ProjectsService {
           })
           .returning();
 
-        // Create project-commune relationships
         await tx.insert(projectsToCommunes).values(
           communes.map((commune) => ({
             projectId: createdProject.id,

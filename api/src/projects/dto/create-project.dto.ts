@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
 } from "class-validator";
 import { Type } from "class-transformer";
@@ -28,6 +29,7 @@ export class CreateProjectDto {
   codeSiret: string;
 
   @ApiProperty()
+  @IsOptional()
   porteurReferent?: CreatePorteurReferentDto;
 
   @ApiProperty()

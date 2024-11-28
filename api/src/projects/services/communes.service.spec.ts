@@ -68,15 +68,12 @@ describe("CommunesService", () => {
       const inseeCodes = ["01003", "75058"];
 
       await testDbService.database.transaction(async (tx) => {
-        // First creation
         const firstResult = await service.findOrCreateMany(tx, inseeCodes);
         expect(firstResult).toHaveLength(2);
 
-        // Second creation with same codes
         const secondResult = await service.findOrCreateMany(tx, inseeCodes);
         expect(secondResult).toHaveLength(2);
 
-        // Verify no duplicates were created
         const allCommunes = await tx
           .select()
           .from(communes)
@@ -92,21 +89,18 @@ describe("CommunesService", () => {
       const additionalInseeCodes = ["97A03", "75059"];
 
       await testDbService.database.transaction(async (tx) => {
-        // Create initial communes
         const initialResult = await service.findOrCreateMany(
           tx,
           initialInseeCodes,
         );
         expect(initialResult).toHaveLength(2);
 
-        // Add more communes including one duplicate
         const additionalResult = await service.findOrCreateMany(
           tx,
           additionalInseeCodes,
         );
         expect(additionalResult).toHaveLength(2);
 
-        // Verify final state
         const allCommunes = await tx
           .select()
           .from(communes)

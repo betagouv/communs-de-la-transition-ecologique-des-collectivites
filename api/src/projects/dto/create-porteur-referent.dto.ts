@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString } from "class-validator";
 
 export class CreatePorteurReferentDto {
   @ApiProperty()
@@ -8,13 +8,16 @@ export class CreatePorteurReferentDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   telephone?: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   prenom?: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   nom?: string;
 }
