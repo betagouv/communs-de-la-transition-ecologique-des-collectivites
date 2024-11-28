@@ -64,6 +64,8 @@ export const services = pgTable("services", {
   url: text("url").notNull(),
 });
 
+// Relations below needed by drizzle to allow relational query syntax - see https://orm.drizzle.team/docs/relations
+
 export const projectsRelations = relations(projects, ({ one, many }) => ({
   porteurReferent: one(porteurReferents, {
     fields: [projects.porteurReferentId],
