@@ -1,9 +1,95 @@
 {
-  "id": "f028c00e-27b0-4f63-af18-dfbf01cfaf1b",
+  "id": "e5e29c3a-c8ce-4d19-9322-ecad467c2508",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.communes": {
+      "name": "communes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "insee_code": {
+          "name": "insee_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "communes_insee_code_unique": {
+          "name": "communes_insee_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "insee_code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.porteur_referents": {
+      "name": "porteur_referents",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "telephone": {
+          "name": "telephone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "porteur_referents_email_unique": {
+          "name": "porteur_referents_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.projects": {
       "name": "projects",
       "schema": "",
@@ -47,17 +133,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "porteur_email_hash": {
-          "name": "porteur_email_hash",
-          "type": "text",
+        "porteur_referent_id": {
+          "name": "porteur_referent_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true
-        },
-        "commune_insee_codes": {
-          "name": "commune_insee_codes",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "budget": {
           "name": "budget",
@@ -80,7 +160,73 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "projects_porteur_referent_id_porteur_referents_id_fk": {
+          "name": "projects_porteur_referent_id_porteur_referents_id_fk",
+          "tableFrom": "projects",
+          "tableTo": "porteur_referents",
+          "columnsFrom": [
+            "porteur_referent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.projects_to_communes": {
+      "name": "projects_to_communes",
+      "schema": "",
+      "columns": {
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "commune_id": {
+          "name": "commune_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "projects_to_communes_project_id_projects_id_fk": {
+          "name": "projects_to_communes_project_id_projects_id_fk",
+          "tableFrom": "projects_to_communes",
+          "tableTo": "projects",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "projects_to_communes_commune_id_communes_id_fk": {
+          "name": "projects_to_communes_commune_id_communes_id_fk",
+          "tableFrom": "projects_to_communes",
+          "tableTo": "communes",
+          "columnsFrom": [
+            "commune_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

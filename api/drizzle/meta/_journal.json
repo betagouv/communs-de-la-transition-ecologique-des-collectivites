@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1732555154581,
-      "tag": "0000_swift_george_stacy",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1732631148403,
-      "tag": "0001_deep_speed",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1732634389980,
-      "tag": "0002_lean_galactus",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1732690978247,
-      "tag": "0003_wakeful_taskmaster",
+      "when": 1732788543093,
+      "tag": "0000_normal_cloak",
       "breakpoints": true
     }
   ]

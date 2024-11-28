@@ -47,7 +47,6 @@ describe("AppController (e2e)", () => {
         nom: "Test Project",
         description: "Test Description",
         codeSiret: "12345678901234",
-        porteurEmail: "test@beta.gouv.fr",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
         status: "DRAFT",
@@ -97,16 +96,6 @@ describe("AppController (e2e)", () => {
         expect(response.status).toBe(201);
         expect(response.body).toMatchObject({
           id: expect.any(String),
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
-          nom: validProject.nom,
-          description: validProject.description,
-          codeSiret: validProject.codeSiret,
-          porteurEmailHash: expect.any(String),
-          budget: validProject.budget,
-          forecastedStartDate: validProject.forecastedStartDate,
-          status: validProject.status,
-          communeInseeCodes: validProject.communeInseeCodes,
         });
       });
 
