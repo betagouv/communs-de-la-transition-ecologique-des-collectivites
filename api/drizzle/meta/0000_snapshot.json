@@ -1,5 +1,5 @@
 {
-  "id": "e5e29c3a-c8ce-4d19-9322-ecad467c2508",
+  "id": "3a9cba28-3f9a-44b5-81fd-a959f7fa569f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -63,6 +63,12 @@
         },
         "prenom": {
           "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fonction": {
+          "name": "fonction",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -131,7 +137,13 @@
           "name": "code_siret",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "porteur": {
+          "name": "porteur",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "porteur_referent_id": {
           "name": "porteur_referent_id",

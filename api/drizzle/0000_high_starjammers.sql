@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS "porteur_referents" (
 	"email" text NOT NULL,
 	"telephone" text,
 	"prenom" text,
+	"fonction" text,
 	"nom" text,
 	CONSTRAINT "porteur_referents_email_unique" UNIQUE("email")
 );
@@ -20,7 +21,8 @@ CREATE TABLE IF NOT EXISTS "projects" (
 	"updated_at" timestamp DEFAULT now(),
 	"nom" text NOT NULL,
 	"description" text NOT NULL,
-	"code_siret" text NOT NULL,
+	"code_siret" text,
+	"porteur" text,
 	"porteur_referent_id" uuid,
 	"budget" integer NOT NULL,
 	"forecasted_start_date" text NOT NULL,

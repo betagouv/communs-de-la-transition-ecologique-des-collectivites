@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1732788543093,
-      "tag": "0000_normal_cloak",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1732790363921,
-      "tag": "0001_rapid_jack_power",
+      "when": 1732799939444,
+      "tag": "0000_high_starjammers",
       "breakpoints": true
     }
   ]
