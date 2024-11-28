@@ -12,6 +12,7 @@ import { ProjectDto } from "../dto/project.dto";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "./communes.service";
 import { PorteurReferentsService } from "@projects/services/porteur-referents.service";
+import { removeUndefined } from "@/utils/remove-undefined";
 
 @Injectable()
 export class ProjectsService {
@@ -39,15 +40,12 @@ export class ProjectsService {
 
         const [createdProject] = await tx
           .insert(projects)
-          .values({
-            nom: createProjectDto.nom,
-            description: createProjectDto.description,
-            codeSiret: createProjectDto.codeSiret,
-            ...(porteurId ? { porteurReferentId: porteurId } : {}),
-            budget: createProjectDto.budget,
-            forecastedStartDate: createProjectDto.forecastedStartDate,
-            status: createProjectDto.status,
-          })
+          .values(
+            removeUndefined({
+              ...createProjectDto,
+              porteurReferentId: porteurId,
+            }),
+          )
           .returning();
 
         await tx.insert(projectsToCommunes).values(

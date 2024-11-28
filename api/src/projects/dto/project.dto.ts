@@ -14,6 +14,9 @@ class PorteurReferentDto {
 
   @ApiProperty()
   nom: string | null;
+
+  @ApiProperty()
+  fonction: string | null;
 }
 
 class CommuneDto {
@@ -43,7 +46,10 @@ export class ProjectDto
   description: string;
 
   @ApiProperty()
-  codeSiret: string;
+  codeSiret: string | null;
+
+  @ApiProperty()
+  porteur: string | null;
 
   @ApiProperty({ type: PorteurReferentDto })
   porteurReferent: PorteurReferentDto | null;

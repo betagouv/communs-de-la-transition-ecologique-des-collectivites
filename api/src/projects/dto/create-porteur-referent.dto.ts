@@ -20,4 +20,9 @@ export class CreatePorteurReferentDto {
   @IsString()
   @IsOptional()
   nom?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  fonction?: string;
 }

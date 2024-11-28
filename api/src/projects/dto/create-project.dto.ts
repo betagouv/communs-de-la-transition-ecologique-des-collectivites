@@ -25,8 +25,13 @@ export class CreateProjectDto {
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  codeSiret: string;
+  @IsOptional()
+  codeSiret?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  porteur?: string;
 
   @ApiProperty()
   @IsOptional()

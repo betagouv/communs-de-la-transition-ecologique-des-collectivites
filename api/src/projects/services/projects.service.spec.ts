@@ -101,8 +101,10 @@ describe("ProjectsService", () => {
           ...createDto1.porteurReferent,
           prenom: null,
           telephone: null,
+          fonction: null,
           id: expect.any(String),
         },
+        porteur: null,
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
@@ -115,6 +117,7 @@ describe("ProjectsService", () => {
       });
       expect(result[1]).toEqual({
         ...expectedFieldsProject2,
+        porteur: null,
         porteurReferent: null,
         id: expect.any(String),
         createdAt: expect.any(Date),
@@ -147,6 +150,7 @@ describe("ProjectsService", () => {
       const { communeInseeCodes, ...expectedFields } = createDto;
       expect(result).toEqual({
         ...expectedFields,
+        porteur: null,
         porteurReferent: null,
         communes: expect.arrayContaining(
           mockedCommunes.map((code) => ({

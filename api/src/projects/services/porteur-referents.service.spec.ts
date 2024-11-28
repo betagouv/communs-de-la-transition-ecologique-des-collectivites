@@ -40,6 +40,7 @@ describe("PorteurReferentsService", () => {
         telephone: "1234567890",
         prenom: "John",
         nom: "Doe",
+        fonction: "maire",
       };
 
       await testDbService.database.transaction(async (tx) => {
@@ -93,6 +94,7 @@ describe("PorteurReferentsService", () => {
           expect.objectContaining({
             ...initialPorteur,
             ...updatedInfo,
+            fonction: null,
           }),
         );
       });

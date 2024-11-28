@@ -23,6 +23,7 @@ export const porteurReferents = pgTable("porteur_referents", {
   email: text("email").unique().notNull(),
   telephone: text("telephone"),
   prenom: text("prenom"),
+  fonction: text("fonction"),
   nom: text("nom"),
 });
 
@@ -37,7 +38,8 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
   nom: text("nom").notNull(),
   description: text("description").notNull(),
-  codeSiret: text("code_siret").notNull(),
+  codeSiret: text("code_siret"),
+  porteur: text("porteur"),
   porteurReferentId: uuid("porteur_referent_id").references(
     () => porteurReferents.id,
   ),
