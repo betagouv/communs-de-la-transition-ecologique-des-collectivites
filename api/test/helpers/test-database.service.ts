@@ -14,6 +14,6 @@ export class TestDatabaseService extends DatabaseService {
           TRUNCATE TABLE projects_to_communes CASCADE;
           TRUNCATE TABLE projects CASCADE;
           TRUNCATE TABLE communes CASCADE;
-          TRUNCATE TABLE porteur_referents CASCADE;`);
+         `);
   }
 }

@@ -18,15 +18,6 @@ export const projectStatusEnum = pgEnum("project_status", [
 
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
-export const porteurReferents = pgTable("porteur_referents", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").unique().notNull(),
-  telephone: text("telephone"),
-  prenom: text("prenom"),
-  fonction: text("fonction"),
-  nom: text("nom"),
-});
-
 export const communes = pgTable("communes", {
   id: uuid("id").primaryKey().defaultRandom(),
   inseeCode: text("insee_code").notNull().unique(),
@@ -38,11 +29,13 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
   nom: text("nom").notNull(),
   description: text("description").notNull(),
-  codeSiret: text("code_siret"),
   porteur: text("porteur"),
-  porteurReferentId: uuid("porteur_referent_id").references(
-    () => porteurReferents.id,
-  ),
+  porteurCodeSiret: text("code_siret"),
+  porteurReferentEmail: text("porteur_referent_email"),
+  porteurReferentTelephone: text("porteur_referent_telephone"),
+  porteurReferentPrenom: text("porteur_referent_prenom"),
+  porteurReferentNom: text("porteur_referent_nom"),
+  porteurReferentFonction: text("porteur_referent_fonction"),
   budget: integer("budget").notNull(),
   forecastedStartDate: text("forecasted_start_date").notNull(),
   status: projectStatusEnum().notNull(),
@@ -66,26 +59,14 @@ export const services = pgTable("services", {
   url: text("url").notNull(),
 });
 
-// Relations below needed by drizzle to allow relational query syntax - see https://orm.drizzle.team/docs/relations
-
-export const projectsRelations = relations(projects, ({ one, many }) => ({
-  porteurReferent: one(porteurReferents, {
-    fields: [projects.porteurReferentId],
-    references: [porteurReferents.id],
-  }),
+// Relations
+export const projectsRelations = relations(projects, ({ many }) => ({
   communes: many(projectsToCommunes),
 }));
 
 export const communesRelations = relations(communes, ({ many }) => ({
   projects: many(projectsToCommunes),
 }));
-
-export const porteurReferentsRelations = relations(
-  porteurReferents,
-  ({ many }) => ({
-    projects: many(projects),
-  }),
-);
 
 export const projectsToCommunesRelations = relations(
   projectsToCommunes,

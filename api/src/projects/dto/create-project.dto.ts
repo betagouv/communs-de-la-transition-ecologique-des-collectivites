@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsArray,
   IsDateString,
@@ -8,9 +8,7 @@ import {
   IsOptional,
   IsString,
 } from "class-validator";
-import { Type } from "class-transformer";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
-import { CreatePorteurReferentDto } from "@projects/dto/create-porteur-referent.dto";
 
 export class CreateProjectDto {
   @ApiProperty()
@@ -23,29 +21,48 @@ export class CreateProjectDto {
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  codeSiret?: string;
-
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   porteur?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsString()
   @IsOptional()
-  porteurReferent?: CreatePorteurReferentDto;
+  porteurCodeSiret?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  porteurReferentEmail?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  porteurReferentTelephone?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  porteurReferentPrenom?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  porteurReferentNom?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  porteurReferentFonction?: string;
 
   @ApiProperty()
   @IsNumber()
-  @Type(() => Number)
   budget: number;
 
   @ApiProperty({
     description: "Forecasted start date in YYYY-MM-DD format",
     example: "2024-03-01",
-    type: String,
   })
   @IsDateString(
     {},

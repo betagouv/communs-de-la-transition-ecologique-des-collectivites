@@ -1,7 +1,7 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from "@nestjs/common";
 import { CreateProjectDto } from "../dto/create-project.dto";
 import { UpdateProjectDto } from "../dto/update-project.dto";
@@ -11,7 +11,6 @@ import { CustomLogger } from "@/logging/logger.service";
 import { ProjectDto } from "../dto/project.dto";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "./communes.service";
-import { PorteurReferentsService } from "@projects/services/porteur-referents.service";
 import { removeUndefined } from "@/utils/remove-undefined";
 
 @Injectable()
@@ -19,7 +18,6 @@ export class ProjectsService {
   constructor(
     private dbService: DatabaseService,
     private readonly communesService: CommunesService,
-    private readonly porteurReferentsService: PorteurReferentsService,
     private logger: CustomLogger,
   ) {}
 
@@ -28,11 +26,6 @@ export class ProjectsService {
       this.validateDate(createProjectDto.forecastedStartDate);
 
       return await this.dbService.database.transaction(async (tx) => {
-        const porteurId = await this.porteurReferentsService.findOrCreate(
-          tx,
-          createProjectDto.porteurReferent,
-        );
-
         const communes = await this.communesService.findOrCreateMany(
           tx,
           createProjectDto.communeInseeCodes,
@@ -43,7 +36,6 @@ export class ProjectsService {
           .values(
             removeUndefined({
               ...createProjectDto,
-              porteurReferentId: porteurId,
             }),
           )
           .returning();
@@ -71,15 +63,11 @@ export class ProjectsService {
 
     const results = await this.dbService.database.query.projects.findMany({
       with: {
-        porteurReferent: true,
         communes: {
           with: {
             commune: true,
           },
         },
-      },
-      columns: {
-        porteurReferentId: false,
       },
     });
 
@@ -93,15 +81,11 @@ export class ProjectsService {
     const result = await this.dbService.database.query.projects.findFirst({
       where: eq(projects.id, id),
       with: {
-        porteurReferent: true,
         communes: {
           with: {
             commune: true,
           },
         },
-      },
-      columns: {
-        porteurReferentId: false,
       },
     });
 

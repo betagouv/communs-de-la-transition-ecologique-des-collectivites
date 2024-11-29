@@ -33,11 +33,6 @@ describe("ProjectsService", () => {
       const createDto: CreateProjectDto = {
         nom: "Test Project",
         description: "Test Description",
-        porteurReferent: {
-          email: "porteurEmail@beta.gouv.fr",
-          nom: "Name",
-        },
-        codeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
         status: "DRAFT",
@@ -58,11 +53,8 @@ describe("ProjectsService", () => {
       const createDto1: CreateProjectDto = {
         nom: "Project 1",
         description: "Description 1",
-        porteurReferent: {
-          email: "porteurEmail@beta.gouv.fr",
-          nom: "Name",
-        },
-        codeSiret: "12345678901234",
+        porteur: "porteur",
+        porteurReferentEmail: "porteurReferentEmail@email.com",
         budget: 100000,
         forecastedStartDate: futureDate,
         status: "DRAFT",
@@ -71,7 +63,6 @@ describe("ProjectsService", () => {
       const createDto2: CreateProjectDto = {
         nom: "Project 2",
         description: "Description 2",
-        codeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: futureDate,
         status: "DRAFT",
@@ -94,40 +85,35 @@ describe("ProjectsService", () => {
 
       const result = await service.findAll();
 
+      const expectedCommonFields = {
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+        porteur: null,
+        porteurCodeSiret: null,
+        porteurReferentEmail: null,
+        porteurReferentFonction: null,
+        porteurReferentNom: null,
+        porteurReferentPrenom: null,
+        porteurReferentTelephone: null,
+        communes: expect.arrayContaining(
+          mockedCommunes.map((code) => ({
+            id: expect.any(String),
+            inseeCode: code,
+          })),
+        ),
+      };
+
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
         ...expectedFieldsProject1,
-        porteurReferent: {
-          ...createDto1.porteurReferent,
-          prenom: null,
-          telephone: null,
-          fonction: null,
-          id: expect.any(String),
-        },
-        porteur: null,
-        id: expect.any(String),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-        communes: expect.arrayContaining(
-          mockedCommunes.map((code) => ({
-            id: expect.any(String),
-            inseeCode: code,
-          })),
-        ),
+        ...expectedCommonFields,
+        porteur: "porteur",
+        porteurReferentEmail: "porteurReferentEmail@email.com",
       });
       expect(result[1]).toEqual({
         ...expectedFieldsProject2,
-        porteur: null,
-        porteurReferent: null,
-        id: expect.any(String),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-        communes: expect.arrayContaining(
-          mockedCommunes.map((code) => ({
-            id: expect.any(String),
-            inseeCode: code,
-          })),
-        ),
+        ...expectedCommonFields,
       });
     });
   });
@@ -137,7 +123,7 @@ describe("ProjectsService", () => {
       const createDto: CreateProjectDto = {
         nom: "Test Project",
         description: "Test Description",
-        codeSiret: "12345678901234",
+        porteurCodeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
         status: "DRAFT",
@@ -150,14 +136,18 @@ describe("ProjectsService", () => {
       const { communeInseeCodes, ...expectedFields } = createDto;
       expect(result).toEqual({
         ...expectedFields,
-        porteur: null,
-        porteurReferent: null,
         communes: expect.arrayContaining(
           mockedCommunes.map((code) => ({
             id: expect.any(String),
             inseeCode: code,
           })),
         ),
+        porteur: null,
+        porteurReferentEmail: null,
+        porteurReferentFonction: null,
+        porteurReferentNom: null,
+        porteurReferentPrenom: null,
+        porteurReferentTelephone: null,
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),

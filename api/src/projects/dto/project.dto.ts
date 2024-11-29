@@ -1,23 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { projects, ProjectStatus, projectStatusEnum } from "@database/schema";
+import { projects, ProjectStatus } from "@database/schema";
 import { InferSelectModel } from "drizzle-orm";
-
-class PorteurReferentDto {
-  @ApiProperty()
-  email: string;
-
-  @ApiProperty()
-  telephone: string | null;
-
-  @ApiProperty()
-  prenom: string | null;
-
-  @ApiProperty()
-  nom: string | null;
-
-  @ApiProperty()
-  fonction: string | null;
-}
 
 class CommuneDto {
   @ApiProperty()
@@ -27,9 +10,7 @@ class CommuneDto {
   inseeCode: string;
 }
 
-export class ProjectDto
-  implements Omit<InferSelectModel<typeof projects>, "porteurReferentId">
-{
+export class ProjectDto implements InferSelectModel<typeof projects> {
   @ApiProperty()
   id: string;
 
@@ -46,13 +27,25 @@ export class ProjectDto
   description: string;
 
   @ApiProperty()
-  codeSiret: string | null;
-
-  @ApiProperty()
   porteur: string | null;
 
-  @ApiProperty({ type: PorteurReferentDto })
-  porteurReferent: PorteurReferentDto | null;
+  @ApiProperty()
+  porteurCodeSiret: string | null;
+
+  @ApiProperty()
+  porteurReferentEmail: string | null;
+
+  @ApiProperty()
+  porteurReferentTelephone: string | null;
+
+  @ApiProperty()
+  porteurReferentPrenom: string | null;
+
+  @ApiProperty()
+  porteurReferentNom: string | null;
+
+  @ApiProperty()
+  porteurReferentFonction: string | null;
 
   @ApiProperty({ type: [CommuneDto] })
   communes: CommuneDto[];
@@ -60,12 +53,9 @@ export class ProjectDto
   @ApiProperty()
   budget: number;
 
-  @ApiProperty({
-    description: "Forecasted start date in YYYY-MM-DD format",
-    example: "2024-03-01",
-  })
+  @ApiProperty()
   forecastedStartDate: string;
 
-  @ApiProperty({ enum: projectStatusEnum.enumValues })
+  @ApiProperty()
   status: ProjectStatus;
 }
