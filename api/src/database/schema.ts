@@ -5,6 +5,8 @@ import {
   integer,
   pgEnum,
   uuid,
+  unique,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -41,14 +43,21 @@ export const projects = pgTable("projects", {
   status: projectStatusEnum().notNull(),
 });
 
-export const projectsToCommunes = pgTable("projects_to_communes", {
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => projects.id),
-  communeId: uuid("commune_id")
-    .notNull()
-    .references(() => communes.id),
-});
+export const projectsToCommunes = pgTable(
+  "projects_to_communes",
+  {
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id),
+    communeId: uuid("commune_id")
+      .notNull()
+      .references(() => communes.id),
+  },
+  (t) => [
+    primaryKey({ columns: [t.projectId, t.communeId] }),
+    unique().on(t.communeId, t.projectId),
+  ],
+);
 
 export const services = pgTable("services", {
   id: uuid("id").primaryKey().defaultRandom(),

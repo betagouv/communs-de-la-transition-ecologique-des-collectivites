@@ -22,40 +22,32 @@ export class ProjectsService {
   ) {}
 
   async create(createProjectDto: CreateProjectDto): Promise<{ id: string }> {
-    try {
-      this.validateDate(createProjectDto.forecastedStartDate);
+    this.validateDate(createProjectDto.forecastedStartDate);
 
-      return await this.dbService.database.transaction(async (tx) => {
-        const communes = await this.communesService.findOrCreateMany(
-          tx,
-          createProjectDto.communeInseeCodes,
-        );
+    return await this.dbService.database.transaction(async (tx) => {
+      const communes = await this.communesService.findOrCreateMany(
+        tx,
+        createProjectDto.communeInseeCodes,
+      );
 
-        const [createdProject] = await tx
-          .insert(projects)
-          .values(
-            removeUndefined({
-              ...createProjectDto,
-            }),
-          )
-          .returning();
+      const [createdProject] = await tx
+        .insert(projects)
+        .values(
+          removeUndefined({
+            ...createProjectDto,
+          }),
+        )
+        .returning();
 
-        await tx.insert(projectsToCommunes).values(
-          communes.map((commune) => ({
-            projectId: createdProject.id,
-            communeId: commune.id,
-          })),
-        );
+      await tx.insert(projectsToCommunes).values(
+        communes.map((commune) => ({
+          projectId: createdProject.id,
+          communeId: commune.id,
+        })),
+      );
 
-        return { id: createdProject.id };
-      });
-    } catch (error) {
-      this.logger.error("Failed to create project", {
-        error: error.message,
-        dto: createProjectDto,
-      });
-      throw error;
-    }
+      return { id: createdProject.id };
+    });
   }
 
   async findAll(): Promise<ProjectDto[]> {
