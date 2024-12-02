@@ -143,7 +143,6 @@ describe("AppController (e2e)", () => {
           id: expect.any(String),
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
-          porteur: null,
           porteurCodeSiret: null,
           porteurReferentEmail: null,
           porteurReferentFonction: null,
