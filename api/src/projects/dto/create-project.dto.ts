@@ -24,11 +24,6 @@ export class CreateProjectDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
-  porteur?: string;
-
-  @ApiPropertyOptional()
-  @IsString()
-  @IsOptional()
   porteurCodeSiret?: string;
 
   @ApiPropertyOptional()

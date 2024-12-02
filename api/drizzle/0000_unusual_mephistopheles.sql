@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS "projects" (
 	"updated_at" timestamp DEFAULT now(),
 	"nom" text NOT NULL,
 	"description" text NOT NULL,
-	"porteur" text,
 	"code_siret" text,
 	"porteur_referent_email" text,
 	"porteur_referent_telephone" text,
@@ -24,8 +23,7 @@ CREATE TABLE IF NOT EXISTS "projects" (
 CREATE TABLE IF NOT EXISTS "projects_to_communes" (
 	"project_id" uuid NOT NULL,
 	"commune_id" text NOT NULL,
-	CONSTRAINT "projects_to_communes_project_id_commune_id_pk" PRIMARY KEY("project_id","commune_id"),
-	CONSTRAINT "projects_to_communes_commune_id_project_id_unique" UNIQUE("commune_id","project_id")
+	CONSTRAINT "projects_to_communes_project_id_commune_id_pk" PRIMARY KEY("project_id","commune_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "services" (
@@ -48,3 +46,5 @@ DO $$ BEGIN
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "commune_project_idx" ON "projects_to_communes" USING btree ("commune_id","project_id");

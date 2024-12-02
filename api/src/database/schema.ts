@@ -5,8 +5,8 @@ import {
   integer,
   pgEnum,
   uuid,
-  unique,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -30,7 +30,6 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
   nom: text("nom").notNull(),
   description: text("description").notNull(),
-  porteur: text("porteur"),
   porteurCodeSiret: text("code_siret"),
   porteurReferentEmail: text("porteur_referent_email"),
   porteurReferentTelephone: text("porteur_referent_telephone"),
@@ -54,7 +53,7 @@ export const projectsToCommunes = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.projectId, t.communeId] }),
-    unique().on(t.communeId, t.projectId),
+    index("commune_project_idx").on(t.communeId, t.projectId),
   ],
 );
 
@@ -68,7 +67,6 @@ export const services = pgTable("services", {
 });
 
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
-
 export const projectsRelations = relations(projects, ({ many }) => ({
   communes: many(projectsToCommunes),
 }));

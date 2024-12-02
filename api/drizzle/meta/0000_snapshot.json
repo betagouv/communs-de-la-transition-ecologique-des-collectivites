@@ -1,5 +1,5 @@
 {
-  "id": "d60617fb-8e44-47ba-8c92-a21081c53779",
+  "id": "336a1364-35c7-4628-825e-58cabc2d84eb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -59,12 +59,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "porteur": {
-          "name": "porteur",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "code_siret": {
           "name": "code_siret",
@@ -147,7 +141,29 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "commune_project_idx": {
+          "name": "commune_project_idx",
+          "columns": [
+            {
+              "expression": "commune_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "projects_to_communes_project_id_projects_id_fk": {
           "name": "projects_to_communes_project_id_projects_id_fk",
@@ -185,16 +201,7 @@
           ]
         }
       },
-      "uniqueConstraints": {
-        "projects_to_communes_commune_id_project_id_unique": {
-          "name": "projects_to_communes_commune_id_project_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "commune_id",
-            "project_id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

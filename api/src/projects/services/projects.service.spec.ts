@@ -53,7 +53,6 @@ describe("ProjectsService", () => {
       const createDto1: CreateProjectDto = {
         nom: "Project 1",
         description: "Description 1",
-        porteur: "porteur",
         porteurReferentEmail: "porteurReferentEmail@email.com",
         budget: 100000,
         forecastedStartDate: futureDate,
@@ -89,7 +88,6 @@ describe("ProjectsService", () => {
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
-        porteur: null,
         porteurCodeSiret: null,
         porteurReferentEmail: null,
         porteurReferentFonction: null,
@@ -107,7 +105,6 @@ describe("ProjectsService", () => {
       expect(result[0]).toEqual({
         ...expectedFieldsProject1,
         ...expectedCommonFields,
-        porteur: "porteur",
         porteurReferentEmail: "porteurReferentEmail@email.com",
       });
       expect(result[1]).toEqual({
@@ -140,7 +137,6 @@ describe("ProjectsService", () => {
             inseeCode: code,
           })),
         ),
-        porteur: null,
         porteurReferentEmail: null,
         porteurReferentFonction: null,
         porteurReferentNom: null,
