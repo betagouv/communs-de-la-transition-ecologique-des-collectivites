@@ -48,7 +48,6 @@ describe("CommunesService", () => {
         expect(result).toEqual(
           expect.arrayContaining(
             inseeCodes.map((code) => ({
-              id: expect.any(String),
               inseeCode: code,
             })),
           ),

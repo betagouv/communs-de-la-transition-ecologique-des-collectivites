@@ -21,8 +21,7 @@ export const projectStatusEnum = pgEnum("project_status", [
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
 export const communes = pgTable("communes", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  inseeCode: text("insee_code").notNull().unique(),
+  inseeCode: text("insee_code").primaryKey(),
 });
 
 export const projects = pgTable("projects", {
@@ -49,9 +48,9 @@ export const projectsToCommunes = pgTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id),
-    communeId: uuid("commune_id")
+    communeId: text("commune_id")
       .notNull()
-      .references(() => communes.id),
+      .references(() => communes.inseeCode),
   },
   (t) => [
     primaryKey({ columns: [t.projectId, t.communeId] }),
@@ -68,7 +67,8 @@ export const services = pgTable("services", {
   url: text("url").notNull(),
 });
 
-// Relations
+// relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
+
 export const projectsRelations = relations(projects, ({ many }) => ({
   communes: many(projectsToCommunes),
 }));
@@ -86,7 +86,7 @@ export const projectsToCommunesRelations = relations(
     }),
     commune: one(communes, {
       fields: [projectsToCommunes.communeId],
-      references: [communes.id],
+      references: [communes.inseeCode],
     }),
   }),
 );

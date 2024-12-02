@@ -98,7 +98,6 @@ describe("ProjectsService", () => {
         porteurReferentTelephone: null,
         communes: expect.arrayContaining(
           mockedCommunes.map((code) => ({
-            id: expect.any(String),
             inseeCode: code,
           })),
         ),
@@ -138,7 +137,6 @@ describe("ProjectsService", () => {
         ...expectedFields,
         communes: expect.arrayContaining(
           mockedCommunes.map((code) => ({
-            id: expect.any(String),
             inseeCode: code,
           })),
         ),

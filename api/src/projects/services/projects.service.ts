@@ -42,7 +42,7 @@ export class ProjectsService {
       await tx.insert(projectsToCommunes).values(
         communes.map((commune) => ({
           projectId: createdProject.id,
-          communeId: commune.id,
+          communeId: commune.inseeCode,
         })),
       );
 

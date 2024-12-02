@@ -69,7 +69,6 @@ describe("ProjectsController", () => {
           status: "DRAFT",
           communes: [
             {
-              id: expect.any(String),
               inseeCode: "75056",
             },
           ],
@@ -105,7 +104,6 @@ describe("ProjectsController", () => {
         status: "DRAFT",
         communes: [
           {
-            id: expect.any(String),
             inseeCode: "75056",
           },
         ],

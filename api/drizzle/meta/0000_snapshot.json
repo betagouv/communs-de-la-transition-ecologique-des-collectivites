@@ -1,5 +1,5 @@
 {
-  "id": "fb947548-1375-475d-a8ce-72826c91284f",
+  "id": "d60617fb-8e44-47ba-8c92-a21081c53779",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -8,32 +8,17 @@
       "name": "communes",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
         "insee_code": {
           "name": "insee_code",
           "type": "text",
-          "primaryKey": false,
+          "primaryKey": true,
           "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "communes_insee_code_unique": {
-          "name": "communes_insee_code_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "insee_code"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -157,7 +142,7 @@
         },
         "commune_id": {
           "name": "commune_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         }
@@ -177,15 +162,15 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "projects_to_communes_commune_id_communes_id_fk": {
-          "name": "projects_to_communes_commune_id_communes_id_fk",
+        "projects_to_communes_commune_id_communes_insee_code_fk": {
+          "name": "projects_to_communes_commune_id_communes_insee_code_fk",
           "tableFrom": "projects_to_communes",
           "tableTo": "communes",
           "columnsFrom": [
             "commune_id"
           ],
           "columnsTo": [
-            "id"
+            "insee_code"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"

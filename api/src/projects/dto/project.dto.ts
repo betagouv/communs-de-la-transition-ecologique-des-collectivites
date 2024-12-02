@@ -4,9 +4,6 @@ import { InferSelectModel } from "drizzle-orm";
 
 class CommuneDto {
   @ApiProperty()
-  id: string;
-
-  @ApiProperty()
   inseeCode: string;
 }
 
