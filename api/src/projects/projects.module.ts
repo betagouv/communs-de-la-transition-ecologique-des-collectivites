@@ -1,9 +1,10 @@
 import { Module } from "@nestjs/common";
-import { ProjectsService } from "./projects.service";
+import { ProjectsService } from "./services/projects.service";
 import { ProjectsController } from "./projects.controller";
+import { CommunesService } from "./services/communes.service";
 
 @Module({
   controllers: [ProjectsController],
-  providers: [ProjectsService],
+  providers: [ProjectsService, CommunesService],
 })
 export class ProjectsModule {}

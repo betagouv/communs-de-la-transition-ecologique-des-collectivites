@@ -7,6 +7,7 @@ import { e2eTestDbSetup } from "./helpers/e2eTestDbSetup";
 import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
 import { describe } from "node:test";
 import { getFutureDate } from "./helpers/getFutureDate";
+import { CreateProjectDto } from "@projects/dto/create-project.dto";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -42,18 +43,16 @@ describe("AppController (e2e)", () => {
   });
 
   describe("Projects (e2e)", () => {
-    describe("POST /projects", () => {
-      const validProject = {
-        nom: "Test Project",
-        description: "Test Description",
-        codeSiret: "12345678901234",
-        porteurEmail: "test@beta.gouv.fr",
-        budget: 100000,
-        forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
-        communeInseeCodes: ["01001", "75056", "97A01"],
-      };
+    const validProject: CreateProjectDto = {
+      nom: "Test Project",
+      description: "Test Description",
+      budget: 100000,
+      forecastedStartDate: getFutureDate(),
+      status: "DRAFT",
+      communeInseeCodes: ["01001", "75056", "97A01"],
+    };
 
+    describe("POST /projects", () => {
       it("should reject when wrong api key", async () => {
         const response = await request(app.getHttpServer())
           .post("/projects")
@@ -97,16 +96,6 @@ describe("AppController (e2e)", () => {
         expect(response.status).toBe(201);
         expect(response.body).toMatchObject({
           id: expect.any(String),
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
-          nom: validProject.nom,
-          description: validProject.description,
-          codeSiret: validProject.codeSiret,
-          porteurEmailHash: expect.any(String),
-          budget: validProject.budget,
-          forecastedStartDate: validProject.forecastedStartDate,
-          status: validProject.status,
-          communeInseeCodes: validProject.communeInseeCodes,
         });
       });
 
@@ -126,6 +115,83 @@ describe("AppController (e2e)", () => {
         expect(response.status).toBe(400);
         expect(response.body.message).toBe(
           "Forecasted start date must be in the future",
+        );
+      });
+    });
+
+    describe("GET /projects/:id", () => {
+      it("should return a specific project", async () => {
+        const createResponse = await request(app.getHttpServer())
+          .post("/projects")
+          .set("Authorization", `Bearer ${apiKey}`)
+          .send(validProject);
+
+        const projectId = createResponse.body.id;
+
+        const response = await request(app.getHttpServer())
+          .get(`/projects/${projectId}`)
+          .set("Authorization", `Bearer ${apiKey}`);
+
+        const {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          communeInseeCodes: communeCodesInProject1,
+          ...expectedFields
+        } = validProject;
+
+        expect(response.status).toBe(200);
+        expect(response.body).toMatchObject({
+          id: expect.any(String),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+          porteurCodeSiret: null,
+          porteurReferentEmail: null,
+          porteurReferentFonction: null,
+          porteurReferentNom: null,
+          porteurReferentPrenom: null,
+          porteurReferentTelephone: null,
+          ...expectedFields,
+          communes: expect.arrayContaining([
+            expect.objectContaining({
+              inseeCode: expect.any(String),
+            }),
+          ]),
+        });
+      });
+
+      it("should return 404 for non-existent project", async () => {
+        const nonExistentId = "00000000-0000-0000-0000-000000000000";
+        const response = await request(app.getHttpServer())
+          .get(`/projects/${nonExistentId}`)
+          .set("Authorization", `Bearer ${apiKey}`);
+
+        expect(response.status).toBe(404);
+      });
+    });
+
+    describe("GET /projects", () => {
+      it("should return all projects", async () => {
+        await request(app.getHttpServer())
+          .post("/projects")
+          .set("Authorization", `Bearer ${apiKey}`)
+          .send(validProject);
+
+        const response = await request(app.getHttpServer())
+          .get("/projects")
+          .set("Authorization", `Bearer ${apiKey}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: expect.any(String),
+              nom: validProject.nom,
+              communes: expect.arrayContaining([
+                expect.objectContaining({
+                  inseeCode: expect.any(String),
+                }),
+              ]),
+            }),
+          ]),
         );
       });
     });

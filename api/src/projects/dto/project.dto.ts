@@ -1,6 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { projects, ProjectStatus, projectStatusEnum } from "@database/schema";
+import { communes, projects, ProjectStatus } from "@database/schema";
 import { InferSelectModel } from "drizzle-orm";
+
+class CommuneDto implements InferSelectModel<typeof communes> {
+  @ApiProperty()
+  inseeCode: string;
+}
 
 export class ProjectDto implements InferSelectModel<typeof projects> {
   @ApiProperty()
@@ -18,28 +23,45 @@ export class ProjectDto implements InferSelectModel<typeof projects> {
   @ApiProperty()
   description: string;
 
-  @ApiProperty()
-  codeSiret: string;
+  @ApiProperty({
+    type: String || null,
+  })
+  porteurCodeSiret: string | null;
 
-  @ApiProperty()
-  porteurEmailHash: string;
+  @ApiProperty({
+    type: String || null,
+  })
+  porteurReferentEmail: string | null;
+
+  @ApiProperty({
+    type: String || null,
+  })
+  porteurReferentTelephone: string | null;
+
+  @ApiProperty({
+    type: String || null,
+  })
+  porteurReferentPrenom: string | null;
+
+  @ApiProperty({
+    type: String || null,
+  })
+  porteurReferentNom: string | null;
+
+  @ApiProperty({
+    type: String || null,
+  })
+  porteurReferentFonction: string | null;
+
+  @ApiProperty({ type: [CommuneDto] })
+  communes: CommuneDto[];
 
   @ApiProperty()
   budget: number;
 
-  @ApiProperty({
-    description: "Forecasted start date in YYYY-MM-DD format",
-    example: "2024-03-01",
-  })
+  @ApiProperty()
   forecastedStartDate: string;
 
-  @ApiProperty({ enum: projectStatusEnum.enumValues })
+  @ApiProperty()
   status: ProjectStatus;
-
-  @ApiProperty({
-    type: [String],
-    description: "Array of INSEE codes for the communes",
-    example: ["01001", "75056", "97A01"],
-  })
-  communeInseeCodes: string[];
 }

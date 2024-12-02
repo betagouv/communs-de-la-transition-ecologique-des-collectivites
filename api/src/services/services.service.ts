@@ -38,24 +38,16 @@ export class ServicesService {
   async create(createServiceDto: CreateServiceDto) {
     this.logger.debug("Creating new service", { dto: createServiceDto });
 
-    try {
-      const [newService] = await this.dbService.database
-        .insert(services)
-        .values(createServiceDto)
-        .returning();
+    const [newService] = await this.dbService.database
+      .insert(services)
+      .values(createServiceDto)
+      .returning();
 
-      this.logger.log("Service created successfully", {
-        serviceId: newService.id,
-      });
+    this.logger.log("Service created successfully", {
+      serviceId: newService.id,
+    });
 
-      return newService;
-    } catch (error) {
-      this.logger.error("Failed to create service", {
-        error: error.message,
-        dto: createServiceDto,
-      });
-      throw error;
-    }
+    return newService;
   }
 
   async findAll() {

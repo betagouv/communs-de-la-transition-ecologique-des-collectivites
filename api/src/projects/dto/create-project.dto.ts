@@ -1,14 +1,13 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsArray,
   IsDateString,
-  IsEmail,
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
 } from "class-validator";
-import { Type } from "class-transformer";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
 
 export class CreateProjectDto {
@@ -22,24 +21,43 @@ export class CreateProjectDto {
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
-  @IsNotEmpty()
-  codeSiret: string;
+  @IsOptional()
+  porteurCodeSiret?: string;
 
-  @ApiProperty()
-  @IsEmail()
-  porteurEmail: string;
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  porteurReferentEmail?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  porteurReferentTelephone?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  porteurReferentPrenom?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  porteurReferentNom?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  porteurReferentFonction?: string;
 
   @ApiProperty()
   @IsNumber()
-  @Type(() => Number)
   budget: number;
 
   @ApiProperty({
     description: "Forecasted start date in YYYY-MM-DD format",
     example: "2024-03-01",
-    type: String,
   })
   @IsDateString(
     {},

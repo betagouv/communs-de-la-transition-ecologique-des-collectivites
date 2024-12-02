@@ -1,10 +1,9 @@
 import { ProjectsService } from "./projects.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
-import { CreateProjectDto } from "./dto/create-project.dto";
+import { CreateProjectDto } from "../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
-import { hashEmail } from "@projects/utils";
 import { getFutureDate } from "@test/helpers/getFutureDate";
 
 describe("ProjectsService", () => {
@@ -34,8 +33,6 @@ describe("ProjectsService", () => {
       const createDto: CreateProjectDto = {
         nom: "Test Project",
         description: "Test Description",
-        porteurEmail: "porteurEmail@beta.gouv.fr",
-        codeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
         status: "DRAFT",
@@ -44,15 +41,8 @@ describe("ProjectsService", () => {
 
       const result = await service.create(createDto);
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { porteurEmail, ...expectedFields } = createDto;
-
       expect(result).toEqual({
         id: expect.any(String),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-        ...expectedFields,
-        porteurEmailHash: hashEmail(createDto.porteurEmail),
       });
     });
   });
@@ -63,8 +53,7 @@ describe("ProjectsService", () => {
       const createDto1: CreateProjectDto = {
         nom: "Project 1",
         description: "Description 1",
-        porteurEmail: "porteurEmail1@beta.gouv.fr",
-        codeSiret: "12345678901234",
+        porteurReferentEmail: "porteurReferentEmail@email.com",
         budget: 100000,
         forecastedStartDate: futureDate,
         status: "DRAFT",
@@ -73,8 +62,6 @@ describe("ProjectsService", () => {
       const createDto2: CreateProjectDto = {
         nom: "Project 2",
         description: "Description 2",
-        porteurEmail: "porteurEmail2@beta.gouv.fr",
-        codeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: futureDate,
         status: "DRAFT",
@@ -84,27 +71,45 @@ describe("ProjectsService", () => {
       await service.create(createDto1);
       await service.create(createDto2);
 
+      const {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        communeInseeCodes: communeCodesInProject1,
+        ...expectedFieldsProject1
+      } = createDto1;
+      const {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        communeInseeCodes: communeCodesInProject2,
+        ...expectedFieldsProject2
+      } = createDto2;
+
       const result = await service.findAll();
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { porteurEmail: porteurEmail1, ...expectedFieldsDto1 } = createDto1;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { porteurEmail: porteurEmail2, ...expectedFieldsDto2 } = createDto2;
+      const expectedCommonFields = {
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+        porteurCodeSiret: null,
+        porteurReferentEmail: null,
+        porteurReferentFonction: null,
+        porteurReferentNom: null,
+        porteurReferentPrenom: null,
+        porteurReferentTelephone: null,
+        communes: expect.arrayContaining(
+          mockedCommunes.map((code) => ({
+            inseeCode: code,
+          })),
+        ),
+      };
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
-        ...expectedFieldsDto1,
-        porteurEmailHash: hashEmail(createDto1.porteurEmail),
-        id: expect.any(String),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
+        ...expectedFieldsProject1,
+        ...expectedCommonFields,
+        porteurReferentEmail: "porteurReferentEmail@email.com",
       });
       expect(result[1]).toEqual({
-        ...expectedFieldsDto2,
-        porteurEmailHash: hashEmail(createDto2.porteurEmail),
-        id: expect.any(String),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
+        ...expectedFieldsProject2,
+        ...expectedCommonFields,
       });
     });
   });
@@ -114,23 +119,29 @@ describe("ProjectsService", () => {
       const createDto: CreateProjectDto = {
         nom: "Test Project",
         description: "Test Description",
-        porteurEmail: "porteurEmail@beta.gouv.fr",
-        codeSiret: "12345678901234",
+        porteurCodeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
         status: "DRAFT",
         communeInseeCodes: mockedCommunes,
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { porteurEmail, ...expectedFields } = createDto;
-
       const createdProject = await service.create(createDto);
       const result = await service.findOne(createdProject.id);
-
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { communeInseeCodes, ...expectedFields } = createDto;
       expect(result).toEqual({
         ...expectedFields,
-        porteurEmailHash: hashEmail(createDto.porteurEmail),
+        communes: expect.arrayContaining(
+          mockedCommunes.map((code) => ({
+            inseeCode: code,
+          })),
+        ),
+        porteurReferentEmail: null,
+        porteurReferentFonction: null,
+        porteurReferentNom: null,
+        porteurReferentPrenom: null,
+        porteurReferentTelephone: null,
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
