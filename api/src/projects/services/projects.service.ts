@@ -5,7 +5,11 @@ import {
 } from "@nestjs/common";
 import { CreateProjectDto } from "../dto/create-project.dto";
 import { UpdateProjectDto } from "../dto/update-project.dto";
-import { projects, projectsToCommunes } from "@database/schema";
+import {
+  projectCollaborators,
+  projects,
+  projectsToCommunes,
+} from "@database/schema";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@/logging/logger.service";
 import { ProjectDto } from "../dto/project.dto";
@@ -38,6 +42,14 @@ export class ProjectsService {
           }),
         )
         .returning();
+
+      if (createProjectDto.porteurReferentEmail) {
+        await tx.insert(projectCollaborators).values({
+          projectId: createdProject.id,
+          email: createProjectDto.porteurReferentEmail,
+          permissionType: "EDIT",
+        });
+      }
 
       await tx.insert(projectsToCommunes).values(
         communes.map((commune) => ({

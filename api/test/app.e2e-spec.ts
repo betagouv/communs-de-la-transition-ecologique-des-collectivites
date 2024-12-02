@@ -48,6 +48,7 @@ describe("AppController (e2e)", () => {
       description: "Test Description",
       budget: 100000,
       forecastedStartDate: getFutureDate(),
+      porteurReferentEmail: "test@email.com",
       status: "DRAFT",
       communeInseeCodes: ["01001", "75056", "97A01"],
     };
@@ -130,7 +131,8 @@ describe("AppController (e2e)", () => {
 
         const response = await request(app.getHttpServer())
           .get(`/projects/${projectId}`)
-          .set("Authorization", `Bearer ${apiKey}`);
+          .set("Authorization", `Bearer ${apiKey}`)
+          .set("X-User-Email", `test@email.com`);
 
         const {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -158,11 +160,47 @@ describe("AppController (e2e)", () => {
         });
       });
 
+      it("should not allow to get project when user email is not provided", async () => {
+        const createResponse = await request(app.getHttpServer())
+          .post("/projects")
+          .set("Authorization", `Bearer ${apiKey}`)
+
+          .send(validProject);
+
+        const projectId = createResponse.body.id;
+
+        const response = await request(app.getHttpServer())
+          .get(`/projects/${projectId}`)
+          .set("Authorization", `Bearer ${apiKey}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe("Missing user email");
+      });
+
+      it("should not allow to get project when user has no corresponding permission", async () => {
+        const createResponse = await request(app.getHttpServer())
+          .post("/projects")
+          .set("Authorization", `Bearer ${apiKey}`)
+
+          .send(validProject);
+
+        const projectId = createResponse.body.id;
+
+        const response = await request(app.getHttpServer())
+          .get(`/projects/${projectId}`)
+          .set("Authorization", `Bearer ${apiKey}`)
+          .set("X-User-Email", `no-permission@email.com`);
+
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe("Insufficient permissions");
+      });
+
       it("should return 404 for non-existent project", async () => {
         const nonExistentId = "00000000-0000-0000-0000-000000000000";
         const response = await request(app.getHttpServer())
           .get(`/projects/${nonExistentId}`)
-          .set("Authorization", `Bearer ${apiKey}`);
+          .set("Authorization", `Bearer ${apiKey}`)
+          .set("X-User-Email", `test@email.com`);
 
         expect(response.status).toBe(404);
       });
