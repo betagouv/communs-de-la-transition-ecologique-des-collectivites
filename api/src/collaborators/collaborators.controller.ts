@@ -1,9 +1,10 @@
 import { Controller, Post, Body, Param } from "@nestjs/common";
 import { CollaboratorsService } from "./collaborators.service";
 import { CreateCollaboratorDto } from "./dto/add-collaborator.dto";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
 @ApiTags("collaborators")
+@ApiBearerAuth()
 @Controller("projects/:id/collaborators")
 export class CollaboratorsController {
   constructor(private readonly collaboratorsService: CollaboratorsService) {}
