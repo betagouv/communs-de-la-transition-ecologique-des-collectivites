@@ -74,10 +74,11 @@ export const projectCollaborators = pgTable(
   {
     projectId: uuid("project_id")
       .notNull()
-      .references(() => projects.id),
+      .references(() => projects.id, { onDelete: "cascade" }),
     email: text("email").notNull(),
     permissionType: permissionTypeEnum("permission_type").notNull(),
     createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
   },
   (t) => [
     primaryKey({ columns: [t.projectId, t.email] }),

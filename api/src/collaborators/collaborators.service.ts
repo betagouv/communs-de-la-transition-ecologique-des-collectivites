@@ -1,9 +1,5 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
-import { DatabaseService } from "@database/database.service";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { DatabaseService, Tx } from "@database/database.service";
 import {
   PermissionType,
   projectCollaborators,
@@ -17,35 +13,28 @@ export class CollaboratorsService {
   constructor(private dbService: DatabaseService) {}
 
   async create(
+    tx: Tx,
     projectId: string,
     { email, permissionType }: CreateCollaboratorDto,
   ): Promise<string> {
-    await this.validateProjectExistence(projectId);
+    await this.validateProjectExistence(tx, projectId);
 
-    const existingCollaborator = await this.dbService.database
-      .select()
-      .from(projectCollaborators)
-      .where(
-        and(
-          eq(projectCollaborators.projectId, projectId),
-          eq(projectCollaborators.email, email),
-        ),
-      )
-      .limit(1);
+    await tx
+      .insert(projectCollaborators)
+      .values({
+        projectId,
+        email,
+        permissionType,
+      })
+      .onConflictDoUpdate({
+        target: [projectCollaborators.projectId, projectCollaborators.email],
+        set: {
+          permissionType,
+        },
+      })
+      .returning();
 
-    if (existingCollaborator.length > 0) {
-      throw new ConflictException(
-        `Collaborator ${email} already exists on project ${projectId}`,
-      );
-    }
-
-    await this.dbService.database.insert(projectCollaborators).values({
-      projectId,
-      email,
-      permissionType: permissionType,
-    });
-
-    return `permission created for ${email} on project ${projectId}`;
+    return `Permission updated/created for ${email} on project ${projectId}`;
   }
 
   async hasPermission(
@@ -53,31 +42,36 @@ export class CollaboratorsService {
     userEmail: string,
     requiredPermission: PermissionType,
   ): Promise<boolean> {
-    await this.validateProjectExistence(projectId);
+    return await this.dbService.database.transaction(async (tx) => {
+      await this.validateProjectExistence(tx, projectId);
 
-    const collaborator = await this.dbService.database
-      .select()
-      .from(projectCollaborators)
-      .where(
-        and(
-          eq(projectCollaborators.projectId, projectId),
-          eq(projectCollaborators.email, userEmail),
-        ),
-      )
-      .limit(1);
+      const collaborator = await tx
+        .select()
+        .from(projectCollaborators)
+        .where(
+          and(
+            eq(projectCollaborators.projectId, projectId),
+            eq(projectCollaborators.email, userEmail),
+          ),
+        )
+        .limit(1);
 
-    if (collaborator.length === 0) {
-      return false;
-    }
+      if (collaborator.length === 0) {
+        return false;
+      }
 
-    return (
-      collaborator[0].permissionType === "EDIT" ||
-      collaborator[0].permissionType === requiredPermission
-    );
+      return (
+        collaborator[0].permissionType === "EDIT" ||
+        collaborator[0].permissionType === requiredPermission
+      );
+    });
   }
 
-  private async validateProjectExistence(projectId: string): Promise<void> {
-    const project = await this.dbService.database
+  private async validateProjectExistence(
+    tx: Tx,
+    projectId: string,
+  ): Promise<void> {
+    const project = await tx
       .select()
       .from(projects)
       .where(eq(projects.id, projectId))

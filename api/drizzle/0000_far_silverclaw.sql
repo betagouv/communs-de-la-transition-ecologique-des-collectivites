@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS "project_collaborators" (
 	"email" text NOT NULL,
 	"permission_type" "permission_type" NOT NULL,
 	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "project_collaborators_project_id_email_pk" PRIMARY KEY("project_id","email")
 );
 --> statement-breakpoint
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS "services" (
 );
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "project_collaborators" ADD CONSTRAINT "project_collaborators_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "project_collaborators" ADD CONSTRAINT "project_collaborators_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

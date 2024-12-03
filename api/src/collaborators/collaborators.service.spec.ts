@@ -5,7 +5,7 @@ import { projectCollaborators, projects } from "@database/schema";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { and, eq } from "drizzle-orm";
 import { CreateCollaboratorDto } from "@/collaborators/dto/add-collaborator.dto";
-import { ConflictException, NotFoundException } from "@nestjs/common";
+import { NotFoundException } from "@nestjs/common";
 import { getFutureDate } from "@test/helpers/getFutureDate";
 
 describe("CollaboratorsService", () => {
@@ -50,7 +50,9 @@ describe("CollaboratorsService", () => {
         permissionType: "VIEW",
       };
 
-      await collaboratorsService.create(projectId, collaboratorData);
+      await testDbService.database.transaction(async (tx) => {
+        await collaboratorsService.create(tx, projectId, collaboratorData);
+      });
 
       const collaborators = await testDbService.database
         .select()
@@ -76,7 +78,9 @@ describe("CollaboratorsService", () => {
         permissionType: "EDIT",
       };
 
-      await collaboratorsService.create(projectId, collaboratorData);
+      await testDbService.database.transaction(async (tx) => {
+        await collaboratorsService.create(tx, projectId, collaboratorData);
+      });
 
       const collaborators = await testDbService.database
         .select()
@@ -91,19 +95,6 @@ describe("CollaboratorsService", () => {
       });
     });
 
-    it("should throw ConflictException when adding an existing collaborator", async () => {
-      const collaboratorData: CreateCollaboratorDto = {
-        email: "existing@example.com",
-        permissionType: "VIEW",
-      };
-
-      await collaboratorsService.create(projectId, collaboratorData);
-
-      await expect(
-        collaboratorsService.create(projectId, collaboratorData),
-      ).rejects.toThrow(ConflictException);
-    });
-
     it("should throw NotFoundException when project does not exist", async () => {
       const nonExistentProjectId = "00000000-0000-0000-0000-000000000000";
       const collaboratorData: CreateCollaboratorDto = {
@@ -111,9 +102,50 @@ describe("CollaboratorsService", () => {
         permissionType: "VIEW",
       };
 
-      await expect(
-        collaboratorsService.create(nonExistentProjectId, collaboratorData),
-      ).rejects.toThrow(NotFoundException);
+      await testDbService.database.transaction(async (tx) => {
+        await expect(
+          collaboratorsService.create(
+            tx,
+            nonExistentProjectId,
+            collaboratorData,
+          ),
+        ).rejects.toThrow(NotFoundException);
+      });
+    });
+
+    it("should update permission when collaborator already exists", async () => {
+      const collaboratorData: CreateCollaboratorDto = {
+        email: "test@example.com",
+        permissionType: "VIEW",
+      };
+
+      await testDbService.database.transaction(async (tx) => {
+        await collaboratorsService.create(tx, projectId, collaboratorData);
+      });
+
+      await testDbService.database.transaction(async (tx) => {
+        await collaboratorsService.create(tx, projectId, {
+          ...collaboratorData,
+          permissionType: "EDIT",
+        });
+      });
+
+      const collaborators = await testDbService.database
+        .select()
+        .from(projectCollaborators)
+        .where(
+          and(
+            eq(projectCollaborators.projectId, projectId),
+            eq(projectCollaborators.email, collaboratorData.email),
+          ),
+        );
+
+      expect(collaborators).toHaveLength(1);
+      expect(collaborators[0]).toMatchObject({
+        email: collaboratorData.email,
+        permissionType: "EDIT",
+        projectId,
+      });
     });
   });
 
@@ -124,7 +156,9 @@ describe("CollaboratorsService", () => {
         permissionType: "VIEW",
       };
 
-      await collaboratorsService.create(projectId, collaboratorData);
+      await testDbService.database.transaction(async (tx) => {
+        await collaboratorsService.create(tx, projectId, collaboratorData);
+      });
 
       const hasPermission = await collaboratorsService.hasPermission(
         projectId,
@@ -141,8 +175,9 @@ describe("CollaboratorsService", () => {
         permissionType: "EDIT" as const,
       };
 
-      await collaboratorsService.create(projectId, collaboratorData);
-
+      await testDbService.database.transaction(async (tx) => {
+        await collaboratorsService.create(tx, projectId, collaboratorData);
+      });
       const hasPermission = await collaboratorsService.hasPermission(
         projectId,
         collaboratorData.email,
@@ -158,7 +193,9 @@ describe("CollaboratorsService", () => {
         permissionType: "VIEW",
       };
 
-      await collaboratorsService.create(projectId, collaboratorData);
+      await testDbService.database.transaction(async (tx) => {
+        await collaboratorsService.create(tx, projectId, collaboratorData);
+      });
 
       const hasPermission = await collaboratorsService.hasPermission(
         projectId,
