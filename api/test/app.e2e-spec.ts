@@ -174,7 +174,9 @@ describe("AppController (e2e)", () => {
           .set("Authorization", `Bearer ${apiKey}`);
 
         expect(response.status).toBe(400);
-        expect(response.body.message).toBe("Missing user email");
+        expect(response.body.message).toBe(
+          "Missing user email in x-user-email header",
+        );
       });
 
       it("should not allow to get project when user has no corresponding permission", async () => {
