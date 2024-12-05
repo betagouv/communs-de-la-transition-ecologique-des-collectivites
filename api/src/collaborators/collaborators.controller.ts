@@ -6,7 +6,7 @@ import { DatabaseService } from "@database/database.service";
 
 @ApiTags("collaborators")
 @ApiBearerAuth()
-@Controller("projects/:id/collaborators")
+@Controller("projects/:id/update-collaborators")
 export class CollaboratorsController {
   constructor(
     private readonly collaboratorsService: CollaboratorsService,

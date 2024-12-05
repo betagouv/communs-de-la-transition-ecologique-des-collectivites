@@ -8,6 +8,7 @@ import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
 import { describe } from "node:test";
 import { getFutureDate } from "./helpers/getFutureDate";
 import { CreateProjectDto } from "@projects/dto/create-project.dto";
+import { CreateCollaboratorDto } from "@/collaborators/dto/add-collaborator.dto";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -232,6 +233,67 @@ describe("AppController (e2e)", () => {
               ]),
             }),
           ]),
+        );
+      });
+    });
+  });
+
+  describe("Collaborators (e2e)", () => {
+    let projectId: string;
+    const validProject: CreateProjectDto = {
+      nom: "Collaboration Test Project",
+      description: "Test Description",
+      budget: 100000,
+      forecastedStartDate: getFutureDate(),
+      porteurReferentEmail: "owner@email.com",
+      status: "DRAFT",
+      communeInseeCodes: ["01001"],
+    };
+
+    const validCollaborator: CreateCollaboratorDto = {
+      email: "collaborator@email.com",
+      permissionType: "VIEW",
+    };
+
+    beforeAll(async () => {
+      // Create a test project to use in collaboration tests
+      const response = await request(app.getHttpServer())
+        .post("/projects")
+        .set("Authorization", `Bearer ${apiKey}`)
+        .send(validProject);
+
+      console.log("response", response.status);
+
+      projectId = response.body.id;
+    });
+
+    describe("POST /projects/:id/update-collaborators", () => {
+      it("should add a collaborator with VIEW permission", async () => {
+        const response = await request(app.getHttpServer())
+          .post(`/projects/${projectId}/update-collaborators`)
+          .set("Authorization", `Bearer ${apiKey}`)
+          .send(validCollaborator);
+
+        expect(response.status).toBe(201);
+        expect(response.text).toContain(
+          `Permission updated/created for ${validCollaborator.email}`,
+        );
+      });
+
+      it("should update existing collaborator permission", async () => {
+        const updatedPermission: CreateCollaboratorDto = {
+          ...validCollaborator,
+          permissionType: "EDIT",
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/projects/${projectId}/update-collaborators`)
+          .set("Authorization", `Bearer ${apiKey}`)
+          .send(updatedPermission);
+
+        expect(response.status).toBe(201);
+        expect(response.text).toContain(
+          `Permission updated/created for ${validCollaborator.email}`,
         );
       });
     });

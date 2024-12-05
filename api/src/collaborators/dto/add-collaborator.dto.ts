@@ -8,6 +8,6 @@ export class CreateCollaboratorDto {
   email: string;
 
   @ApiProperty({ enum: [permissionTypeEnum.enumValues] })
-  @IsEnum([permissionTypeEnum.enumValues])
+  @IsEnum(permissionTypeEnum.enumValues)
   permissionType: PermissionType;
 }
