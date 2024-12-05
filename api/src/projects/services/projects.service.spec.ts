@@ -5,6 +5,8 @@ import { CreateProjectDto } from "../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
 import { getFutureDate } from "@test/helpers/getFutureDate";
+import { projectCollaborators } from "@database/schema";
+import { eq } from "drizzle-orm";
 
 describe("ProjectsService", () => {
   let service: ProjectsService;
@@ -43,6 +45,32 @@ describe("ProjectsService", () => {
 
       expect(result).toEqual({
         id: expect.any(String),
+      });
+    });
+
+    it("should create a new collaborator permission when project is created", async () => {
+      const createDto: CreateProjectDto = {
+        nom: "Test Project",
+        description: "Test Description",
+        budget: 100000,
+        porteurReferentEmail: "nouveauPorteur@email.com",
+        forecastedStartDate: getFutureDate(),
+        status: "DRAFT",
+        communeInseeCodes: mockedCommunes,
+      };
+
+      const createdProject = await service.create(createDto);
+
+      const collaborators = await testDbService.database
+        .select()
+        .from(projectCollaborators)
+        .where(eq(projectCollaborators.projectId, createdProject.id));
+
+      expect(collaborators).toHaveLength(1);
+      expect(collaborators[0]).toMatchObject({
+        email: createDto.porteurReferentEmail,
+        permissionType: "EDIT",
+        projectId: createdProject.id,
       });
     });
   });

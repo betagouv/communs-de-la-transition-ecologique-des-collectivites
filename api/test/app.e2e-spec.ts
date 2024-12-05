@@ -8,6 +8,7 @@ import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
 import { describe } from "node:test";
 import { getFutureDate } from "./helpers/getFutureDate";
 import { CreateProjectDto } from "@projects/dto/create-project.dto";
+import { CreateCollaboratorDto } from "@/collaborators/dto/add-collaborator.dto";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -48,6 +49,7 @@ describe("AppController (e2e)", () => {
       description: "Test Description",
       budget: 100000,
       forecastedStartDate: getFutureDate(),
+      porteurReferentEmail: "test@email.com",
       status: "DRAFT",
       communeInseeCodes: ["01001", "75056", "97A01"],
     };
@@ -130,7 +132,8 @@ describe("AppController (e2e)", () => {
 
         const response = await request(app.getHttpServer())
           .get(`/projects/${projectId}`)
-          .set("Authorization", `Bearer ${apiKey}`);
+          .set("Authorization", `Bearer ${apiKey}`)
+          .set("X-User-Email", `test@email.com`);
 
         const {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -158,11 +161,49 @@ describe("AppController (e2e)", () => {
         });
       });
 
+      it("should not allow to get project when user email is not provided", async () => {
+        const createResponse = await request(app.getHttpServer())
+          .post("/projects")
+          .set("Authorization", `Bearer ${apiKey}`)
+
+          .send(validProject);
+
+        const projectId = createResponse.body.id;
+
+        const response = await request(app.getHttpServer())
+          .get(`/projects/${projectId}`)
+          .set("Authorization", `Bearer ${apiKey}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe(
+          "Missing user email in x-user-email header",
+        );
+      });
+
+      it("should not allow to get project when user has no corresponding permission", async () => {
+        const createResponse = await request(app.getHttpServer())
+          .post("/projects")
+          .set("Authorization", `Bearer ${apiKey}`)
+
+          .send(validProject);
+
+        const projectId = createResponse.body.id;
+
+        const response = await request(app.getHttpServer())
+          .get(`/projects/${projectId}`)
+          .set("Authorization", `Bearer ${apiKey}`)
+          .set("X-User-Email", `no-permission@email.com`);
+
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe("Insufficient permissions");
+      });
+
       it("should return 404 for non-existent project", async () => {
         const nonExistentId = "00000000-0000-0000-0000-000000000000";
         const response = await request(app.getHttpServer())
           .get(`/projects/${nonExistentId}`)
-          .set("Authorization", `Bearer ${apiKey}`);
+          .set("Authorization", `Bearer ${apiKey}`)
+          .set("X-User-Email", `test@email.com`);
 
         expect(response.status).toBe(404);
       });
@@ -192,6 +233,67 @@ describe("AppController (e2e)", () => {
               ]),
             }),
           ]),
+        );
+      });
+    });
+  });
+
+  describe("Collaborators (e2e)", () => {
+    let projectId: string;
+    const validProject: CreateProjectDto = {
+      nom: "Collaboration Test Project",
+      description: "Test Description",
+      budget: 100000,
+      forecastedStartDate: getFutureDate(),
+      porteurReferentEmail: "owner@email.com",
+      status: "DRAFT",
+      communeInseeCodes: ["01001"],
+    };
+
+    const validCollaborator: CreateCollaboratorDto = {
+      email: "collaborator@email.com",
+      permissionType: "VIEW",
+    };
+
+    beforeAll(async () => {
+      // Create a test project to use in collaboration tests
+      const response = await request(app.getHttpServer())
+        .post("/projects")
+        .set("Authorization", `Bearer ${apiKey}`)
+        .send(validProject);
+
+      console.log("response", response.status);
+
+      projectId = response.body.id;
+    });
+
+    describe("POST /projects/:id/update-collaborators", () => {
+      it("should add a collaborator with VIEW permission", async () => {
+        const response = await request(app.getHttpServer())
+          .post(`/projects/${projectId}/update-collaborators`)
+          .set("Authorization", `Bearer ${apiKey}`)
+          .send(validCollaborator);
+
+        expect(response.status).toBe(201);
+        expect(response.text).toContain(
+          `Permission updated/created for ${validCollaborator.email}`,
+        );
+      });
+
+      it("should update existing collaborator permission", async () => {
+        const updatedPermission: CreateCollaboratorDto = {
+          ...validCollaborator,
+          permissionType: "EDIT",
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/projects/${projectId}/update-collaborators`)
+          .set("Authorization", `Bearer ${apiKey}`)
+          .send(updatedPermission);
+
+        expect(response.status).toBe(201);
+        expect(response.text).toContain(
+          `Permission updated/created for ${validCollaborator.email}`,
         );
       });
     });
