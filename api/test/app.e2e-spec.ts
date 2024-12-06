@@ -23,6 +23,7 @@ describe("AppController (e2e)", () => {
     app = moduleFixture.createNestApplication();
     setupApp(app);
     await app.init();
+    await app.listen(3000);
 
     api = createApiClient(process.env.API_KEY);
   }, 30000);
