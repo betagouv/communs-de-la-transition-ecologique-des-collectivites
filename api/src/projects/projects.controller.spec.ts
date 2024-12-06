@@ -1,8 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ProjectsController } from "./projects.controller";
 import { ProjectsService } from "./services/projects.service";
-import { CreateProjectDto } from "./dto/create-project.dto";
-import { ProjectDto } from "./dto/project.dto";
+import { CreateProjectRequest } from "./dto/create-project.dto";
+import { ProjectResponse } from "./dto/project.dto";
 import { getFutureDate } from "@test/helpers/getFutureDate";
 import { AppModule } from "@/app.module";
 import { NotFoundException } from "@nestjs/common";
@@ -26,7 +26,7 @@ describe("ProjectsController", () => {
   });
 
   describe("create", () => {
-    const validProject: CreateProjectDto = {
+    const validProject: CreateProjectRequest = {
       nom: "Test Project",
       description: "Test Description",
       porteurCodeSiret: "12345678901234",
@@ -50,7 +50,7 @@ describe("ProjectsController", () => {
 
   describe("findAll", () => {
     it("should return an array of projects", async () => {
-      const expectedProjects: ProjectDto[] = [
+      const expectedProjects: ProjectResponse[] = [
         {
           id: "test-id",
           createdAt: new Date(),
@@ -85,7 +85,7 @@ describe("ProjectsController", () => {
 
   describe("findOne", () => {
     it("should return a single project", async () => {
-      const expectedProject: ProjectDto = {
+      const expectedProject: ProjectResponse = {
         id: "test-id",
         createdAt: new Date(),
         updatedAt: new Date(),

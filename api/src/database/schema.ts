@@ -78,7 +78,9 @@ export const projectCollaborators = pgTable(
     email: text("email").notNull(),
     permissionType: permissionTypeEnum("permission_type").notNull(),
     createdAt: timestamp("created_at").defaultNow(),
-    updatedAt: timestamp("updated_at").defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date()),
   },
   (t) => [
     primaryKey({ columns: [t.projectId, t.email] }),

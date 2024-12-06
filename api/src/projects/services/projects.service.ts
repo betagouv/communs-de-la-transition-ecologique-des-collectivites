@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { CreateProjectDto } from "../dto/create-project.dto";
+import { CreateProjectRequest } from "../dto/create-project.dto";
 import { UpdateProjectDto } from "../dto/update-project.dto";
 import {
   projectCollaborators,
@@ -12,10 +12,10 @@ import {
 } from "@database/schema";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@/logging/logger.service";
-import { ProjectDto } from "../dto/project.dto";
+import { ProjectResponse } from "../dto/project.dto";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "./communes.service";
-import { removeUndefined } from "@/utils/remove-undefined";
+import { removeUndefined } from "@/shared/utils/remove-undefined";
 
 @Injectable()
 export class ProjectsService {
@@ -25,7 +25,9 @@ export class ProjectsService {
     private logger: CustomLogger,
   ) {}
 
-  async create(createProjectDto: CreateProjectDto): Promise<{ id: string }> {
+  async create(
+    createProjectDto: CreateProjectRequest,
+  ): Promise<{ id: string }> {
     this.validateDate(createProjectDto.forecastedStartDate);
 
     return await this.dbService.database.transaction(async (tx) => {
@@ -62,7 +64,7 @@ export class ProjectsService {
     });
   }
 
-  async findAll(): Promise<ProjectDto[]> {
+  async findAll(): Promise<ProjectResponse[]> {
     this.logger.debug("Finding all projects");
 
     const results = await this.dbService.database.query.projects.findMany({
@@ -81,7 +83,7 @@ export class ProjectsService {
     }));
   }
 
-  async findOne(id: string): Promise<ProjectDto> {
+  async findOne(id: string): Promise<ProjectResponse> {
     const result = await this.dbService.database.query.projects.findFirst({
       where: eq(projects.id, id),
       with: {

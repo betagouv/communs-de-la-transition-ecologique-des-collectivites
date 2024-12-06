@@ -1,7 +1,7 @@
 import { ProjectsService } from "./projects.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
-import { CreateProjectDto } from "../dto/create-project.dto";
+import { CreateProjectRequest } from "../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
 import { getFutureDate } from "@test/helpers/getFutureDate";
@@ -32,7 +32,7 @@ describe("ProjectsService", () => {
 
   describe("create", () => {
     it("should create a new project", async () => {
-      const createDto: CreateProjectDto = {
+      const createDto: CreateProjectRequest = {
         nom: "Test Project",
         description: "Test Description",
         budget: 100000,
@@ -49,7 +49,7 @@ describe("ProjectsService", () => {
     });
 
     it("should create a new collaborator permission when project is created", async () => {
-      const createDto: CreateProjectDto = {
+      const createDto: CreateProjectRequest = {
         nom: "Test Project",
         description: "Test Description",
         budget: 100000,
@@ -78,7 +78,7 @@ describe("ProjectsService", () => {
   describe("findAll", () => {
     it("should return all projects", async () => {
       const futureDate = getFutureDate();
-      const createDto1: CreateProjectDto = {
+      const createDto1: CreateProjectRequest = {
         nom: "Project 1",
         description: "Description 1",
         porteurReferentEmail: "porteurReferentEmail@email.com",
@@ -87,7 +87,7 @@ describe("ProjectsService", () => {
         status: "DRAFT",
         communeInseeCodes: mockedCommunes,
       };
-      const createDto2: CreateProjectDto = {
+      const createDto2: CreateProjectRequest = {
         nom: "Project 2",
         description: "Description 2",
         budget: 100000,
@@ -144,7 +144,7 @@ describe("ProjectsService", () => {
 
   describe("findOne", () => {
     it("should return a project by id", async () => {
-      const createDto: CreateProjectDto = {
+      const createDto: CreateProjectRequest = {
         nom: "Test Project",
         description: "Test Description",
         porteurCodeSiret: "12345678901234",

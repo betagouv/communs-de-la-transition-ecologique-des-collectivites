@@ -1,13 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { communes, projects, ProjectStatus } from "@database/schema";
-import { InferSelectModel } from "drizzle-orm";
+import { ProjectStatus } from "@database/schema";
 
-class CommuneDto implements InferSelectModel<typeof communes> {
+class Commune {
   @ApiProperty()
   inseeCode: string;
 }
 
-export class ProjectDto implements InferSelectModel<typeof projects> {
+export class ProjectResponse {
   @ApiProperty()
   id: string;
 
@@ -53,8 +52,8 @@ export class ProjectDto implements InferSelectModel<typeof projects> {
   })
   porteurReferentFonction: string | null;
 
-  @ApiProperty({ type: [CommuneDto] })
-  communes: CommuneDto[];
+  @ApiProperty({ type: [Commune] })
+  communes: Commune[];
 
   @ApiProperty()
   budget: number;

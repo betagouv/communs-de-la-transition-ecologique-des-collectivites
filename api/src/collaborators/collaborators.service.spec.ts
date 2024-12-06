@@ -4,7 +4,7 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { projectCollaborators, projects } from "@database/schema";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { and, eq } from "drizzle-orm";
-import { CreateCollaboratorDto } from "@/collaborators/dto/add-collaborator.dto";
+import { CreateCollaboratorRequest } from "@/collaborators/dto/create-collaborator.dto";
 import { NotFoundException } from "@nestjs/common";
 import { getFutureDate } from "@test/helpers/getFutureDate";
 
@@ -45,7 +45,7 @@ describe("CollaboratorsService", () => {
 
   describe("create collaborator", () => {
     it("should add a new collaborator with VIEW permission", async () => {
-      const collaboratorData: CreateCollaboratorDto = {
+      const collaboratorData: CreateCollaboratorRequest = {
         email: "view@example.com",
         permissionType: "VIEW",
       };
@@ -73,7 +73,7 @@ describe("CollaboratorsService", () => {
     });
 
     it("should add a new collaborator with EDIT permission", async () => {
-      const collaboratorData: CreateCollaboratorDto = {
+      const collaboratorData: CreateCollaboratorRequest = {
         email: "editor@example.com",
         permissionType: "EDIT",
       };
@@ -97,7 +97,7 @@ describe("CollaboratorsService", () => {
 
     it("should throw NotFoundException when project does not exist", async () => {
       const nonExistentProjectId = "00000000-0000-0000-0000-000000000000";
-      const collaboratorData: CreateCollaboratorDto = {
+      const collaboratorData: CreateCollaboratorRequest = {
         email: "test@example.com",
         permissionType: "VIEW",
       };
@@ -113,15 +113,23 @@ describe("CollaboratorsService", () => {
       });
     });
 
-    it("should update permission when collaborator already exists", async () => {
-      const collaboratorData: CreateCollaboratorDto = {
+    it("should update permission and updatedAt when collaborator already exists", async () => {
+      const collaboratorData: CreateCollaboratorRequest = {
         email: "test@example.com",
         permissionType: "VIEW",
       };
 
+      let firstCollaborator;
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.create(tx, projectId, collaboratorData);
+        firstCollaborator = await collaboratorsService.create(
+          tx,
+          projectId,
+          collaboratorData,
+        );
       });
+
+      // Wait a bit to ensure timestamps are different
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       await testDbService.database.transaction(async (tx) => {
         await collaboratorsService.create(tx, projectId, {
@@ -146,12 +154,16 @@ describe("CollaboratorsService", () => {
         permissionType: "EDIT",
         projectId,
       });
+
+      expect(new Date(collaborators[0].updatedAt).getTime()).toBeGreaterThan(
+        new Date(firstCollaborator.updatedAt).getTime(),
+      );
     });
   });
 
   describe("hasPermission", () => {
     it("should return true when user has exact permission", async () => {
-      const collaboratorData: CreateCollaboratorDto = {
+      const collaboratorData: CreateCollaboratorRequest = {
         email: "viewer@example.com",
         permissionType: "VIEW",
       };
@@ -170,7 +182,7 @@ describe("CollaboratorsService", () => {
     });
 
     it("should return true when checking VIEW permission for EDIT user", async () => {
-      const collaboratorData: CreateCollaboratorDto = {
+      const collaboratorData: CreateCollaboratorRequest = {
         email: "editor@example.com",
         permissionType: "EDIT" as const,
       };
@@ -188,7 +200,7 @@ describe("CollaboratorsService", () => {
     });
 
     it("should return false when user has insufficient permissions", async () => {
-      const collaboratorData: CreateCollaboratorDto = {
+      const collaboratorData: CreateCollaboratorRequest = {
         email: "viewer@example.com",
         permissionType: "VIEW",
       };

@@ -1,20 +1,19 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
-import * as request from "supertest";
 import { AppModule } from "@/app.module";
 import { setupApp } from "@/setup-app";
 import { e2eTestDbSetup } from "./helpers/e2eTestDbSetup";
 import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
-import { describe } from "node:test";
 import { getFutureDate } from "./helpers/getFutureDate";
-import { CreateProjectDto } from "@projects/dto/create-project.dto";
-import { CreateCollaboratorDto } from "@/collaborators/dto/add-collaborator.dto";
+import { createApiClient } from "./helpers/apiClient";
+import { CreateProjectRequest } from "@projects/dto/create-project.dto";
+import { CreateCollaboratorRequest } from "@/collaborators/dto/create-collaborator.dto";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
-  const apiKey = process.env.API_KEY;
+  let api: ReturnType<typeof createApiClient>;
+
   beforeAll(async () => {
-    // 👍🏼 We're ready
     await e2eTestDbSetup();
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -24,79 +23,59 @@ describe("AppController (e2e)", () => {
     app = moduleFixture.createNestApplication();
     setupApp(app);
     await app.init();
+    await app.listen(3000);
 
-    // temporary solution to allow time for the database to start
-    // will be changed once the pipelines are splited into different stages with specific
-    // service postgres database in github Action - see ticket https://github.com/orgs/betagouv/projects/129/views/1?pane=issue&itemId=86927723
+    api = createApiClient(process.env.API_KEY);
   }, 30000);
 
   afterAll(async () => {
-    // 👋🏼 We're done
     await app?.close();
     await e2eTearDownSetup();
   });
 
-  it("/ (GET)", () => {
-    return request(app.getHttpServer())
-      .get("/")
-      .expect(200)
-      .expect("Les communs API");
-  });
-
   describe("Projects (e2e)", () => {
-    const validProject: CreateProjectDto = {
+    const validProject: CreateProjectRequest = {
       nom: "Test Project",
       description: "Test Description",
       budget: 100000,
-      forecastedStartDate: getFutureDate(),
       porteurReferentEmail: "test@email.com",
+      forecastedStartDate: getFutureDate(),
       status: "DRAFT",
       communeInseeCodes: ["01001", "75056", "97A01"],
     };
 
     describe("POST /projects", () => {
       it("should reject when wrong api key", async () => {
-        const response = await request(app.getHttpServer())
-          .post("/projects")
-          .set("Authorization", `Bearer wrong-${apiKey}`)
-          .send(validProject);
+        const wrongApiClient = createApiClient(`wrong-${process.env.API_KEY}`);
+        const { error } = await wrongApiClient.projects.create(validProject);
 
-        expect(response.status).toBe(401);
-        expect(response.body.message).toContain("Invalid API key");
+        expect(error.statusCode).toBe(401);
+        expect(error.message).toContain("Invalid API key");
       });
 
       it("should reject when nom is empty", async () => {
-        const response = await request(app.getHttpServer())
-          .post("/projects")
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send({
-            ...validProject,
-            nom: "",
-          });
+        const { error } = await api.projects.create({
+          ...validProject,
+          nom: "",
+        });
 
-        expect(response.status).toBe(400);
-        expect(response.body.message).toContain("nom should not be empty");
+        expect(error.statusCode).toBe(400);
+        expect(error.message).toContain("nom should not be empty");
       });
 
       it("should reject when required fields are missing", async () => {
-        const response = await request(app.getHttpServer())
-          .post("/projects")
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send({
-            nom: "Test Project",
-          });
+        const { error } = await api.projects.create({
+          nom: "Test Project",
+        } as CreateProjectRequest);
 
-        expect(response.status).toBe(400);
+        expect(error.statusCode).toBe(400);
       });
 
       it("should create a valid project", async () => {
-        const response = await request(app.getHttpServer())
-          .post("/projects")
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send(validProject);
+        const { data, error } = await api.projects.create(validProject);
 
-        expect(response.status).toBe(201);
-        expect(response.body).toMatchObject({
+        expect(error).toBeUndefined();
+        expect(data).toMatchObject({
           id: expect.any(String),
         });
       });
@@ -106,16 +85,13 @@ describe("AppController (e2e)", () => {
         pastDate.setFullYear(pastDate.getFullYear() - 1);
         const pastDateStr = pastDate.toISOString().split("T")[0];
 
-        const response = await request(app.getHttpServer())
-          .post("/projects")
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send({
-            ...validProject,
-            forecastedStartDate: pastDateStr,
-          });
+        const { error } = await api.projects.create({
+          ...validProject,
+          forecastedStartDate: pastDateStr,
+        });
 
-        expect(response.status).toBe(400);
-        expect(response.body.message).toBe(
+        expect(error?.statusCode).toBe(400);
+        expect(error?.message).toBe(
           "Forecasted start date must be in the future",
         );
       });
@@ -123,17 +99,14 @@ describe("AppController (e2e)", () => {
 
     describe("GET /projects/:id", () => {
       it("should return a specific project", async () => {
-        const createResponse = await request(app.getHttpServer())
-          .post("/projects")
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send(validProject);
+        const { data: createdProject } =
+          await api.projects.create(validProject);
+        const projectId = createdProject.id;
 
-        const projectId = createResponse.body.id;
-
-        const response = await request(app.getHttpServer())
-          .get(`/projects/${projectId}`)
-          .set("Authorization", `Bearer ${apiKey}`)
-          .set("X-User-Email", `test@email.com`);
+        const { data, error } = await api.projects.getOne(
+          projectId,
+          "test@email.com",
+        );
 
         const {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -141,18 +114,17 @@ describe("AppController (e2e)", () => {
           ...expectedFields
         } = validProject;
 
-        expect(response.status).toBe(200);
-        expect(response.body).toMatchObject({
+        expect(error).toBeUndefined();
+        expect(data).toEqual({
           id: expect.any(String),
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
+          ...expectedFields,
           porteurCodeSiret: null,
-          porteurReferentEmail: null,
           porteurReferentFonction: null,
           porteurReferentNom: null,
           porteurReferentPrenom: null,
           porteurReferentTelephone: null,
-          ...expectedFields,
           communes: expect.arrayContaining([
             expect.objectContaining({
               inseeCode: expect.any(String),
@@ -162,66 +134,49 @@ describe("AppController (e2e)", () => {
       });
 
       it("should not allow to get project when user email is not provided", async () => {
-        const createResponse = await request(app.getHttpServer())
-          .post("/projects")
-          .set("Authorization", `Bearer ${apiKey}`)
+        const { data: createdProject } =
+          await api.projects.create(validProject);
+        const projectId = createdProject.id;
 
-          .send(validProject);
+        const { error } = await api.projects.getOne(projectId); // No email provided
 
-        const projectId = createResponse.body.id;
-
-        const response = await request(app.getHttpServer())
-          .get(`/projects/${projectId}`)
-          .set("Authorization", `Bearer ${apiKey}`);
-
-        expect(response.status).toBe(400);
-        expect(response.body.message).toBe(
-          "Missing user email in x-user-email header",
-        );
+        expect(error.statusCode).toBe(400);
+        expect(error.message).toBe("Missing user email in x-user-email header");
       });
 
       it("should not allow to get project when user has no corresponding permission", async () => {
-        const createResponse = await request(app.getHttpServer())
-          .post("/projects")
-          .set("Authorization", `Bearer ${apiKey}`)
+        const { data: createdProject } =
+          await api.projects.create(validProject);
+        const projectId = createdProject.id;
 
-          .send(validProject);
+        const { error } = await api.projects.getOne(
+          projectId,
+          "no-permission@email.com",
+        );
 
-        const projectId = createResponse.body.id;
-
-        const response = await request(app.getHttpServer())
-          .get(`/projects/${projectId}`)
-          .set("Authorization", `Bearer ${apiKey}`)
-          .set("X-User-Email", `no-permission@email.com`);
-
-        expect(response.status).toBe(403);
-        expect(response.body.message).toBe("Insufficient permissions");
+        expect(error.statusCode).toBe(403);
+        expect(error.message).toBe("Insufficient permissions");
       });
 
       it("should return 404 for non-existent project", async () => {
         const nonExistentId = "00000000-0000-0000-0000-000000000000";
-        const response = await request(app.getHttpServer())
-          .get(`/projects/${nonExistentId}`)
-          .set("Authorization", `Bearer ${apiKey}`)
-          .set("X-User-Email", `test@email.com`);
+        const { error } = await api.projects.getOne(
+          nonExistentId,
+          "test@email.com",
+        );
 
-        expect(response.status).toBe(404);
+        expect(error.statusCode).toBe(404);
       });
     });
 
     describe("GET /projects", () => {
       it("should return all projects", async () => {
-        await request(app.getHttpServer())
-          .post("/projects")
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send(validProject);
+        await api.projects.create(validProject);
 
-        const response = await request(app.getHttpServer())
-          .get("/projects")
-          .set("Authorization", `Bearer ${apiKey}`);
+        const { data, error } = await api.projects.getAll();
 
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual(
+        expect(error).toBeUndefined();
+        expect(data).toEqual(
           expect.arrayContaining([
             expect.objectContaining({
               id: expect.any(String),
@@ -240,7 +195,7 @@ describe("AppController (e2e)", () => {
 
   describe("Collaborators (e2e)", () => {
     let projectId: string;
-    const validProject: CreateProjectDto = {
+    const validProject: CreateProjectRequest = {
       nom: "Collaboration Test Project",
       description: "Test Description",
       budget: 100000,
@@ -250,51 +205,52 @@ describe("AppController (e2e)", () => {
       communeInseeCodes: ["01001"],
     };
 
-    const validCollaborator: CreateCollaboratorDto = {
+    const validCollaborator: CreateCollaboratorRequest = {
       email: "collaborator@email.com",
       permissionType: "VIEW",
     };
 
     beforeAll(async () => {
-      // Create a test project to use in collaboration tests
-      const response = await request(app.getHttpServer())
-        .post("/projects")
-        .set("Authorization", `Bearer ${apiKey}`)
-        .send(validProject);
-
-      console.log("response", response.status);
-
-      projectId = response.body.id;
+      const { data } = await api.projects.create(validProject);
+      projectId = data.id;
     });
 
     describe("POST /projects/:id/update-collaborators", () => {
       it("should add a collaborator with VIEW permission", async () => {
-        const response = await request(app.getHttpServer())
-          .post(`/projects/${projectId}/update-collaborators`)
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send(validCollaborator);
-
-        expect(response.status).toBe(201);
-        expect(response.text).toContain(
-          `Permission updated/created for ${validCollaborator.email}`,
+        const { data, error } = await api.collaborators.create(
+          projectId,
+          validCollaborator,
         );
+
+        expect(error).toBeUndefined();
+        expect(data).toMatchObject({
+          projectId,
+          email: validCollaborator.email,
+          permissionType: validCollaborator.permissionType,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        });
       });
 
       it("should update existing collaborator permission", async () => {
-        const updatedPermission: CreateCollaboratorDto = {
+        const updatedCollaborator: CreateCollaboratorRequest = {
           ...validCollaborator,
           permissionType: "EDIT",
         };
 
-        const response = await request(app.getHttpServer())
-          .post(`/projects/${projectId}/update-collaborators`)
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send(updatedPermission);
-
-        expect(response.status).toBe(201);
-        expect(response.text).toContain(
-          `Permission updated/created for ${validCollaborator.email}`,
+        const { data, error } = await api.collaborators.create(
+          projectId,
+          updatedCollaborator,
         );
+
+        expect(error).toBeUndefined();
+        expect(data).toMatchObject({
+          projectId,
+          email: updatedCollaborator.email,
+          permissionType: updatedCollaborator.permissionType,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        });
       });
     });
   });

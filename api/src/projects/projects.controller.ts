@@ -8,11 +8,15 @@ import {
   Post,
 } from "@nestjs/common";
 import { ProjectsService } from "./services/projects.service";
-import { CreateProjectDto } from "./dto/create-project.dto";
+import {
+  CreateProjectRequest,
+  CreateProjectResponse,
+} from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
-import { ProjectDto } from "./dto/project.dto";
+import { ProjectResponse } from "./dto/project.dto";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { RequiresCollaboratorsPermission } from "@/collaborators/collaborators.permissions.decorator";
+import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 
 @ApiBearerAuth()
 @Controller("projects")
@@ -20,18 +24,31 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  create(@Body() createProjectDto: CreateProjectDto): Promise<{ id: string }> {
+  @ApiEndpointResponses({
+    successStatus: 201,
+    response: CreateProjectResponse,
+    description: "Project created successfully",
+  })
+  create(
+    @Body() createProjectDto: CreateProjectRequest,
+  ): Promise<CreateProjectResponse> {
     return this.projectsService.create(createProjectDto);
   }
 
   @Get()
-  findAll(): Promise<ProjectDto[]> {
+  @ApiEndpointResponses({
+    successStatus: 200,
+    response: ProjectResponse,
+    isArray: true,
+  })
+  findAll(): Promise<ProjectResponse[]> {
     return this.projectsService.findAll();
   }
 
   @RequiresCollaboratorsPermission()
+  @ApiEndpointResponses({ successStatus: 200, response: ProjectResponse })
   @Get(":id")
-  findOne(@Param("id") id: string): Promise<ProjectDto> {
+  findOne(@Param("id") id: string): Promise<ProjectResponse> {
     return this.projectsService.findOne(id);
   }
 

@@ -1,8 +1,12 @@
 import { Controller, Post, Body, Param } from "@nestjs/common";
 import { CollaboratorsService } from "./collaborators.service";
-import { CreateCollaboratorDto } from "./dto/add-collaborator.dto";
+import {
+  CreateCollaboratorRequest,
+  CreateCollaboratorResponse,
+} from "./dto/create-collaborator.dto";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { DatabaseService } from "@database/database.service";
+import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 
 @ApiTags("collaborators")
 @ApiBearerAuth()
@@ -14,9 +18,14 @@ export class CollaboratorsController {
   ) {}
 
   @Post()
+  @ApiEndpointResponses({
+    successStatus: 201,
+    response: CreateCollaboratorResponse,
+    description: "Collaborator updated/created successfully",
+  })
   async create(
     @Param("id") projectId: string,
-    @Body() CreateCollaboratorDto: CreateCollaboratorDto,
+    @Body() CreateCollaboratorDto: CreateCollaboratorRequest,
   ) {
     return await this.dbService.database.transaction(async (tx) => {
       return this.collaboratorsService.create(
