@@ -6,7 +6,10 @@ import {
   projects,
 } from "@database/schema";
 import { and, eq } from "drizzle-orm";
-import { CreateCollaboratorDto } from "@/collaborators/dto/add-collaborator.dto";
+import {
+  CreateCollaboratorRequest,
+  CreateCollaboratorResponse,
+} from "@/collaborators/dto/create-collaborator.dto";
 
 @Injectable()
 export class CollaboratorsService {
@@ -15,11 +18,11 @@ export class CollaboratorsService {
   async create(
     tx: Tx,
     projectId: string,
-    { email, permissionType }: CreateCollaboratorDto,
-  ): Promise<string> {
+    { email, permissionType }: CreateCollaboratorRequest,
+  ): Promise<CreateCollaboratorResponse> {
     await this.validateProjectExistence(tx, projectId);
 
-    await tx
+    const [collaborator] = await tx
       .insert(projectCollaborators)
       .values({
         projectId,
@@ -34,7 +37,13 @@ export class CollaboratorsService {
       })
       .returning();
 
-    return `Permission updated/created for ${email} on project ${projectId}`;
+    return {
+      projectId: collaborator.projectId,
+      email: collaborator.email,
+      permissionType: collaborator.permissionType,
+      createdAt: collaborator.createdAt,
+      updatedAt: collaborator.updatedAt,
+    };
   }
 
   async hasPermission(

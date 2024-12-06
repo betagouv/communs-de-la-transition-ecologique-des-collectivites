@@ -31,6 +31,7 @@ export function setupApp(app: INestApplication) {
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, documentFactory, {
+    jsonDocumentUrl: "openapi.json",
     swaggerOptions: {
       persistAuthorization: true,
     },
