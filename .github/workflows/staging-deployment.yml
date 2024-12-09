@@ -67,6 +67,7 @@ jobs:
         run: pnpm run test:e2e
         env:
           API_KEY: ${{ secrets.API_KEY }}
+          DATABASE_URL: postgres://postgres:mypassword@localhost:5433/e2e_test_db
 
 
   deploy-staging:
