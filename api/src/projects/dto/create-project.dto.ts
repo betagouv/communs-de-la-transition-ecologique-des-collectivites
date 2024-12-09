@@ -10,7 +10,13 @@ import {
 } from "class-validator";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
 
-export class CreateProjectDto {
+export class CreateProjectResponse {
+  @ApiProperty()
+  @IsString()
+  id: string;
+}
+
+export class CreateProjectRequest {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
