@@ -28,7 +28,7 @@ export class CollaboratorsController {
     @Body() CreateCollaboratorDto: CreateCollaboratorRequest,
   ) {
     return await this.dbService.database.transaction(async (tx) => {
-      return this.collaboratorsService.create(
+      return this.collaboratorsService.createOrUpdate(
         tx,
         projectId,
         CreateCollaboratorDto,

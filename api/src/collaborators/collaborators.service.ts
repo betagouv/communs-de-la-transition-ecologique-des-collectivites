@@ -15,7 +15,7 @@ import {
 export class CollaboratorsService {
   constructor(private dbService: DatabaseService) {}
 
-  async create(
+  async createOrUpdate(
     tx: Tx,
     projectId: string,
     { email, permissionType }: CreateCollaboratorRequest,
@@ -44,6 +44,17 @@ export class CollaboratorsService {
       createdAt: collaborator.createdAt,
       updatedAt: collaborator.updatedAt,
     };
+  }
+
+  async remove(tx: Tx, projectId: string, email: string): Promise<void> {
+    await tx
+      .delete(projectCollaborators)
+      .where(
+        and(
+          eq(projectCollaborators.projectId, projectId),
+          eq(projectCollaborators.email, email),
+        ),
+      );
   }
 
   async hasPermission(

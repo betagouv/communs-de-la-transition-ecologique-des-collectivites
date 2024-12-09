@@ -51,7 +51,11 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.create(tx, projectId, collaboratorData);
+        await collaboratorsService.createOrUpdate(
+          tx,
+          projectId,
+          collaboratorData,
+        );
       });
 
       const collaborators = await testDbService.database
@@ -79,7 +83,11 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.create(tx, projectId, collaboratorData);
+        await collaboratorsService.createOrUpdate(
+          tx,
+          projectId,
+          collaboratorData,
+        );
       });
 
       const collaborators = await testDbService.database
@@ -104,7 +112,7 @@ describe("CollaboratorsService", () => {
 
       await testDbService.database.transaction(async (tx) => {
         await expect(
-          collaboratorsService.create(
+          collaboratorsService.createOrUpdate(
             tx,
             nonExistentProjectId,
             collaboratorData,
@@ -121,7 +129,7 @@ describe("CollaboratorsService", () => {
 
       let firstCollaborator;
       await testDbService.database.transaction(async (tx) => {
-        firstCollaborator = await collaboratorsService.create(
+        firstCollaborator = await collaboratorsService.createOrUpdate(
           tx,
           projectId,
           collaboratorData,
@@ -132,7 +140,7 @@ describe("CollaboratorsService", () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.create(tx, projectId, {
+        await collaboratorsService.createOrUpdate(tx, projectId, {
           ...collaboratorData,
           permissionType: "EDIT",
         });
@@ -169,7 +177,11 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.create(tx, projectId, collaboratorData);
+        await collaboratorsService.createOrUpdate(
+          tx,
+          projectId,
+          collaboratorData,
+        );
       });
 
       const hasPermission = await collaboratorsService.hasPermission(
@@ -188,7 +200,11 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.create(tx, projectId, collaboratorData);
+        await collaboratorsService.createOrUpdate(
+          tx,
+          projectId,
+          collaboratorData,
+        );
       });
       const hasPermission = await collaboratorsService.hasPermission(
         projectId,
@@ -206,7 +222,11 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.create(tx, projectId, collaboratorData);
+        await collaboratorsService.createOrUpdate(
+          tx,
+          projectId,
+          collaboratorData,
+        );
       });
 
       const hasPermission = await collaboratorsService.hasPermission(

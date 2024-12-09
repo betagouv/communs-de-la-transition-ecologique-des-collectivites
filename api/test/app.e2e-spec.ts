@@ -95,6 +95,103 @@ describe("AppController (e2e)", () => {
           "Forecasted start date must be in the future",
         );
       });
+
+      it("should reject when project has no commune insee code", async () => {
+        const { error } = await api.projects.create({
+          ...validProject,
+          communeInseeCodes: [],
+        });
+
+        expect(error?.statusCode).toBe(400);
+        expect(error?.message[0]).toBe(
+          "At least one commune insee code must be provided",
+        );
+      });
+    });
+
+    describe("PATCH /projects/:id", () => {
+      let projectId: string;
+
+      beforeEach(async () => {
+        const { data } = await api.projects.create(validProject);
+        projectId = data.id;
+      });
+
+      it("should update porteur referent email and handle collaborator permissions", async () => {
+        const newEmail = "new.referent@email.com";
+        const updateData = {
+          porteurReferentEmail: newEmail,
+        };
+
+        const { data, error } = await api.projects.update(
+          projectId,
+          updateData,
+          "test@email.com",
+        );
+
+        expect(error).toBeUndefined();
+        expect(data).toMatchObject({
+          id: projectId,
+        });
+
+        // Use new email to verify permissions
+        const { data: updatedProject } = await api.projects.getOne(
+          projectId,
+          newEmail,
+        );
+
+        expect(updatedProject).toMatchObject({
+          id: projectId,
+          porteurReferentEmail: newEmail,
+        });
+
+        // Verify old email no longer has access
+        const { error: accessError } = await api.projects.getOne(
+          projectId,
+          "test@email.com",
+        );
+
+        expect(accessError?.statusCode).toBe(403);
+      });
+
+      it("should update multiple fields at once", async () => {
+        const updateData = {
+          nom: "Updated Project Name",
+          description: "Updated Description",
+          budget: 200000,
+          communeInseeCodes: ["34567", "89012"],
+          porteurReferentEmail: "new.referent@email.com",
+        };
+
+        const { data, error } = await api.projects.update(
+          projectId,
+          updateData,
+          "test@email.com",
+        );
+
+        expect(error).toBeUndefined();
+        expect(data).toMatchObject({
+          id: projectId,
+        });
+
+        const { data: updatedProject } = await api.projects.getOne(
+          projectId,
+          updateData.porteurReferentEmail,
+        );
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { communeInseeCodes, ...expectedFields } = updateData;
+
+        expect(updatedProject).toMatchObject({
+          ...expectedFields,
+          id: projectId,
+          communes: expect.arrayContaining(
+            updateData.communeInseeCodes.map((code) => ({
+              inseeCode: code,
+            })),
+          ),
+        });
+      });
     });
 
     describe("GET /projects/:id", () => {

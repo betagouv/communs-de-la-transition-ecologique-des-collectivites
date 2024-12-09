@@ -7,6 +7,7 @@ import { NotFoundException } from "@nestjs/common";
 import { getFutureDate } from "@test/helpers/getFutureDate";
 import { projectCollaborators } from "@database/schema";
 import { eq } from "drizzle-orm";
+import { UpdateProjectDto } from "@projects/dto/update-project.dto";
 
 describe("ProjectsService", () => {
   let service: ProjectsService;
@@ -135,6 +136,7 @@ describe("ProjectsService", () => {
         ...expectedCommonFields,
         porteurReferentEmail: "porteurReferentEmail@email.com",
       });
+
       expect(result[1]).toEqual({
         ...expectedFieldsProject2,
         ...expectedCommonFields,
@@ -183,6 +185,118 @@ describe("ProjectsService", () => {
       );
       await expect(service.findOne(nonExistentId)).rejects.toThrow(
         `Project with ID ${nonExistentId} not found`,
+      );
+    });
+  });
+
+  describe("update", () => {
+    let projectId: string;
+
+    beforeEach(async () => {
+      const createDto: CreateProjectRequest = {
+        nom: "Initial Project",
+        description: "Initial Description",
+        porteurReferentEmail: "initial@email.com",
+        budget: 100000,
+        forecastedStartDate: getFutureDate(),
+        status: "DRAFT",
+        communeInseeCodes: mockedCommunes,
+      };
+
+      const result = await service.create(createDto);
+      projectId = result.id;
+    });
+
+    it("should update basic project fields", async () => {
+      const updateDto = {
+        nom: "Updated Project",
+        description: "Updated Description",
+        budget: 200000,
+      };
+
+      await service.update(projectId, updateDto);
+
+      const updatedProject = await service.findOne(projectId);
+
+      expect(updatedProject).toMatchObject({
+        ...updateDto,
+        id: projectId,
+        porteurReferentEmail: "initial@email.com",
+        communes: expect.arrayContaining(
+          mockedCommunes.map((code) => ({
+            inseeCode: code,
+          })),
+        ),
+      });
+    });
+
+    it("should only update communes when this is the only change", async () => {
+      const newCommunes = ["34567", "89012"];
+      const updateDto: UpdateProjectDto = {
+        communeInseeCodes: newCommunes,
+      };
+
+      await service.update(projectId, updateDto);
+      const updatedProject = await service.findOne(projectId);
+
+      expect(updatedProject.communes).toHaveLength(newCommunes.length);
+      expect(updatedProject.communes).toEqual(
+        expect.arrayContaining(
+          newCommunes.map((code) => ({
+            inseeCode: code,
+          })),
+        ),
+      );
+    });
+
+    it("should update collaborator when porteurReferentEmail changes", async () => {
+      const updateDto = {
+        porteurReferentEmail: "new@email.com",
+      };
+
+      await service.update(projectId, updateDto);
+      const project = await service.findOne(projectId);
+      expect(project.porteurReferentEmail).toBe(updateDto.porteurReferentEmail);
+
+      const collaborators = await testDbService.database
+        .select()
+        .from(projectCollaborators)
+        .where(eq(projectCollaborators.projectId, projectId));
+
+      expect(collaborators).toHaveLength(1);
+      expect(collaborators[0]).toMatchObject({
+        email: updateDto.porteurReferentEmail,
+        permissionType: "EDIT",
+      });
+
+      // Verify old collaborator was removed
+      const oldCollaborator = collaborators.find(
+        (c) => c.email === "initial@email.com",
+      );
+      expect(oldCollaborator).toBeUndefined();
+    });
+
+    it("should throw NotFoundException when project doesn't exist", async () => {
+      const nonExistentId = "00000000-0000-0000-0000-000000000000";
+      const updateDto = { nom: "Updated Name" };
+
+      await expect(service.update(nonExistentId, updateDto)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.update(nonExistentId, updateDto)).rejects.toThrow(
+        `Project with ID ${nonExistentId} not found`,
+      );
+    });
+
+    it("should validate forecasted start date", async () => {
+      const pastDate = new Date();
+      pastDate.setFullYear(pastDate.getFullYear() - 1);
+      const updateDto = {
+        forecastedStartDate: pastDate.toISOString().split("T")[0],
+      };
+
+      await expect(service.update(projectId, updateDto)).rejects.toThrow(
+        "Forecasted start date must be in the future",
       );
     });
   });
