@@ -106,12 +106,7 @@ export class ProjectsService {
     }
 
     return await this.dbService.database.transaction(async (tx) => {
-      const [
-        {
-          id: existingProjectId,
-          porteurReferentEmail: existingPorteurReferentEmail,
-        },
-      ] = await tx
+      const [existingProject] = await tx
         .select({
           id: projects.id,
           porteurReferentEmail: projects.porteurReferentEmail,
@@ -120,7 +115,7 @@ export class ProjectsService {
         .where(eq(projects.id, id))
         .limit(1);
 
-      if (!existingProjectId) {
+      if (!existingProject) {
         throw new NotFoundException(`Project with ID ${id} not found`);
       }
 
@@ -137,7 +132,8 @@ export class ProjectsService {
 
       if (
         updateProjectDto.porteurReferentEmail &&
-        updateProjectDto.porteurReferentEmail !== existingPorteurReferentEmail
+        updateProjectDto.porteurReferentEmail !==
+          existingProject.porteurReferentEmail
       ) {
         await this.collaboratorService.createOrUpdate(tx, id, {
           email: updateProjectDto.porteurReferentEmail,
@@ -145,11 +141,11 @@ export class ProjectsService {
         });
 
         // Remove old collaborator if exists
-        if (existingPorteurReferentEmail) {
+        if (existingProject.porteurReferentEmail) {
           await this.collaboratorService.remove(
             tx,
             id,
-            existingPorteurReferentEmail,
+            existingProject.porteurReferentEmail,
           );
         }
       }
@@ -166,7 +162,7 @@ export class ProjectsService {
           .returning();
       }
 
-      return { id: existingProjectId };
+      return { id: existingProject.id };
     });
   }
 
