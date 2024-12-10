@@ -10,6 +10,10 @@ export class CommunesService {
     projectId: string,
     inseeCodes: string[],
   ): Promise<void> {
+
+
+    // Create any new communes that don't exist yet
+    
     const existingCommunes = await tx
       .select()
       .from(communes)
@@ -23,7 +27,6 @@ export class CommunesService {
       (code) => !existingInseeCodes.has(code),
     );
 
-    // Create any new communes that don't exist yet
     if (communesToCreate.length > 0) {
       await tx
         .insert(communes)
@@ -34,18 +37,37 @@ export class CommunesService {
         )
         .onConflictDoNothing();
     }
+    
+    // Add or remove communes from the project relations
 
-    // for now we remove all communes linked to the project in th projectToCommunes table
-    // and recreate them based on the new array - might need more granular approach
-    await tx
-      .delete(projectsToCommunes)
+    const existingRelations = await tx
+      .select()
+      .from(projectsToCommunes)
       .where(eq(projectsToCommunes.projectId, projectId));
+    
+    const existingCommuneIds = new Set(existingRelations.map(r => r.communeId));
+    const newCommuneIds = new Set(inseeCodes);
 
-    await tx.insert(projectsToCommunes).values(
-      inseeCodes.map((inseeCode) => ({
-        projectId,
-        communeId: inseeCode,
-      })),
-    );
+    const communesToAddToProject = inseeCodes.filter(code => !existingCommuneIds.has(code));
+    const communesToRemoveFromProject = Array.from(existingCommuneIds)
+      .filter(code => !newCommuneIds.has(code));
+
+    if (communesToRemoveFromProject.length > 0) {
+      await tx
+        .delete(projectsToCommunes)
+        .where(
+          eq(projectsToCommunes.projectId, projectId) &&
+          inArray(projectsToCommunes.communeId, communesToRemoveFromProject)
+        );
+    }
+
+    if (communesToAddToProject.length > 0) {
+      await tx.insert(projectsToCommunes).values(
+        communesToAddToProject.map((inseeCode) => ({
+          projectId,
+          communeId: inseeCode,
+        })),
+      );
+    }
   }
 }
