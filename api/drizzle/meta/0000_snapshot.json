@@ -1,5 +1,5 @@
 {
-  "id": "3a84402a-0b1d-470a-8a27-26a8961cf5fd",
+  "id": "9a894a6b-009d-4447-81b8-738c7229c0d1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -361,11 +361,12 @@
       "name": "project_status",
       "schema": "public",
       "values": [
-        "DRAFT",
-        "READY",
-        "IN_PROGRESS",
-        "DONE",
-        "CANCELLED"
+        "IDEE",
+        "FAISABILITE",
+        "EN_COURS",
+        "IMPACTE",
+        "ABANDONNE",
+        "TERMINE"
       ]
     }
   },
