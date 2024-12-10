@@ -33,7 +33,7 @@ describe("CommunesService", () => {
         description: "Test Description",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
       })
       .returning();
 

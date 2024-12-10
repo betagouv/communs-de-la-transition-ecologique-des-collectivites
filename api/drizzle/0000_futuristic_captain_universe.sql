@@ -1,5 +1,5 @@
 CREATE TYPE "public"."permission_type" AS ENUM('EDIT', 'VIEW');--> statement-breakpoint
-CREATE TYPE "public"."project_status" AS ENUM('DRAFT', 'READY', 'IN_PROGRESS', 'DONE', 'CANCELLED');--> statement-breakpoint
+CREATE TYPE "public"."project_status" AS ENUM('IDEE', 'FAISABILITE', 'EN_COURS', 'IMPACTE', 'ABANDONNE', 'TERMINE');--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "communes" (
 	"insee_code" text PRIMARY KEY NOT NULL
 );
