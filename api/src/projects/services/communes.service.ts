@@ -10,10 +10,8 @@ export class CommunesService {
     projectId: string,
     inseeCodes: string[],
   ): Promise<void> {
-
-
     // Create any new communes that don't exist yet
-    
+
     const existingCommunes = await tx
       .select()
       .from(communes)
@@ -37,27 +35,32 @@ export class CommunesService {
         )
         .onConflictDoNothing();
     }
-    
+
     // Add or remove communes from the project relations
 
     const existingRelations = await tx
       .select()
       .from(projectsToCommunes)
       .where(eq(projectsToCommunes.projectId, projectId));
-    
-    const existingCommuneIds = new Set(existingRelations.map(r => r.communeId));
+
+    const existingCommuneIds = new Set(
+      existingRelations.map((r) => r.communeId),
+    );
     const newCommuneIds = new Set(inseeCodes);
 
-    const communesToAddToProject = inseeCodes.filter(code => !existingCommuneIds.has(code));
-    const communesToRemoveFromProject = Array.from(existingCommuneIds)
-      .filter(code => !newCommuneIds.has(code));
+    const communesToAddToProject = inseeCodes.filter(
+      (code) => !existingCommuneIds.has(code),
+    );
+    const communesToRemoveFromProject = Array.from(existingCommuneIds).filter(
+      (code) => !newCommuneIds.has(code),
+    );
 
     if (communesToRemoveFromProject.length > 0) {
       await tx
         .delete(projectsToCommunes)
         .where(
           eq(projectsToCommunes.projectId, projectId) &&
-          inArray(projectsToCommunes.communeId, communesToRemoveFromProject)
+            inArray(projectsToCommunes.communeId, communesToRemoveFromProject),
         );
     }
 
