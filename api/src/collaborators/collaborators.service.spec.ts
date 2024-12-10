@@ -18,8 +18,7 @@ describe("CollaboratorsService", () => {
     const { module: internalModule, testDbService: tds } = await testModule();
     module = internalModule;
     testDbService = tds;
-    collaboratorsService =
-      module.get<CollaboratorsService>(CollaboratorsService);
+    collaboratorsService = module.get<CollaboratorsService>(CollaboratorsService);
   });
 
   afterAll(async () => {
@@ -36,7 +35,7 @@ describe("CollaboratorsService", () => {
         description: "Test Description",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
       })
       .returning();
 

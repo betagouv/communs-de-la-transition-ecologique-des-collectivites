@@ -38,7 +38,7 @@ describe("ProjectsService", () => {
         description: "Test Description",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -56,7 +56,7 @@ describe("ProjectsService", () => {
         budget: 100000,
         porteurReferentEmail: "nouveauPorteur@email.com",
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -85,7 +85,7 @@ describe("ProjectsService", () => {
         porteurReferentEmail: "porteurReferentEmail@email.com",
         budget: 100000,
         forecastedStartDate: futureDate,
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
       const createDto2: CreateProjectRequest = {
@@ -93,7 +93,7 @@ describe("ProjectsService", () => {
         description: "Description 2",
         budget: 100000,
         forecastedStartDate: futureDate,
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -152,7 +152,7 @@ describe("ProjectsService", () => {
         porteurCodeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -180,12 +180,8 @@ describe("ProjectsService", () => {
 
     it("should throw NotFoundException when project not found", async () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      await expect(service.findOne(nonExistentId)).rejects.toThrow(
-        NotFoundException,
-      );
-      await expect(service.findOne(nonExistentId)).rejects.toThrow(
-        `Project with ID ${nonExistentId} not found`,
-      );
+      await expect(service.findOne(nonExistentId)).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(nonExistentId)).rejects.toThrow(`Project with ID ${nonExistentId} not found`);
     });
   });
 
@@ -199,7 +195,7 @@ describe("ProjectsService", () => {
         porteurReferentEmail: "initial@email.com",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -270,9 +266,7 @@ describe("ProjectsService", () => {
       });
 
       // Verify old collaborator was removed
-      const oldCollaborator = collaborators.find(
-        (c) => c.email === "initial@email.com",
-      );
+      const oldCollaborator = collaborators.find((c) => c.email === "initial@email.com");
       expect(oldCollaborator).toBeUndefined();
     });
 
@@ -280,9 +274,7 @@ describe("ProjectsService", () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
       const updateDto = { nom: "Updated Name" };
 
-      await expect(service.update(nonExistentId, updateDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.update(nonExistentId, updateDto)).rejects.toThrow(NotFoundException);
       await expect(service.update(nonExistentId, updateDto)).rejects.toThrow(
         `Project with ID ${nonExistentId} not found`,
       );
@@ -295,9 +287,7 @@ describe("ProjectsService", () => {
         forecastedStartDate: pastDate.toISOString().split("T")[0],
       };
 
-      await expect(service.update(projectId, updateDto)).rejects.toThrow(
-        "Forecasted start date must be in the future",
-      );
+      await expect(service.update(projectId, updateDto)).rejects.toThrow("Forecasted start date must be in the future");
     });
   });
 });
