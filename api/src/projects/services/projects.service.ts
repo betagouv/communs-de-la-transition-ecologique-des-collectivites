@@ -106,13 +106,21 @@ export class ProjectsService {
     }
 
     return await this.dbService.database.transaction(async (tx) => {
-      const existingProject = await tx
-        .select()
+      const [
+        {
+          id: existingProjectId,
+          porteurReferentEmail: existingPorteurReferentEmail,
+        },
+      ] = await tx
+        .select({
+          id: projects.id,
+          porteurReferentEmail: projects.porteurReferentEmail,
+        })
         .from(projects)
         .where(eq(projects.id, id))
         .limit(1);
 
-      if (!existingProject.length) {
+      if (!existingProjectId) {
         throw new NotFoundException(`Project with ID ${id} not found`);
       }
 
@@ -129,8 +137,7 @@ export class ProjectsService {
 
       if (
         updateProjectDto.porteurReferentEmail &&
-        updateProjectDto.porteurReferentEmail !==
-          existingProject[0].porteurReferentEmail
+        updateProjectDto.porteurReferentEmail !== existingPorteurReferentEmail
       ) {
         await this.collaboratorService.createOrUpdate(tx, id, {
           email: updateProjectDto.porteurReferentEmail,
@@ -138,11 +145,11 @@ export class ProjectsService {
         });
 
         // Remove old collaborator if exists
-        if (existingProject[0].porteurReferentEmail) {
+        if (existingPorteurReferentEmail) {
           await this.collaboratorService.remove(
             tx,
             id,
-            existingProject[0].porteurReferentEmail,
+            existingPorteurReferentEmail,
           );
         }
       }
@@ -152,18 +159,14 @@ export class ProjectsService {
       // an update of the project table directly
       // todo update updatedAt
       if (Object.keys(fieldsToUpdate).length > 0) {
-        const [updatedProject] = await tx
+        await tx
           .update(projects)
-          .set({
-            ...removeUndefined(updateProjectDto),
-          })
+          .set(fieldsToUpdate)
           .where(eq(projects.id, id))
           .returning();
-
-        return { id: updatedProject.id };
       }
 
-      return { id: existingProject[0].id };
+      return { id: existingProjectId };
     });
   }
 
