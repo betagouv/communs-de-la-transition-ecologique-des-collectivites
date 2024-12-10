@@ -33,7 +33,7 @@ describe("ProjectsController", () => {
       porteurReferentEmail: "test@example.com",
       budget: 100000,
       forecastedStartDate: getFutureDate(),
-      status: "DRAFT",
+      status: "IDEE",
       communeInseeCodes: ["75056"],
     };
 
@@ -65,7 +65,7 @@ describe("ProjectsController", () => {
           porteurReferentPrenom: null,
           budget: 100000,
           forecastedStartDate: getFutureDate(),
-          status: "DRAFT",
+          status: "IDEE",
           communes: [
             {
               inseeCode: "75056",
@@ -99,7 +99,7 @@ describe("ProjectsController", () => {
         porteurReferentPrenom: null,
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communes: [
           {
             inseeCode: "75056",

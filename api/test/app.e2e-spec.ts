@@ -5,9 +5,9 @@ import { setupApp } from "@/setup-app";
 import { e2eTestDbSetup } from "./helpers/e2eTestDbSetup";
 import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
 import { getFutureDate } from "./helpers/getFutureDate";
-import { createApiClient } from "./helpers/apiClient";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { CreateCollaboratorRequest } from "@/collaborators/dto/create-collaborator.dto";
+import { createApiClient } from "@test/helpers/apiClient";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -25,7 +25,7 @@ describe("AppController (e2e)", () => {
     await app.init();
     await app.listen(3000);
 
-    api = createApiClient(process.env.API_KEY);
+    api = createApiClient(process.env.MEC_API_KEY!);
   }, 30000);
 
   afterAll(async () => {
@@ -40,17 +40,41 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       porteurReferentEmail: "test@email.com",
       forecastedStartDate: getFutureDate(),
-      status: "DRAFT",
+      status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
     };
 
     describe("POST /projects", () => {
       it("should reject when wrong api key", async () => {
-        const wrongApiClient = createApiClient(`wrong-${process.env.API_KEY}`);
+        const wrongApiClient = createApiClient("wrong-api-key");
         const { error } = await wrongApiClient.projects.create(validProject);
 
         expect(error.statusCode).toBe(401);
         expect(error.message).toContain("Invalid API key");
+      });
+
+      it("should create a valid project with MEC api key", async () => {
+        const mecClient = createApiClient(process.env.MEC_API_KEY);
+        const { data, error } = await mecClient.projects.create(validProject);
+
+        expect(error).toBeUndefined();
+        expect(data).toHaveProperty("id");
+      });
+
+      it("should create a valid project with TeT api key", async () => {
+        const tetClient = createApiClient(process.env.TET_API_KEY);
+        const { data, error } = await tetClient.projects.create(validProject);
+
+        expect(error).toBeUndefined();
+        expect(data).toHaveProperty("id");
+      });
+
+      it("should create a valid project with Recoco api key", async () => {
+        const tetClient = createApiClient(process.env.RECOCO_API_KEY);
+        const { data, error } = await tetClient.projects.create(validProject);
+
+        expect(error).toBeUndefined();
+        expect(data).toHaveProperty("id");
       });
 
       it("should reject when nom is empty", async () => {
@@ -91,9 +115,7 @@ describe("AppController (e2e)", () => {
         });
 
         expect(error?.statusCode).toBe(400);
-        expect(error?.message).toBe(
-          "Forecasted start date must be in the future",
-        );
+        expect(error?.message).toBe("Forecasted start date must be in the future");
       });
 
       it("should reject when project has no commune insee code", async () => {
@@ -196,14 +218,10 @@ describe("AppController (e2e)", () => {
 
     describe("GET /projects/:id", () => {
       it("should return a specific project", async () => {
-        const { data: createdProject } =
-          await api.projects.create(validProject);
+        const { data: createdProject } = await api.projects.create(validProject);
         const projectId = createdProject.id;
 
-        const { data, error } = await api.projects.getOne(
-          projectId,
-          "test@email.com",
-        );
+        const { data, error } = await api.projects.getOne(projectId, "test@email.com");
 
         const {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -231,8 +249,7 @@ describe("AppController (e2e)", () => {
       });
 
       it("should not allow to get project when user email is not provided", async () => {
-        const { data: createdProject } =
-          await api.projects.create(validProject);
+        const { data: createdProject } = await api.projects.create(validProject);
         const projectId = createdProject.id;
 
         const { error } = await api.projects.getOne(projectId); // No email provided
@@ -242,14 +259,10 @@ describe("AppController (e2e)", () => {
       });
 
       it("should not allow to get project when user has no corresponding permission", async () => {
-        const { data: createdProject } =
-          await api.projects.create(validProject);
+        const { data: createdProject } = await api.projects.create(validProject);
         const projectId = createdProject.id;
 
-        const { error } = await api.projects.getOne(
-          projectId,
-          "no-permission@email.com",
-        );
+        const { error } = await api.projects.getOne(projectId, "no-permission@email.com");
 
         expect(error.statusCode).toBe(403);
         expect(error.message).toBe("Insufficient permissions");
@@ -257,10 +270,7 @@ describe("AppController (e2e)", () => {
 
       it("should return 404 for non-existent project", async () => {
         const nonExistentId = "00000000-0000-0000-0000-000000000000";
-        const { error } = await api.projects.getOne(
-          nonExistentId,
-          "test@email.com",
-        );
+        const { error } = await api.projects.getOne(nonExistentId, "test@email.com");
 
         expect(error.statusCode).toBe(404);
       });
@@ -298,7 +308,7 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       forecastedStartDate: getFutureDate(),
       porteurReferentEmail: "owner@email.com",
-      status: "DRAFT",
+      status: "IDEE",
       communeInseeCodes: ["01001"],
     };
 
@@ -314,10 +324,7 @@ describe("AppController (e2e)", () => {
 
     describe("POST /projects/:id/update-collaborators", () => {
       it("should add a collaborator with VIEW permission", async () => {
-        const { data, error } = await api.collaborators.create(
-          projectId,
-          validCollaborator,
-        );
+        const { data, error } = await api.collaborators.create(projectId, validCollaborator);
 
         expect(error).toBeUndefined();
         expect(data).toMatchObject({
@@ -335,10 +342,7 @@ describe("AppController (e2e)", () => {
           permissionType: "EDIT",
         };
 
-        const { data, error } = await api.collaborators.create(
-          projectId,
-          updatedCollaborator,
-        );
+        const { data, error } = await api.collaborators.create(projectId, updatedCollaborator);
 
         expect(error).toBeUndefined();
         expect(data).toMatchObject({

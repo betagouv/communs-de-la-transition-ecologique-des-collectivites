@@ -1,26 +1,19 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  integer,
-  pgEnum,
-  uuid,
-  primaryKey,
-  index,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, pgEnum, uuid, primaryKey, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const projectStatusEnum = pgEnum("project_status", [
-  "DRAFT",
-  "READY",
-  "IN_PROGRESS",
-  "DONE",
-  "CANCELLED",
+  "IDEE",
+  "FAISABILITE",
+  "EN_COURS",
+  "IMPACTE",
+  "ABANDONNE",
+  "TERMINE",
 ]);
 
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
 export const permissionTypeEnum = pgEnum("permission_type", ["EDIT", "VIEW"]);
+
 export type PermissionType = (typeof permissionTypeEnum.enumValues)[number];
 
 export const communes = pgTable("communes", {
@@ -82,10 +75,7 @@ export const projectCollaborators = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => [
-    primaryKey({ columns: [t.projectId, t.email] }),
-    index("collaborator_project_idx").on(t.email, t.projectId),
-  ],
+  (t) => [primaryKey({ columns: [t.projectId, t.email] }), index("collaborator_project_idx").on(t.email, t.projectId)],
 );
 
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
@@ -98,26 +88,20 @@ export const communesRelations = relations(communes, ({ many }) => ({
   projects: many(projectsToCommunes),
 }));
 
-export const projectsToCommunesRelations = relations(
-  projectsToCommunes,
-  ({ one }) => ({
-    project: one(projects, {
-      fields: [projectsToCommunes.projectId],
-      references: [projects.id],
-    }),
-    commune: one(communes, {
-      fields: [projectsToCommunes.communeId],
-      references: [communes.inseeCode],
-    }),
+export const projectsToCommunesRelations = relations(projectsToCommunes, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectsToCommunes.projectId],
+    references: [projects.id],
   }),
-);
+  commune: one(communes, {
+    fields: [projectsToCommunes.communeId],
+    references: [communes.inseeCode],
+  }),
+}));
 
-export const projectToCollaboratorsRelations = relations(
-  projectCollaborators,
-  ({ one }) => ({
-    project: one(projects, {
-      fields: [projectCollaborators.projectId],
-      references: [projects.id],
-    }),
+export const projectToCollaboratorsRelations = relations(projectCollaborators, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectCollaborators.projectId],
+    references: [projects.id],
   }),
-);
+}));
