@@ -1,50 +1,84 @@
-# React + TypeScript + Vite
+# Les Communs Widget
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React widget that displays associated services for ecological transition projects. This widget is designed to be embedded in various platforms to provide a consistent service discovery experience.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Displays services associated with a project
+- Responsive design using DSFR (Design System de l'État)
+- TypeScript support
+- Built with Vite
 
-## Expanding the ESLint configuration
+## Local Development
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+### Prerequisites
 
-- Configure the top-level `parserOptions` property like this:
+- Node.js (>= 20)
+- pnpm (>= 9.x)
+- Running instance of Les Communs API (see api/README.md)
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### Setup
+
+1. First, build the widget:
+```bash
+cd les-communs-widget
+pnpm install
+pnpm build
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. Then, set up the sandbox environment:
+```bash
+cd ../les-communs-widget-sandbox
+pnpm install
+```
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+### Development Workflow
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+1. Start the API (in a separate terminal):
+```bash
+cd api
+pnpm start:dev
+```
+
+2. Start the sandbox development server:
+```bash
+cd les-communs-widget-sandbox
+pnpm dev
+```
+
+The sandbox will automatically reload when you make changes to the widget code.
+
+### Testing Your Changes
+
+1. After making changes to the widget, rebuild it:
+```bash
+cd les-communs-widget
+pnpm build
+```
+
+2. The sandbox will automatically pick up the changes since it uses a local file reference:
+```json
+{
+  "dependencies": {
+    "les-communs-widget": "file:../les-communs-widget"
+  }
+}
+```
+
+## Usage in Other Projects
+
+To use this widget in your project:
+
+```bash
+pnpm add les-communs-widget
+```
+
+Then import and use the component:
+
+```tsx
+import { LesCommuns } from 'les-communs-widget'
+
+function App() {
+  return <LesCommuns projectId="your-project-id" />
+}
 ```

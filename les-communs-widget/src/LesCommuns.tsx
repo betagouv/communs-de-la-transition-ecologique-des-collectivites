@@ -4,11 +4,11 @@ interface LesCommunsProps {
   projectId: string;
 }
 
-type Service = {
+interface Service {
   id: string;
   name: string;
   description: string;
-};
+}
 
 export const LesCommuns = ({ projectId }: LesCommunsProps) => {
   const [services, setServices] = useState<Service[]>([]);
@@ -18,14 +18,15 @@ export const LesCommuns = ({ projectId }: LesCommunsProps) => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        // Replace with your actual API endpoint
         const response = await fetch(
           `http://localhost:3000/services/project/${projectId}`,
         );
+
         if (!response.ok) {
           throw new Error("Failed to fetch services");
         }
-        const data = await response.json();
+
+        const data = (await response.json()) as Service[];
         setServices(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -34,7 +35,7 @@ export const LesCommuns = ({ projectId }: LesCommunsProps) => {
       }
     };
 
-    fetchServices();
+    void fetchServices();
   }, [projectId]);
 
   if (loading) return <div>Loading...</div>;
