@@ -131,7 +131,7 @@ export interface components {
        */
       communeInseeCodes: string[];
     };
-    CreateProjectResponse: {
+    CreateOrUpdateProjectResponse: {
       id: string;
     };
     ErrorResponse: {
@@ -282,7 +282,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["CreateProjectResponse"];
+          "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
         };
       };
       /** @description Error response */

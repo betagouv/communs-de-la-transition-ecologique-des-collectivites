@@ -10,7 +10,7 @@ import {
 import { ProjectsService } from "./services/projects.service";
 import {
   CreateProjectRequest,
-  CreateProjectResponse,
+  CreateOrUpdateProjectResponse,
 } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { ProjectResponse } from "./dto/project.dto";
@@ -26,12 +26,12 @@ export class ProjectsController {
   @Post()
   @ApiEndpointResponses({
     successStatus: 201,
-    response: CreateProjectResponse,
+    response: CreateOrUpdateProjectResponse,
     description: "Project created successfully",
   })
   create(
     @Body() createProjectDto: CreateProjectRequest,
-  ): Promise<CreateProjectResponse> {
+  ): Promise<CreateOrUpdateProjectResponse> {
     return this.projectsService.create(createProjectDto);
   }
 
@@ -52,13 +52,12 @@ export class ProjectsController {
     return this.projectsService.findOne(id);
   }
 
-  //todo to implement
   @RequiresCollaboratorsPermission()
   @Patch(":id")
   update(
     @Param("id") id: string,
     @Body() updateProjectDto: UpdateProjectDto,
-  ): string {
+  ): Promise<CreateOrUpdateProjectResponse> {
     return this.projectsService.update(id, updateProjectDto);
   }
 

@@ -2,13 +2,15 @@ import { CommunesService } from "./communes.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { TestingModule } from "@nestjs/testing";
-import { communes } from "@database/schema";
+import { communes, projects } from "@database/schema";
 import { inArray } from "drizzle-orm";
+import { getFutureDate } from "@test/helpers/getFutureDate";
 
 describe("CommunesService", () => {
   let service: CommunesService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
+  let projectId: string;
 
   beforeAll(async () => {
     const { module: internalModule, testDbService: tds } = await testModule();
@@ -23,26 +25,32 @@ describe("CommunesService", () => {
 
   beforeEach(async () => {
     await testDbService.cleanDatabase();
+
+    const [project] = await testDbService.database
+      .insert(projects)
+      .values({
+        nom: "Test Project",
+        description: "Test Description",
+        budget: 100000,
+        forecastedStartDate: getFutureDate(),
+        status: "DRAFT",
+      })
+      .returning();
+
+    projectId = project.id;
   });
 
   describe("findOrCreateMany", () => {
-    it("should handle empty array of insee codes", async () => {
-      await testDbService.database.transaction(async (tx) => {
-        const result = await service.findOrCreateMany(tx, []);
-
-        expect(result).toEqual([]);
-
-        // Verify no communes were created
-        const allCommunes = await tx.select().from(communes);
-        expect(allCommunes).toHaveLength(0);
-      });
-    });
-
     it("should create new communes when they don't exist", async () => {
       const inseeCodes = ["01002", "75057", "97A02"];
 
       await testDbService.database.transaction(async (tx) => {
-        const result = await service.findOrCreateMany(tx, inseeCodes);
+        await service.createOrUpdate(tx, projectId, inseeCodes);
+
+        const result = await tx
+          .select()
+          .from(communes)
+          .where(inArray(communes.inseeCode, inseeCodes));
 
         expect(result).toHaveLength(3);
         expect(result).toEqual(
@@ -67,10 +75,19 @@ describe("CommunesService", () => {
       const inseeCodes = ["01003", "75058"];
 
       await testDbService.database.transaction(async (tx) => {
-        const firstResult = await service.findOrCreateMany(tx, inseeCodes);
+        await service.createOrUpdate(tx, projectId, inseeCodes);
+
+        const firstResult = await tx
+          .select()
+          .from(communes)
+          .where(inArray(communes.inseeCode, inseeCodes));
         expect(firstResult).toHaveLength(2);
 
-        const secondResult = await service.findOrCreateMany(tx, inseeCodes);
+        await service.createOrUpdate(tx, projectId, inseeCodes);
+        const secondResult = await tx
+          .select()
+          .from(communes)
+          .where(inArray(communes.inseeCode, inseeCodes));
         expect(secondResult).toHaveLength(2);
 
         const allCommunes = await tx
@@ -88,16 +105,18 @@ describe("CommunesService", () => {
       const additionalInseeCodes = ["97A03", "75059"];
 
       await testDbService.database.transaction(async (tx) => {
-        const initialResult = await service.findOrCreateMany(
-          tx,
-          initialInseeCodes,
-        );
+        await service.createOrUpdate(tx, projectId, initialInseeCodes);
+        const initialResult = await tx
+          .select()
+          .from(communes)
+          .where(inArray(communes.inseeCode, initialInseeCodes));
         expect(initialResult).toHaveLength(2);
 
-        const additionalResult = await service.findOrCreateMany(
-          tx,
-          additionalInseeCodes,
-        );
+        await service.createOrUpdate(tx, projectId, additionalInseeCodes);
+        const additionalResult = await tx
+          .select()
+          .from(communes)
+          .where(inArray(communes.inseeCode, initialInseeCodes));
         expect(additionalResult).toHaveLength(2);
 
         const allCommunes = await tx

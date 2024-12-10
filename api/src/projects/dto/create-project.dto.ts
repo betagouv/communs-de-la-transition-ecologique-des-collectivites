@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
+  ArrayNotEmpty,
   IsArray,
   IsDateString,
   IsEnum,
@@ -10,7 +11,7 @@ import {
 } from "class-validator";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
 
-export class CreateProjectResponse {
+export class CreateOrUpdateProjectResponse {
   @ApiProperty()
   @IsString()
   id: string;
@@ -84,5 +85,8 @@ export class CreateProjectRequest {
   })
   @IsArray()
   @IsString({ each: true })
+  @ArrayNotEmpty({
+    message: "At least one commune insee code must be provided",
+  })
   communeInseeCodes: string[];
 }

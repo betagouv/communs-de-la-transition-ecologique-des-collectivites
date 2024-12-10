@@ -5,23 +5,21 @@ import {
 } from "@nestjs/common";
 import { CreateProjectRequest } from "../dto/create-project.dto";
 import { UpdateProjectDto } from "../dto/update-project.dto";
-import {
-  projectCollaborators,
-  projects,
-  projectsToCommunes,
-} from "@database/schema";
+import { projects } from "@database/schema";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@/logging/logger.service";
 import { ProjectResponse } from "../dto/project.dto";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "./communes.service";
 import { removeUndefined } from "@/shared/utils/remove-undefined";
+import { CollaboratorsService } from "@/collaborators/collaborators.service";
 
 @Injectable()
 export class ProjectsService {
   constructor(
     private dbService: DatabaseService,
     private readonly communesService: CommunesService,
+    private readonly collaboratorService: CollaboratorsService,
     private logger: CustomLogger,
   ) {}
 
@@ -31,11 +29,6 @@ export class ProjectsService {
     this.validateDate(createProjectDto.forecastedStartDate);
 
     return await this.dbService.database.transaction(async (tx) => {
-      const communes = await this.communesService.findOrCreateMany(
-        tx,
-        createProjectDto.communeInseeCodes,
-      );
-
       const [createdProject] = await tx
         .insert(projects)
         .values(
@@ -46,18 +39,16 @@ export class ProjectsService {
         .returning();
 
       if (createProjectDto.porteurReferentEmail) {
-        await tx.insert(projectCollaborators).values({
-          projectId: createdProject.id,
+        await this.collaboratorService.createOrUpdate(tx, createdProject.id, {
           email: createProjectDto.porteurReferentEmail,
           permissionType: "EDIT",
         });
       }
 
-      await tx.insert(projectsToCommunes).values(
-        communes.map((commune) => ({
-          projectId: createdProject.id,
-          communeId: commune.inseeCode,
-        })),
+      await this.communesService.createOrUpdate(
+        tx,
+        createdProject.id,
+        createProjectDto.communeInseeCodes,
       );
 
       return { id: createdProject.id };
@@ -106,9 +97,73 @@ export class ProjectsService {
     };
   }
 
-  update(id: string, updateProjectDto: UpdateProjectDto) {
-    console.log(updateProjectDto);
-    return `This action updates a #${id} project`;
+  async update(
+    id: string,
+    updateProjectDto: UpdateProjectDto,
+  ): Promise<{ id: string }> {
+    if (updateProjectDto.forecastedStartDate) {
+      this.validateDate(updateProjectDto.forecastedStartDate);
+    }
+
+    return await this.dbService.database.transaction(async (tx) => {
+      const [existingProject] = await tx
+        .select({
+          id: projects.id,
+          porteurReferentEmail: projects.porteurReferentEmail,
+        })
+        .from(projects)
+        .where(eq(projects.id, id))
+        .limit(1);
+
+      if (!existingProject) {
+        throw new NotFoundException(`Project with ID ${id} not found`);
+      }
+
+      const { communeInseeCodes, ...fieldsToUpdate } =
+        removeUndefined(updateProjectDto);
+
+      if (communeInseeCodes) {
+        await this.communesService.createOrUpdate(
+          tx,
+          id,
+          updateProjectDto.communeInseeCodes,
+        );
+      }
+
+      if (
+        updateProjectDto.porteurReferentEmail &&
+        updateProjectDto.porteurReferentEmail !==
+          existingProject.porteurReferentEmail
+      ) {
+        await this.collaboratorService.createOrUpdate(tx, id, {
+          email: updateProjectDto.porteurReferentEmail,
+          permissionType: "EDIT",
+        });
+
+        // Remove old collaborator if exists
+        if (existingProject.porteurReferentEmail) {
+          await this.collaboratorService.remove(
+            tx,
+            id,
+            existingProject.porteurReferentEmail,
+          );
+        }
+      }
+
+      // Check if there are fields to update
+      // for example you can update only communes which do not need
+      // an update of the project table directly
+      // todo update updatedAt
+      if (Object.keys(fieldsToUpdate).length > 0) {
+        await tx
+          .update(projects)
+          .set(fieldsToUpdate)
+          .where(eq(projects.id, id))
+          .returning();
+      }
+
+      return { id: existingProject.id };
+    });
   }
 
   remove(id: string) {
