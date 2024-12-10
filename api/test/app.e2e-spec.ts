@@ -1,5 +1,3 @@
-// disable to use expect any syntax
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 import { AppModule } from "@/app.module";
@@ -7,9 +5,9 @@ import { setupApp } from "@/setup-app";
 import { e2eTestDbSetup } from "./helpers/e2eTestDbSetup";
 import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
 import { getFutureDate } from "./helpers/getFutureDate";
-import { createApiClient } from "./helpers/apiClient";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { CreateCollaboratorRequest } from "@/collaborators/dto/create-collaborator.dto";
+import { createApiClient } from "@test/helpers/apiClient";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -27,7 +25,7 @@ describe("AppController (e2e)", () => {
     await app.init();
     await app.listen(3000);
 
-    api = createApiClient(process.env.API_KEY!);
+    api = createApiClient(process.env.MEC_API_KEY!);
   }, 30000);
 
   afterAll(async () => {
@@ -42,17 +40,41 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       porteurReferentEmail: "test@email.com",
       forecastedStartDate: getFutureDate(),
-      status: "DRAFT",
+      status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
     };
 
     describe("POST /projects", () => {
       it("should reject when wrong api key", async () => {
-        const wrongApiClient = createApiClient(`wrong-${process.env.API_KEY}`);
+        const wrongApiClient = createApiClient("wrong-api-key");
         const { error } = await wrongApiClient.projects.create(validProject);
 
-        expect(error?.statusCode).toBe(401);
-        expect(error?.message).toContain("Invalid API key");
+        expect(error.statusCode).toBe(401);
+        expect(error.message).toContain("Invalid API key");
+      });
+
+      it("should create a valid project with MEC api key", async () => {
+        const mecClient = createApiClient(process.env.MEC_API_KEY);
+        const { data, error } = await mecClient.projects.create(validProject);
+
+        expect(error).toBeUndefined();
+        expect(data).toHaveProperty("id");
+      });
+
+      it("should create a valid project with TeT api key", async () => {
+        const tetClient = createApiClient(process.env.TET_API_KEY);
+        const { data, error } = await tetClient.projects.create(validProject);
+
+        expect(error).toBeUndefined();
+        expect(data).toHaveProperty("id");
+      });
+
+      it("should create a valid project with Recoco api key", async () => {
+        const tetClient = createApiClient(process.env.RECOCO_API_KEY);
+        const { data, error } = await tetClient.projects.create(validProject);
+
+        expect(error).toBeUndefined();
+        expect(data).toHaveProperty("id");
       });
 
       it("should reject when nom is empty", async () => {
@@ -61,8 +83,8 @@ describe("AppController (e2e)", () => {
           nom: "",
         });
 
-        expect(error?.statusCode).toBe(400);
-        expect(error?.message).toContain("nom should not be empty");
+        expect(error.statusCode).toBe(400);
+        expect(error.message).toContain("nom should not be empty");
       });
 
       it("should reject when required fields are missing", async () => {
@@ -70,7 +92,7 @@ describe("AppController (e2e)", () => {
           nom: "Test Project",
         } as CreateProjectRequest);
 
-        expect(error?.statusCode).toBe(400);
+        expect(error.statusCode).toBe(400);
       });
 
       it("should create a valid project", async () => {
@@ -103,7 +125,9 @@ describe("AppController (e2e)", () => {
         });
 
         expect(error?.statusCode).toBe(400);
-        expect(error?.message[0]).toBe("At least one commune insee code must be provided");
+        expect(error?.message[0]).toBe(
+          "At least one commune insee code must be provided",
+        );
       });
     });
 
@@ -112,7 +136,7 @@ describe("AppController (e2e)", () => {
 
       beforeEach(async () => {
         const { data } = await api.projects.create(validProject);
-        projectId = data!.id;
+        projectId = data.id;
       });
 
       it("should update porteur referent email and handle collaborator permissions", async () => {
@@ -121,7 +145,11 @@ describe("AppController (e2e)", () => {
           porteurReferentEmail: newEmail,
         };
 
-        const { data, error } = await api.projects.update(projectId, updateData, "test@email.com");
+        const { data, error } = await api.projects.update(
+          projectId,
+          updateData,
+          "test@email.com",
+        );
 
         expect(error).toBeUndefined();
         expect(data).toMatchObject({
@@ -129,7 +157,10 @@ describe("AppController (e2e)", () => {
         });
 
         // Use new email to verify permissions
-        const { data: updatedProject } = await api.projects.getOne(projectId, newEmail);
+        const { data: updatedProject } = await api.projects.getOne(
+          projectId,
+          newEmail,
+        );
 
         expect(updatedProject).toMatchObject({
           id: projectId,
@@ -137,7 +168,10 @@ describe("AppController (e2e)", () => {
         });
 
         // Verify old email no longer has access
-        const { error: accessError } = await api.projects.getOne(projectId, "test@email.com");
+        const { error: accessError } = await api.projects.getOne(
+          projectId,
+          "test@email.com",
+        );
 
         expect(accessError?.statusCode).toBe(403);
       });
@@ -151,14 +185,21 @@ describe("AppController (e2e)", () => {
           porteurReferentEmail: "new.referent@email.com",
         };
 
-        const { data, error } = await api.projects.update(projectId, updateData, "test@email.com");
+        const { data, error } = await api.projects.update(
+          projectId,
+          updateData,
+          "test@email.com",
+        );
 
         expect(error).toBeUndefined();
         expect(data).toMatchObject({
           id: projectId,
         });
 
-        const { data: updatedProject } = await api.projects.getOne(projectId, updateData.porteurReferentEmail);
+        const { data: updatedProject } = await api.projects.getOne(
+          projectId,
+          updateData.porteurReferentEmail,
+        );
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { communeInseeCodes, ...expectedFields } = updateData;
@@ -178,7 +219,7 @@ describe("AppController (e2e)", () => {
     describe("GET /projects/:id", () => {
       it("should return a specific project", async () => {
         const { data: createdProject } = await api.projects.create(validProject);
-        const projectId = createdProject!.id;
+        const projectId = createdProject.id;
 
         const { data, error } = await api.projects.getOne(projectId, "test@email.com");
 
@@ -209,29 +250,29 @@ describe("AppController (e2e)", () => {
 
       it("should not allow to get project when user email is not provided", async () => {
         const { data: createdProject } = await api.projects.create(validProject);
-        const projectId = createdProject!.id;
+        const projectId = createdProject.id;
 
         const { error } = await api.projects.getOne(projectId); // No email provided
 
-        expect(error?.statusCode).toBe(400);
-        expect(error?.message).toBe("Single x-user-email header required");
+        expect(error.statusCode).toBe(400);
+        expect(error.message).toBe("Missing user email in x-user-email header");
       });
 
       it("should not allow to get project when user has no corresponding permission", async () => {
         const { data: createdProject } = await api.projects.create(validProject);
-        const projectId = createdProject!.id;
+        const projectId = createdProject.id;
 
         const { error } = await api.projects.getOne(projectId, "no-permission@email.com");
 
-        expect(error?.statusCode).toBe(403);
-        expect(error?.message).toBe("Insufficient permissions");
+        expect(error.statusCode).toBe(403);
+        expect(error.message).toBe("Insufficient permissions");
       });
 
       it("should return 404 for non-existent project", async () => {
         const nonExistentId = "00000000-0000-0000-0000-000000000000";
         const { error } = await api.projects.getOne(nonExistentId, "test@email.com");
 
-        expect(error?.statusCode).toBe(404);
+        expect(error.statusCode).toBe(404);
       });
     });
 
@@ -267,7 +308,7 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       forecastedStartDate: getFutureDate(),
       porteurReferentEmail: "owner@email.com",
-      status: "DRAFT",
+      status: "IDEE",
       communeInseeCodes: ["01001"],
     };
 
@@ -278,7 +319,7 @@ describe("AppController (e2e)", () => {
 
     beforeAll(async () => {
       const { data } = await api.projects.create(validProject);
-      projectId = data!.id;
+      projectId = data.id;
     });
 
     describe("POST /projects/:id/update-collaborators", () => {

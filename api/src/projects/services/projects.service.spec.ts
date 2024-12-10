@@ -40,7 +40,7 @@ describe("ProjectsService", () => {
         description: "Test Description",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -58,7 +58,7 @@ describe("ProjectsService", () => {
         budget: 100000,
         porteurReferentEmail: "nouveauPorteur@email.com",
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -87,7 +87,7 @@ describe("ProjectsService", () => {
         porteurReferentEmail: "porteurReferentEmail@email.com",
         budget: 100000,
         forecastedStartDate: futureDate,
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
       const createDto2: CreateProjectRequest = {
@@ -95,7 +95,7 @@ describe("ProjectsService", () => {
         description: "Description 2",
         budget: 100000,
         forecastedStartDate: futureDate,
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -154,7 +154,7 @@ describe("ProjectsService", () => {
         porteurCodeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
