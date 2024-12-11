@@ -6,7 +6,7 @@
     "build": "pnpm -r build",
     "build:api": "pnpm --filter api build",
     "build:widget": "pnpm --filter widget build",
-    "dev": "pnpm --filter les-communs-widget-sandbox dev",
+    "dev": "pnpm -r dev",
     "dev:api": "pnpm --filter api dev",
     "dev:widget": "pnpm --filter widget dev",
     "dev:widget-sandbox": "pnpm --filter widget-sandbox dev",
@@ -17,11 +17,13 @@
     "test": "pnpm -r test",
     "test:api": "pnpm --filter api test",
     "test:widget": "pnpm --filter widget test",
-    "validate": "pnpm -r validate"
+    "validate": "pnpm -r validate",
+    "setup:widget": "pnpm --filter widget build && concurrently \"pnpm --filter api dev\" \"pnpm --filter widget-sandbox dev\""
   },
   "devDependencies": {
     "prettier": "^3.4.2",
     "typescript": "~5.6.2",
-    "globals": "^15.11.0"
+    "globals": "^15.11.0",
+    "concurrently": "^8.2.2"
   }
 } 

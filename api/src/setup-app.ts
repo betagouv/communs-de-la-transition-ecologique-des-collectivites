@@ -22,10 +22,13 @@ export function setupApp(app: INestApplication) {
     }),
   );
 
-  // Enable CORS
+  const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(",")
+    : ["http://localhost:5173", "http://localhost:5174"];
+
   app.enableCors({
-    origin: ["http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin: allowedOrigins,
+    methods: ["GET", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   });
 
