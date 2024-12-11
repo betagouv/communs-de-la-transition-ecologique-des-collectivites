@@ -1,11 +1,8 @@
-import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
-import tseslint from "typescript-eslint";
-import baseConfig from "../eslint.base.cjs";
+const { resolve } = require("path");
+const tseslint = require("typescript-eslint");
+const baseConfig = require("../eslint.base.cjs");
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-export default tseslint.config(...baseConfig, {
+module.exports = tseslint.config(...baseConfig, {
   files: ["**/*.ts"],
   languageOptions: {
     parserOptions: {
