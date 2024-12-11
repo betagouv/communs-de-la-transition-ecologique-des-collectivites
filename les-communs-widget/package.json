@@ -6,12 +6,12 @@
     "dist"
   ],
   "main": "./dist/les-communs-widget.umd.js",
-  "module": "./dist/les-communs-widget.js",
+  "module": "./dist/les-communs-widget.es.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/les-communs-widget.js",
+      "import": "./dist/les-communs-widget.es.js",
       "require": "./dist/les-communs-widget.umd.js"
     }
   },
