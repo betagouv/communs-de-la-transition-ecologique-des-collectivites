@@ -7,20 +7,19 @@ import {
 } from "@nestjs/common";
 import { CollaboratorsService } from "@/collaborators/collaborators.service";
 import { PermissionType } from "@database/schema";
+import { Request } from "express";
 
 @Injectable()
 export class CollaboratorsPermissionGuard implements CanActivate {
   constructor(private collaboratorService: CollaboratorsService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const projectId = request.params.id;
     const userEmail = request.headers["x-user-email"];
 
-    if (!userEmail) {
-      throw new BadRequestException(
-        "Missing user email in x-user-email header",
-      );
+    if (!userEmail || Array.isArray(userEmail)) {
+      throw new BadRequestException("Single x-user-email header required");
     }
 
     const requiredPermission: PermissionType =

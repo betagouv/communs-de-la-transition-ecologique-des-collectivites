@@ -1,18 +1,17 @@
 {
-  "name": "les-communs-widget",
+  "name": "@les-communs/widget",
   "version": "0.0.1",
-  "type": "module",
   "files": [
     "dist"
   ],
-  "main": "./dist/les-communs-widget.umd.js",
-  "module": "./dist/les-communs-widget.es.js",
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/les-communs-widget.es.js",
-      "require": "./dist/les-communs-widget.umd.js"
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
     }
   },
   "peerDependencies": {
@@ -20,11 +19,14 @@
     "react-dom": "^18.2.0"
   },
   "scripts": {
-    "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
+    "dev": "vite",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "lint": "eslint .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "validate": "npm run type-check && npm run lint && npm run format:check",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@codegouvfr/react-dsfr": "^1.14.6"
@@ -40,7 +42,6 @@
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
-    "globals": "^15.11.0",
     "path": "^0.12.7",
     "prettier": "^3.4.2",
     "typescript": "~5.6.2",

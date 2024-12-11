@@ -1,5 +1,5 @@
-import { LesCommuns } from 'les-communs-widget'
-import '@gouvfr/dsfr/dist/dsfr.min.css'
+import "@gouvfr/dsfr/dist/dsfr.min.css";
+import { LesCommuns } from "@les-communs/widget";
 
 function App() {
   return (
@@ -7,7 +7,7 @@ function App() {
       <h1>Widget Test Sandbox</h1>
       <LesCommuns projectId="your-test-project-id" />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

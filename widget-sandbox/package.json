@@ -1,17 +1,21 @@
 {
-  "name": "les-communs-widget-sandbox",
+  "name": "@les-communs/sandbox",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "tsc -b && vite build",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "dev": "vite",
     "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "validate": "pnpm type-check && pnpm lint && pnpm format:check",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@les-communs/widget": "file:../widget",
     "@gouvfr/dsfr": "^1.12.1",
-    "les-communs-widget": "file:../les-communs-widget",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

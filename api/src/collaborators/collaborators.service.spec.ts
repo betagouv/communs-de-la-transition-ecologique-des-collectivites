@@ -4,7 +4,10 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { projectCollaborators, projects } from "@database/schema";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { and, eq } from "drizzle-orm";
-import { CreateCollaboratorRequest } from "@/collaborators/dto/create-collaborator.dto";
+import {
+  CreateCollaboratorRequest,
+  CreateCollaboratorResponse,
+} from "@/collaborators/dto/create-collaborator.dto";
 import { NotFoundException } from "@nestjs/common";
 import { getFutureDate } from "@test/helpers/getFutureDate";
 
@@ -127,7 +130,8 @@ describe("CollaboratorsService", () => {
         permissionType: "VIEW",
       };
 
-      let firstCollaborator;
+      let firstCollaborator: CreateCollaboratorResponse;
+
       await testDbService.database.transaction(async (tx) => {
         firstCollaborator = await collaboratorsService.createOrUpdate(
           tx,
@@ -164,7 +168,7 @@ describe("CollaboratorsService", () => {
       });
 
       expect(new Date(collaborators[0].updatedAt).getTime()).toBeGreaterThan(
-        new Date(firstCollaborator.updatedAt).getTime(),
+        new Date(firstCollaborator!.updatedAt).getTime(),
       );
     });
   });

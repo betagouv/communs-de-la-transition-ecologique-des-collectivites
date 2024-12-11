@@ -123,11 +123,7 @@ export class ProjectsService {
         removeUndefined(updateProjectDto);
 
       if (communeInseeCodes) {
-        await this.communesService.createOrUpdate(
-          tx,
-          id,
-          updateProjectDto.communeInseeCodes,
-        );
+        await this.communesService.createOrUpdate(tx, id, communeInseeCodes);
       }
 
       if (

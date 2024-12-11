@@ -1,3 +1,5 @@
+// disabled to use expect any syntax
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ProjectsService } from "./projects.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";

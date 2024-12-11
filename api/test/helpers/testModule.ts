@@ -3,8 +3,9 @@ import { DatabaseService } from "@database/database.service";
 import { TestDatabaseService } from "./test-database.service";
 import { AppModule } from "@/app.module";
 import { ProjectsService } from "@/projects/services/projects.service";
+import { Provider } from "@nestjs/common";
 
-export async function testModule(additionalProviders: any[] = []) {
+export async function testModule(additionalProviders: Provider[] = []) {
   const module: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
     providers: [...additionalProviders],

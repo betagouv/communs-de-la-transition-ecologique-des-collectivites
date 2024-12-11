@@ -10,7 +10,7 @@ export class CreateServiceDto implements InferInsertModel<typeof services> {
   })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @ApiProperty({
     example: "Version control and collaboration platform",
@@ -19,7 +19,7 @@ export class CreateServiceDto implements InferInsertModel<typeof services> {
   })
   @IsString()
   @IsNotEmpty()
-  description: string;
+  description!: string;
 
   @ApiProperty({
     example:
@@ -29,7 +29,7 @@ export class CreateServiceDto implements InferInsertModel<typeof services> {
   @IsString()
   @IsUrl()
   @IsNotEmpty()
-  logoUrl: string;
+  logoUrl!: string;
 
   @ApiProperty({
     example: "https://www.boussole-te.ecologie.gouv.fr/",
@@ -38,5 +38,5 @@ export class CreateServiceDto implements InferInsertModel<typeof services> {
   @IsString()
   @IsUrl()
   @IsNotEmpty()
-  url: string;
+  url!: string;
 }

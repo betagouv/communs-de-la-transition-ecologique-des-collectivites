@@ -5,11 +5,11 @@ export class ErrorResponse {
     type: Number,
     description: "HTTP status code",
   })
-  statusCode: number;
+  statusCode!: number;
 
   @ApiProperty({
     type: String,
     description: "Error message",
   })
-  message: string;
+  message!: string;
 }

@@ -1,1 +1,0 @@
-export { LesCommuns } from './LesCommuns';

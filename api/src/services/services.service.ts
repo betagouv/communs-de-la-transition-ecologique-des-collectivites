@@ -67,7 +67,7 @@ export class ServicesService {
     return service;
   }
 
-  async getServicesByProjectId(projectId: string) {
+  getServicesByProjectId(projectId: string) {
     // For now, return mock data
     console.log("Returning mock services by projectid", projectId);
     return this.mockServices;

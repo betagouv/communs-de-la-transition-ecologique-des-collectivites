@@ -1,3 +1,5 @@
+// disable to use expect any syntax
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 import { AppModule } from "@/app.module";
@@ -25,7 +27,7 @@ describe("AppController (e2e)", () => {
     await app.init();
     await app.listen(3000);
 
-    api = createApiClient(process.env.API_KEY);
+    api = createApiClient(process.env.API_KEY!);
   }, 30000);
 
   afterAll(async () => {
@@ -49,8 +51,8 @@ describe("AppController (e2e)", () => {
         const wrongApiClient = createApiClient(`wrong-${process.env.API_KEY}`);
         const { error } = await wrongApiClient.projects.create(validProject);
 
-        expect(error.statusCode).toBe(401);
-        expect(error.message).toContain("Invalid API key");
+        expect(error?.statusCode).toBe(401);
+        expect(error?.message).toContain("Invalid API key");
       });
 
       it("should reject when nom is empty", async () => {
@@ -59,8 +61,8 @@ describe("AppController (e2e)", () => {
           nom: "",
         });
 
-        expect(error.statusCode).toBe(400);
-        expect(error.message).toContain("nom should not be empty");
+        expect(error?.statusCode).toBe(400);
+        expect(error?.message).toContain("nom should not be empty");
       });
 
       it("should reject when required fields are missing", async () => {
@@ -68,7 +70,7 @@ describe("AppController (e2e)", () => {
           nom: "Test Project",
         } as CreateProjectRequest);
 
-        expect(error.statusCode).toBe(400);
+        expect(error?.statusCode).toBe(400);
       });
 
       it("should create a valid project", async () => {
@@ -114,7 +116,7 @@ describe("AppController (e2e)", () => {
 
       beforeEach(async () => {
         const { data } = await api.projects.create(validProject);
-        projectId = data.id;
+        projectId = data!.id;
       });
 
       it("should update porteur referent email and handle collaborator permissions", async () => {
@@ -198,7 +200,7 @@ describe("AppController (e2e)", () => {
       it("should return a specific project", async () => {
         const { data: createdProject } =
           await api.projects.create(validProject);
-        const projectId = createdProject.id;
+        const projectId = createdProject!.id;
 
         const { data, error } = await api.projects.getOne(
           projectId,
@@ -233,26 +235,28 @@ describe("AppController (e2e)", () => {
       it("should not allow to get project when user email is not provided", async () => {
         const { data: createdProject } =
           await api.projects.create(validProject);
-        const projectId = createdProject.id;
+        const projectId = createdProject!.id;
 
         const { error } = await api.projects.getOne(projectId); // No email provided
 
-        expect(error.statusCode).toBe(400);
-        expect(error.message).toBe("Missing user email in x-user-email header");
+        expect(error?.statusCode).toBe(400);
+        expect(error?.message).toBe(
+          "Missing user email in x-user-email header",
+        );
       });
 
       it("should not allow to get project when user has no corresponding permission", async () => {
         const { data: createdProject } =
           await api.projects.create(validProject);
-        const projectId = createdProject.id;
+        const projectId = createdProject!.id;
 
         const { error } = await api.projects.getOne(
           projectId,
           "no-permission@email.com",
         );
 
-        expect(error.statusCode).toBe(403);
-        expect(error.message).toBe("Insufficient permissions");
+        expect(error?.statusCode).toBe(403);
+        expect(error?.message).toBe("Insufficient permissions");
       });
 
       it("should return 404 for non-existent project", async () => {
@@ -262,7 +266,7 @@ describe("AppController (e2e)", () => {
           "test@email.com",
         );
 
-        expect(error.statusCode).toBe(404);
+        expect(error?.statusCode).toBe(404);
       });
     });
 
@@ -309,7 +313,7 @@ describe("AppController (e2e)", () => {
 
     beforeAll(async () => {
       const { data } = await api.projects.create(validProject);
-      projectId = data.id;
+      projectId = data!.id;
     });
 
     describe("POST /projects/:id/update-collaborators", () => {

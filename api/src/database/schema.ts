@@ -29,8 +29,11 @@ export const communes = pgTable("communes", {
 
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
   nom: text("nom").notNull(),
   description: text("description").notNull(),
   porteurCodeSiret: text("code_siret"),
@@ -77,8 +80,9 @@ export const projectCollaborators = pgTable(
       .references(() => projects.id, { onDelete: "cascade" }),
     email: text("email").notNull(),
     permissionType: permissionTypeEnum("permission_type").notNull(),
-    createdAt: timestamp("created_at").defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
+      .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
   },

@@ -8,6 +8,8 @@ import {
 import { Response } from "express";
 import { randomUUID } from "crypto";
 import { CustomLogger } from "@logging/logger.service";
+import { Request } from "express";
+
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(private logger: CustomLogger) {}
@@ -15,7 +17,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest();
+    const request = ctx.getRequest<Request>();
 
     if (exception instanceof HttpException) {
       const status = exception.getStatus();

@@ -1,7 +1,6 @@
 # API Communs de la transition écologique des collectivités
 
-
-Should you be a service connected to Les communs, here is a [detailed doc in french](CONNECTING_SERVICE.md) :  
+Should you be a service connected to Les communs, here is a [detailed doc in french](CONNECTING_SERVICE.md) :
 
 ## Table of Contents
 
@@ -16,7 +15,6 @@ Should you be a service connected to Les communs, here is a [detailed doc in fre
 - **Node.js** version **20** or higher
 - **pnpm** package manager (version **>= 9.x**)
 - **Docker** and **Docker Compose** (for database setup)
-
 
 ## Environment Setup
 
@@ -44,7 +42,6 @@ pnpm start:dev
 
 Once you have your API up, the swagger will be available on http://localhost:3000/api
 
-
 ## Testing
 
 ```bash
@@ -68,5 +65,3 @@ The project uses Github Action for CI/CD. The configuration is defined in the ro
 - **Static Analysis**: Runs code formatting and lint and type checks.
 - **Testing**: Runs unit and end-to-end tests.
 - **Deploying**: The api is deployed automatically on staging when a PR is merged on main. To automatically deploy on prod there is a manual github workflow that needs to be triggered to create a new tag which triggers the automatic deployment
-
-

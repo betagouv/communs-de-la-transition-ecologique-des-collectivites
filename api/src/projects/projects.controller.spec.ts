@@ -44,6 +44,7 @@ describe("ProjectsController", () => {
       const result = await controller.create(validProject);
 
       expect(result).toEqual(expectedResponse);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(projectsService.create).toHaveBeenCalledWith(validProject);
     });
   });
