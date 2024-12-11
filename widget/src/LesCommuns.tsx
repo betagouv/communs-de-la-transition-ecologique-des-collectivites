@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "./config";
 
 interface LesCommunsProps {
   projectId: string;
@@ -19,7 +20,7 @@ export const LesCommuns = ({ projectId }: LesCommunsProps) => {
     const fetchServices = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3000/services/project/${projectId}`,
+          `${API_BASE_URL}/services/project/${projectId}`,
         );
 
         if (!response.ok) {
