@@ -1,6 +1,6 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "strict": true,
     "module": "commonjs",
     "esModuleInterop": true,
     "declaration": true,
@@ -12,13 +12,6 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
     "paths": {
       "@/*": ["src/*"],
       "@test/*": ["test/*"],
