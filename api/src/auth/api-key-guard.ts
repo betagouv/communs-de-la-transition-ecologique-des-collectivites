@@ -30,7 +30,7 @@ class ApiKeyGuard implements CanActivate {
     };
   }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const isPublic = this.reflector.get<boolean>("isPublic", context.getHandler());
 
     if (isPublic) {
@@ -40,7 +40,7 @@ class ApiKeyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader?.startsWith("Bearer ")) {
       throw new UnauthorizedException("Invalid authorization header format");
     }
 
