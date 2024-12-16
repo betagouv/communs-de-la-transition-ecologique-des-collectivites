@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
-import { LesCommuns } from "./LesCommuns";
+import { LesCommuns } from "./LesCommuns.tsx";
 
 const mockServices = [
   {

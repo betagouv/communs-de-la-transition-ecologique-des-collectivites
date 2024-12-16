@@ -1,4 +1,10 @@
 {
   "extends": "../tsconfig.base.react.json",
-  "include": ["src"]
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "declarationDir": "dist",
+    "emitDeclarationOnly": true
+  },
+  "include": ["src", "lib"]
 }

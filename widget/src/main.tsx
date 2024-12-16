@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { LesCommuns } from "./LesCommuns";
+import { LesCommuns } from "../lib";
 import { startReactDsfr } from "@codegouvfr/react-dsfr/spa";
 
 startReactDsfr({ defaultColorScheme: "system" });

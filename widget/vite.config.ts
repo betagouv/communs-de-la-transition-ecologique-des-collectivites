@@ -2,6 +2,7 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import dts from "vite-plugin-dts";
 import { resolve } from "path";
+import { libInjectCss } from "vite-plugin-lib-inject-css";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -11,19 +12,21 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: "./src/test/setup.ts",
+    setupFiles: "./lib/test/setup.ts",
   },
   plugins: [
     react(),
+    libInjectCss(),
     dts({
-      insertTypesEntry: true,
-      include: ["src"],
-      rollupTypes: true,
+      include: ["lib"],
+      rollupTypes: true, //merge all declarations into one file
+      entryRoot: "lib",
+      tsconfigPath: "./tsconfig.app.json",
     }),
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
+      entry: resolve(__dirname, "lib/index.ts"),
       name: "LesCommuns",
       formats: ["es"],
       fileName: (format) => `index.${format}.js`,

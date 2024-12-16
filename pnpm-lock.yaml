@@ -174,6 +174,12 @@ importers:
       '@codegouvfr/react-dsfr':
         specifier: ^1.14.6
         version: 1.16.4
+      '@iframe-resizer/react':
+        specifier: ^5.3.2
+        version: 5.3.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      classnames:
+        specifier: ^2.5.1
+        version: 2.5.1
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -199,6 +205,9 @@ importers:
       vite-plugin-dts:
         specifier: ^4.3.0
         version: 4.3.0(@types/node@22.10.1)(rollup@4.28.1)(typescript@5.7.2)(vite@5.4.11(@types/node@22.10.1)(terser@5.37.0))
+      vite-plugin-lib-inject-css:
+        specifier: ^2.1.1
+        version: 2.1.1(vite@5.4.11(@types/node@22.10.1)(terser@5.37.0))
       vitest:
         specifier: ^2.1.8
         version: 2.1.8(@types/node@22.10.1)(jsdom@25.0.1)(msw@2.6.8(@types/node@22.10.1)(typescript@5.7.2))(terser@5.37.0)
@@ -244,6 +253,58 @@ packages:
   '@angular-devkit/schematics@17.3.11':
     resolution: {integrity: sha512-I5wviiIqiFwar9Pdk30Lujk8FczEEc18i22A5c6Z9lbmhPQdTroDnEQdsfXjy404wPe8H62s0I15o4pmMGfTYQ==}
     engines: {node: ^18.13.0 || >=20.9.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
+
+  '@ast-grep/napi-darwin-arm64@0.22.6':
+    resolution: {integrity: sha512-L9rEGJ8fNi5LxbZj860wbXxjX7DLNV799zcTaPOSzYadvNyhMY3LWvDXd45Vtx6Dh8QRtCoEMQmw8KaRCEjm9A==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@ast-grep/napi-darwin-x64@0.22.6':
+    resolution: {integrity: sha512-0iuM6iDJNhcPd6a/JJr64AallR7ttGW/MvUujfQdvJEZY5p9LK35xm23dULznW0tIMgwtMKPRaprgk8LPondKg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@ast-grep/napi-linux-arm64-gnu@0.22.6':
+    resolution: {integrity: sha512-9PAqNJlAQfFm1RW0DVCM/S4gFHdppxUTWacB3qEeJZXgdLnoH0KGQa4z3Xo559SPYDKZy0VnY02mZ3XJ+v6/Vw==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@ast-grep/napi-linux-x64-gnu@0.22.6':
+    resolution: {integrity: sha512-nZf+gxXVrZqvP1LN6HwzOMA4brF3umBXfMequQzv8S6HeJ4c34P23F0Tw8mHtQpVYP9PQWJUvt3LJQ8Xvd5Hiw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@ast-grep/napi-linux-x64-musl@0.22.6':
+    resolution: {integrity: sha512-gcJeBMgJQf2pZZo0lgH0Vg4ycyujM7Am8VlomXhavC/dPpkddA1tiHSIC4fCNneLU1EqHITy3ALSmM4GLdsjBw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@ast-grep/napi-win32-arm64-msvc@0.22.6':
+    resolution: {integrity: sha512-YDDzvPIyl4ti8xZfjvGSGVCX9JJjMQjyWPlXcwRpiLRnHThtHTDL8PyE2yq+gAPuZ28QbrygMkP9EKXIyYFVcQ==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@ast-grep/napi-win32-ia32-msvc@0.22.6':
+    resolution: {integrity: sha512-w5P0MDcBD3bifC2K9nCDEFYacy8HQnXdf6fX6cIE/7xL8XEDs6D1lQjGewrZDcMAXVXUQfupj4P27ZsJRmuIoQ==}
+    engines: {node: '>= 10'}
+    cpu: [ia32]
+    os: [win32]
+
+  '@ast-grep/napi-win32-x64-msvc@0.22.6':
+    resolution: {integrity: sha512-1aaHvgsCBwUP0tDf4HXPMpUV/nUwsOWgRCiBc2zIJjdEjT9TTk795EIX9Z1Nc0OMCrxVEceyiKcYTofXa0Fpxw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@ast-grep/napi@0.22.6':
+    resolution: {integrity: sha512-kNF87HiI4omHC7VzyBZSvqOAXtMlSDRF2YX+O5ya0XKv/7/GYms1opLQ+BQ9twLLDj0WsSFX4MYg0TrinZTxTg==}
+    engines: {node: '>= 10'}
 
   '@babel/code-frame@7.26.2':
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -1004,6 +1065,15 @@ packages:
   '@hutson/parse-repository-url@3.0.2':
     resolution: {integrity: sha512-H9XAx3hc0BQHY6l+IFSWHDySypcXsvsuLhgYLUGywmJ5pswRVQJUHpOsobnLYp2ZUaUlKiKDrgWWhosOwAEM8Q==}
     engines: {node: '>=6.9.0'}
+
+  '@iframe-resizer/core@5.3.2':
+    resolution: {integrity: sha512-is6VXW1m/9y7ZUwyjUuHu5101TPFa69Rv8jNY0HrT5svwb1ICPZKeaoVzDw0TTBBa5eE7XfEFcXCeiP6UR9W3w==}
+
+  '@iframe-resizer/react@5.3.2':
+    resolution: {integrity: sha512-RGPMYj69Kfzpvonfx0pj5JrKc152DNB8MGum2AoXdupjyaKzLJ4Bvi0NHV8ic4xSHlsMb3eqFXYNRekcACcWxA==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0  || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0  || ^19.0.0
 
   '@inquirer/confirm@5.1.0':
     resolution: {integrity: sha512-osaBbIMEqVFjTX5exoqPXs6PilWQdjaLhGtMDXMXg/yxkHXNq43GlxGyTA35lK2HpzUgDN+Cjh/2AmqCN0QJpw==}
@@ -2120,6 +2190,9 @@ packages:
 
   class-validator@0.14.1:
     resolution: {integrity: sha512-2VEG9JICxIqTpoK1eMzZqaV+u/EiwEJkMGzTrZf6sU/fwsnOITVgYJ8yojSy6CaXtO9V0Cc6ZQZ8h8m4UBuLwQ==}
+
+  classnames@2.5.1:
+    resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
 
   cli-cursor@3.1.0:
     resolution: {integrity: sha512-I/zHAwsKf9FqGoXM4WWRACob9+SNukZTd94DWF57E4toouRulbCxcUh6RKUEOQlYTHJnzkPMySvPNaaSLNfLZw==}
@@ -5225,6 +5298,11 @@ packages:
       vite:
         optional: true
 
+  vite-plugin-lib-inject-css@2.1.1:
+    resolution: {integrity: sha512-RIMeVnqBK/8I0E9nnQWzws6pdj5ilRMPJSnXYb6nWxNR4EmDPnksnb/ACoR5Fy7QfzULqS4gtQMrjwnNCC9zoA==}
+    peerDependencies:
+      vite: '*'
+
   vite@5.4.11:
     resolution: {integrity: sha512-c7jFQRklXua0mTzneGW9QVyxFjUgwcihC4bXEtujIo2ouWCe1Ajt/amn2PCxYnhYfd5k09JX3SB7OYWFKYqj8Q==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -5511,6 +5589,41 @@ snapshots:
       rxjs: 7.8.1
     transitivePeerDependencies:
       - chokidar
+
+  '@ast-grep/napi-darwin-arm64@0.22.6':
+    optional: true
+
+  '@ast-grep/napi-darwin-x64@0.22.6':
+    optional: true
+
+  '@ast-grep/napi-linux-arm64-gnu@0.22.6':
+    optional: true
+
+  '@ast-grep/napi-linux-x64-gnu@0.22.6':
+    optional: true
+
+  '@ast-grep/napi-linux-x64-musl@0.22.6':
+    optional: true
+
+  '@ast-grep/napi-win32-arm64-msvc@0.22.6':
+    optional: true
+
+  '@ast-grep/napi-win32-ia32-msvc@0.22.6':
+    optional: true
+
+  '@ast-grep/napi-win32-x64-msvc@0.22.6':
+    optional: true
+
+  '@ast-grep/napi@0.22.6':
+    optionalDependencies:
+      '@ast-grep/napi-darwin-arm64': 0.22.6
+      '@ast-grep/napi-darwin-x64': 0.22.6
+      '@ast-grep/napi-linux-arm64-gnu': 0.22.6
+      '@ast-grep/napi-linux-x64-gnu': 0.22.6
+      '@ast-grep/napi-linux-x64-musl': 0.22.6
+      '@ast-grep/napi-win32-arm64-msvc': 0.22.6
+      '@ast-grep/napi-win32-ia32-msvc': 0.22.6
+      '@ast-grep/napi-win32-x64-msvc': 0.22.6
 
   '@babel/code-frame@7.26.2':
     dependencies:
@@ -6129,6 +6242,15 @@ snapshots:
   '@humanwhocodes/retry@0.4.1': {}
 
   '@hutson/parse-repository-url@3.0.2': {}
+
+  '@iframe-resizer/core@5.3.2': {}
+
+  '@iframe-resizer/react@5.3.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@babel/runtime': 7.26.0
+      '@iframe-resizer/core': 5.3.2
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   '@inquirer/confirm@5.1.0(@types/node@22.10.1)':
     dependencies:
@@ -7559,6 +7681,8 @@ snapshots:
       '@types/validator': 13.12.2
       libphonenumber-js: 1.11.16
       validator: 13.12.0
+
+  classnames@2.5.1: {}
 
   cli-cursor@3.1.0:
     dependencies:
@@ -11001,6 +11125,13 @@ snapshots:
       - '@types/node'
       - rollup
       - supports-color
+
+  vite-plugin-lib-inject-css@2.1.1(vite@5.4.11(@types/node@22.10.1)(terser@5.37.0)):
+    dependencies:
+      '@ast-grep/napi': 0.22.6
+      magic-string: 0.30.15
+      picocolors: 1.1.1
+      vite: 5.4.11(@types/node@22.10.1)(terser@5.37.0)
 
   vite@5.4.11(@types/node@22.10.1)(terser@5.37.0):
     dependencies:

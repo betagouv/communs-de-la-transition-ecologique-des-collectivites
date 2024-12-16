@@ -15,8 +15,10 @@ export class ServicesService {
         "Objectivez votre diagnostic avec les données socio-économiques qui rendent votre territoire unique et découvrez des arguments et ressources pour mobiliser vos collègues et partenaires externes sur l'adaptation au changement climatique.",
       logoUrl:
         "https://facili-tacct.beta.gouv.fr/_next/static/media/favicon.f453a8cf.svg",
-      url: "https://facili-tacct.beta.gouv.fr/thematiques?codgeo=01010&codepci=200070852",
+      iframeUrl:
+        "https://facili-tacct-preprod.osc-fr1.scalingo.io/iframe/donnees-territoriales?codepci=200069193&thematique=Biodiversit%C3%A9",
       createdAt: new Date(),
+      redirectionUrl: "https://facili-tacct.beta.gouv.fr",
     },
     {
       id: "2",
@@ -25,7 +27,7 @@ export class ServicesService {
         "Accompagner le porteur de projet tout au long de sa réflexion, le plus en amont possible, pour améliorer son projet quelle qu’en soit sa nature, en prenant en compte les impacts environnementaux.",
       logoUrl:
         "https://www.boussole-te.ecologie.gouv.fr//IMG/svg/img_boussole.svg",
-      url: "https://www.boussole-te.ecologie.gouv.fr/",
+      redirectionUrl: "https://www.boussole-te.ecologie.gouv.fr/",
       createdAt: new Date(),
     },
   ];

@@ -9,7 +9,7 @@
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "dev": "vite",
     "lint": "eslint .",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit -p tsconfig.app.json",
     "validate": "pnpm type-check && pnpm lint && pnpm format:check",
     "preview": "vite preview"
   },

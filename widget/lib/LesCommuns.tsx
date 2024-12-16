@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "./config";
+import { API_BASE_URL } from "./config.ts";
+import { fr } from "@codegouvfr/react-dsfr";
+import { Service } from "./components/Service.tsx";
+import styles from "./LesCommuns.module.css";
+import classNames from "classnames";
 
-interface LesCommunsProps {
+export interface LesCommunsProps {
   projectId: string;
 }
 
@@ -9,6 +13,9 @@ interface Service {
   id: string;
   name: string;
   description: string;
+  iframeUrl?: string;
+  redirectionUrl: string;
+  logoUrl: string;
 }
 
 export const LesCommuns = ({ projectId }: LesCommunsProps) => {
@@ -46,20 +53,22 @@ export const LesCommuns = ({ projectId }: LesCommunsProps) => {
 
   return (
     <div
-      className="fr-container fr-pb-2w fr-shadow-md"
-      style={{ border: "black solid 1px" }}
+      className={classNames(
+        fr.cx("fr-container", "fr-p-3w", "fr-pt-4w"),
+        styles.container,
+      )}
     >
-      <h2>Services associés</h2>
-      <div className="fr-grid-row fr-grid-row--gutters">
+      <h6 className={classNames(fr.cx("fr-h6", "fr-mb-2w"), styles.title)}>
+        Services
+      </h6>
+      <span className={fr.cx("fr-text--sm")}>
+        Ces services sont en lien avec les{" "}
+        <strong>thématiques, l’état d’avancement</strong> ainsi que la{" "}
+        <strong>localisation</strong> de votre projet. En savoir plus
+      </span>
+      <div className={classNames(fr.cx("fr-mt-3w"), styles.services)}>
         {services.map((service) => (
-          <div key={service.id} className="fr-col-12 fr-col-md-4">
-            <div className="fr-card fr-enlarge-link">
-              <div className="fr-card__body">
-                <h3 className="fr-card__title">{service.name}</h3>
-                <p className="fr-card__desc">{service.description}</p>
-              </div>
-            </div>
-          </div>
+          <Service key={service.id} {...service} />
         ))}
       </div>
     </div>

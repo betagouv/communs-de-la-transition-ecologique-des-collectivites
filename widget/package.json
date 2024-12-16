@@ -13,27 +13,30 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
       "require": "./dist/index.umd.js"
-    }
+    },
+    "./style.css": "./dist/style.css"
   },
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "scripts": {
-    "build": "tsc && vite build",
+    "build": "tsc -p tsconfig.build.json && vite build",
     "dev": "vite",
     "test": "vitest",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "lint": "eslint .",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit -p tsconfig.app.json",
     "validate": "npm run type-check && npm run lint && npm run format:check",
     "preview": "vite preview",
     "prebuild": "react-dsfr update-icons",
     "predev": "react-dsfr update-icons"
   },
   "dependencies": {
-    "@codegouvfr/react-dsfr": "^1.14.6"
+    "@codegouvfr/react-dsfr": "^1.14.6",
+    "@iframe-resizer/react": "^5.3.2",
+    "classnames": "^2.5.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
@@ -42,6 +45,7 @@
     "msw": "^2.6.8",
     "path": "^0.12.7",
     "vite-plugin-dts": "^4.3.0",
+    "vite-plugin-lib-inject-css": "^2.1.1",
     "vitest": "^2.1.8"
   }
 }
