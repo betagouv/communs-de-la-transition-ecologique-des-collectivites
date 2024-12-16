@@ -1,9 +1,6 @@
 #!/usr/bin/env sh
 
-cd api
-# Run type checking
-npm run type-check
-# Run linting
-npm run lint
+# Run validation (lint/type check / prettier)
+npm run validate
 # Run talisman to check for any secret leakages
 talisman --githook pre-commit

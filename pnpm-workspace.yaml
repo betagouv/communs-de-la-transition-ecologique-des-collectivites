@@ -1,0 +1,4 @@
+packages:
+  - 'api'
+  - 'widget'
+  - 'widget-sandbox' 

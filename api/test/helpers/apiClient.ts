@@ -3,7 +3,7 @@ import createClient from "openapi-fetch";
 
 export const createApiClient = (apiKey: string) => {
   const client = createClient<paths>({
-    baseUrl: process.env.API_URL || "http://localhost:3000",
+    baseUrl: process.env.API_URL ?? "http://localhost:3000",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
@@ -21,7 +21,7 @@ export const createApiClient = (apiKey: string) => {
         client.GET("/projects/{id}", {
           params: {
             path: { id },
-            header: { "X-User-Email": email || "" },
+            header: { "X-User-Email": email ?? "" },
           },
         }),
 
@@ -33,7 +33,7 @@ export const createApiClient = (apiKey: string) => {
         client.PATCH("/projects/{id}", {
           params: {
             path: { id },
-            header: { "X-User-Email": email || "" },
+            header: { "X-User-Email": email ?? "" },
           },
           body: data,
         }),
@@ -42,7 +42,7 @@ export const createApiClient = (apiKey: string) => {
         client.DELETE("/projects/{id}", {
           params: {
             path: { id },
-            header: { "X-User-Email": email || "" },
+            header: { "X-User-Email": email ?? "" },
           },
         }),
     },

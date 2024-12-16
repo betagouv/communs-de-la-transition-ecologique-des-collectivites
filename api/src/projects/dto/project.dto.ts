@@ -3,64 +3,64 @@ import { ProjectStatus } from "@database/schema";
 
 class Commune {
   @ApiProperty()
-  inseeCode: string;
+  inseeCode!: string;
 }
 
 export class ProjectResponse {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty()
-  nom: string;
+  nom!: string;
 
   @ApiProperty()
-  description: string;
+  description!: string;
 
   @ApiProperty({
     type: String || null,
   })
-  porteurCodeSiret: string | null;
+  porteurCodeSiret!: string | null;
 
   @ApiProperty({
     type: String || null,
   })
-  porteurReferentEmail: string | null;
+  porteurReferentEmail!: string | null;
 
   @ApiProperty({
     type: String || null,
   })
-  porteurReferentTelephone: string | null;
+  porteurReferentTelephone!: string | null;
 
   @ApiProperty({
     type: String || null,
   })
-  porteurReferentPrenom: string | null;
+  porteurReferentPrenom!: string | null;
 
   @ApiProperty({
     type: String || null,
   })
-  porteurReferentNom: string | null;
+  porteurReferentNom!: string | null;
 
   @ApiProperty({
     type: String || null,
   })
-  porteurReferentFonction: string | null;
+  porteurReferentFonction!: string | null;
 
   @ApiProperty({ type: [Commune] })
-  communes: Commune[];
+  communes!: Commune[];
 
   @ApiProperty()
-  budget: number;
+  budget!: number;
 
   @ApiProperty()
-  forecastedStartDate: string;
+  forecastedStartDate!: string;
 
   @ApiProperty()
-  status: ProjectStatus;
+  status!: ProjectStatus;
 }

@@ -1,0 +1,8 @@
+.hidden {
+  display: none;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+}

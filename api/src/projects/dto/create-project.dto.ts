@@ -14,19 +14,19 @@ import { ProjectStatus, projectStatusEnum } from "@database/schema";
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
   @IsString()
-  id: string;
+  id!: string;
 }
 
 export class CreateProjectRequest {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  nom: string;
+  nom!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  description: string;
+  description!: string;
 
   @ApiPropertyOptional()
   @IsString()
@@ -60,7 +60,7 @@ export class CreateProjectRequest {
 
   @ApiProperty()
   @IsNumber()
-  budget: number;
+  budget!: number;
 
   @ApiProperty({
     description: "Forecasted start date in YYYY-MM-DD format",
@@ -72,11 +72,11 @@ export class CreateProjectRequest {
       message: "Date must be in YYYY-MM-DD format (e.g., 2024-03-01)",
     },
   )
-  forecastedStartDate: string;
+  forecastedStartDate!: string;
 
   @ApiProperty({ enum: projectStatusEnum.enumValues })
   @IsEnum(projectStatusEnum.enumValues)
-  status: ProjectStatus;
+  status!: ProjectStatus;
 
   @ApiProperty({
     type: [String],
@@ -88,5 +88,5 @@ export class CreateProjectRequest {
   @ArrayNotEmpty({
     message: "At least one commune insee code must be provided",
   })
-  communeInseeCodes: string[];
+  communeInseeCodes!: string[];
 }

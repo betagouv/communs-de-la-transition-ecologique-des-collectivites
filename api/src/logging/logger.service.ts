@@ -12,7 +12,7 @@ export class CustomLogger implements LoggerService {
           format.timestamp(),
           format.colorize(),
           format.printf(({ timestamp, level, message, ...metadata }) => {
-            return `[${timestamp}] ${level}: ${message} ${
+            return `[${String(timestamp)}] ${level}: ${String(message)} ${
               Object.keys(metadata).length ? JSON.stringify(metadata) : ""
             }`;
           }),

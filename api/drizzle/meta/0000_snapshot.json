@@ -89,12 +89,8 @@
           "name": "project_collaborators_project_id_projects_id_fk",
           "tableFrom": "project_collaborators",
           "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -102,10 +98,7 @@
       "compositePrimaryKeys": {
         "project_collaborators_project_id_email_pk": {
           "name": "project_collaborators_project_id_email_pk",
-          "columns": [
-            "project_id",
-            "email"
-          ]
+          "columns": ["project_id", "email"]
         }
       },
       "uniqueConstraints": {},
@@ -259,12 +252,8 @@
           "name": "projects_to_communes_project_id_projects_id_fk",
           "tableFrom": "projects_to_communes",
           "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -272,12 +261,8 @@
           "name": "projects_to_communes_commune_id_communes_insee_code_fk",
           "tableFrom": "projects_to_communes",
           "tableTo": "communes",
-          "columnsFrom": [
-            "commune_id"
-          ],
-          "columnsTo": [
-            "insee_code"
-          ],
+          "columnsFrom": ["commune_id"],
+          "columnsTo": ["insee_code"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -285,10 +270,7 @@
       "compositePrimaryKeys": {
         "projects_to_communes_project_id_commune_id_pk": {
           "name": "projects_to_communes_project_id_commune_id_pk",
-          "columns": [
-            "project_id",
-            "commune_id"
-          ]
+          "columns": ["project_id", "commune_id"]
         }
       },
       "uniqueConstraints": {},
@@ -352,21 +334,12 @@
     "public.permission_type": {
       "name": "permission_type",
       "schema": "public",
-      "values": [
-        "EDIT",
-        "VIEW"
-      ]
+      "values": ["EDIT", "VIEW"]
     },
     "public.project_status": {
       "name": "project_status",
       "schema": "public",
-      "values": [
-        "DRAFT",
-        "READY",
-        "IN_PROGRESS",
-        "DONE",
-        "CANCELLED"
-      ]
+      "values": ["DRAFT", "READY", "IN_PROGRESS", "DONE", "CANCELLED"]
     }
   },
   "schemas": {},

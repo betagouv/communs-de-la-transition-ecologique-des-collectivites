@@ -1,3 +1,5 @@
+// disabled to use expect any syntax
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ServicesService } from "./services.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
@@ -44,8 +46,8 @@ describe("ServicesService", () => {
   });
 
   describe("getServicesByProjectId", () => {
-    it("should return mock services for now", async () => {
-      const result = await service.getServicesByProjectId("any-id");
+    it("should return mock services for now", () => {
+      const result = service.getServicesByProjectId("any-id");
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty("name", "Facili-Tacct");
       expect(result[1]).toHaveProperty(

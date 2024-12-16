@@ -4,27 +4,27 @@ import { PermissionType, permissionTypeEnum } from "@database/schema";
 
 export class CreateCollaboratorResponse {
   @ApiProperty()
-  projectId: string;
+  projectId!: string;
 
   @ApiProperty()
-  email: string;
+  email!: string;
 
   @ApiProperty({ enum: permissionTypeEnum.enumValues })
-  permissionType: PermissionType;
+  permissionType!: PermissionType;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 export class CreateCollaboratorRequest {
   @ApiProperty()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({ enum: permissionTypeEnum.enumValues })
   @IsEnum(permissionTypeEnum.enumValues)
-  permissionType: PermissionType;
+  permissionType!: PermissionType;
 }

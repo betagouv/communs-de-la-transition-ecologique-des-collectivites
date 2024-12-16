@@ -14,6 +14,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      
         with:
           fetch-depth: 0
           ssh-key: ${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }} # needed to bypass protection rules on main branch as per

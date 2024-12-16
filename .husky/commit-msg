@@ -1,4 +1,3 @@
 #!/usr/bin/env sh
 
-cd api
 npx --no -- commitlint --edit "$1"

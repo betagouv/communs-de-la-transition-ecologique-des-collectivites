@@ -1,0 +1,49 @@
+{
+  "name": "les-communs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:api": "pnpm --filter api build",
+    "build:widget": "pnpm --filter widget build",
+    "format": "pnpm -r format",
+    "dev": "pnpm -r dev",
+    "dev:api": "pnpm --filter api dev",
+    "dev:widget": "pnpm --filter widget dev",
+    "dev:widget-sandbox": "pnpm --filter widget-sandbox dev",
+    "lint": "pnpm -r lint",
+    "lint:api": "pnpm --filter api lint",
+    "lint:widget": "pnpm --filter widget lint",
+    "lint:widget-sandbox": "pnpm --filter widget-sandbox lint",
+    "test": "pnpm -r test",
+    "test:api": "pnpm --filter api test",
+    "test:widget": "pnpm --filter widget test",
+    "validate": "pnpm -r validate",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "typescript": "^5.6.2",
+    "globals": "^15.11.0",
+    "@eslint/js": "^9.13.0",
+    "@types/node": "^22.10.1",
+    "@types/react": "^18.3.14",
+    "@types/react-dom": "^18.3.3",
+    "@vitejs/plugin-react": "^4.3.3",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "typescript-eslint": "^8.11.0",
+    "vite": "^5.4.10",
+    "husky": "^9.1.6",
+    "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.5.0"
+  },
+  "engines": {
+    "pnpm": "^9.x",
+    "node": ">=20"
+  }
+} 
