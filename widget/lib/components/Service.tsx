@@ -1,10 +1,10 @@
 import styles from "./Service.module.css";
 import Button from "@codegouvfr/react-dsfr/Button";
-import IFrameResized from "./IFrameResized.tsx";
 import classNames from "classnames";
 import { fr } from "@codegouvfr/react-dsfr";
-import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import { useState } from "react";
+import Accordion from "@codegouvfr/react-dsfr/Accordion";
+import IFrameResized from "./IFrameResized.tsx";
 
 interface ServiceProps {
   id: string;
@@ -24,7 +24,6 @@ export const Service = ({
   redirectionUrl,
 }: ServiceProps) => {
   const [expanded, setExpanded] = useState(false);
-
   return (
     <div className={classNames(styles.container)}>
       <div className={classNames(fr.cx("fr-m-2w"), styles.header)}>
@@ -58,7 +57,9 @@ export const Service = ({
       {iframeUrl && (
         <Accordion
           label="Voir le détail"
-          onExpandedChange={(value) => setExpanded(!value)}
+          onExpandedChange={(value) => {
+            setExpanded(!value);
+          }}
           expanded={expanded}
         >
           <IFrameResized src={iframeUrl} />

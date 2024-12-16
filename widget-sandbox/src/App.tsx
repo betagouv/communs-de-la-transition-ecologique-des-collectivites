@@ -1,4 +1,3 @@
-import "@gouvfr/dsfr/dist/dsfr.min.css";
 import { LesCommuns } from "@les-communs/widget";
 
 function App() {

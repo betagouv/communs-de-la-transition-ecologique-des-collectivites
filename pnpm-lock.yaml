@@ -214,9 +214,9 @@ importers:
 
   widget-sandbox:
     dependencies:
-      '@gouvfr/dsfr':
-        specifier: ^1.12.1
-        version: 1.13.0
+      '@codegouvfr/react-dsfr':
+        specifier: ^1.14.6
+        version: 1.16.4
       '@les-communs/widget':
         specifier: file:../widget
         version: link:../widget
@@ -1037,10 +1037,6 @@ packages:
   '@eslint/plugin-kit@0.2.4':
     resolution: {integrity: sha512-zSkKow6H5Kdm0ZUQUB2kV5JIXqoG0+uH5YADhaEHswm664N9Db8dXSi0nMJpacpMf+MyyglF1vnZohpEg5yUtg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-
-  '@gouvfr/dsfr@1.13.0':
-    resolution: {integrity: sha512-I6JLYfE63dogk5qOx69gMfW/bKsm+daFgfx2QX75isbKBy5khlJdVxOD0A6ohvywvUJlEcZTmVK8rNHeVvGmgw==}
-    engines: {node: '>=18.16.1'}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -6225,8 +6221,6 @@ snapshots:
   '@eslint/plugin-kit@0.2.4':
     dependencies:
       levn: 0.4.1
-
-  '@gouvfr/dsfr@1.13.0': {}
 
   '@humanfs/core@0.19.1': {}
 
