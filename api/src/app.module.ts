@@ -24,11 +24,6 @@ import { CollaboratorsModule } from "@/collaborators/collaborators.module";
     LoggerModule,
     CollaboratorsModule,
   ],
-  providers: [
-    AppService,
-    ApiKeyGuardProvider,
-    ThrottlerGuardProvider,
-    RequestLoggingInterceptor,
-  ],
+  providers: [AppService, ApiKeyGuardProvider, ThrottlerGuardProvider, RequestLoggingInterceptor],
 })
 export class AppModule {}

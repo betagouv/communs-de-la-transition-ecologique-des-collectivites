@@ -13,8 +13,7 @@ export class ServicesService {
       name: "Facili-Tacct",
       description:
         "Objectivez votre diagnostic avec les données socio-économiques qui rendent votre territoire unique et découvrez des arguments et ressources pour mobiliser vos collègues et partenaires externes sur l'adaptation au changement climatique.",
-      logoUrl:
-        "https://facili-tacct.beta.gouv.fr/_next/static/media/favicon.f453a8cf.svg",
+      logoUrl: "https://facili-tacct.beta.gouv.fr/_next/static/media/favicon.f453a8cf.svg",
       iframeUrl:
         "https://facili-tacct-preprod.osc-fr1.scalingo.io/iframe/donnees-territoriales?codepci=200069193&thematique=Biodiversit%C3%A9",
       createdAt: new Date(),
@@ -25,8 +24,7 @@ export class ServicesService {
       name: "La boussole de la transition écologique",
       description:
         "Accompagner le porteur de projet tout au long de sa réflexion, le plus en amont possible, pour améliorer son projet quelle qu’en soit sa nature, en prenant en compte les impacts environnementaux.",
-      logoUrl:
-        "https://www.boussole-te.ecologie.gouv.fr//IMG/svg/img_boussole.svg",
+      logoUrl: "https://www.boussole-te.ecologie.gouv.fr//IMG/svg/img_boussole.svg",
       redirectionUrl: "https://www.boussole-te.ecologie.gouv.fr/",
       createdAt: new Date(),
     },
@@ -40,10 +38,7 @@ export class ServicesService {
   async create(createServiceDto: CreateServiceDto) {
     this.logger.debug("Creating new service", { dto: createServiceDto });
 
-    const [newService] = await this.dbService.database
-      .insert(services)
-      .values(createServiceDto)
-      .returning();
+    const [newService] = await this.dbService.database.insert(services).values(createServiceDto).returning();
 
     this.logger.log("Service created successfully", {
       serviceId: newService.id,
@@ -57,10 +52,7 @@ export class ServicesService {
   }
 
   async findOne(id: string) {
-    const [service] = await this.dbService.database
-      .select()
-      .from(services)
-      .where(eq(services.id, id));
+    const [service] = await this.dbService.database.select().from(services).where(eq(services.id, id));
 
     if (!service) {
       throw new NotFoundException(`Service with ID ${id} not found`);

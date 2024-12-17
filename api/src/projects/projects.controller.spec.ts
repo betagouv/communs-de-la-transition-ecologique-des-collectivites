@@ -75,9 +75,7 @@ describe("ProjectsController", () => {
         },
       ];
 
-      jest
-        .spyOn(projectsService, "findAll")
-        .mockResolvedValue(expectedProjects);
+      jest.spyOn(projectsService, "findAll").mockResolvedValue(expectedProjects);
 
       const result = await controller.findAll();
       expect(result).toEqual(expectedProjects);
@@ -116,13 +114,9 @@ describe("ProjectsController", () => {
 
     it("should throw NotFoundException for non-existent project", async () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      jest
-        .spyOn(projectsService, "findOne")
-        .mockRejectedValue(new NotFoundException());
+      jest.spyOn(projectsService, "findOne").mockRejectedValue(new NotFoundException());
 
-      await expect(controller.findOne(nonExistentId)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(controller.findOne(nonExistentId)).rejects.toThrow(NotFoundException);
     });
   });
 });

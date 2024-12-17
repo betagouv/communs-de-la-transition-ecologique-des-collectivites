@@ -93,9 +93,7 @@ describe("AppController (e2e)", () => {
         });
 
         expect(error?.statusCode).toBe(400);
-        expect(error?.message).toBe(
-          "Forecasted start date must be in the future",
-        );
+        expect(error?.message).toBe("Forecasted start date must be in the future");
       });
 
       it("should reject when project has no commune insee code", async () => {
@@ -105,9 +103,7 @@ describe("AppController (e2e)", () => {
         });
 
         expect(error?.statusCode).toBe(400);
-        expect(error?.message[0]).toBe(
-          "At least one commune insee code must be provided",
-        );
+        expect(error?.message[0]).toBe("At least one commune insee code must be provided");
       });
     });
 
@@ -125,11 +121,7 @@ describe("AppController (e2e)", () => {
           porteurReferentEmail: newEmail,
         };
 
-        const { data, error } = await api.projects.update(
-          projectId,
-          updateData,
-          "test@email.com",
-        );
+        const { data, error } = await api.projects.update(projectId, updateData, "test@email.com");
 
         expect(error).toBeUndefined();
         expect(data).toMatchObject({
@@ -137,10 +129,7 @@ describe("AppController (e2e)", () => {
         });
 
         // Use new email to verify permissions
-        const { data: updatedProject } = await api.projects.getOne(
-          projectId,
-          newEmail,
-        );
+        const { data: updatedProject } = await api.projects.getOne(projectId, newEmail);
 
         expect(updatedProject).toMatchObject({
           id: projectId,
@@ -148,10 +137,7 @@ describe("AppController (e2e)", () => {
         });
 
         // Verify old email no longer has access
-        const { error: accessError } = await api.projects.getOne(
-          projectId,
-          "test@email.com",
-        );
+        const { error: accessError } = await api.projects.getOne(projectId, "test@email.com");
 
         expect(accessError?.statusCode).toBe(403);
       });
@@ -165,21 +151,14 @@ describe("AppController (e2e)", () => {
           porteurReferentEmail: "new.referent@email.com",
         };
 
-        const { data, error } = await api.projects.update(
-          projectId,
-          updateData,
-          "test@email.com",
-        );
+        const { data, error } = await api.projects.update(projectId, updateData, "test@email.com");
 
         expect(error).toBeUndefined();
         expect(data).toMatchObject({
           id: projectId,
         });
 
-        const { data: updatedProject } = await api.projects.getOne(
-          projectId,
-          updateData.porteurReferentEmail,
-        );
+        const { data: updatedProject } = await api.projects.getOne(projectId, updateData.porteurReferentEmail);
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { communeInseeCodes, ...expectedFields } = updateData;
@@ -198,14 +177,10 @@ describe("AppController (e2e)", () => {
 
     describe("GET /projects/:id", () => {
       it("should return a specific project", async () => {
-        const { data: createdProject } =
-          await api.projects.create(validProject);
+        const { data: createdProject } = await api.projects.create(validProject);
         const projectId = createdProject!.id;
 
-        const { data, error } = await api.projects.getOne(
-          projectId,
-          "test@email.com",
-        );
+        const { data, error } = await api.projects.getOne(projectId, "test@email.com");
 
         const {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -233,8 +208,7 @@ describe("AppController (e2e)", () => {
       });
 
       it("should not allow to get project when user email is not provided", async () => {
-        const { data: createdProject } =
-          await api.projects.create(validProject);
+        const { data: createdProject } = await api.projects.create(validProject);
         const projectId = createdProject!.id;
 
         const { error } = await api.projects.getOne(projectId); // No email provided
@@ -244,14 +218,10 @@ describe("AppController (e2e)", () => {
       });
 
       it("should not allow to get project when user has no corresponding permission", async () => {
-        const { data: createdProject } =
-          await api.projects.create(validProject);
+        const { data: createdProject } = await api.projects.create(validProject);
         const projectId = createdProject!.id;
 
-        const { error } = await api.projects.getOne(
-          projectId,
-          "no-permission@email.com",
-        );
+        const { error } = await api.projects.getOne(projectId, "no-permission@email.com");
 
         expect(error?.statusCode).toBe(403);
         expect(error?.message).toBe("Insufficient permissions");
@@ -259,10 +229,7 @@ describe("AppController (e2e)", () => {
 
       it("should return 404 for non-existent project", async () => {
         const nonExistentId = "00000000-0000-0000-0000-000000000000";
-        const { error } = await api.projects.getOne(
-          nonExistentId,
-          "test@email.com",
-        );
+        const { error } = await api.projects.getOne(nonExistentId, "test@email.com");
 
         expect(error?.statusCode).toBe(404);
       });
@@ -316,10 +283,7 @@ describe("AppController (e2e)", () => {
 
     describe("POST /projects/:id/update-collaborators", () => {
       it("should add a collaborator with VIEW permission", async () => {
-        const { data, error } = await api.collaborators.create(
-          projectId,
-          validCollaborator,
-        );
+        const { data, error } = await api.collaborators.create(projectId, validCollaborator);
 
         expect(error).toBeUndefined();
         expect(data).toMatchObject({
@@ -337,10 +301,7 @@ describe("AppController (e2e)", () => {
           permissionType: "EDIT",
         };
 
-        const { data, error } = await api.collaborators.create(
-          projectId,
-          updatedCollaborator,
-        );
+        const { data, error } = await api.collaborators.create(projectId, updatedCollaborator);
 
         expect(error).toBeUndefined();
         expect(data).toMatchObject({

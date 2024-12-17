@@ -1,15 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService, Tx } from "@database/database.service";
-import {
-  PermissionType,
-  projectCollaborators,
-  projects,
-} from "@database/schema";
+import { PermissionType, projectCollaborators, projects } from "@database/schema";
 import { and, eq } from "drizzle-orm";
-import {
-  CreateCollaboratorRequest,
-  CreateCollaboratorResponse,
-} from "@/collaborators/dto/create-collaborator.dto";
+import { CreateCollaboratorRequest, CreateCollaboratorResponse } from "@/collaborators/dto/create-collaborator.dto";
 
 @Injectable()
 export class CollaboratorsService {
@@ -49,53 +42,29 @@ export class CollaboratorsService {
   async remove(tx: Tx, projectId: string, email: string): Promise<void> {
     await tx
       .delete(projectCollaborators)
-      .where(
-        and(
-          eq(projectCollaborators.projectId, projectId),
-          eq(projectCollaborators.email, email),
-        ),
-      );
+      .where(and(eq(projectCollaborators.projectId, projectId), eq(projectCollaborators.email, email)));
   }
 
-  async hasPermission(
-    projectId: string,
-    userEmail: string,
-    requiredPermission: PermissionType,
-  ): Promise<boolean> {
+  async hasPermission(projectId: string, userEmail: string, requiredPermission: PermissionType): Promise<boolean> {
     return await this.dbService.database.transaction(async (tx) => {
       await this.validateProjectExistence(tx, projectId);
 
       const collaborator = await tx
         .select()
         .from(projectCollaborators)
-        .where(
-          and(
-            eq(projectCollaborators.projectId, projectId),
-            eq(projectCollaborators.email, userEmail),
-          ),
-        )
+        .where(and(eq(projectCollaborators.projectId, projectId), eq(projectCollaborators.email, userEmail)))
         .limit(1);
 
       if (collaborator.length === 0) {
         return false;
       }
 
-      return (
-        collaborator[0].permissionType === "EDIT" ||
-        collaborator[0].permissionType === requiredPermission
-      );
+      return collaborator[0].permissionType === "EDIT" || collaborator[0].permissionType === requiredPermission;
     });
   }
 
-  private async validateProjectExistence(
-    tx: Tx,
-    projectId: string,
-  ): Promise<void> {
-    const project = await tx
-      .select()
-      .from(projects)
-      .where(eq(projects.id, projectId))
-      .limit(1);
+  private async validateProjectExistence(tx: Tx, projectId: string): Promise<void> {
+    const project = await tx.select().from(projects).where(eq(projects.id, projectId)).limit(1);
 
     if (!project.length) {
       throw new NotFoundException(`Project with ID ${projectId} not found`);

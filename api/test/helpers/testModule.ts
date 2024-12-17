@@ -25,10 +25,7 @@ export async function testModule(additionalProviders: Provider[] = []) {
   return { module, testDbService, projectsService };
 }
 
-export async function teardownTestModule(
-  testDbService: TestDatabaseService,
-  module: TestingModule,
-) {
+export async function teardownTestModule(testDbService: TestDatabaseService, module: TestingModule) {
   await testDbService.cleanDatabase();
   await module.close();
 }

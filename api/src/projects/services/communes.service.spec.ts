@@ -47,10 +47,7 @@ describe("CommunesService", () => {
       await testDbService.database.transaction(async (tx) => {
         await service.createOrUpdate(tx, projectId, inseeCodes);
 
-        const result = await tx
-          .select()
-          .from(communes)
-          .where(inArray(communes.inseeCode, inseeCodes));
+        const result = await tx.select().from(communes).where(inArray(communes.inseeCode, inseeCodes));
 
         expect(result).toHaveLength(3);
         expect(result).toEqual(
@@ -61,10 +58,7 @@ describe("CommunesService", () => {
           ),
         );
 
-        const createdCommunes = await tx
-          .select()
-          .from(communes)
-          .where(inArray(communes.inseeCode, inseeCodes));
+        const createdCommunes = await tx.select().from(communes).where(inArray(communes.inseeCode, inseeCodes));
 
         expect(createdCommunes).toHaveLength(3);
         expect(createdCommunes).toEqual(result);
@@ -77,23 +71,14 @@ describe("CommunesService", () => {
       await testDbService.database.transaction(async (tx) => {
         await service.createOrUpdate(tx, projectId, inseeCodes);
 
-        const firstResult = await tx
-          .select()
-          .from(communes)
-          .where(inArray(communes.inseeCode, inseeCodes));
+        const firstResult = await tx.select().from(communes).where(inArray(communes.inseeCode, inseeCodes));
         expect(firstResult).toHaveLength(2);
 
         await service.createOrUpdate(tx, projectId, inseeCodes);
-        const secondResult = await tx
-          .select()
-          .from(communes)
-          .where(inArray(communes.inseeCode, inseeCodes));
+        const secondResult = await tx.select().from(communes).where(inArray(communes.inseeCode, inseeCodes));
         expect(secondResult).toHaveLength(2);
 
-        const allCommunes = await tx
-          .select()
-          .from(communes)
-          .where(inArray(communes.inseeCode, inseeCodes));
+        const allCommunes = await tx.select().from(communes).where(inArray(communes.inseeCode, inseeCodes));
 
         expect(allCommunes).toHaveLength(2);
         expect(firstResult).toEqual(secondResult);
@@ -106,28 +91,17 @@ describe("CommunesService", () => {
 
       await testDbService.database.transaction(async (tx) => {
         await service.createOrUpdate(tx, projectId, initialInseeCodes);
-        const initialResult = await tx
-          .select()
-          .from(communes)
-          .where(inArray(communes.inseeCode, initialInseeCodes));
+        const initialResult = await tx.select().from(communes).where(inArray(communes.inseeCode, initialInseeCodes));
         expect(initialResult).toHaveLength(2);
 
         await service.createOrUpdate(tx, projectId, additionalInseeCodes);
-        const additionalResult = await tx
-          .select()
-          .from(communes)
-          .where(inArray(communes.inseeCode, initialInseeCodes));
+        const additionalResult = await tx.select().from(communes).where(inArray(communes.inseeCode, initialInseeCodes));
         expect(additionalResult).toHaveLength(2);
 
         const allCommunes = await tx
           .select()
           .from(communes)
-          .where(
-            inArray(communes.inseeCode, [
-              ...initialInseeCodes,
-              ...additionalInseeCodes,
-            ]),
-          );
+          .where(inArray(communes.inseeCode, [...initialInseeCodes, ...additionalInseeCodes]));
 
         expect(allCommunes).toHaveLength(3);
         expect(allCommunes).toEqual(

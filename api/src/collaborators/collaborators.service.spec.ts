@@ -4,10 +4,7 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { projectCollaborators, projects } from "@database/schema";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { and, eq } from "drizzle-orm";
-import {
-  CreateCollaboratorRequest,
-  CreateCollaboratorResponse,
-} from "@/collaborators/dto/create-collaborator.dto";
+import { CreateCollaboratorRequest, CreateCollaboratorResponse } from "@/collaborators/dto/create-collaborator.dto";
 import { NotFoundException } from "@nestjs/common";
 import { getFutureDate } from "@test/helpers/getFutureDate";
 
@@ -21,8 +18,7 @@ describe("CollaboratorsService", () => {
     const { module: internalModule, testDbService: tds } = await testModule();
     module = internalModule;
     testDbService = tds;
-    collaboratorsService =
-      module.get<CollaboratorsService>(CollaboratorsService);
+    collaboratorsService = module.get<CollaboratorsService>(CollaboratorsService);
   });
 
   afterAll(async () => {
@@ -54,21 +50,14 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.createOrUpdate(
-          tx,
-          projectId,
-          collaboratorData,
-        );
+        await collaboratorsService.createOrUpdate(tx, projectId, collaboratorData);
       });
 
       const collaborators = await testDbService.database
         .select()
         .from(projectCollaborators)
         .where(
-          and(
-            eq(projectCollaborators.projectId, projectId),
-            eq(projectCollaborators.email, collaboratorData.email),
-          ),
+          and(eq(projectCollaborators.projectId, projectId), eq(projectCollaborators.email, collaboratorData.email)),
         );
 
       expect(collaborators).toHaveLength(1);
@@ -86,11 +75,7 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.createOrUpdate(
-          tx,
-          projectId,
-          collaboratorData,
-        );
+        await collaboratorsService.createOrUpdate(tx, projectId, collaboratorData);
       });
 
       const collaborators = await testDbService.database
@@ -114,13 +99,9 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await expect(
-          collaboratorsService.createOrUpdate(
-            tx,
-            nonExistentProjectId,
-            collaboratorData,
-          ),
-        ).rejects.toThrow(NotFoundException);
+        await expect(collaboratorsService.createOrUpdate(tx, nonExistentProjectId, collaboratorData)).rejects.toThrow(
+          NotFoundException,
+        );
       });
     });
 
@@ -133,11 +114,7 @@ describe("CollaboratorsService", () => {
       let firstCollaborator: CreateCollaboratorResponse;
 
       await testDbService.database.transaction(async (tx) => {
-        firstCollaborator = await collaboratorsService.createOrUpdate(
-          tx,
-          projectId,
-          collaboratorData,
-        );
+        firstCollaborator = await collaboratorsService.createOrUpdate(tx, projectId, collaboratorData);
       });
 
       // Wait a bit to ensure timestamps are different
@@ -154,10 +131,7 @@ describe("CollaboratorsService", () => {
         .select()
         .from(projectCollaborators)
         .where(
-          and(
-            eq(projectCollaborators.projectId, projectId),
-            eq(projectCollaborators.email, collaboratorData.email),
-          ),
+          and(eq(projectCollaborators.projectId, projectId), eq(projectCollaborators.email, collaboratorData.email)),
         );
 
       expect(collaborators).toHaveLength(1);
@@ -181,18 +155,10 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.createOrUpdate(
-          tx,
-          projectId,
-          collaboratorData,
-        );
+        await collaboratorsService.createOrUpdate(tx, projectId, collaboratorData);
       });
 
-      const hasPermission = await collaboratorsService.hasPermission(
-        projectId,
-        collaboratorData.email,
-        "VIEW",
-      );
+      const hasPermission = await collaboratorsService.hasPermission(projectId, collaboratorData.email, "VIEW");
 
       expect(hasPermission).toBe(true);
     });
@@ -204,17 +170,9 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.createOrUpdate(
-          tx,
-          projectId,
-          collaboratorData,
-        );
+        await collaboratorsService.createOrUpdate(tx, projectId, collaboratorData);
       });
-      const hasPermission = await collaboratorsService.hasPermission(
-        projectId,
-        collaboratorData.email,
-        "VIEW",
-      );
+      const hasPermission = await collaboratorsService.hasPermission(projectId, collaboratorData.email, "VIEW");
 
       expect(hasPermission).toBe(true);
     });
@@ -226,28 +184,16 @@ describe("CollaboratorsService", () => {
       };
 
       await testDbService.database.transaction(async (tx) => {
-        await collaboratorsService.createOrUpdate(
-          tx,
-          projectId,
-          collaboratorData,
-        );
+        await collaboratorsService.createOrUpdate(tx, projectId, collaboratorData);
       });
 
-      const hasPermission = await collaboratorsService.hasPermission(
-        projectId,
-        collaboratorData.email,
-        "EDIT",
-      );
+      const hasPermission = await collaboratorsService.hasPermission(projectId, collaboratorData.email, "EDIT");
 
       expect(hasPermission).toBe(false);
     });
 
     it("should return false when user has no permissions", async () => {
-      const hasPermission = await collaboratorsService.hasPermission(
-        projectId,
-        "nonexistent@example.com",
-        "VIEW",
-      );
+      const hasPermission = await collaboratorsService.hasPermission(projectId, "nonexistent@example.com", "VIEW");
 
       expect(hasPermission).toBe(false);
     });

@@ -1,9 +1,6 @@
 import { Controller, Post, Body, Param } from "@nestjs/common";
 import { CollaboratorsService } from "./collaborators.service";
-import {
-  CreateCollaboratorRequest,
-  CreateCollaboratorResponse,
-} from "./dto/create-collaborator.dto";
+import { CreateCollaboratorRequest, CreateCollaboratorResponse } from "./dto/create-collaborator.dto";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { DatabaseService } from "@database/database.service";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
@@ -23,16 +20,9 @@ export class CollaboratorsController {
     response: CreateCollaboratorResponse,
     description: "Collaborator updated/created successfully",
   })
-  async create(
-    @Param("id") projectId: string,
-    @Body() CreateCollaboratorDto: CreateCollaboratorRequest,
-  ) {
+  async create(@Param("id") projectId: string, @Body() CreateCollaboratorDto: CreateCollaboratorRequest) {
     return await this.dbService.database.transaction(async (tx) => {
-      return this.collaboratorsService.createOrUpdate(
-        tx,
-        projectId,
-        CreateCollaboratorDto,
-      );
+      return this.collaboratorsService.createOrUpdate(tx, projectId, CreateCollaboratorDto);
     });
   }
 }

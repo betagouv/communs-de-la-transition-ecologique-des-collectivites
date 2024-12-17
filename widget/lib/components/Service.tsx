@@ -16,13 +16,7 @@ interface ServiceProps {
   customRedirectionUrl?: string;
 }
 
-export const Service = ({
-  name,
-  description,
-  iframeUrl,
-  logoUrl,
-  redirectionUrl,
-}: ServiceProps) => {
+export const Service = ({ name, description, iframeUrl, logoUrl, redirectionUrl }: ServiceProps) => {
   const [expanded, setExpanded] = useState(false);
   return (
     <div className={classNames(styles.container)}>
@@ -32,14 +26,8 @@ export const Service = ({
             <img className={styles.logo} src={logoUrl} alt=""></img>
           </div>
           <div className={styles.mainHeader}>
-            <span className={classNames(fr.cx("fr-text--md"), styles.title)}>
-              {name}
-            </span>
-            <span
-              className={classNames(fr.cx("fr-text--sm"), styles.description)}
-            >
-              {description}
-            </span>
+            <span className={classNames(fr.cx("fr-text--md"), styles.title)}>{name}</span>
+            <span className={classNames(fr.cx("fr-text--sm"), styles.description)}>{description}</span>
           </div>
           <Button
             className={styles.button}

@@ -22,8 +22,7 @@ export class CreateServiceDto implements InferInsertModel<typeof services> {
   description!: string;
 
   @ApiProperty({
-    example:
-      "https://facili-tacct.beta.gouv.fr/_next/static/media/favicon.f453a8cf.svg",
+    example: "https://facili-tacct.beta.gouv.fr/_next/static/media/favicon.f453a8cf.svg",
     description: "The URL of the service logo",
   })
   @IsString()
