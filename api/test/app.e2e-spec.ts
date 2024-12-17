@@ -66,7 +66,7 @@ describe("AppController (e2e)", () => {
 
       it("should create a valid project with TeT api key", async () => {
         const tetClient = createApiClient(process.env.TET_API_KEY!);
-        const { data, error } = await tetClient.projects.create(validProject);
+        const { data, error } = await tetClient.projects.create({ ...validProject, status: "A venir" });
 
         expect(error).toBeUndefined();
         expect(data).toHaveProperty("id");
@@ -229,6 +229,7 @@ describe("AppController (e2e)", () => {
               inseeCode: expect.any(String),
             }),
           ]),
+          status: "IDEE",
         });
       });
 
@@ -239,7 +240,7 @@ describe("AppController (e2e)", () => {
         const { error } = await api.projects.getOne(projectId); // No email provided
 
         expect(error?.statusCode).toBe(400);
-        expect(error?.message).toBe("Missing user email in x-user-email header");
+        expect(error?.message).toBe("Single x-user-email header required");
       });
 
       it("should not allow to get project when user has no corresponding permission", async () => {
