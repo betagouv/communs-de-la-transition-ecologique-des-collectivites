@@ -1,6 +1,4 @@
-import { ProjectStatus } from "@database/schema";
-
-const mecStatusToGeneric: Record<MECStatus, ProjectStatus> = {
+const mecStatusToGeneric = {
   "Non démarré, intention": "IDEE",
   "Etudes pré-opérationnelles non initiées": "IDEE",
   "Etudes pré-opérationnelles en cours": "FAISABILITE",
@@ -12,9 +10,9 @@ const mecStatusToGeneric: Record<MECStatus, ProjectStatus> = {
   "Opération terminée, livrée": "TERMINE",
   "Opération abandonnée, annulée": "ABANDONNE",
   "Opération en pause, reportée": "IMPACTE",
-};
+} as const;
 
-const tetStatusToGeneric: Record<TeTStatus, ProjectStatus> = {
+const tetStatusToGeneric = {
   "A venir": "IDEE",
   "A discuter": "FAISABILITE",
   "En cours": "EN_COURS",
@@ -23,13 +21,13 @@ const tetStatusToGeneric: Record<TeTStatus, ProjectStatus> = {
   Bloqué: "IMPACTE",
   Réalisé: "TERMINE",
   Abandonné: "ABANDONNE",
-};
+} as const;
 
-const atStatusToGeneric: Record<ATStatus, ProjectStatus> = {
+const atStatusToGeneric = {
   "Réflexion / conception": "IDEE",
   "Mise en oeuvre / réalisation": "EN_COURS",
   "Usage / valorisation": "TERMINE",
-};
+} as const;
 
 export const ServiceStatusMapping = {
   MEC: mecStatusToGeneric,
@@ -38,35 +36,12 @@ export const ServiceStatusMapping = {
   AT: atStatusToGeneric,
 } as const;
 
-export const MECStatuses = [
-  "Non démarré, intention",
-  "Etudes pré-opérationnelles non initiées",
-  "Etudes pré-opérationnelles en cours",
-  "Etudes pré-opérationnelles terminées",
-  "Etudes opérationnelles non initiées",
-  "Etudes opérationnelles en cours",
-  "Etudes opérationnelles terminées",
-  "Opération démarrée",
-  "Opération terminée, livrée",
-  "Opération abandonnée, annulée",
-  "Opération en pause, reportée",
-] as const;
+type MECStatusType = keyof typeof mecStatusToGeneric;
+type TeTStatusType = keyof typeof tetStatusToGeneric;
+type ATStatusType = keyof typeof atStatusToGeneric;
 
-export const TeTStatuses = [
-  "A venir",
-  "A discuter",
-  "En cours",
-  "En retard",
-  "En pause",
-  "Bloqué",
-  "Réalisé",
-  "Abandonné",
-] as const;
+export const MECStatus = Object.keys(mecStatusToGeneric);
+export const TeTStatus = Object.keys(tetStatusToGeneric);
+export const ATStatus = Object.keys(atStatusToGeneric);
 
-export const ATStatuses = ["Réflexion / conception", "Mise en oeuvre / réalisation", "Usage / valorisation"] as const;
-
-type MECStatus = (typeof MECStatuses)[number];
-type TeTStatus = (typeof TeTStatuses)[number];
-type ATStatus = (typeof ATStatuses)[number];
-
-export type ServicesProjectStatus = MECStatus | TeTStatus | ATStatus;
+export type ServicesProjectStatus = MECStatusType | TeTStatusType | ATStatusType;
