@@ -1,10 +1,4 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpException,
-  HttpStatus,
-} from "@nestjs/common";
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from "@nestjs/common";
 import { Response } from "express";
 import { randomUUID } from "crypto";
 import { CustomLogger } from "@logging/logger.service";
@@ -25,9 +19,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       return response.status(status).json({
         statusCode: status,
-        ...(typeof errorResponse === "object"
-          ? errorResponse
-          : { message: errorResponse }),
+        ...(typeof errorResponse === "object" ? errorResponse : { message: errorResponse }),
       });
     }
 

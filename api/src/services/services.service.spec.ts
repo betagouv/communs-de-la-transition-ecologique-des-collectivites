@@ -50,10 +50,7 @@ describe("ServicesService", () => {
       const result = service.getServicesByProjectId("any-id");
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty("name", "Facili-Tacct");
-      expect(result[1]).toHaveProperty(
-        "name",
-        "La boussole de la transition écologique",
-      );
+      expect(result[1]).toHaveProperty("name", "La boussole de la transition écologique");
     });
   });
 });

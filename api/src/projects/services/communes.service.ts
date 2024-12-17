@@ -5,11 +5,7 @@ import { eq, inArray, not } from "drizzle-orm";
 
 @Injectable()
 export class CommunesService {
-  async createOrUpdate(
-    tx: Tx,
-    projectId: string,
-    inseeCodes: string[],
-  ): Promise<void> {
+  async createOrUpdate(tx: Tx, projectId: string, inseeCodes: string[]): Promise<void> {
     await tx
       .insert(communes)
       .values(
@@ -21,10 +17,7 @@ export class CommunesService {
 
     await tx
       .delete(projectsToCommunes)
-      .where(
-        eq(projectsToCommunes.projectId, projectId) &&
-          not(inArray(projectsToCommunes.communeId, inseeCodes)),
-      );
+      .where(eq(projectsToCommunes.projectId, projectId) && not(inArray(projectsToCommunes.communeId, inseeCodes)));
 
     await tx
       .insert(projectsToCommunes)

@@ -26,9 +26,7 @@ export const LesCommuns = ({ projectId }: LesCommunsProps) => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/services/project/${projectId}`,
-        );
+        const response = await fetch(`${API_BASE_URL}/services/project/${projectId}`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch services");
@@ -48,22 +46,13 @@ export const LesCommuns = ({ projectId }: LesCommunsProps) => {
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
-  if (services.length === 0)
-    return <div>No services found for this project</div>;
+  if (services.length === 0) return <div>No services found for this project</div>;
 
   return (
-    <div
-      className={classNames(
-        fr.cx("fr-container", "fr-p-3w", "fr-pt-4w"),
-        styles.container,
-      )}
-    >
-      <h6 className={classNames(fr.cx("fr-h6", "fr-mb-2w"), styles.title)}>
-        Services
-      </h6>
+    <div className={classNames(fr.cx("fr-container", "fr-p-3w", "fr-pt-4w"), styles.container)}>
+      <h6 className={classNames(fr.cx("fr-h6", "fr-mb-2w"), styles.title)}>Services</h6>
       <span className={fr.cx("fr-text--sm")}>
-        Ces services sont en lien avec les{" "}
-        <strong>thématiques, l’état d’avancement</strong> ainsi que la{" "}
+        Ces services sont en lien avec les <strong>thématiques, l’état d’avancement</strong> ainsi que la{" "}
         <strong>localisation</strong> de votre projet. En savoir plus
       </span>
       <div className={classNames(fr.cx("fr-mt-3w"), styles.services)}>

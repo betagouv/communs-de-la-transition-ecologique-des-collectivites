@@ -12,8 +12,7 @@ export const createApiClient = (apiKey: string) => {
 
   return {
     projects: {
-      create: (data: components["schemas"]["CreateProjectRequest"]) =>
-        client.POST("/projects", { body: data }),
+      create: (data: components["schemas"]["CreateProjectRequest"]) => client.POST("/projects", { body: data }),
 
       getAll: () => client.GET("/projects"),
 
@@ -25,11 +24,7 @@ export const createApiClient = (apiKey: string) => {
           },
         }),
 
-      update: (
-        id: string,
-        data: components["schemas"]["UpdateProjectDto"],
-        email?: string,
-      ) =>
+      update: (id: string, data: components["schemas"]["UpdateProjectDto"], email?: string) =>
         client.PATCH("/projects/{id}", {
           params: {
             path: { id },
@@ -47,10 +42,7 @@ export const createApiClient = (apiKey: string) => {
         }),
     },
     collaborators: {
-      create: (
-        projectId: string,
-        data: components["schemas"]["CreateCollaboratorRequest"],
-      ) =>
+      create: (projectId: string, data: components["schemas"]["CreateCollaboratorRequest"]) =>
         client.POST("/projects/{id}/update-collaborators", {
           params: { path: { id: projectId } },
           body: data,

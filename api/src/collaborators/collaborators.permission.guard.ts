@@ -1,10 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  ForbiddenException,
-  BadRequestException,
-} from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, ForbiddenException, BadRequestException } from "@nestjs/common";
 import { CollaboratorsService } from "@/collaborators/collaborators.service";
 import { PermissionType } from "@database/schema";
 import { Request } from "express";
@@ -22,14 +16,9 @@ export class CollaboratorsPermissionGuard implements CanActivate {
       throw new BadRequestException("Single x-user-email header required");
     }
 
-    const requiredPermission: PermissionType =
-      request.method === "GET" ? "VIEW" : "EDIT";
+    const requiredPermission: PermissionType = request.method === "GET" ? "VIEW" : "EDIT";
 
-    const hasPermission = await this.collaboratorService.hasPermission(
-      projectId,
-      userEmail,
-      requiredPermission,
-    );
+    const hasPermission = await this.collaboratorService.hasPermission(projectId, userEmail, requiredPermission);
 
     if (!hasPermission) {
       throw new ForbiddenException("Insufficient permissions");

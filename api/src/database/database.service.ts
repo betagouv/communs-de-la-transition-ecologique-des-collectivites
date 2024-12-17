@@ -8,11 +8,7 @@ import { ExtractTablesWithRelations } from "drizzle-orm";
 
 export type Schema = typeof schema;
 export type Database = ReturnType<typeof drizzle<Schema>>;
-export type Tx = PgTransaction<
-  NodePgQueryResultHKT,
-  Schema,
-  ExtractTablesWithRelations<Schema>
->;
+export type Tx = PgTransaction<NodePgQueryResultHKT, Schema, ExtractTablesWithRelations<Schema>>;
 
 @Injectable()
 export class DatabaseService implements OnModuleDestroy {

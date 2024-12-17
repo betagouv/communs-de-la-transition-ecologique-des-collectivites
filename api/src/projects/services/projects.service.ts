@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateProjectRequest } from "../dto/create-project.dto";
 import { UpdateProjectDto } from "../dto/update-project.dto";
 import { projects } from "@database/schema";
@@ -23,9 +19,7 @@ export class ProjectsService {
     private logger: CustomLogger,
   ) {}
 
-  async create(
-    createProjectDto: CreateProjectRequest,
-  ): Promise<{ id: string }> {
+  async create(createProjectDto: CreateProjectRequest): Promise<{ id: string }> {
     this.validateDate(createProjectDto.forecastedStartDate);
 
     return await this.dbService.database.transaction(async (tx) => {
@@ -45,11 +39,7 @@ export class ProjectsService {
         });
       }
 
-      await this.communesService.createOrUpdate(
-        tx,
-        createdProject.id,
-        createProjectDto.communeInseeCodes,
-      );
+      await this.communesService.createOrUpdate(tx, createdProject.id, createProjectDto.communeInseeCodes);
 
       return { id: createdProject.id };
     });
@@ -97,10 +87,7 @@ export class ProjectsService {
     };
   }
 
-  async update(
-    id: string,
-    updateProjectDto: UpdateProjectDto,
-  ): Promise<{ id: string }> {
+  async update(id: string, updateProjectDto: UpdateProjectDto): Promise<{ id: string }> {
     if (updateProjectDto.forecastedStartDate) {
       this.validateDate(updateProjectDto.forecastedStartDate);
     }
@@ -119,8 +106,7 @@ export class ProjectsService {
         throw new NotFoundException(`Project with ID ${id} not found`);
       }
 
-      const { communeInseeCodes, ...fieldsToUpdate } =
-        removeUndefined(updateProjectDto);
+      const { communeInseeCodes, ...fieldsToUpdate } = removeUndefined(updateProjectDto);
 
       if (communeInseeCodes) {
         await this.communesService.createOrUpdate(tx, id, communeInseeCodes);
@@ -128,8 +114,7 @@ export class ProjectsService {
 
       if (
         updateProjectDto.porteurReferentEmail &&
-        updateProjectDto.porteurReferentEmail !==
-          existingProject.porteurReferentEmail
+        updateProjectDto.porteurReferentEmail !== existingProject.porteurReferentEmail
       ) {
         await this.collaboratorService.createOrUpdate(tx, id, {
           email: updateProjectDto.porteurReferentEmail,
@@ -138,11 +123,7 @@ export class ProjectsService {
 
         // Remove old collaborator if exists
         if (existingProject.porteurReferentEmail) {
-          await this.collaboratorService.remove(
-            tx,
-            id,
-            existingProject.porteurReferentEmail,
-          );
+          await this.collaboratorService.remove(tx, id, existingProject.porteurReferentEmail);
         }
       }
 
@@ -151,11 +132,7 @@ export class ProjectsService {
       // an update of the project table directly
       // todo update updatedAt
       if (Object.keys(fieldsToUpdate).length > 0) {
-        await tx
-          .update(projects)
-          .set(fieldsToUpdate)
-          .where(eq(projects.id, id))
-          .returning();
+        await tx.update(projects).set(fieldsToUpdate).where(eq(projects.id, id)).returning();
       }
 
       return { id: existingProject.id };
@@ -172,9 +149,7 @@ export class ProjectsService {
     today.setHours(0, 0, 0, 0);
 
     if (inputDate < today) {
-      throw new BadRequestException(
-        "Forecasted start date must be in the future",
-      );
+      throw new BadRequestException("Forecasted start date must be in the future");
     }
   }
 }
