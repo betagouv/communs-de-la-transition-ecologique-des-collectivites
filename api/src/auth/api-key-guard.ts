@@ -22,7 +22,6 @@ class ApiKeyGuard implements CanActivate {
     @Inject(ConfigService) private readonly configService: ConfigService,
     private readonly reflector: Reflector,
   ) {
-    // Initialize API keys from environment variables
     this.apiKeys = {
       [this.configService.get<string>("MEC_API_KEY")!]: "MEC",
       [this.configService.get<string>("TET_API_KEY")!]: "TeT",
