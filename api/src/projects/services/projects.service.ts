@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateProjectRequest } from "../dto/create-project.dto";
 import { UpdateProjectDto } from "../dto/update-project.dto";
-import { projects } from "@database/schema";
+import { projects, ProjectStatus } from "@database/schema";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@/logging/logger.service";
 import { ProjectResponse } from "../dto/project.dto";
@@ -9,6 +9,8 @@ import { eq } from "drizzle-orm";
 import { CommunesService } from "./communes.service";
 import { removeUndefined } from "@/shared/utils/remove-undefined";
 import { CollaboratorsService } from "@/collaborators/collaborators.service";
+import { ServicesProjectStatus, ServiceStatusMapping } from "@projects/status/statusMapping";
+import { ServiceType } from "@/shared/types";
 
 @Injectable()
 export class ProjectsService {
@@ -19,15 +21,20 @@ export class ProjectsService {
     private logger: CustomLogger,
   ) {}
 
-  async create(createProjectDto: CreateProjectRequest): Promise<{ id: string }> {
+  async create(createProjectDto: CreateProjectRequest, serviceType: ServiceType): Promise<{ id: string }> {
     this.validateDate(createProjectDto.forecastedStartDate);
 
     return await this.dbService.database.transaction(async (tx) => {
+      const { status, ...otherFields } = createProjectDto;
+
+      const genericStatus = this.mapServiceStatusToGeneric(status, serviceType);
+
       const [createdProject] = await tx
         .insert(projects)
         .values(
           removeUndefined({
-            ...createProjectDto,
+            ...otherFields,
+            status: genericStatus,
           }),
         )
         .returning();
@@ -87,7 +94,7 @@ export class ProjectsService {
     };
   }
 
-  async update(id: string, updateProjectDto: UpdateProjectDto): Promise<{ id: string }> {
+  async update(id: string, updateProjectDto: UpdateProjectDto, serviceType: ServiceType): Promise<{ id: string }> {
     if (updateProjectDto.forecastedStartDate) {
       this.validateDate(updateProjectDto.forecastedStartDate);
     }
@@ -106,7 +113,7 @@ export class ProjectsService {
         throw new NotFoundException(`Project with ID ${id} not found`);
       }
 
-      const { communeInseeCodes, ...fieldsToUpdate } = removeUndefined(updateProjectDto);
+      const { communeInseeCodes, status, ...otherFieldsToUpdate } = removeUndefined(updateProjectDto);
 
       if (communeInseeCodes) {
         await this.communesService.createOrUpdate(tx, id, communeInseeCodes);
@@ -126,13 +133,18 @@ export class ProjectsService {
           await this.collaboratorService.remove(tx, id, existingProject.porteurReferentEmail);
         }
       }
+      const genericStatus = status ? this.mapServiceStatusToGeneric(status, serviceType) : undefined;
+
+      const fieldsToUpdate = {
+        ...otherFieldsToUpdate,
+        ...(genericStatus ? { status: genericStatus } : {}),
+      };
 
       // Check if there are fields to update
       // for example you can update only communes which do not need
       // an update of the project table directly
-      // todo update updatedAt
       if (Object.keys(fieldsToUpdate).length > 0) {
-        await tx.update(projects).set(fieldsToUpdate).where(eq(projects.id, id)).returning();
+        await tx.update(projects).set(fieldsToUpdate).where(eq(projects.id, id));
       }
 
       return { id: existingProject.id };
@@ -151,5 +163,15 @@ export class ProjectsService {
     if (inputDate < today) {
       throw new BadRequestException("Forecasted start date must be in the future");
     }
+  }
+
+  private mapServiceStatusToGeneric(serviceStatus: ServicesProjectStatus, serviceType: ServiceType): ProjectStatus {
+    const serviceMapping = ServiceStatusMapping[serviceType];
+
+    if (!(serviceStatus in serviceMapping)) {
+      throw new BadRequestException(`Invalid status "${serviceStatus}" for service type ${serviceType}`);
+    }
+
+    return serviceMapping[serviceStatus as keyof typeof serviceMapping];
   }
 }

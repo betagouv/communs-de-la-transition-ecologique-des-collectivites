@@ -6,6 +6,7 @@ import { ProjectResponse } from "./dto/project.dto";
 import { getFutureDate } from "@test/helpers/getFutureDate";
 import { AppModule } from "@/app.module";
 import { NotFoundException } from "@nestjs/common";
+import { mockRequest } from "@test/mocks/mockRequest";
 
 describe("ProjectsController", () => {
   let controller: ProjectsController;
@@ -33,7 +34,7 @@ describe("ProjectsController", () => {
       porteurReferentEmail: "test@example.com",
       budget: 100000,
       forecastedStartDate: getFutureDate(),
-      status: "IDEE",
+      status: "Non démarré, intention",
       communeInseeCodes: ["75056"],
     };
 
@@ -41,11 +42,11 @@ describe("ProjectsController", () => {
       const expectedResponse = { id: "test-id" };
       jest.spyOn(projectsService, "create").mockResolvedValue(expectedResponse);
 
-      const result = await controller.create(validProject);
+      const result = await controller.create(mockRequest("MEC"), validProject);
 
       expect(result).toEqual(expectedResponse);
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(projectsService.create).toHaveBeenCalledWith(validProject);
+      expect(projectsService.create).toHaveBeenCalledWith(validProject, "MEC");
     });
   });
 

@@ -43,7 +43,7 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       porteurReferentEmail: "test@email.com",
       forecastedStartDate: getFutureDate(),
-      status: "IDEE",
+      status: "Non démarré, intention",
       communeInseeCodes: ["01001", "75056", "97A01"],
     };
 
@@ -292,7 +292,7 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       forecastedStartDate: getFutureDate(),
       porteurReferentEmail: "owner@email.com",
-      status: "IDEE",
+      status: "Non démarré, intention",
       communeInseeCodes: ["01001"],
     };
 

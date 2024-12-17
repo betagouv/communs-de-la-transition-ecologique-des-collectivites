@@ -1,65 +1,72 @@
-import { ServiceType } from "@/shared/types";
 import { ProjectStatus } from "@database/schema";
 
-interface StatusMapping {
-  serviceStatus: string;
-  genericStatus: ProjectStatus;
-}
-
-export const MECStatusMapping: StatusMapping[] = [
-  { serviceStatus: "Non démarré, intention", genericStatus: "IDEE" },
-  {
-    serviceStatus: "Etudes pré-opérationnelles non initiées",
-    genericStatus: "IDEE",
-  },
-  {
-    serviceStatus: "Etudes pré-opérationnelles en cours",
-    genericStatus: "FAISABILITE",
-  },
-  {
-    serviceStatus: "Etudes pré-opérationnelles terminées",
-    genericStatus: "FAISABILITE",
-  },
-  {
-    serviceStatus: "Etudes opérationnelles non initiées",
-    genericStatus: "FAISABILITE",
-  },
-  {
-    serviceStatus: "Etudes opérationnelles en cours",
-    genericStatus: "EN_COURS",
-  },
-  {
-    serviceStatus: "Etudes opérationnelles terminées",
-    genericStatus: "EN_COURS",
-  },
-  { serviceStatus: "Opération démarrée", genericStatus: "EN_COURS" },
-  { serviceStatus: "Opération terminée, livrée", genericStatus: "TERMINE" },
-  {
-    serviceStatus: "Opération abandonnée, annulée",
-    genericStatus: "ABANDONNE",
-  },
-  { serviceStatus: "Opération en pause, reportée", genericStatus: "IMPACTE" },
-];
-
-export const TeTStatusMapping: StatusMapping[] = [
-  { serviceStatus: "A venir", genericStatus: "IDEE" },
-  { serviceStatus: "A discuter", genericStatus: "FAISABILITE" },
-  { serviceStatus: "En cours", genericStatus: "EN_COURS" },
-  { serviceStatus: "En retard", genericStatus: "IMPACTE" },
-  { serviceStatus: "En pause", genericStatus: "IMPACTE" },
-  { serviceStatus: "Bloqué", genericStatus: "IMPACTE" },
-  { serviceStatus: "Réalisé", genericStatus: "TERMINE" },
-  { serviceStatus: "Abandonné", genericStatus: "ABANDONNE" },
-];
-
-export const ATStatusMapping: StatusMapping[] = [
-  { serviceStatus: "Réflexion / conception", genericStatus: "IDEE" },
-  { serviceStatus: "Mise en oeuvre / réalisation", genericStatus: "EN_COURS" },
-  { serviceStatus: "Usage / valorisation", genericStatus: "TERMINE" },
-];
-
-export const StatusMappings: Record<ServiceType, StatusMapping[]> = {
-  MEC: MECStatusMapping,
-  Recoco: MECStatusMapping,
-  TeT: TeTStatusMapping,
+const mecStatusToGeneric: Record<MECStatus, ProjectStatus> = {
+  "Non démarré, intention": "IDEE",
+  "Etudes pré-opérationnelles non initiées": "IDEE",
+  "Etudes pré-opérationnelles en cours": "FAISABILITE",
+  "Etudes pré-opérationnelles terminées": "FAISABILITE",
+  "Etudes opérationnelles non initiées": "FAISABILITE",
+  "Etudes opérationnelles en cours": "EN_COURS",
+  "Etudes opérationnelles terminées": "EN_COURS",
+  "Opération démarrée": "EN_COURS",
+  "Opération terminée, livrée": "TERMINE",
+  "Opération abandonnée, annulée": "ABANDONNE",
+  "Opération en pause, reportée": "IMPACTE",
 };
+
+const tetStatusToGeneric: Record<TeTStatus, ProjectStatus> = {
+  "A venir": "IDEE",
+  "A discuter": "FAISABILITE",
+  "En cours": "EN_COURS",
+  "En retard": "IMPACTE",
+  "En pause": "IMPACTE",
+  Bloqué: "IMPACTE",
+  Réalisé: "TERMINE",
+  Abandonné: "ABANDONNE",
+};
+
+const atStatusToGeneric: Record<ATStatus, ProjectStatus> = {
+  "Réflexion / conception": "IDEE",
+  "Mise en oeuvre / réalisation": "EN_COURS",
+  "Usage / valorisation": "TERMINE",
+};
+
+export const ServiceStatusMapping = {
+  MEC: mecStatusToGeneric,
+  Recoco: mecStatusToGeneric,
+  TeT: tetStatusToGeneric,
+  AT: atStatusToGeneric,
+} as const;
+
+export const MECStatuses = [
+  "Non démarré, intention",
+  "Etudes pré-opérationnelles non initiées",
+  "Etudes pré-opérationnelles en cours",
+  "Etudes pré-opérationnelles terminées",
+  "Etudes opérationnelles non initiées",
+  "Etudes opérationnelles en cours",
+  "Etudes opérationnelles terminées",
+  "Opération démarrée",
+  "Opération terminée, livrée",
+  "Opération abandonnée, annulée",
+  "Opération en pause, reportée",
+] as const;
+
+export const TeTStatuses = [
+  "A venir",
+  "A discuter",
+  "En cours",
+  "En retard",
+  "En pause",
+  "Bloqué",
+  "Réalisé",
+  "Abandonné",
+] as const;
+
+export const ATStatuses = ["Réflexion / conception", "Mise en oeuvre / réalisation", "Usage / valorisation"] as const;
+
+type MECStatus = (typeof MECStatuses)[number];
+type TeTStatus = (typeof TeTStatuses)[number];
+type ATStatus = (typeof ATStatuses)[number];
+
+export type ServicesProjectStatus = MECStatus | TeTStatus | ATStatus;

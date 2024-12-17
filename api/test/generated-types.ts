@@ -119,8 +119,33 @@ export interface components {
        * @example 2024-03-01
        */
       forecastedStartDate: string;
-      /** @enum {string} */
-      status: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE";
+      /**
+       * @description Status specific to the service type
+       * @enum {string}
+       */
+      status:
+        | "Non démarré, intention"
+        | "Etudes pré-opérationnelles non initiées"
+        | "Etudes pré-opérationnelles en cours"
+        | "Etudes pré-opérationnelles terminées"
+        | "Etudes opérationnelles non initiées"
+        | "Etudes opérationnelles en cours"
+        | "Etudes opérationnelles terminées"
+        | "Opération démarrée"
+        | "Opération terminée, livrée"
+        | "Opération abandonnée, annulée"
+        | "Opération en pause, reportée"
+        | "A venir"
+        | "A discuter"
+        | "En cours"
+        | "En retard"
+        | "En pause"
+        | "Bloqué"
+        | "Réalisé"
+        | "Abandonné"
+        | "Réflexion / conception"
+        | "Mise en oeuvre / réalisation"
+        | "Usage / valorisation";
       /**
        * @description Array of INSEE codes for the communes
        * @example [
@@ -177,8 +202,33 @@ export interface components {
        * @example 2024-03-01
        */
       forecastedStartDate?: string;
-      /** @enum {string} */
-      status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE";
+      /**
+       * @description Status specific to the service type
+       * @enum {string}
+       */
+      status?:
+        | "Non démarré, intention"
+        | "Etudes pré-opérationnelles non initiées"
+        | "Etudes pré-opérationnelles en cours"
+        | "Etudes pré-opérationnelles terminées"
+        | "Etudes opérationnelles non initiées"
+        | "Etudes opérationnelles en cours"
+        | "Etudes opérationnelles terminées"
+        | "Opération démarrée"
+        | "Opération terminée, livrée"
+        | "Opération abandonnée, annulée"
+        | "Opération en pause, reportée"
+        | "A venir"
+        | "A discuter"
+        | "En cours"
+        | "En retard"
+        | "En pause"
+        | "Bloqué"
+        | "Réalisé"
+        | "Abandonné"
+        | "Réflexion / conception"
+        | "Mise en oeuvre / réalisation"
+        | "Usage / valorisation";
       /**
        * @description Array of INSEE codes for the communes
        * @example [

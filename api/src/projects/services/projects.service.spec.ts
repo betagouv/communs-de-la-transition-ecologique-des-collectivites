@@ -7,7 +7,7 @@ import { CreateProjectRequest } from "../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
 import { getFutureDate } from "@test/helpers/getFutureDate";
-import { projectCollaborators } from "@database/schema";
+import { projectCollaborators, projects } from "@database/schema";
 import { eq } from "drizzle-orm";
 import { UpdateProjectDto } from "@projects/dto/update-project.dto";
 
@@ -40,11 +40,11 @@ describe("ProjectsService", () => {
         description: "Test Description",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "IDEE",
+        status: "Non démarré, intention",
         communeInseeCodes: mockedCommunes,
       };
 
-      const result = await service.create(createDto);
+      const result = await service.create(createDto, "MEC");
 
       expect(result).toEqual({
         id: expect.any(String),
@@ -58,11 +58,11 @@ describe("ProjectsService", () => {
         budget: 100000,
         porteurReferentEmail: "nouveauPorteur@email.com",
         forecastedStartDate: getFutureDate(),
-        status: "IDEE",
+        status: "Non démarré, intention",
         communeInseeCodes: mockedCommunes,
       };
 
-      const createdProject = await service.create(createDto);
+      const createdProject = await service.create(createDto, "MEC");
 
       const collaborators = await testDbService.database
         .select()
@@ -76,6 +76,27 @@ describe("ProjectsService", () => {
         projectId: createdProject.id,
       });
     });
+
+    it("should mapp the status to a generic one properly", async () => {
+      const createDto: CreateProjectRequest = {
+        nom: "Test Project",
+        description: "Test Description",
+        budget: 100000,
+        porteurReferentEmail: "nouveauPorteur@email.com",
+        forecastedStartDate: getFutureDate(),
+        status: "Non démarré, intention",
+        communeInseeCodes: mockedCommunes,
+      };
+
+      const newProject = await service.create(createDto, "MEC");
+
+      const [createdProject] = await testDbService.database
+        .select()
+        .from(projects)
+        .where(eq(projects.id, newProject.id));
+
+      expect(createdProject.status).toEqual("IDEE");
+    });
   });
 
   describe("findAll", () => {
@@ -87,7 +108,7 @@ describe("ProjectsService", () => {
         porteurReferentEmail: "porteurReferentEmail@email.com",
         budget: 100000,
         forecastedStartDate: futureDate,
-        status: "IDEE",
+        status: "Non démarré, intention",
         communeInseeCodes: mockedCommunes,
       };
       const createDto2: CreateProjectRequest = {
@@ -95,12 +116,12 @@ describe("ProjectsService", () => {
         description: "Description 2",
         budget: 100000,
         forecastedStartDate: futureDate,
-        status: "IDEE",
+        status: "Non démarré, intention",
         communeInseeCodes: mockedCommunes,
       };
 
-      await service.create(createDto1);
-      await service.create(createDto2);
+      await service.create(createDto1, "MEC");
+      await service.create(createDto2, "MEC");
 
       const {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -137,11 +158,13 @@ describe("ProjectsService", () => {
         ...expectedFieldsProject1,
         ...expectedCommonFields,
         porteurReferentEmail: "porteurReferentEmail@email.com",
+        status: "IDEE",
       });
 
       expect(result[1]).toEqual({
         ...expectedFieldsProject2,
         ...expectedCommonFields,
+        status: "IDEE",
       });
     });
   });
@@ -154,11 +177,11 @@ describe("ProjectsService", () => {
         porteurCodeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "IDEE",
+        status: "Non démarré, intention",
         communeInseeCodes: mockedCommunes,
       };
 
-      const createdProject = await service.create(createDto);
+      const createdProject = await service.create(createDto, "MEC");
       const result = await service.findOne(createdProject.id);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { communeInseeCodes, ...expectedFields } = createDto;
@@ -177,6 +200,7 @@ describe("ProjectsService", () => {
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
+        status: "IDEE",
       });
     });
 
@@ -197,11 +221,11 @@ describe("ProjectsService", () => {
         porteurReferentEmail: "initial@email.com",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "IDEE",
+        status: "Non démarré, intention",
         communeInseeCodes: mockedCommunes,
       };
 
-      const result = await service.create(createDto);
+      const result = await service.create(createDto, "MEC");
       projectId = result.id;
     });
 
@@ -212,7 +236,7 @@ describe("ProjectsService", () => {
         budget: 200000,
       };
 
-      await service.update(projectId, updateDto);
+      await service.update(projectId, updateDto, "MEC");
 
       const updatedProject = await service.findOne(projectId);
 
@@ -234,7 +258,7 @@ describe("ProjectsService", () => {
         communeInseeCodes: newCommunes,
       };
 
-      await service.update(projectId, updateDto);
+      await service.update(projectId, updateDto, "MEC");
       const updatedProject = await service.findOne(projectId);
 
       expect(updatedProject.communes).toHaveLength(newCommunes.length);
@@ -252,7 +276,7 @@ describe("ProjectsService", () => {
         porteurReferentEmail: "new@email.com",
       };
 
-      await service.update(projectId, updateDto);
+      await service.update(projectId, updateDto, "MEC");
       const project = await service.findOne(projectId);
       expect(project.porteurReferentEmail).toBe(updateDto.porteurReferentEmail);
 
@@ -276,8 +300,8 @@ describe("ProjectsService", () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
       const updateDto = { nom: "Updated Name" };
 
-      await expect(service.update(nonExistentId, updateDto)).rejects.toThrow(NotFoundException);
-      await expect(service.update(nonExistentId, updateDto)).rejects.toThrow(
+      await expect(service.update(nonExistentId, updateDto, "MEC")).rejects.toThrow(NotFoundException);
+      await expect(service.update(nonExistentId, updateDto, "MEC")).rejects.toThrow(
         `Project with ID ${nonExistentId} not found`,
       );
     });
@@ -289,7 +313,9 @@ describe("ProjectsService", () => {
         forecastedStartDate: pastDate.toISOString().split("T")[0],
       };
 
-      await expect(service.update(projectId, updateDto)).rejects.toThrow("Forecasted start date must be in the future");
+      await expect(service.update(projectId, updateDto, "MEC")).rejects.toThrow(
+        "Forecasted start date must be in the future",
+      );
     });
   });
 });
