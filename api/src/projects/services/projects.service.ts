@@ -9,7 +9,7 @@ import { eq } from "drizzle-orm";
 import { CommunesService } from "./communes.service";
 import { removeUndefined } from "@/shared/utils/remove-undefined";
 import { CollaboratorsService } from "@/collaborators/collaborators.service";
-import { ServicesProjectStatus, ServiceStatusMapping } from "@projects/status/statusMapping";
+import { ServicesProjectStatus, ServiceStatusMapping } from "@projects/status-mapping";
 import { ServiceType } from "@/shared/types";
 
 @Injectable()

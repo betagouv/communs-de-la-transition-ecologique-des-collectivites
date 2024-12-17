@@ -9,7 +9,7 @@ import {
   IsOptional,
   IsString,
 } from "class-validator";
-import { ATStatus, MECStatus, ServicesProjectStatus, TeTStatus } from "@projects/status/statusMapping";
+import { ATStatus, MECStatus, ServicesProjectStatus, TeTStatus } from "@projects/status-mapping";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
