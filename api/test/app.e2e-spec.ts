@@ -73,8 +73,8 @@ describe("AppController (e2e)", () => {
       });
 
       it("should create a valid project with Recoco api key", async () => {
-        const tetClient = createApiClient(process.env.RECOCO_API_KEY!);
-        const { data, error } = await tetClient.projects.create(validProject);
+        const recocoClient = createApiClient(process.env.RECOCO_API_KEY!);
+        const { data, error } = await recocoClient.projects.create(validProject);
 
         expect(error).toBeUndefined();
         expect(data).toHaveProperty("id");
