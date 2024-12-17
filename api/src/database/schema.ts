@@ -1,11 +1,19 @@
 import { pgTable, text, timestamp, integer, pgEnum, uuid, primaryKey, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-export const projectStatusEnum = pgEnum("project_status", ["DRAFT", "READY", "IN_PROGRESS", "DONE", "CANCELLED"]);
+export const projectStatusEnum = pgEnum("project_status", [
+  "IDEE",
+  "FAISABILITE",
+  "EN_COURS",
+  "IMPACTE",
+  "ABANDONNE",
+  "TERMINE",
+]);
 
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
 export const permissionTypeEnum = pgEnum("permission_type", ["EDIT", "VIEW"]);
+
 export type PermissionType = (typeof permissionTypeEnum.enumValues)[number];
 
 export const communes = pgTable("communes", {

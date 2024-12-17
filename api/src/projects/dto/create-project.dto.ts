@@ -9,7 +9,7 @@ import {
   IsOptional,
   IsString,
 } from "class-validator";
-import { ProjectStatus, projectStatusEnum } from "@database/schema";
+import { ATStatus, MECStatus, ServicesProjectStatus, TeTStatus } from "@projects/status-mapping";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
@@ -74,9 +74,12 @@ export class CreateProjectRequest {
   )
   forecastedStartDate!: string;
 
-  @ApiProperty({ enum: projectStatusEnum.enumValues })
-  @IsEnum(projectStatusEnum.enumValues)
-  status!: ProjectStatus;
+  @ApiProperty({
+    enum: [...MECStatus, ...TeTStatus, ...ATStatus],
+    description: "Status specific to the service type",
+  })
+  @IsEnum([...MECStatus, ...TeTStatus, ...ATStatus])
+  status!: ServicesProjectStatus;
 
   @ApiProperty({
     type: [String],
