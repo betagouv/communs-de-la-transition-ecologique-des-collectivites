@@ -1,2 +1,0 @@
-web: bash -c 'echo $PWD && ls -la && ls -la node_modules && ls -la node_modules/@nestjs && NODE_ENV=production node --trace-warnings dist/src/main.js'
-postdeploy: npx drizzle-kit migrate
