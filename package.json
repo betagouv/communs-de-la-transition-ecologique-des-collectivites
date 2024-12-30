@@ -43,10 +43,6 @@
   },
   "engines": {
     "pnpm": "^9.x",
-    "node": ">=20"
-  },
-  "cacheDirectories": [
-    "api/node_modules",
-    "api/node_modules/.pnpm"
-  ]
-} 
+    "node": "22.x"
+  }
+}
