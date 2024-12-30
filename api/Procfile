@@ -1,1 +1,2 @@
 postdeploy: npx drizzle-kit migrate
+web: ls -la /app/node_modules/@nestjs && node dist/src/main.js
