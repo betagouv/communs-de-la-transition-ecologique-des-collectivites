@@ -1,2 +1,2 @@
 postdeploy: npx drizzle-kit migrate
-web: pwd && ls -la && node dist/src/main.js
+web: NODE_ENV=production node dist/src/main.js
