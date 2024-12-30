@@ -74,7 +74,10 @@ export class CreateProjectRequest {
   )
   forecastedStartDate!: string;
 
-  @ApiProperty({ enum: projectStatusEnum.enumValues })
+  @ApiProperty({
+    enum: projectStatusEnum.enumValues,
+    description: "Status specific to the service type",
+  })
   @IsEnum(projectStatusEnum.enumValues)
   status!: ProjectStatus;
 

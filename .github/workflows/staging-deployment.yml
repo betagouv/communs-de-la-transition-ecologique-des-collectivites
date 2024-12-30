@@ -66,7 +66,9 @@ jobs:
       - name: Integrated tests
         run: pnpm run test:e2e
         env:
-          API_KEY: ${{ secrets.API_KEY }}
+          MEC_API_KEY: ${{ secrets.MEC_API_KEY }}
+          TET_API_KEY: ${{ secrets.TET_API_KEY }}
+          RECOCO_API_KEY: ${{ secrets.RECOCO_API_KEY }}
           DATABASE_URL: postgres://postgres:mypassword@localhost:5433/e2e_test_db
 
 

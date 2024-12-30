@@ -23,14 +23,7 @@ export class ProjectsService {
     this.validateDate(createProjectDto.forecastedStartDate);
 
     return await this.dbService.database.transaction(async (tx) => {
-      const [createdProject] = await tx
-        .insert(projects)
-        .values(
-          removeUndefined({
-            ...createProjectDto,
-          }),
-        )
-        .returning();
+      const [createdProject] = await tx.insert(projects).values(removeUndefined(createProjectDto)).returning();
 
       if (createProjectDto.porteurReferentEmail) {
         await this.collaboratorService.createOrUpdate(tx, createdProject.id, {
@@ -130,9 +123,8 @@ export class ProjectsService {
       // Check if there are fields to update
       // for example you can update only communes which do not need
       // an update of the project table directly
-      // todo update updatedAt
       if (Object.keys(fieldsToUpdate).length > 0) {
-        await tx.update(projects).set(fieldsToUpdate).where(eq(projects.id, id)).returning();
+        await tx.update(projects).set(fieldsToUpdate).where(eq(projects.id, id));
       }
 
       return { id: existingProject.id };

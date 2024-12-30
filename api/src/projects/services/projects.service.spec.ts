@@ -7,7 +7,7 @@ import { CreateProjectRequest } from "../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
 import { getFutureDate } from "@test/helpers/getFutureDate";
-import { projectCollaborators } from "@database/schema";
+import { projectCollaborators, projects } from "@database/schema";
 import { eq } from "drizzle-orm";
 import { UpdateProjectDto } from "@projects/dto/update-project.dto";
 
@@ -40,7 +40,7 @@ describe("ProjectsService", () => {
         description: "Test Description",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -58,7 +58,7 @@ describe("ProjectsService", () => {
         budget: 100000,
         porteurReferentEmail: "nouveauPorteur@email.com",
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -76,6 +76,27 @@ describe("ProjectsService", () => {
         projectId: createdProject.id,
       });
     });
+
+    it("should mapp the status to a generic one properly", async () => {
+      const createDto: CreateProjectRequest = {
+        nom: "Test Project",
+        description: "Test Description",
+        budget: 100000,
+        porteurReferentEmail: "nouveauPorteur@email.com",
+        forecastedStartDate: getFutureDate(),
+        status: "IDEE",
+        communeInseeCodes: mockedCommunes,
+      };
+
+      const newProject = await service.create(createDto);
+
+      const [createdProject] = await testDbService.database
+        .select()
+        .from(projects)
+        .where(eq(projects.id, newProject.id));
+
+      expect(createdProject.status).toEqual("IDEE");
+    });
   });
 
   describe("findAll", () => {
@@ -87,7 +108,7 @@ describe("ProjectsService", () => {
         porteurReferentEmail: "porteurReferentEmail@email.com",
         budget: 100000,
         forecastedStartDate: futureDate,
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
       const createDto2: CreateProjectRequest = {
@@ -95,7 +116,7 @@ describe("ProjectsService", () => {
         description: "Description 2",
         budget: 100000,
         forecastedStartDate: futureDate,
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -137,11 +158,13 @@ describe("ProjectsService", () => {
         ...expectedFieldsProject1,
         ...expectedCommonFields,
         porteurReferentEmail: "porteurReferentEmail@email.com",
+        status: "IDEE",
       });
 
       expect(result[1]).toEqual({
         ...expectedFieldsProject2,
         ...expectedCommonFields,
+        status: "IDEE",
       });
     });
   });
@@ -154,7 +177,7 @@ describe("ProjectsService", () => {
         porteurCodeSiret: "12345678901234",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 
@@ -177,6 +200,7 @@ describe("ProjectsService", () => {
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
+        status: "IDEE",
       });
     });
 
@@ -197,7 +221,7 @@ describe("ProjectsService", () => {
         porteurReferentEmail: "initial@email.com",
         budget: 100000,
         forecastedStartDate: getFutureDate(),
-        status: "DRAFT",
+        status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
 

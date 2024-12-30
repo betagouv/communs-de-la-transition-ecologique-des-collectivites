@@ -1,5 +1,5 @@
 {
-  "id": "3a84402a-0b1d-470a-8a27-26a8961cf5fd",
+  "id": "aadbc6d0-818f-4001-824b-d3047983f197",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -50,14 +50,14 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -121,14 +121,14 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "nom": {
@@ -339,7 +339,7 @@
     "public.project_status": {
       "name": "project_status",
       "schema": "public",
-      "values": ["DRAFT", "READY", "IN_PROGRESS", "DONE", "CANCELLED"]
+      "values": ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"]
     }
   },
   "schemas": {},

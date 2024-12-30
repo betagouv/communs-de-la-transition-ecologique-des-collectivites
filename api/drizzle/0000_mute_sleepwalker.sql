@@ -1,5 +1,5 @@
 CREATE TYPE "public"."permission_type" AS ENUM('EDIT', 'VIEW');--> statement-breakpoint
-CREATE TYPE "public"."project_status" AS ENUM('DRAFT', 'READY', 'IN_PROGRESS', 'DONE', 'CANCELLED');--> statement-breakpoint
+CREATE TYPE "public"."project_status" AS ENUM('IDEE', 'FAISABILITE', 'EN_COURS', 'IMPACTE', 'ABANDONNE', 'TERMINE');--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "communes" (
 	"insee_code" text PRIMARY KEY NOT NULL
 );
@@ -8,15 +8,15 @@ CREATE TABLE IF NOT EXISTS "project_collaborators" (
 	"project_id" uuid NOT NULL,
 	"email" text NOT NULL,
 	"permission_type" "permission_type" NOT NULL,
-	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now(),
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "project_collaborators_project_id_email_pk" PRIMARY KEY("project_id","email")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "projects" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now(),
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"nom" text NOT NULL,
 	"description" text NOT NULL,
 	"code_siret" text,

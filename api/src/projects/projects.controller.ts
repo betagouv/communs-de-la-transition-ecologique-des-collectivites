@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req } from "@nestjs/common";
 import { ProjectsService } from "./services/projects.service";
 import { CreateProjectRequest, CreateOrUpdateProjectResponse } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
@@ -6,6 +6,7 @@ import { ProjectResponse } from "./dto/project.dto";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { RequiresCollaboratorsPermission } from "@/collaborators/collaborators.permissions.decorator";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
+import { Request } from "express";
 
 @ApiBearerAuth()
 @Controller("projects")
@@ -18,7 +19,10 @@ export class ProjectsController {
     response: CreateOrUpdateProjectResponse,
     description: "Project created successfully",
   })
-  create(@Body() createProjectDto: CreateProjectRequest): Promise<CreateOrUpdateProjectResponse> {
+  create(
+    @Req() _request: Request,
+    @Body() createProjectDto: CreateProjectRequest,
+  ): Promise<CreateOrUpdateProjectResponse> {
     return this.projectsService.create(createProjectDto);
   }
 
@@ -41,7 +45,11 @@ export class ProjectsController {
 
   @RequiresCollaboratorsPermission()
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateProjectDto: UpdateProjectDto): Promise<CreateOrUpdateProjectResponse> {
+  update(
+    @Req() _request: Request,
+    @Param("id") id: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+  ): Promise<CreateOrUpdateProjectResponse> {
     return this.projectsService.update(id, updateProjectDto);
   }
 

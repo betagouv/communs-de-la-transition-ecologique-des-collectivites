@@ -1,5 +1,3 @@
-// disable to use expect any syntax
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 import { AppModule } from "@/app.module";
@@ -7,9 +5,12 @@ import { setupApp } from "@/setup-app";
 import { e2eTestDbSetup } from "./helpers/e2eTestDbSetup";
 import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
 import { getFutureDate } from "./helpers/getFutureDate";
-import { createApiClient } from "./helpers/apiClient";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { CreateCollaboratorRequest } from "@/collaborators/dto/create-collaborator.dto";
+import { createApiClient } from "@test/helpers/apiClient";
+
+// This is needed to use expect any syntax
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -27,7 +28,7 @@ describe("AppController (e2e)", () => {
     await app.init();
     await app.listen(3000);
 
-    api = createApiClient(process.env.API_KEY!);
+    api = createApiClient(process.env.MEC_API_KEY!);
   }, 30000);
 
   afterAll(async () => {
@@ -42,17 +43,41 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       porteurReferentEmail: "test@email.com",
       forecastedStartDate: getFutureDate(),
-      status: "DRAFT",
+      status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
     };
 
     describe("POST /projects", () => {
       it("should reject when wrong api key", async () => {
-        const wrongApiClient = createApiClient(`wrong-${process.env.API_KEY}`);
+        const wrongApiClient = createApiClient("wrong-api-key");
         const { error } = await wrongApiClient.projects.create(validProject);
 
         expect(error?.statusCode).toBe(401);
         expect(error?.message).toContain("Invalid API key");
+      });
+
+      it("should create a valid project with MEC api key", async () => {
+        const mecClient = createApiClient(process.env.MEC_API_KEY!);
+        const { data, error } = await mecClient.projects.create(validProject);
+
+        expect(error).toBeUndefined();
+        expect(data).toHaveProperty("id");
+      });
+
+      it("should create a valid project with TeT api key", async () => {
+        const tetClient = createApiClient(process.env.TET_API_KEY!);
+        const { data, error } = await tetClient.projects.create({ ...validProject, status: "IDEE" });
+
+        expect(error).toBeUndefined();
+        expect(data).toHaveProperty("id");
+      });
+
+      it("should create a valid project with Recoco api key", async () => {
+        const recocoClient = createApiClient(process.env.RECOCO_API_KEY!);
+        const { data, error } = await recocoClient.projects.create(validProject);
+
+        expect(error).toBeUndefined();
+        expect(data).toHaveProperty("id");
       });
 
       it("should reject when nom is empty", async () => {
@@ -204,6 +229,7 @@ describe("AppController (e2e)", () => {
               inseeCode: expect.any(String),
             }),
           ]),
+          status: "IDEE",
         });
       });
 
@@ -267,7 +293,7 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       forecastedStartDate: getFutureDate(),
       porteurReferentEmail: "owner@email.com",
-      status: "DRAFT",
+      status: "IDEE",
       communeInseeCodes: ["01001"],
     };
 
