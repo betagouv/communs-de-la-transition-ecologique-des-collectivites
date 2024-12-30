@@ -30,7 +30,7 @@
     "db:push": "drizzle-kit push:pg",
     "db:migrate:drizzle": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "postinstall": "ls -la && echo 'Verifying node_modules...' && ls -la node_modules || echo 'node_modules not found'"
+    "postinstall": "NODE_ENV=production pnpm install --prod --frozen-lockfile && ls -la && echo 'After install:' && ls -la node_modules || echo 'Still no node_modules'"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
