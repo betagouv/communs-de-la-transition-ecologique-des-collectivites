@@ -43,7 +43,7 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       porteurReferentEmail: "test@email.com",
       forecastedStartDate: getFutureDate(),
-      status: "Non démarré, intention",
+      status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
     };
 
@@ -66,7 +66,7 @@ describe("AppController (e2e)", () => {
 
       it("should create a valid project with TeT api key", async () => {
         const tetClient = createApiClient(process.env.TET_API_KEY!);
-        const { data, error } = await tetClient.projects.create({ ...validProject, status: "A venir" });
+        const { data, error } = await tetClient.projects.create({ ...validProject, status: "IDEE" });
 
         expect(error).toBeUndefined();
         expect(data).toHaveProperty("id");
@@ -293,7 +293,7 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       forecastedStartDate: getFutureDate(),
       porteurReferentEmail: "owner@email.com",
-      status: "Non démarré, intention",
+      status: "IDEE",
       communeInseeCodes: ["01001"],
     };
 

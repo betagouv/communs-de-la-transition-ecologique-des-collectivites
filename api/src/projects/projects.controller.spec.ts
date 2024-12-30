@@ -34,7 +34,7 @@ describe("ProjectsController", () => {
       porteurReferentEmail: "test@example.com",
       budget: 100000,
       forecastedStartDate: getFutureDate(),
-      status: "Non démarré, intention",
+      status: "IDEE",
       communeInseeCodes: ["75056"],
     };
 
@@ -46,7 +46,7 @@ describe("ProjectsController", () => {
 
       expect(result).toEqual(expectedResponse);
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(projectsService.create).toHaveBeenCalledWith(validProject, "MEC");
+      expect(projectsService.create).toHaveBeenCalledWith(validProject);
     });
   });
 

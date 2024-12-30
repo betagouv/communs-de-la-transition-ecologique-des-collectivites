@@ -20,13 +20,10 @@ export class ProjectsController {
     description: "Project created successfully",
   })
   create(
-    @Req() request: Request,
+    @Req() _request: Request,
     @Body() createProjectDto: CreateProjectRequest,
   ): Promise<CreateOrUpdateProjectResponse> {
-    // the serviceType cannot be undefined at this stage
-    // as the api guard key would have thrown before
-    const serviceType = request.serviceType!;
-    return this.projectsService.create(createProjectDto, serviceType);
+    return this.projectsService.create(createProjectDto);
   }
 
   @Get()
@@ -49,14 +46,11 @@ export class ProjectsController {
   @RequiresCollaboratorsPermission()
   @Patch(":id")
   update(
-    @Req() request: Request,
+    @Req() _request: Request,
     @Param("id") id: string,
     @Body() updateProjectDto: UpdateProjectDto,
   ): Promise<CreateOrUpdateProjectResponse> {
-    // the serviceType cannot be undefined at this stage
-    // as the api guard key would have thrown before
-    const serviceType = request.serviceType!;
-    return this.projectsService.update(id, updateProjectDto, serviceType);
+    return this.projectsService.update(id, updateProjectDto);
   }
 
   //todo to implement
