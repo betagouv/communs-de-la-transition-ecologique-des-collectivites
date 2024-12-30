@@ -1,2 +1,2 @@
 postdeploy: npx drizzle-kit migrate
-web: NODE_ENV=production node dist/src/main.js
+web: pwd && ls -la && ls -la node_modules/@nestjs || echo "No @nestjs modules" && echo "NODE_PATH=$NODE_PATH" && NODE_ENV=production node dist/src/main.js
