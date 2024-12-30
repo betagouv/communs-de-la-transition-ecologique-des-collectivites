@@ -1,1 +1,2 @@
 postdeploy: npx drizzle-kit migrate
+web: NODE_ENV=production node --preserve-symlinks dist/src/main.js
