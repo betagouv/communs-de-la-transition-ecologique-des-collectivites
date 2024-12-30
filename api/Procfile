@@ -1,2 +1,1 @@
 postdeploy: npx drizzle-kit migrate
-web: export NODE_PATH=/app/node_modules/.pnpm && NODE_ENV=production node dist/src/main.js
