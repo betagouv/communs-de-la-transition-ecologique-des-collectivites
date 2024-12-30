@@ -1,0 +1,3 @@
+# Keep these!
+!dist/
+!node_modules/ 
