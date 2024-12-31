@@ -8,14 +8,12 @@ import { ProjectResponse } from "../dto/project.dto";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "./communes.service";
 import { removeUndefined } from "@/shared/utils/remove-undefined";
-import { CollaboratorsService } from "@/collaborators/collaborators.service";
 
 @Injectable()
 export class ProjectsService {
   constructor(
     private dbService: DatabaseService,
     private readonly communesService: CommunesService,
-    private readonly collaboratorService: CollaboratorsService,
     private logger: CustomLogger,
   ) {}
 
@@ -24,13 +22,6 @@ export class ProjectsService {
 
     return await this.dbService.database.transaction(async (tx) => {
       const [createdProject] = await tx.insert(projects).values(removeUndefined(createProjectDto)).returning();
-
-      if (createProjectDto.porteurReferentEmail) {
-        await this.collaboratorService.createOrUpdate(tx, createdProject.id, {
-          email: createProjectDto.porteurReferentEmail,
-          permissionType: "EDIT",
-        });
-      }
 
       await this.communesService.createOrUpdate(tx, createdProject.id, createProjectDto.communeInseeCodes);
 
@@ -103,21 +94,6 @@ export class ProjectsService {
 
       if (communeInseeCodes) {
         await this.communesService.createOrUpdate(tx, id, communeInseeCodes);
-      }
-
-      if (
-        updateProjectDto.porteurReferentEmail &&
-        updateProjectDto.porteurReferentEmail !== existingProject.porteurReferentEmail
-      ) {
-        await this.collaboratorService.createOrUpdate(tx, id, {
-          email: updateProjectDto.porteurReferentEmail,
-          permissionType: "EDIT",
-        });
-
-        // Remove old collaborator if exists
-        if (existingProject.porteurReferentEmail) {
-          await this.collaboratorService.remove(tx, id, existingProject.porteurReferentEmail);
-        }
       }
 
       // Check if there are fields to update
