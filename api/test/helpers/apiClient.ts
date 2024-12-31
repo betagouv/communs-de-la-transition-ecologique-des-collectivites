@@ -16,36 +16,26 @@ export const createApiClient = (apiKey: string) => {
 
       getAll: () => client.GET("/projects"),
 
-      getOne: (id: string, email?: string) =>
+      getOne: (id: string) =>
         client.GET("/projects/{id}", {
           params: {
             path: { id },
-            header: { "X-User-Email": email ?? "" },
           },
         }),
 
-      update: (id: string, data: components["schemas"]["UpdateProjectDto"], email?: string) =>
+      update: (id: string, data: components["schemas"]["UpdateProjectDto"]) =>
         client.PATCH("/projects/{id}", {
           params: {
             path: { id },
-            header: { "X-User-Email": email ?? "" },
           },
           body: data,
         }),
 
-      remove: (id: string, email?: string) =>
+      remove: (id: string) =>
         client.DELETE("/projects/{id}", {
           params: {
             path: { id },
-            header: { "X-User-Email": email ?? "" },
           },
-        }),
-    },
-    collaborators: {
-      create: (projectId: string, data: components["schemas"]["CreateCollaboratorRequest"]) =>
-        client.POST("/projects/{id}/update-collaborators", {
-          params: { path: { id: projectId } },
-          body: data,
         }),
     },
   };

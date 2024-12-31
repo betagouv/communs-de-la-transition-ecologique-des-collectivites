@@ -6,7 +6,6 @@ import { e2eTestDbSetup } from "./helpers/e2eTestDbSetup";
 import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
 import { getFutureDate } from "./helpers/getFutureDate";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
-import { CreateCollaboratorRequest } from "@/collaborators/dto/create-collaborator.dto";
 import { createApiClient } from "@test/helpers/apiClient";
 
 // This is needed to use expect any syntax
@@ -146,7 +145,7 @@ describe("AppController (e2e)", () => {
           porteurReferentEmail: newEmail,
         };
 
-        const { data, error } = await api.projects.update(projectId, updateData, "test@email.com");
+        const { data, error } = await api.projects.update(projectId, updateData);
 
         expect(error).toBeUndefined();
         expect(data).toMatchObject({
@@ -154,17 +153,12 @@ describe("AppController (e2e)", () => {
         });
 
         // Use new email to verify permissions
-        const { data: updatedProject } = await api.projects.getOne(projectId, newEmail);
+        const { data: updatedProject } = await api.projects.getOne(projectId);
 
         expect(updatedProject).toMatchObject({
           id: projectId,
           porteurReferentEmail: newEmail,
         });
-
-        // Verify old email no longer has access
-        const { error: accessError } = await api.projects.getOne(projectId, "test@email.com");
-
-        expect(accessError?.statusCode).toBe(403);
       });
 
       it("should update multiple fields at once", async () => {
@@ -176,14 +170,14 @@ describe("AppController (e2e)", () => {
           porteurReferentEmail: "new.referent@email.com",
         };
 
-        const { data, error } = await api.projects.update(projectId, updateData, "test@email.com");
+        const { data, error } = await api.projects.update(projectId, updateData);
 
         expect(error).toBeUndefined();
         expect(data).toMatchObject({
           id: projectId,
         });
 
-        const { data: updatedProject } = await api.projects.getOne(projectId, updateData.porteurReferentEmail);
+        const { data: updatedProject } = await api.projects.getOne(projectId);
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { communeInseeCodes, ...expectedFields } = updateData;
@@ -205,7 +199,7 @@ describe("AppController (e2e)", () => {
         const { data: createdProject } = await api.projects.create(validProject);
         const projectId = createdProject!.id;
 
-        const { data, error } = await api.projects.getOne(projectId, "test@email.com");
+        const { data, error } = await api.projects.getOne(projectId);
 
         const {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -233,29 +227,9 @@ describe("AppController (e2e)", () => {
         });
       });
 
-      it("should not allow to get project when user email is not provided", async () => {
-        const { data: createdProject } = await api.projects.create(validProject);
-        const projectId = createdProject!.id;
-
-        const { error } = await api.projects.getOne(projectId); // No email provided
-
-        expect(error?.statusCode).toBe(400);
-        expect(error?.message).toBe("Single x-user-email header required");
-      });
-
-      it("should not allow to get project when user has no corresponding permission", async () => {
-        const { data: createdProject } = await api.projects.create(validProject);
-        const projectId = createdProject!.id;
-
-        const { error } = await api.projects.getOne(projectId, "no-permission@email.com");
-
-        expect(error?.statusCode).toBe(403);
-        expect(error?.message).toBe("Insufficient permissions");
-      });
-
       it("should return 404 for non-existent project", async () => {
         const nonExistentId = "00000000-0000-0000-0000-000000000000";
-        const { error } = await api.projects.getOne(nonExistentId, "test@email.com");
+        const { error } = await api.projects.getOne(nonExistentId);
 
         expect(error?.statusCode).toBe(404);
       });
@@ -281,62 +255,6 @@ describe("AppController (e2e)", () => {
             }),
           ]),
         );
-      });
-    });
-  });
-
-  describe("Collaborators (e2e)", () => {
-    let projectId: string;
-    const validProject: CreateProjectRequest = {
-      nom: "Collaboration Test Project",
-      description: "Test Description",
-      budget: 100000,
-      forecastedStartDate: getFutureDate(),
-      porteurReferentEmail: "owner@email.com",
-      status: "IDEE",
-      communeInseeCodes: ["01001"],
-    };
-
-    const validCollaborator: CreateCollaboratorRequest = {
-      email: "collaborator@email.com",
-      permissionType: "VIEW",
-    };
-
-    beforeAll(async () => {
-      const { data } = await api.projects.create(validProject);
-      projectId = data!.id;
-    });
-
-    describe("POST /projects/:id/update-collaborators", () => {
-      it("should add a collaborator with VIEW permission", async () => {
-        const { data, error } = await api.collaborators.create(projectId, validCollaborator);
-
-        expect(error).toBeUndefined();
-        expect(data).toMatchObject({
-          projectId,
-          email: validCollaborator.email,
-          permissionType: validCollaborator.permissionType,
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
-        });
-      });
-
-      it("should update existing collaborator permission", async () => {
-        const updatedCollaborator: CreateCollaboratorRequest = {
-          ...validCollaborator,
-          permissionType: "EDIT",
-        };
-
-        const { data, error } = await api.collaborators.create(projectId, updatedCollaborator);
-
-        expect(error).toBeUndefined();
-        expect(data).toMatchObject({
-          projectId,
-          email: updatedCollaborator.email,
-          permissionType: updatedCollaborator.permissionType,
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
-        });
       });
     });
   });

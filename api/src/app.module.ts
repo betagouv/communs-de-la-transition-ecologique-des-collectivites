@@ -10,7 +10,6 @@ import { ThrottlerModule } from "@nestjs/throttler";
 import { ThrottlerGuardProvider } from "./security/throttler.provider";
 import { throttlerConfig } from "./security/throttler.config";
 import { ServicesModule } from "./services/services.module";
-import { CollaboratorsModule } from "@/collaborators/collaborators.module";
 
 @Module({
   imports: [
@@ -22,7 +21,6 @@ import { CollaboratorsModule } from "@/collaborators/collaborators.module";
     ProjectsModule,
     ServicesModule,
     LoggerModule,
-    CollaboratorsModule,
   ],
   providers: [AppService, ApiKeyGuardProvider, ThrottlerGuardProvider, RequestLoggingInterceptor],
 })

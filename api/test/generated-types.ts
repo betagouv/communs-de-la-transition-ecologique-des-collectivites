@@ -36,22 +36,6 @@ export interface paths {
         patch: operations["ProjectsController_update"];
         trace?: never;
     };
-    "/projects/{id}/update-collaborators": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["CollaboratorsController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/services": {
         parameters: {
             query?: never;
@@ -195,21 +179,6 @@ export interface components {
              */
             communeInseeCodes?: string[];
         };
-        CreateCollaboratorRequest: {
-            email: string;
-            /** @enum {string} */
-            permissionType: "EDIT" | "VIEW";
-        };
-        CreateCollaboratorResponse: {
-            projectId: string;
-            email: string;
-            /** @enum {string} */
-            permissionType: "EDIT" | "VIEW";
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
         CreateServiceDto: {
             /**
              * @description The name of the service
@@ -297,10 +266,7 @@ export interface operations {
     ProjectsController_findOne: {
         parameters: {
             query?: never;
-            header: {
-                /** @description Email of the user making the request */
-                "X-User-Email": string;
-            };
+            header?: never;
             path: {
                 id: string;
             };
@@ -326,10 +292,7 @@ export interface operations {
     ProjectsController_remove: {
         parameters: {
             query?: never;
-            header: {
-                /** @description Email of the user making the request */
-                "X-User-Email": string;
-            };
+            header?: never;
             path: {
                 id: string;
             };
@@ -346,10 +309,7 @@ export interface operations {
     ProjectsController_update: {
         parameters: {
             query?: never;
-            header: {
-                /** @description Email of the user making the request */
-                "X-User-Email": string;
-            };
+            header?: never;
             path: {
                 id: string;
             };
@@ -364,37 +324,6 @@ export interface operations {
             200: {
                 headers: Record<string, unknown>;
                 content?: never;
-            };
-        };
-    };
-    CollaboratorsController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateCollaboratorRequest"];
-            };
-        };
-        responses: {
-            /** @description Collaborator updated/created successfully */
-            201: {
-                headers: Record<string, unknown>;
-                content: {
-                    "application/json": components["schemas"]["CreateCollaboratorResponse"];
-                };
-            };
-            /** @description Error response */
-            default: {
-                headers: Record<string, unknown>;
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
             };
         };
     };

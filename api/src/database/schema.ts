@@ -65,27 +65,9 @@ export const services = pgTable("services", {
   url: text("url").notNull(),
 });
 
-export const projectCollaborators = pgTable(
-  "project_collaborators",
-  {
-    projectId: uuid("project_id")
-      .notNull()
-      .references(() => projects.id, { onDelete: "cascade" }),
-    email: text("email").notNull(),
-    permissionType: permissionTypeEnum("permission_type").notNull(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at")
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date()),
-  },
-  (t) => [primaryKey({ columns: [t.projectId, t.email] }), index("collaborator_project_idx").on(t.email, t.projectId)],
-);
-
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
 export const projectsRelations = relations(projects, ({ many }) => ({
   communes: many(projectsToCommunes),
-  collaborators: many(projectCollaborators),
 }));
 
 export const communesRelations = relations(communes, ({ many }) => ({
@@ -100,12 +82,5 @@ export const projectsToCommunesRelations = relations(projectsToCommunes, ({ one 
   commune: one(communes, {
     fields: [projectsToCommunes.communeId],
     references: [communes.inseeCode],
-  }),
-}));
-
-export const projectToCollaboratorsRelations = relations(projectCollaborators, ({ one }) => ({
-  project: one(projects, {
-    fields: [projectCollaborators.projectId],
-    references: [projects.id],
   }),
 }));
