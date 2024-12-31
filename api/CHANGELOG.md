@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.6...v0.0.7) (2024-12-31)
+
+
+### Features
+
+* add basic api key guard ([17c4ce2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/17c4ce2f8c3fb970e1a6c4b5bfac46804ab8de58))
+* add basic rate limit ([383f3cf](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/383f3cfd48f6310786bf6dcbbe4319a15dcc54e8))
+* add basic service feature ([5e10531](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/5e10531809aab3e93aa810ff2b41d6064f5cbd2b))
+* add custom logger ([0ce248b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/0ce248b1319c8156923a450c8613f40640ae1137))
+* add import alias ([2bcde02](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2bcde021b3d6b53a8ced08a64d8b0d248601e42c))
+* add logging interceptor to log requests ([3c35cd1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3c35cd124184ff90a01af1c379694bd15eeb9843))
+* add permission creation ([#20](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/20)) ([4269648](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/426964830c5deb8997c80b735b53be5c935f65d3))
+* add_custom_error_filter ([bb68b1b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/bb68b1b76f9f503e57ac5de7982fd77a3d55ab4f))
+* make log silent in test mode ([d297f14](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d297f1481b280d745b0b308d45c67aa12710a1d9))
+* modify projects controller, service and schema to match latest project modelization ([f642752](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f642752110a19e2ae93ae2a4debde5fd424a67e1))
+* register logging interceptor ([7c1c123](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/7c1c123fee6c516e84c16f215da1858d7a3e78d8))
+
+
+### Bug Fixes
+
+* adapt tests following data change ([52645c0](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/52645c0cb0c8a3a56e0b9616024ff6065a8e5539))
+* add missing dependency for commitlint ([64aa508](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/64aa508cf866ce6e5e213281f853e6e9d3d8efb6))
+* add missing files ([0eb011b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/0eb011b49d8599959457dec92e8e00648c013bce))
+* add missing helmet middleware ([be38c63](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/be38c63577ebe4b940983cda0660a27a7544d32a))
+* add missing helper file ([efc1ccb](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/efc1ccb9f899de2853947d4bfd38f3bb62398617))
+* change import to relative one ([50ca39e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/50ca39e6a707c9a1288b81dcd4c623ea4e8a8266))
+* change path in logger alias resolution ([9dbd29a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/9dbd29aea00bb0bf598ca3259718e676ff90e15b))
+* package json location for dependabot ([310fc12](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/310fc12fcd99bb04d93fc20af4032d23de433c19))
+
 ## [0.0.6](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.5...v0.0.6) (2024-11-12)
 
 ## [0.0.5](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.3...v0.0.5) (2024-11-12)
