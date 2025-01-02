@@ -1,6 +1,6 @@
 {
   "name": "@betagouv/les-communs-widget",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publishConfig": {
     "access": "public"
   },
@@ -33,9 +33,9 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit -p tsconfig.app.json",
     "validate": "npm run type-check && npm run lint && npm run format:check",
-    "ci": "npm run validate && npm run test",
-    "local-release": "changeset version && changeset publish",
-    "prepublishOnly": "npm run ci",
+    "update-version": "changeset version",
+    "release": "npm publish",
+    "prerelease": "pnpm build & pnpm validate && pnpm test",
     "preview": "vite preview",
     "prebuild": "react-dsfr update-icons",
     "predev": "react-dsfr update-icons"

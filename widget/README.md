@@ -76,15 +76,30 @@ pnpm build
 To use this widget in your project:
 
 ```bash
-pnpm add les-communs-widget
+pnpm add @betagouv/les-communs-widget
 ```
 
 Then import and use the component:
 
 ```tsx
-import { LesCommuns } from "les-communs-widget";
+import { LesCommuns } from "@betagouv/les-communs-widget";
 
 function App() {
   return <LesCommuns projectId="your-project-id" />;
 }
 ```
+
+### Publishing
+
+1. Create a changeset for your changes and update the version:
+
+```bash
+pnpm update-version
+```
+
+2. Build and publish:
+
+   ```bash
+   cd widget
+   pnpm release
+   ```
