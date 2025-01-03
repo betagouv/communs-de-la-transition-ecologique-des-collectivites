@@ -7,7 +7,8 @@
   "license": "UNLICENSED",
   "type": "commonjs",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && pnpm sentry:sourcemaps",
+    "build:without-sourcemaps": "nest build",
     "format": "prettier --write \"**/*.{js,ts,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,ts,json,md}\"",
     "dev": "nest start --watch",
@@ -29,7 +30,8 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push:pg",
     "db:migrate:drizzle": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org betagouv --project communs-de-la-transition-eco-api ./dist && sentry-cli --url https://sentry.incubateur.net/ sourcemaps upload --org betagouv --project communs-de-la-transition-eco-api ./dist"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -39,11 +41,13 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^8.0.2",
     "@nestjs/throttler": "^6.2.1",
-    "express": "^4.21.1",
+    "@sentry/cli": "^2.40.0",
+    "@sentry/nestjs": "^8.47.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "drizzle-kit": "^0.28.0",
     "drizzle-orm": "^0.36.4",
+    "express": "^4.21.1",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",

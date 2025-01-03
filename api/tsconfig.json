@@ -12,12 +12,20 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+
     "paths": {
       "@/*": ["src/*"],
       "@test/*": ["test/*"],
       "@logging/*": ["src/logging/*"],
       "@database/*": ["src/database/*"],
       "@projects/*": ["src/projects/*"]
-    }
+    },
+
+    "inlineSources": true,
+
+    // Set `sourceRoot` to  "/" to strip the build path prefix
+    // from generated source code references.
+    // This improves issue grouping in Sentry.
+    "sourceRoot": "/"
   }
 }

@@ -1,13 +1,14 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from "@nestjs/common";
+import { ExceptionFilter, ArgumentsHost, HttpException, HttpStatus } from "@nestjs/common";
 import { Response } from "express";
 import { randomUUID } from "crypto";
 import { CustomLogger } from "@logging/logger.service";
 import { Request } from "express";
+import { SentryExceptionCaptured } from "@sentry/nestjs";
 
-@Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(private logger: CustomLogger) {}
 
+  @SentryExceptionCaptured()
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
