@@ -29,8 +29,7 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push:pg",
     "db:migrate:drizzle": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio",
-    "postinstall": "ls -la && echo 'Verifying node_modules...' && ls -la node_modules || echo 'node_modules not found'"
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
