@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { API_BASE_URL } from "./config.ts";
 import { fr } from "@codegouvfr/react-dsfr";
+import classNames from "classnames";
+import { useEffect, useState } from "react";
 import { Service } from "./components/Service.tsx";
 import styles from "./LesCommuns.module.css";
-import classNames from "classnames";
 
 export interface LesCommunsProps {
   projectId: string;
+  isStagingEnv?: boolean;
 }
 
 interface Service {
@@ -18,15 +18,17 @@ interface Service {
   logoUrl: string;
 }
 
-export const LesCommuns = ({ projectId }: LesCommunsProps) => {
+export const LesCommuns = ({ projectId, isStagingEnv }: LesCommunsProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const apiUrl = `https://les-communs-transition-ecologique-api-${isStagingEnv ? "staging" : "prod"}.osc-fr1.scalingo.io`;
+
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/services/project/${projectId}`);
+        const response = await fetch(`${apiUrl}/services/project/${projectId}`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch services");
@@ -42,7 +44,7 @@ export const LesCommuns = ({ projectId }: LesCommunsProps) => {
     };
 
     void fetchServices();
-  }, [projectId]);
+  }, [apiUrl, projectId]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
