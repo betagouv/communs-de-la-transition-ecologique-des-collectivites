@@ -4,7 +4,7 @@ set -e  # Exit on error
 echo "Starting API server..."
 
 # Start the development server in the background
-pnpm run build
+pnpm run build:without-sourcemaps
 pnpm run start &
 DEV_SERVER_PID=$!
 
