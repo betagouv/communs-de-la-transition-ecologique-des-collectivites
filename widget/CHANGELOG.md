@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.0.7
+
+### Patch Changes
+
+- add usage doc in readme
+
 ## 0.0.6
 
 ### Patch Changes
