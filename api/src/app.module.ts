@@ -10,12 +10,14 @@ import { ThrottlerModule } from "@nestjs/throttler";
 import { ThrottlerGuardProvider } from "./security/throttler.provider";
 import { throttlerConfig } from "./security/throttler.config";
 import { ServicesModule } from "./services/services.module";
+import { SentryModule } from "@sentry/nestjs/setup";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    SentryModule.forRoot(),
     ThrottlerModule.forRoot(throttlerConfig),
     DatabaseModule,
     ProjectsModule,
