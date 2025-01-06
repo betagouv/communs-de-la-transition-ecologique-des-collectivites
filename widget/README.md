@@ -9,6 +9,36 @@ A React widget that displays associated services for ecological transition proje
 - TypeScript support
 - Built with Vite
 
+## Usage in Other Projects
+
+To use this widget in your project:
+
+```bash
+pnpm add @betagouv/les-communs-widget
+```
+
+Then import and use the component:
+
+```tsx
+import { LesCommuns } from "@betagouv/les-communs-widget";
+
+function App() {
+  return <LesCommuns projectId="your-project-id" />;
+}
+```
+
+### Staging environment
+
+You can test against the staging environment by passing prop `isStagingEnv`:
+
+```tsx
+import { LesCommuns } from "@betagouv/les-communs-widget";
+
+function App() {
+  return <LesCommuns projectId="your-project-id" isStagingEnv />;
+}
+```
+
 ## Local Development
 
 ### Prerequisites
@@ -71,35 +101,12 @@ pnpm build
 }
 ```
 
-## Usage in Other Projects
+## Publishing
 
-To use this widget in your project:
-
-```bash
-pnpm add @betagouv/les-communs-widget
-```
-
-Then import and use the component:
-
-```tsx
-import { LesCommuns } from "@betagouv/les-communs-widget";
-
-function App() {
-  return <LesCommuns projectId="your-project-id" />;
-}
-```
-
-### Publishing
-
-1. Create a changeset for your changes and update the version:
-
-```bash
-pnpm update-version
-```
-
-2. Build and publish:
+1. Increase the version number in your package json
+2. Update the file CHANGELOG.md accordingly
+3. Publish through script below (this will build the widget beforehand)
 
    ```bash
-   cd widget
    pnpm release
    ```

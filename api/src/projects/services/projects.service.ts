@@ -20,7 +20,7 @@ export class ProjectsService {
   async create(createProjectDto: CreateProjectRequest): Promise<{ id: string }> {
     this.validateDate(createProjectDto.forecastedStartDate);
 
-    return await this.dbService.database.transaction(async (tx) => {
+    return this.dbService.database.transaction(async (tx) => {
       const [createdProject] = await tx.insert(projects).values(removeUndefined(createProjectDto)).returning();
 
       await this.communesService.createOrUpdate(tx, createdProject.id, createProjectDto.communeInseeCodes);
@@ -76,7 +76,7 @@ export class ProjectsService {
       this.validateDate(updateProjectDto.forecastedStartDate);
     }
 
-    return await this.dbService.database.transaction(async (tx) => {
+    return this.dbService.database.transaction(async (tx) => {
       const [existingProject] = await tx
         .select({
           id: projects.id,

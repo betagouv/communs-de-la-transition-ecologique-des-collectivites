@@ -27,12 +27,9 @@ afterAll(() => server.close());
 describe("LesCommuns", () => {
   it("displays services when data is loaded", async () => {
     server.use(
-      http.get(
-        "https://les-communs-transition-ecologique-api-prod.osc-fr1.scalingo.io/api/services/project/:projectId",
-        () => {
-          return HttpResponse.json(getMockedServices("prod"));
-        },
-      ),
+      http.get("https://les-communs-transition-ecologique-api-prod.osc-fr1.scalingo.io/services/project/123", () => {
+        return HttpResponse.json(getMockedServices("prod"));
+      }),
     );
 
     render(<LesCommuns projectId="123" />);
@@ -46,12 +43,9 @@ describe("LesCommuns", () => {
 
   it("targets staging api when isStagingEnv is provided", async () => {
     server.use(
-      http.get(
-        "https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/api/services/project/:projectId",
-        () => {
-          return HttpResponse.json(getMockedServices("staging"));
-        },
-      ),
+      http.get("https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/services/project/123", () => {
+        return HttpResponse.json(getMockedServices("staging"));
+      }),
     );
 
     render(<LesCommuns projectId="123" isStagingEnv />);
