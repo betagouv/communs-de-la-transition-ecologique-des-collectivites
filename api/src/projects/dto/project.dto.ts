@@ -22,10 +22,7 @@ export class ProjectResponse {
   @ApiProperty()
   description!: string;
 
-  @ApiProperty({
-    type: String,
-    nullable: true,
-  })
+  @ApiProperty({ type: String, nullable: true })
   porteurCodeSiret!: string | null;
 
   @ApiProperty({
@@ -34,28 +31,16 @@ export class ProjectResponse {
   })
   porteurReferentEmail!: string | null;
 
-  @ApiProperty({
-    type: String,
-    nullable: true,
-  })
+  @ApiProperty({ type: String, nullable: true })
   porteurReferentTelephone!: string | null;
 
-  @ApiProperty({
-    type: String,
-    nullable: true,
-  })
+  @ApiProperty({ type: String, nullable: true })
   porteurReferentPrenom!: string | null;
 
-  @ApiProperty({
-    type: String,
-    nullable: true,
-  })
+  @ApiProperty({ type: String, nullable: true })
   porteurReferentNom!: string | null;
 
-  @ApiProperty({
-    type: String,
-    nullable: true,
-  })
+  @ApiProperty({ type: String, nullable: true })
   porteurReferentFonction!: string | null;
 
   @ApiProperty({ type: [Commune] })
@@ -70,9 +55,9 @@ export class ProjectResponse {
   @ApiProperty()
   status!: ProjectStatus;
 
-  @ApiProperty({ type: [String], nullable: true })
+  @ApiProperty({ type: String, nullable: true })
   competences!: Competences | null;
 
-  @ApiProperty({ type: [String], nullable: true })
+  @ApiProperty({ type: String, nullable: true })
   sousCompetences!: SousCompetences | null;
 }
