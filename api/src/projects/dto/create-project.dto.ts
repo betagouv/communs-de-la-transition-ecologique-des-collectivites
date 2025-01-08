@@ -9,7 +9,14 @@ import {
   IsOptional,
   IsString,
 } from "class-validator";
-import { ProjectStatus, projectStatusEnum } from "@database/schema";
+import {
+  ProjectStatus,
+  projectStatusEnum,
+  competencesEnum,
+  sousCompetencesEnum,
+  Competences,
+  SousCompetences,
+} from "@database/schema";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
@@ -28,35 +35,36 @@ export class CreateProjectRequest {
   @IsNotEmpty()
   description!: string;
 
-  @ApiPropertyOptional()
+  //need this against ApiPropertyOptional to ensure proper generated types
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
-  porteurCodeSiret?: string;
+  porteurCodeSiret?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
-  porteurReferentEmail?: string;
+  porteurReferentEmail?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
-  porteurReferentTelephone?: string;
+  porteurReferentTelephone?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
-  porteurReferentPrenom?: string;
+  porteurReferentPrenom?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
-  porteurReferentNom?: string;
+  porteurReferentNom?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
-  porteurReferentFonction?: string;
+  porteurReferentFonction?: string | null;
 
   @ApiProperty()
   @IsNumber()
@@ -92,4 +100,20 @@ export class CreateProjectRequest {
     message: "At least one commune insee code must be provided",
   })
   communeInseeCodes!: string[];
+
+  @ApiPropertyOptional({
+    enum: competencesEnum.enumValues,
+    nullable: true,
+  })
+  @IsEnum(competencesEnum.enumValues)
+  @IsOptional()
+  competences?: Competences | null;
+
+  @ApiPropertyOptional({
+    enum: sousCompetencesEnum.enumValues,
+    nullable: true,
+  })
+  @IsEnum(sousCompetencesEnum.enumValues)
+  @IsOptional()
+  sousCompetences?: SousCompetences | null;
 }

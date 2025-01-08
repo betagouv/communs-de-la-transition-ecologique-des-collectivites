@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ProjectStatus } from "@database/schema";
+import { Competences, ProjectStatus, SousCompetences } from "@database/schema";
 
 class Commune {
   @ApiProperty()
@@ -23,32 +23,38 @@ export class ProjectResponse {
   description!: string;
 
   @ApiProperty({
-    type: String || null,
+    type: String,
+    nullable: true,
   })
   porteurCodeSiret!: string | null;
 
   @ApiProperty({
-    type: String || null,
+    type: String,
+    nullable: true,
   })
   porteurReferentEmail!: string | null;
 
   @ApiProperty({
-    type: String || null,
+    type: String,
+    nullable: true,
   })
   porteurReferentTelephone!: string | null;
 
   @ApiProperty({
-    type: String || null,
+    type: String,
+    nullable: true,
   })
   porteurReferentPrenom!: string | null;
 
   @ApiProperty({
-    type: String || null,
+    type: String,
+    nullable: true,
   })
   porteurReferentNom!: string | null;
 
   @ApiProperty({
-    type: String || null,
+    type: String,
+    nullable: true,
   })
   porteurReferentFonction!: string | null;
 
@@ -63,4 +69,10 @@ export class ProjectResponse {
 
   @ApiProperty()
   status!: ProjectStatus;
+
+  @ApiProperty({ type: [String], nullable: true })
+  competences!: Competences | null;
+
+  @ApiProperty({ type: [String], nullable: true })
+  sousCompetences!: SousCompetences | null;
 }

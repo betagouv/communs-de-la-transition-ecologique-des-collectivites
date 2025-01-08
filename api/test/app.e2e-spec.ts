@@ -41,6 +41,7 @@ describe("AppController (e2e)", () => {
       description: "Test Description",
       budget: 100000,
       porteurReferentEmail: "test@email.com",
+      porteurCodeSiret: null,
       forecastedStartDate: getFutureDate(),
       status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
@@ -218,6 +219,8 @@ describe("AppController (e2e)", () => {
           porteurReferentNom: null,
           porteurReferentPrenom: null,
           porteurReferentTelephone: null,
+          competences: null,
+          sousCompetences: null,
           communes: expect.arrayContaining([
             expect.objectContaining({
               inseeCode: expect.any(String),

@@ -36,30 +36,14 @@ export interface paths {
         patch: operations["ProjectsController_update"];
         trace?: never;
     };
-    "/services": {
+    "/services/debug-sentry": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["ServicesController_findAll"];
-        put?: never;
-        post: operations["ServicesController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/services/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["ServicesController_findOne"];
+        get: operations["ServicesController_getError"];
         put?: never;
         post?: never;
         delete?: never;
@@ -91,12 +75,12 @@ export interface components {
         CreateProjectRequest: {
             nom: string;
             description: string;
-            porteurCodeSiret?: string;
-            porteurReferentEmail?: string;
-            porteurReferentTelephone?: string;
-            porteurReferentPrenom?: string;
-            porteurReferentNom?: string;
-            porteurReferentFonction?: string;
+            porteurCodeSiret?: string | null;
+            porteurReferentEmail?: string | null;
+            porteurReferentTelephone?: string | null;
+            porteurReferentPrenom?: string | null;
+            porteurReferentNom?: string | null;
+            porteurReferentFonction?: string | null;
             budget: number;
             /**
              * @description Forecasted start date in YYYY-MM-DD format
@@ -117,6 +101,10 @@ export interface components {
              *     ]
              */
             communeInseeCodes: string[];
+            /** @enum {string|null} */
+            competences?: "Action sociale (hors APA et RSA)" | "Actions en matière de gestion des eaux" | "Agriculture, pêche et agro-alimentaire" | "Aménagement des territoires" | "Autres interventions de protection civile" | "Autres services annexes de l'enseignement" | "Collecte et traitement des déchets" | "Culture" | "Développement touristique" | "Enseignement du premier degré" | "Enseignement du second degré" | "Enseignement supérieur, professionnel et continu" | "Foires et marchés" | "Habitat" | "Hébergement et restauration scolaires" | "Hygiène et salubrité publique" | "Incendie et secours" | "Industrie, commerce et artisanat" | "Infrastructures de transport" | "Jeunesse et loisirs" | "Police, sécurité, justice" | "Propreté urbaine" | "Routes et voiries" | "Santé" | "Sports" | "Transports publics (hors scolaire)" | "Transports scolaires" | null;
+            /** @enum {string|null} */
+            sousCompetences?: "Accessibilité" | "Architecture" | "Artisanat" | "Arts plastiques et photographie" | "Assainissement des eaux" | "Bâtiments et construction" | "Bibliothèques et livres" | "Cimetières et funéraire" | "Citoyenneté" | "Cohésion sociale et inclusion" | "Commerces et Services" | "Consommation alimentaire" | "Cours d'eau / canaux / plans d'eau" | "Déchets alimentaires et/ou agricoles" | "Distribution" | "Eau pluviale" | "Eau potable" | "Eau souterraine" | "Economie locale et circuits courts" | "Economie sociale et solidaire" | "Egalité des chances" | "Equipement public" | "Espace public" | "Espaces verts" | "Famille et enfance" | "Fiscalité des entreprises" | "Foncier" | "Friche" | "Handicap" | "Inclusion numérique" | "Industrie" | "Innovation, créativité et recherche" | "Jeunesse" | "Logement et habitat" | "Lutte contre la précarité" | "Médias et communication" | "Mers et océans" | "Musée" | "Patrimoine et monuments historiques" | "Paysage" | "Personnes âgées" | "Précarité et aide alimentaire" | "Production agricole et foncier" | "Protection animale" | "Réseaux" | "Spectacle vivant" | "Technologies numériques et numérisation" | "Tiers-lieux" | "Transformation des produits agricoles" | null;
         };
         CreateOrUpdateProjectResponse: {
             id: string;
@@ -138,26 +126,28 @@ export interface components {
             updatedAt: string;
             nom: string;
             description: string;
-            porteurCodeSiret: string;
-            porteurReferentEmail: string;
-            porteurReferentTelephone: string;
-            porteurReferentPrenom: string;
-            porteurReferentNom: string;
-            porteurReferentFonction: string;
+            porteurCodeSiret: string | null;
+            porteurReferentEmail: string | null;
+            porteurReferentTelephone: string | null;
+            porteurReferentPrenom: string | null;
+            porteurReferentNom: string | null;
+            porteurReferentFonction: string | null;
             communes: components["schemas"]["Commune"][];
             budget: number;
             forecastedStartDate: string;
             status: string;
+            competences: string[] | null;
+            sousCompetences: string[] | null;
         };
         UpdateProjectDto: {
             nom?: string;
             description?: string;
-            porteurCodeSiret?: string;
-            porteurReferentEmail?: string;
-            porteurReferentTelephone?: string;
-            porteurReferentPrenom?: string;
-            porteurReferentNom?: string;
-            porteurReferentFonction?: string;
+            porteurCodeSiret?: string | null;
+            porteurReferentEmail?: string | null;
+            porteurReferentTelephone?: string | null;
+            porteurReferentPrenom?: string | null;
+            porteurReferentNom?: string | null;
+            porteurReferentFonction?: string | null;
             budget?: number;
             /**
              * @description Forecasted start date in YYYY-MM-DD format
@@ -178,28 +168,10 @@ export interface components {
              *     ]
              */
             communeInseeCodes?: string[];
-        };
-        CreateServiceDto: {
-            /**
-             * @description The name of the service
-             * @example Facili-Tacct
-             */
-            name: string;
-            /**
-             * @description Objectivez votre diagnostic avec les données socio-économiques qui rendent votre territoire unique et découvrez des arguments et ressources pour mobiliser vos collègues et partenaires externes sur l'adaptation au changement climatique.
-             * @example Version control and collaboration platform
-             */
-            description: string;
-            /**
-             * @description The URL of the service logo
-             * @example https://facili-tacct.beta.gouv.fr/_next/static/media/favicon.f453a8cf.svg
-             */
-            logoUrl: string;
-            /**
-             * @description The URL of the service
-             * @example https://www.boussole-te.ecologie.gouv.fr/
-             */
-            url: string;
+            /** @enum {string|null} */
+            competences?: "Action sociale (hors APA et RSA)" | "Actions en matière de gestion des eaux" | "Agriculture, pêche et agro-alimentaire" | "Aménagement des territoires" | "Autres interventions de protection civile" | "Autres services annexes de l'enseignement" | "Collecte et traitement des déchets" | "Culture" | "Développement touristique" | "Enseignement du premier degré" | "Enseignement du second degré" | "Enseignement supérieur, professionnel et continu" | "Foires et marchés" | "Habitat" | "Hébergement et restauration scolaires" | "Hygiène et salubrité publique" | "Incendie et secours" | "Industrie, commerce et artisanat" | "Infrastructures de transport" | "Jeunesse et loisirs" | "Police, sécurité, justice" | "Propreté urbaine" | "Routes et voiries" | "Santé" | "Sports" | "Transports publics (hors scolaire)" | "Transports scolaires" | null;
+            /** @enum {string|null} */
+            sousCompetences?: "Accessibilité" | "Architecture" | "Artisanat" | "Arts plastiques et photographie" | "Assainissement des eaux" | "Bâtiments et construction" | "Bibliothèques et livres" | "Cimetières et funéraire" | "Citoyenneté" | "Cohésion sociale et inclusion" | "Commerces et Services" | "Consommation alimentaire" | "Cours d'eau / canaux / plans d'eau" | "Déchets alimentaires et/ou agricoles" | "Distribution" | "Eau pluviale" | "Eau potable" | "Eau souterraine" | "Economie locale et circuits courts" | "Economie sociale et solidaire" | "Egalité des chances" | "Equipement public" | "Espace public" | "Espaces verts" | "Famille et enfance" | "Fiscalité des entreprises" | "Foncier" | "Friche" | "Handicap" | "Inclusion numérique" | "Industrie" | "Innovation, créativité et recherche" | "Jeunesse" | "Logement et habitat" | "Lutte contre la précarité" | "Médias et communication" | "Mers et océans" | "Musée" | "Patrimoine et monuments historiques" | "Paysage" | "Personnes âgées" | "Précarité et aide alimentaire" | "Production agricole et foncier" | "Protection animale" | "Réseaux" | "Spectacle vivant" | "Technologies numériques et numérisation" | "Tiers-lieux" | "Transformation des produits agricoles" | null;
         };
     };
     responses: never;
@@ -327,47 +299,11 @@ export interface operations {
             };
         };
     };
-    ServicesController_findAll: {
+    ServicesController_getError: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: Record<string, unknown>;
-                content?: never;
-            };
-        };
-    };
-    ServicesController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateServiceDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: Record<string, unknown>;
-                content?: never;
-            };
-        };
-    };
-    ServicesController_findOne: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
             cookie?: never;
         };
         requestBody?: never;
