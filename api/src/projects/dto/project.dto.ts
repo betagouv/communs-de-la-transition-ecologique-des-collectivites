@@ -55,9 +55,9 @@ export class ProjectResponse {
   @ApiProperty()
   status!: ProjectStatus;
 
-  @ApiProperty({ type: String, nullable: true })
+  @ApiProperty({ nullable: true })
   competences!: Competences | null;
 
-  @ApiProperty({ type: String, nullable: true })
+  @ApiProperty({ nullable: true })
   sousCompetences!: SousCompetences | null;
 }
