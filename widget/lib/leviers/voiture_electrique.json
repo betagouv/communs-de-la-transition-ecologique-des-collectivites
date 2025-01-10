@@ -1,0 +1,77 @@
+{
+  "levier": "Voiture électrique",
+  "etapes_types": {
+    "decision_strategique_et_normes": {
+      "objectifs": "Acter la volonté de privilégier les véhicules bas carbone",
+      "actions": [
+        "Mettre en place une tarification différenciée pour les véhicules électriques dans les parking",
+        "Mettre en place des voies réservées aux véhicules propres ou aux véhicules intermédiaires (quadricycles)",
+        "Proposer une PAC locale conditionnant une bonification de la surprime Etat en ZFE",
+        "Etablir un schéma IRVE",
+        "Etablir un SIDCA"
+      ]
+    },
+    "etude": {
+      "objectifs": "Vérifier la viabilité technico-économique d'un projet d'équipement",
+      "actions": [
+        "Réaliser des études de faisabilité pour la mise en place d'équipements/ajustements de voirie, installation de bornes électriques etc"
+      ]
+    },
+    "infrastructure": {
+      "objectifs": "Assurer le maillage en équipements de recharge",
+      "actions": [
+        "Développer et exploiter de l'infrastructure de recharge en voirie",
+        "Déployer des services d'autopartage (en tant qu'Autorité Organisatrice de la Mobilité)"
+      ]
+    },
+    "sensibilisation_et_suivi": {
+      "objectifs": "Informer et mobiliser les citoyens et les entreprises sur la conversion",
+      "actions": [
+        "Etablir et communiquer la cartographie des bornes disponibles sur le territoire",
+        "Promouvoir les offres d'aides aux particuliers (par ex. prime à la conversion/retrofit, bonus écologique, crédit d'impôt pour l'installation d'une borne de recharge etc)"
+      ]
+    },
+    "exemplarité_de_la_collectivite": {
+      "objectifs": "Equiper les infrastructures publiques et convertir les flottes",
+      "actions": [
+        "Electrifier la flotte renouvellée par la collectivité à hauteur des obligations légales a minima (30%) et publier le taux d'électrification",
+        "Installer des points de recharge à destination des employés",
+        "Mutualiser les achats ou le leasing de véhicules électriques"
+      ]
+    }
+  },
+  "support_ingenierie_financement": [
+    {
+      "ressource": "ADEME",
+      "description": "Elaboration d'un plan de circulation, d'un SIDCA",
+      "lien": "lien",
+      "etapes_applicables": ["decision_strategique_et_normes"]
+    },
+    {
+      "ressource": "Fonds Vert Axe 3",
+      "description": "Accompagnement du déploiement des ZFE",
+      "lien": "lien",
+      "etapes_applicables": ["etude"]
+    },
+    {
+      "ressource": "Advenir",
+      "description": "Installation de bornes",
+      "lien": "lien",
+      "etapes_applicables": ["infrastructure"]
+    }
+  ],
+  "ressources_partenaires": [
+    {
+      "ressource": "MTECT",
+      "description": "Guide Schéma directeur IRVE",
+      "lien": null,
+      "etapes_applicables": ["decision_strategique_et_normes"]
+    },
+    {
+      "ressource": "Alliance qualité de l'air",
+      "description": "Solutions de mobilité pour ZFE",
+      "lien": null,
+      "etapes_applicables": ["etude"]
+    }
+  ]
+}
