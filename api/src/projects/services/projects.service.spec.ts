@@ -40,7 +40,7 @@ describe("ProjectsService", () => {
         forecastedStartDate: getFutureDate(),
         status: "IDEE",
         communeInseeCodes: mockedCommunes,
-        sousCompetences: "Accessibilité",
+        competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
       };
 
       const result = await service.create(createDto);
@@ -97,8 +97,7 @@ describe("ProjectsService", () => {
         porteurReferentNom: null,
         porteurReferentPrenom: null,
         porteurReferentTelephone: null,
-        competences: null,
-        sousCompetences: null,
+        competencesAndSousCompetences: null,
         communes: expect.arrayContaining(
           mockedCommunes.map((code) => ({
             inseeCode: code,
@@ -131,13 +130,14 @@ describe("ProjectsService", () => {
         budget: 100000,
         forecastedStartDate: getFutureDate(),
         status: "IDEE",
+        competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
         communeInseeCodes: mockedCommunes,
       };
 
       const createdProject = await service.create(createDto);
       const result = await service.findOne(createdProject.id);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { communeInseeCodes, ...expectedFields } = createDto;
+      const { communeInseeCodes, competencesAndSousCompetences, ...expectedFields } = createDto;
       expect(result).toEqual({
         ...expectedFields,
         communes: expect.arrayContaining(
@@ -150,8 +150,7 @@ describe("ProjectsService", () => {
         porteurReferentNom: null,
         porteurReferentPrenom: null,
         porteurReferentTelephone: null,
-        competences: null,
-        sousCompetences: null,
+        competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),

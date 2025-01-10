@@ -9,14 +9,9 @@ import {
   IsOptional,
   IsString,
 } from "class-validator";
-import {
-  ProjectStatus,
-  projectStatusEnum,
-  competencesEnum,
-  sousCompetencesEnum,
-  Competences,
-  SousCompetences,
-} from "@database/schema";
+import { ProjectStatus, projectStatusEnum } from "@database/schema";
+import { competencesWithSousCompetences } from "@/shared/const/competences-list";
+import { CompetenceWithSousCompetence } from "@/shared/types";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
@@ -35,7 +30,6 @@ export class CreateProjectRequest {
   @IsNotEmpty()
   description!: string;
 
-  //need this against ApiPropertyOptional to ensure proper generated types
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
@@ -102,18 +96,12 @@ export class CreateProjectRequest {
   communeInseeCodes!: string[];
 
   @ApiPropertyOptional({
-    enum: competencesEnum.enumValues,
+    enum: competencesWithSousCompetences,
+    isArray: true,
     nullable: true,
+    description: "Array of competences and sous-competences",
   })
-  @IsEnum(competencesEnum.enumValues)
+  @IsArray()
   @IsOptional()
-  competences?: Competences | null;
-
-  @ApiPropertyOptional({
-    enum: sousCompetencesEnum.enumValues,
-    nullable: true,
-  })
-  @IsEnum(sousCompetencesEnum.enumValues)
-  @IsOptional()
-  sousCompetences?: SousCompetences | null;
+  competencesAndSousCompetences?: CompetenceWithSousCompetence[] | null;
 }

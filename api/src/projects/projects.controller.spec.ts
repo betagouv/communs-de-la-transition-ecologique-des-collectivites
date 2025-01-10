@@ -68,8 +68,7 @@ describe("ProjectsController", () => {
           budget: 100000,
           forecastedStartDate: getFutureDate(),
           status: "IDEE",
-          competences: null,
-          sousCompetences: null,
+          competencesAndSousCompetences: null,
           communes: [
             {
               inseeCode: "75056",
@@ -102,8 +101,7 @@ describe("ProjectsController", () => {
         budget: 100000,
         forecastedStartDate: getFutureDate(),
         status: "IDEE",
-        competences: null,
-        sousCompetences: null,
+        competencesAndSousCompetences: null,
         communes: [
           {
             inseeCode: "75056",

@@ -1,0 +1,80 @@
+{
+  "Enseignement du premier degré": [],
+  "Enseignement du second degré": [],
+  "Enseignement supérieur, professionnel et continu": [],
+  "Hébergement et restauration scolaires": [],
+  "Autres services annexes de l'enseignement": [],
+  "Culture": [
+    "Arts plastiques et photographie",
+    "Bibliothèques et livres",
+    "Médias et communication",
+    "Musée",
+    "Patrimoine et monuments historiques",
+    "Spectacle vivant"
+  ],
+  "Sports": [],
+  "Jeunesse et loisirs": [],
+  "Santé": [],
+  "Action sociale (hors APA et RSA)": [
+    "Citoyenneté",
+    "Cohésion sociale et inclusion",
+    "Egalité des chances",
+    "Famille et enfance",
+    "Handicap",
+    "Inclusion numérique",
+    "Jeunesse",
+    "Lutte contre la précarité",
+    "Personnes âgées",
+    "Protection animale"
+  ],
+  "Aménagement des territoires": ["Foncier", "Friche", "Paysage", "Réseaux"],
+  "Habitat": [
+    "Accessibilité",
+    "Architecture",
+    "Bâtiments et construction",
+    "Cimetières et funéraire",
+    "Equipement public",
+    "Espace public",
+    "Espaces verts",
+    "Logement et habitat"
+  ],
+  "Collecte et traitement des déchets": [],
+  "Propreté urbaine": [],
+  "Actions en matière de gestion des eaux": [
+    "Assainissement des eaux",
+    "Cours d'eau / canaux / plans d'eau",
+    "Eau pluviale",
+    "Eau potable",
+    "Eau souterraine",
+    "Mers et océans"
+  ],
+  "Transports scolaires": [],
+  "Transports publics (hors scolaire)": [],
+  "Routes et voiries": [],
+  "Infrastructures de transport": [],
+  "Foires et marchés": [],
+  "Agriculture, pêche et agro-alimentaire": [
+    "Production agricole et foncier",
+    "Précarité et aide alimentaire",
+    "Transformation des produits agricoles",
+    "Consommation alimentaire",
+    "Distribution",
+    "Déchets alimentaires et/ou agricoles"
+  ],
+  "Industrie, commerce et artisanat": [
+    "Artisanat",
+    "Commerces et Services",
+    "Economie locale et circuits courts",
+    "Economie sociale et solidaire",
+    "Fiscalité des entreprises",
+    "Industrie",
+    "Innovation, créativité et recherche",
+    "Technologies numériques et numérisation",
+    "Tiers-lieux"
+  ],
+  "Développement touristique": [],
+  "Police, sécurité, justice": [],
+  "Incendie et secours": [],
+  "Hygiène et salubrité publique": [],
+  "Autres interventions de protection civile": []
+}

@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Competences, ProjectStatus, SousCompetences } from "@database/schema";
+import { ProjectStatus } from "@database/schema";
+import { CompetencesWithSousCompetences } from "@/shared/types";
 
 class Commune {
   @ApiProperty()
@@ -22,28 +23,27 @@ export class ProjectResponse {
   @ApiProperty()
   description!: string;
 
-  @ApiProperty({ type: String, nullable: true })
+  @ApiProperty({ nullable: true })
   porteurCodeSiret!: string | null;
 
   @ApiProperty({
-    type: String,
     nullable: true,
   })
   porteurReferentEmail!: string | null;
 
-  @ApiProperty({ type: String, nullable: true })
+  @ApiProperty({ nullable: true })
   porteurReferentTelephone!: string | null;
 
-  @ApiProperty({ type: String, nullable: true })
+  @ApiProperty({ nullable: true })
   porteurReferentPrenom!: string | null;
 
-  @ApiProperty({ type: String, nullable: true })
+  @ApiProperty({ nullable: true })
   porteurReferentNom!: string | null;
 
-  @ApiProperty({ type: String, nullable: true })
+  @ApiProperty({ nullable: true })
   porteurReferentFonction!: string | null;
 
-  @ApiProperty({ type: [Commune] })
+  @ApiProperty()
   communes!: Commune[];
 
   @ApiProperty()
@@ -56,8 +56,5 @@ export class ProjectResponse {
   status!: ProjectStatus;
 
   @ApiProperty({ nullable: true })
-  competences!: Competences | null;
-
-  @ApiProperty({ nullable: true })
-  sousCompetences!: SousCompetences | null;
+  competencesAndSousCompetences!: CompetencesWithSousCompetences | null;
 }
