@@ -1,5 +1,33 @@
 # @betagouv/les-communs-widget
 
+## 0.0.11
+
+### Patch Changes
+
+- properly setup NODE_ENV to production when building
+
+## 0.0.10
+
+### Patch Changes
+
+- setup NODE_ENV to production when building
+
+### Patch Changes
+
+- fix wrong dsfr dependency
+
+## 0.0.9
+
+### Patch Changes
+
+- fix wrong dsfr dependency
+
+## 0.0.8
+
+### Patch Changes
+
+- bump react peer dependency to 19
+
 ## 0.0.7
 
 ### Patch Changes

@@ -1,0 +1,18 @@
+.fr-levier-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.fr-levier-title {
+  color: var(--text-title-blue-france);
+  font-size: 2rem;
+}
+
+.fr-grid-container {
+  display: grid;
+  grid-template-columns: 100px repeat(5, 1fr);
+  grid-template-rows: repeat(4, auto);
+  border: 1px solid var(--border-default-grey);
+  border-radius: 4px;
+  overflow: hidden;
+}
