@@ -25,10 +25,7 @@ export const LesCommuns = ({ projectId, isStagingEnv }: LesCommunsProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const apiUrl =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000"
-      : `https://les-communs-transition-ecologique-api-${isStagingEnv ? "staging" : "prod"}.osc-fr1.scalingo.io`;
+  const apiUrl = getApiUrl(isStagingEnv);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -69,4 +66,9 @@ export const LesCommuns = ({ projectId, isStagingEnv }: LesCommunsProps) => {
       </div>
     </div>
   );
+};
+
+export const getApiUrl = (isStaging?: boolean, isDev = import.meta.env.DEV) => {
+  if (isDev) return "http://localhost:3000";
+  return `https://les-communs-transition-ecologique-api-${isStaging ? "staging" : "prod"}.osc-fr1.scalingo.io`;
 };
