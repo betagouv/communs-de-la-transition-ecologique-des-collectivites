@@ -16,6 +16,8 @@ interface Service {
   iframeUrl?: string;
   redirectionUrl: string;
   logoUrl: string;
+  customRedirectionUrl?: string;
+  redirectionLabel?: string;
 }
 
 export const LesCommuns = ({ projectId, isStagingEnv }: LesCommunsProps) => {
@@ -23,7 +25,10 @@ export const LesCommuns = ({ projectId, isStagingEnv }: LesCommunsProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const apiUrl = `https://les-communs-transition-ecologique-api-${isStagingEnv ? "staging" : "prod"}.osc-fr1.scalingo.io`;
+  const apiUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : `https://les-communs-transition-ecologique-api-${isStagingEnv ? "staging" : "prod"}.osc-fr1.scalingo.io`;
 
   useEffect(() => {
     const fetchServices = async () => {

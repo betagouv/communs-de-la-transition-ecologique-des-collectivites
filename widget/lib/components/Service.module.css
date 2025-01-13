@@ -47,10 +47,6 @@
   color: var(--text-mention-grey);
 }
 
-.button {
-  max-width: 25rem !important;
-}
-
 .content {
   border-top: 1px solid var(--border-default-grey);
   padding: 1.5rem 1rem;
