@@ -10,6 +10,7 @@
       "incremental": true,
       "strictNullChecks": true,
       "noImplicitAny": true,
-      "strictBindCallApply": true
+      "strictBindCallApply": true,
+      "resolveJsonModule": true
     }
   }

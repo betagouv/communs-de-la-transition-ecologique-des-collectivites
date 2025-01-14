@@ -1,5 +1,5 @@
 {
-  "id": "aadbc6d0-818f-4001-824b-d3047983f197",
+  "id": "bfdd2d60-2f2d-4817-bc42-b59bf57b1033",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -18,89 +18,6 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.project_collaborators": {
-      "name": "project_collaborators",
-      "schema": "",
-      "columns": {
-        "project_id": {
-          "name": "project_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "permission_type": {
-          "name": "permission_type",
-          "type": "permission_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "collaborator_project_idx": {
-          "name": "collaborator_project_idx",
-          "columns": [
-            {
-              "expression": "email",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "project_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "project_collaborators_project_id_projects_id_fk": {
-          "name": "project_collaborators_project_id_projects_id_fk",
-          "tableFrom": "project_collaborators",
-          "tableTo": "projects",
-          "columnsFrom": ["project_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "project_collaborators_project_id_email_pk": {
-          "name": "project_collaborators_project_id_email_pk",
-          "columns": ["project_id", "email"]
-        }
-      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -176,6 +93,18 @@
         "porteur_referent_fonction": {
           "name": "porteur_referent_fonction",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "competences": {
+          "name": "competences",
+          "type": "competences[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sous_competences": {
+          "name": "sous_competences",
+          "type": "sous_competences[]",
           "primaryKey": false,
           "notNull": false
         },
@@ -331,15 +260,98 @@
     }
   },
   "enums": {
-    "public.permission_type": {
-      "name": "permission_type",
+    "public.competences": {
+      "name": "competences",
       "schema": "public",
-      "values": ["EDIT", "VIEW"]
+      "values": [
+        "Action sociale (hors APA et RSA)",
+        "Actions en matière de gestion des eaux",
+        "Agriculture, pêche et agro-alimentaire",
+        "Aménagement des territoires",
+        "Autres interventions de protection civile",
+        "Autres services annexes de l'enseignement",
+        "Collecte et traitement des déchets",
+        "Culture",
+        "Développement touristique",
+        "Enseignement du premier degré",
+        "Enseignement du second degré",
+        "Enseignement supérieur, professionnel et continu",
+        "Foires et marchés",
+        "Habitat",
+        "Hygiène et salubrité publique",
+        "Hébergement et restauration scolaires",
+        "Incendie et secours",
+        "Industrie, commerce et artisanat",
+        "Infrastructures de transport",
+        "Jeunesse et loisirs",
+        "Police, sécurité, justice",
+        "Propreté urbaine",
+        "Routes et voiries",
+        "Santé",
+        "Sports",
+        "Transports publics (hors scolaire)",
+        "Transports scolaires"
+      ]
     },
     "public.project_status": {
       "name": "project_status",
       "schema": "public",
       "values": ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"]
+    },
+    "public.sous_competences": {
+      "name": "sous_competences",
+      "schema": "public",
+      "values": [
+        "Accessibilité",
+        "Architecture",
+        "Artisanat",
+        "Arts plastiques et photographie",
+        "Assainissement des eaux",
+        "Bibliothèques et livres",
+        "Bâtiments et construction",
+        "Cimetières et funéraire",
+        "Citoyenneté",
+        "Cohésion sociale et inclusion",
+        "Commerces et Services",
+        "Consommation alimentaire",
+        "Cours d'eau / canaux / plans d'eau",
+        "Distribution",
+        "Déchets alimentaires et/ou agricoles",
+        "Eau pluviale",
+        "Eau potable",
+        "Eau souterraine",
+        "Economie locale et circuits courts",
+        "Economie sociale et solidaire",
+        "Egalité des chances",
+        "Equipement public",
+        "Espace public",
+        "Espaces verts",
+        "Famille et enfance",
+        "Fiscalité des entreprises",
+        "Foncier",
+        "Friche",
+        "Handicap",
+        "Inclusion numérique",
+        "Industrie",
+        "Innovation, créativité et recherche",
+        "Jeunesse",
+        "Logement et habitat",
+        "Lutte contre la précarité",
+        "Mers et océans",
+        "Musée",
+        "Médias et communication",
+        "Patrimoine et monuments historiques",
+        "Paysage",
+        "Personnes âgées",
+        "Production agricole et foncier",
+        "Protection animale",
+        "Précarité et aide alimentaire",
+        "Réseaux",
+        "Spectacle vivant",
+        "Technologies numériques et numérisation",
+        "Tiers-lieux",
+        "Transformation des produits agricoles"
+      ]
     }
   },
   "schemas": {},

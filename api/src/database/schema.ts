@@ -1,5 +1,6 @@
 import { pgTable, text, timestamp, integer, pgEnum, uuid, primaryKey, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { competences, sousCompetences } from "@/shared/const/competences-list";
 
 export const projectStatusEnum = pgEnum("project_status", [
   "IDEE",
@@ -10,11 +11,10 @@ export const projectStatusEnum = pgEnum("project_status", [
   "TERMINE",
 ]);
 
+export const competencesEnum = pgEnum("competences", competences);
+export const sousCompetencesEnum = pgEnum("sous_competences", sousCompetences);
+
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
-
-export const permissionTypeEnum = pgEnum("permission_type", ["EDIT", "VIEW"]);
-
-export type PermissionType = (typeof permissionTypeEnum.enumValues)[number];
 
 export const communes = pgTable("communes", {
   inseeCode: text("insee_code").primaryKey(),
@@ -35,6 +35,8 @@ export const projects = pgTable("projects", {
   porteurReferentPrenom: text("porteur_referent_prenom"),
   porteurReferentNom: text("porteur_referent_nom"),
   porteurReferentFonction: text("porteur_referent_fonction"),
+  competences: competencesEnum().array(),
+  sousCompetences: sousCompetencesEnum("sous_competences").array(),
   budget: integer("budget").notNull(),
   forecastedStartDate: text("forecasted_start_date").notNull(),
   status: projectStatusEnum().notNull(),

@@ -8,20 +8,33 @@ import { ProjectResponse } from "../dto/project.dto";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "./communes.service";
 import { removeUndefined } from "@/shared/utils/remove-undefined";
+import { Competence, CompetencesWithSousCompetences, SousCompetence } from "@/shared/types";
+import { CompetencesService } from "./competences.service";
 
 @Injectable()
 export class ProjectsService {
   constructor(
     private dbService: DatabaseService,
     private readonly communesService: CommunesService,
+    private readonly competencesService: CompetencesService,
     private logger: CustomLogger,
   ) {}
 
   async create(createProjectDto: CreateProjectRequest): Promise<{ id: string }> {
     this.validateDate(createProjectDto.forecastedStartDate);
 
+    const { competencesAndSousCompetences, ...otherFields } = createProjectDto;
+    const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
+
     return this.dbService.database.transaction(async (tx) => {
-      const [createdProject] = await tx.insert(projects).values(removeUndefined(createProjectDto)).returning();
+      const [createdProject] = await tx
+        .insert(projects)
+        .values({
+          ...otherFields,
+          competences,
+          sousCompetences,
+        })
+        .returning();
 
       await this.communesService.createOrUpdate(tx, createdProject.id, createProjectDto.communeInseeCodes);
 
@@ -42,10 +55,16 @@ export class ProjectsService {
       },
     });
 
-    return results.map((result) => ({
-      ...result,
-      communes: result.communes.map((c) => c.commune),
-    }));
+    return results.map((result) => {
+      const { competences, sousCompetences, ...rest } = result;
+      const combinedCompetences = this.competencesService.combineCompetences(competences, sousCompetences);
+
+      return {
+        ...rest,
+        competencesAndSousCompetences: combinedCompetences,
+        communes: result.communes.map((c) => c.commune),
+      };
+    });
   }
 
   async findOne(id: string): Promise<ProjectResponse> {
@@ -65,9 +84,13 @@ export class ProjectsService {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }
 
+    const { competences, sousCompetences, ...rest } = result;
+    const combinedCompetences = this.competencesService.combineCompetences(competences, sousCompetences);
+
     return {
-      ...result,
+      ...rest,
       communes: result.communes.map((c) => c.commune),
+      competencesAndSousCompetences: combinedCompetences,
     };
   }
 
@@ -76,11 +99,13 @@ export class ProjectsService {
       this.validateDate(updateProjectDto.forecastedStartDate);
     }
 
+    const { competencesAndSousCompetences, ...otherFields } = updateProjectDto;
+    const { competences, sousCompetences } = this.splitCompetence(competencesAndSousCompetences);
+
     return this.dbService.database.transaction(async (tx) => {
       const [existingProject] = await tx
         .select({
           id: projects.id,
-          porteurReferentEmail: projects.porteurReferentEmail,
         })
         .from(projects)
         .where(eq(projects.id, id))
@@ -90,15 +115,16 @@ export class ProjectsService {
         throw new NotFoundException(`Project with ID ${id} not found`);
       }
 
-      const { communeInseeCodes, ...fieldsToUpdate } = removeUndefined(updateProjectDto);
+      const { communeInseeCodes, ...fieldsToUpdate } = removeUndefined({
+        ...otherFields,
+        competences,
+        sousCompetences,
+      });
 
       if (communeInseeCodes) {
         await this.communesService.createOrUpdate(tx, id, communeInseeCodes);
       }
 
-      // Check if there are fields to update
-      // for example you can update only communes which do not need
-      // an update of the project table directly
       if (Object.keys(fieldsToUpdate).length > 0) {
         await tx.update(projects).set(fieldsToUpdate).where(eq(projects.id, id));
       }
@@ -119,5 +145,32 @@ export class ProjectsService {
     if (inputDate < today) {
       throw new BadRequestException("Forecasted start date must be in the future");
     }
+  }
+
+  private splitCompetence(competencesList: CompetencesWithSousCompetences | null | undefined): {
+    competences: Competence[] | null;
+    sousCompetences: SousCompetence[] | null;
+  } {
+    if (!competencesList) {
+      return { competences: null, sousCompetences: null };
+    }
+
+    const competences: Competence[] = [];
+    const sousCompetences: SousCompetence[] = [];
+
+    if (Array.isArray(competencesList)) {
+      competencesList.forEach((compAndSousComp) => {
+        const [mainCompetence, sousCompetence] = compAndSousComp.split("__");
+        competences.push(mainCompetence as Competence);
+        if (sousCompetence) {
+          sousCompetences.push(sousCompetence as SousCompetence);
+        }
+      });
+    }
+
+    return {
+      competences: competences.length > 0 ? competences : null,
+      sousCompetences: sousCompetences.length > 0 ? sousCompetences : null,
+    };
   }
 }

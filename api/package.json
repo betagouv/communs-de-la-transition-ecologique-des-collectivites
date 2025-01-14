@@ -24,6 +24,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --config test/jest.config.ts",
     "test:e2e": "pnpm generate-types && jest --config test/jest-e2e.config.ts",
     "generate-types": "bash scripts/generate-types.sh",
+    "generate-competences-list": "ts-node scripts/generate-competences-list.ts",
     "release": "commit-and-tag-version",
     "db:start": "docker-compose up -d",
     "db:clean": "docker-compose down -v",
