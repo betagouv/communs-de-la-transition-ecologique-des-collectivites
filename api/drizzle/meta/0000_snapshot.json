@@ -1,5 +1,5 @@
 {
-  "id": "bfdd2d60-2f2d-4817-bc42-b59bf57b1033",
+  "id": "d159336f-abb2-4ae5-8c01-2f4d4f815d66",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -31,8 +31,7 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -181,8 +180,12 @@
           "name": "projects_to_communes_project_id_projects_id_fk",
           "tableFrom": "projects_to_communes",
           "tableTo": "projects",
-          "columnsFrom": ["project_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -190,8 +193,12 @@
           "name": "projects_to_communes_commune_id_communes_insee_code_fk",
           "tableFrom": "projects_to_communes",
           "tableTo": "communes",
-          "columnsFrom": ["commune_id"],
-          "columnsTo": ["insee_code"],
+          "columnsFrom": [
+            "commune_id"
+          ],
+          "columnsTo": [
+            "insee_code"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -199,7 +206,10 @@
       "compositePrimaryKeys": {
         "projects_to_communes_project_id_commune_id_pk": {
           "name": "projects_to_communes_project_id_commune_id_pk",
-          "columns": ["project_id", "commune_id"]
+          "columns": [
+            "project_id",
+            "commune_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -215,8 +225,7 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "createdAt": {
           "name": "createdAt",
@@ -293,10 +302,25 @@
         "Transports scolaires"
       ]
     },
+    "public.permission_type": {
+      "name": "permission_type",
+      "schema": "public",
+      "values": [
+        "EDIT",
+        "VIEW"
+      ]
+    },
     "public.project_status": {
       "name": "project_status",
       "schema": "public",
-      "values": ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"]
+      "values": [
+        "IDEE",
+        "FAISABILITE",
+        "EN_COURS",
+        "IMPACTE",
+        "ABANDONNE",
+        "TERMINE"
+      ]
     },
     "public.sous_competences": {
       "name": "sous_competences",
