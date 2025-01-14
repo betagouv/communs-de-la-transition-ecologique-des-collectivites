@@ -4,6 +4,7 @@ import { CommunesService } from "../communes/communes.service";
 import { projects } from "@database/schema";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { CompetencesService } from "@projects/services/competences/competences.service";
+import { BulkCreateProjectsRequest } from "@projects/dto/bulk-create-projects.dto";
 
 @Injectable()
 export class CreateProjectsService {
@@ -32,6 +33,32 @@ export class CreateProjectsService {
       await this.communesService.createOrUpdate(tx, createdProject.id, createProjectDto.communeInseeCodes);
 
       return { id: createdProject.id };
+    });
+  }
+
+  async createBulk(bulkCreateProjectsRequest: BulkCreateProjectsRequest): Promise<{ ids: string[] }> {
+    return this.dbService.database.transaction(async (tx) => {
+      const createdProjects = [];
+
+      for (const projectDto of bulkCreateProjectsRequest.projects) {
+        const { competencesAndSousCompetences, communeInseeCodes, ...projectFields } = projectDto;
+        const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
+
+        const [newProject] = await tx
+          .insert(projects)
+          .values({
+            ...projectFields,
+            competences,
+            sousCompetences,
+          })
+          .returning({ id: projects.id });
+
+        await this.communesService.createOrUpdate(tx, newProject.id, communeInseeCodes);
+
+        createdProjects.push(newProject);
+      }
+
+      return { ids: createdProjects.map((p) => p.id) };
     });
   }
 

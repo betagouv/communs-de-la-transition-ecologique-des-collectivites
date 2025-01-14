@@ -8,6 +8,7 @@ import { Request } from "express";
 import { CreateProjectsService } from "./services/create-projects/create-projects.service";
 import { UpdateProjectsService } from "./services/update-projects/update-projects.service";
 import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";
+import { BulkCreateProjectsRequest, BulkCreateProjectsResponse } from "./dto/bulk-create-projects.dto";
 
 @ApiBearerAuth()
 @Controller("projects")
@@ -17,19 +18,6 @@ export class ProjectsController {
     private readonly projectFindService: GetProjectsService,
     private readonly projectUpdateService: UpdateProjectsService,
   ) {}
-
-  @Post()
-  @ApiEndpointResponses({
-    successStatus: 201,
-    response: CreateOrUpdateProjectResponse,
-    description: "Project created successfully",
-  })
-  create(
-    @Req() _request: Request,
-    @Body() createProjectDto: CreateProjectRequest,
-  ): Promise<CreateOrUpdateProjectResponse> {
-    return this.projectCreateService.create(createProjectDto);
-  }
 
   @Get()
   @ApiEndpointResponses({
@@ -45,6 +33,32 @@ export class ProjectsController {
   @Get(":id")
   findOne(@Param("id") id: string): Promise<ProjectResponse> {
     return this.projectFindService.findOne(id);
+  }
+
+  @Post()
+  @ApiEndpointResponses({
+    successStatus: 201,
+    response: CreateOrUpdateProjectResponse,
+    description: "Project created successfully",
+  })
+  create(
+    @Req() _request: Request,
+    @Body() createProjectDto: CreateProjectRequest,
+  ): Promise<CreateOrUpdateProjectResponse> {
+    return this.projectCreateService.create(createProjectDto);
+  }
+
+  @Post("bulk")
+  @ApiEndpointResponses({
+    successStatus: 201,
+    response: BulkCreateProjectsResponse,
+    description: "Bulk Projects created successfully",
+  })
+  async createBulk(
+    @Req() _request: Request,
+    @Body() createProjectsDto: BulkCreateProjectsRequest,
+  ): Promise<BulkCreateProjectsResponse> {
+    return await this.projectCreateService.createBulk(createProjectsDto);
   }
 
   @Patch(":id")
