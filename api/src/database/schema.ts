@@ -1,5 +1,6 @@
 import { pgTable, text, timestamp, integer, pgEnum, uuid, primaryKey, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { uuidv7 } from "uuidv7";
 import { competences, sousCompetences } from "@/shared/const/competences-list";
 
 export const projectStatusEnum = pgEnum("project_status", [
@@ -16,12 +17,18 @@ export const sousCompetencesEnum = pgEnum("sous_competences", sousCompetences);
 
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
+export const permissionTypeEnum = pgEnum("permission_type", ["EDIT", "VIEW"]);
+
+export type PermissionType = (typeof permissionTypeEnum.enumValues)[number];
+
 export const communes = pgTable("communes", {
   inseeCode: text("insee_code").primaryKey(),
 });
 
 export const projects = pgTable("projects", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
@@ -59,7 +66,9 @@ export const projectsToCommunes = pgTable(
 );
 
 export const services = pgTable("services", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
   createdAt: timestamp("createdAt").defaultNow(),
   name: text("name").notNull(),
   description: text("description").notNull(),

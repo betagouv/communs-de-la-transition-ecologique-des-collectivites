@@ -8,6 +8,13 @@
       "when": 1736432145404,
       "tag": "0000_early_bushwacker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1736845179626,
+      "tag": "0002_fluffy_power_man",
+      "breakpoints": true
     }
   ]
 }
