@@ -1,5 +1,5 @@
 import { DatabaseService } from "@database/database.service";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { CommunesService } from "../communes/communes.service";
 import { projects } from "@database/schema";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
@@ -15,8 +15,6 @@ export class CreateProjectsService {
   ) {}
 
   async create(createProjectDto: CreateProjectRequest): Promise<{ id: string }> {
-    this.validateDate(createProjectDto.forecastedStartDate);
-
     const { competencesAndSousCompetences, ...otherFields } = createProjectDto;
     const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
 
@@ -60,15 +58,5 @@ export class CreateProjectsService {
 
       return { ids: createdProjects.map((p) => p.id) };
     });
-  }
-
-  private validateDate(dateStr: string): void {
-    const inputDate = new Date(dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (inputDate < today) {
-      throw new BadRequestException("Forecasted start date must be in the future");
-    }
   }
 }

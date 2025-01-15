@@ -5,7 +5,7 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { CreateProjectRequest } from "../../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
-import { getFutureDate } from "@test/helpers/getFutureDate";
+import { getFormattedDate } from "@test/helpers/getFormattedDate";
 import { CreateProjectsService } from "./create-projects.service";
 import { projects, projectsToCommunes } from "@database/schema";
 import { and, inArray } from "drizzle-orm";
@@ -37,7 +37,7 @@ describe("ProjectCreateService", () => {
       nom: "Test Project",
       description: "Test Description",
       budget: 100000,
-      forecastedStartDate: getFutureDate(),
+      forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: mockedCommunes,
       competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
@@ -58,7 +58,7 @@ describe("ProjectCreateService", () => {
             nom: "Test Project 1",
             description: "Test Description 1",
             budget: 100000,
-            forecastedStartDate: getFutureDate(),
+            forecastedStartDate: getFormattedDate(),
             status: "IDEE",
             communeInseeCodes: ["75056"],
           },
@@ -66,7 +66,7 @@ describe("ProjectCreateService", () => {
             nom: "Test Project 2",
             description: "Test Description 2",
             budget: 200000,
-            forecastedStartDate: getFutureDate(),
+            forecastedStartDate: getFormattedDate(),
             status: "IDEE",
             communeInseeCodes: ["75057"],
           },
@@ -108,7 +108,7 @@ describe("ProjectCreateService", () => {
             nom: "Test Project 1",
             description: "Test Description 1",
             budget: 100000,
-            forecastedStartDate: getFutureDate(),
+            forecastedStartDate: getFormattedDate(),
             status: "IDEE",
             communeInseeCodes: ["75056"],
           },
@@ -116,7 +116,7 @@ describe("ProjectCreateService", () => {
             nom: "Test Project 2",
             description: "Test Description 2",
             budget: -1, // Invalid budget to trigger failure
-            forecastedStartDate: getFutureDate(),
+            forecastedStartDate: getFormattedDate(),
             status: "IDEE",
             communeInseeCodes: ["75057"],
           },

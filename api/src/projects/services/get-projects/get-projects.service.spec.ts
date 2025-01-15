@@ -6,7 +6,7 @@ import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { CreateProjectRequest } from "../../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
-import { getFutureDate } from "@test/helpers/getFutureDate";
+import { getFormattedDate } from "@test/helpers/getFormattedDate";
 import { GetProjectsService } from "./get-projects.service";
 import { CreateProjectsService } from "../create-projects/create-projects.service";
 
@@ -36,7 +36,7 @@ describe("ProjectFindService", () => {
 
   describe("findAll", () => {
     it("should return all projects", async () => {
-      const futureDate = getFutureDate();
+      const futureDate = getFormattedDate();
       const createDto1: CreateProjectRequest = {
         nom: "Project 1",
         description: "Description 1",
@@ -112,7 +112,7 @@ describe("ProjectFindService", () => {
         description: "Test Description",
         porteurCodeSiret: "12345678901234",
         budget: 100000,
-        forecastedStartDate: getFutureDate(),
+        forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
         communeInseeCodes: mockedCommunes,

@@ -4,7 +4,7 @@ import { AppModule } from "@/app.module";
 import { setupApp } from "@/setup-app";
 import { e2eTestDbSetup } from "./helpers/e2eTestDbSetup";
 import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
-import { getFutureDate } from "./helpers/getFutureDate";
+import { getFormattedDate } from "./helpers/getFormattedDate";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { createApiClient } from "@test/helpers/apiClient";
 
@@ -42,7 +42,7 @@ describe("AppController (e2e)", () => {
       budget: 100000,
       porteurReferentEmail: "test@email.com",
       porteurCodeSiret: null,
-      forecastedStartDate: getFutureDate(),
+      forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
     };

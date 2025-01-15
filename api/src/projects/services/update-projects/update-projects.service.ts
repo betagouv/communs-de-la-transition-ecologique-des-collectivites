@@ -2,7 +2,7 @@ import { DatabaseService } from "@database/database.service";
 import { projects } from "@database/schema";
 import { UpdateProjectDto } from "@projects/dto/update-project.dto";
 import { removeUndefined } from "@/shared/utils/remove-undefined";
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "../communes/communes.service";
 import { CompetencesService } from "@projects/services/competences/competences.service";
@@ -16,9 +16,6 @@ export class UpdateProjectsService {
   ) {}
 
   async update(id: string, updateProjectDto: UpdateProjectDto): Promise<{ id: string }> {
-    if (updateProjectDto.forecastedStartDate) {
-      this.validateDate(updateProjectDto.forecastedStartDate);
-    }
     const { competencesAndSousCompetences, ...otherFields } = updateProjectDto;
     const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
 
@@ -52,15 +49,5 @@ export class UpdateProjectsService {
 
       return { id: existingProject.id };
     });
-  }
-
-  private validateDate(dateStr: string): void {
-    const inputDate = new Date(dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (inputDate < today) {
-      throw new BadRequestException("Forecasted start date must be in the future");
-    }
   }
 }

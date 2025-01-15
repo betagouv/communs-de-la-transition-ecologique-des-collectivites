@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ProjectsController } from "./projects.controller";
 import { CreateProjectRequest } from "./dto/create-project.dto";
 import { ProjectResponse } from "./dto/project.dto";
-import { getFutureDate } from "@test/helpers/getFutureDate";
+import { getFormattedDate } from "@test/helpers/getFormattedDate";
 import { AppModule } from "@/app.module";
 import { NotFoundException } from "@nestjs/common";
 import { mockRequest } from "@test/mocks/mockRequest";
@@ -36,7 +36,7 @@ describe("ProjectsController", () => {
       porteurCodeSiret: "12345678901234",
       porteurReferentEmail: "test@example.com",
       budget: 100000,
-      forecastedStartDate: getFutureDate(),
+      forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: ["75056"],
     };
@@ -69,7 +69,7 @@ describe("ProjectsController", () => {
           porteurReferentFonction: null,
           porteurReferentPrenom: null,
           budget: 100000,
-          forecastedStartDate: getFutureDate(),
+          forecastedStartDate: getFormattedDate(),
           status: "IDEE",
           competencesAndSousCompetences: null,
           communes: [
@@ -102,7 +102,7 @@ describe("ProjectsController", () => {
         porteurReferentFonction: null,
         porteurReferentPrenom: null,
         budget: 100000,
-        forecastedStartDate: getFutureDate(),
+        forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         competencesAndSousCompetences: null,
         communes: [
