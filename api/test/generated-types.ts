@@ -198,18 +198,14 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["ProjectResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -231,18 +227,14 @@ export interface operations {
         responses: {
             /** @description Project created successfully */
             201: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -261,18 +253,14 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["ProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -295,9 +283,7 @@ export interface operations {
         };
         responses: {
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content?: never;
             };
         };
@@ -317,18 +303,14 @@ export interface operations {
         responses: {
             /** @description Bulk Projects created successfully */
             201: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["BulkCreateProjectsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -345,9 +327,7 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content?: never;
             };
         };
@@ -364,9 +344,7 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
+                headers: Record<string, unknown>;
                 content?: never;
             };
         };
