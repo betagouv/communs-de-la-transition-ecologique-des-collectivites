@@ -107,18 +107,14 @@ describe("AppController (e2e)", () => {
         });
       });
 
-      it("should reject when date is in the past", async () => {
-        const pastDate = new Date();
-        pastDate.setFullYear(pastDate.getFullYear() - 1);
-        const pastDateStr = pastDate.toISOString().split("T")[0];
-
+      it("should reject when date is not an isoDate string", async () => {
         const { error } = await api.projects.create({
           ...validProject,
-          forecastedStartDate: pastDateStr,
+          forecastedStartDate: "hello",
         });
 
         expect(error?.statusCode).toBe(400);
-        expect(error?.message).toBe("Forecasted start date must be in the future");
+        expect(error?.message).toStrictEqual(["forecastedStartDate must be a valid ISO 8601 date string"]);
       });
 
       it("should reject when project has no commune insee code", async () => {

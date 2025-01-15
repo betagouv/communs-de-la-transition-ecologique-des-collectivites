@@ -36,13 +36,12 @@ describe("ProjectFindService", () => {
 
   describe("findAll", () => {
     it("should return all projects", async () => {
-      const futureDate = getFormattedDate();
       const createDto1: CreateProjectRequest = {
         nom: "Project 1",
         description: "Description 1",
         porteurReferentEmail: "porteurReferentEmail@email.com",
         budget: 100000,
-        forecastedStartDate: futureDate,
+        forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
@@ -50,7 +49,7 @@ describe("ProjectFindService", () => {
         nom: "Project 2",
         description: "Description 2",
         budget: 100000,
-        forecastedStartDate: futureDate,
+        forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         communeInseeCodes: mockedCommunes,
       };
