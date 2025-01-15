@@ -35,7 +35,7 @@ export const projects = pgTable("projects", {
     .defaultNow()
     .$onUpdate(() => new Date()),
   nom: text("nom").notNull(),
-  description: text("description").notNull(),
+  description: text("description"),
   porteurCodeSiret: text("code_siret"),
   porteurReferentEmail: text("porteur_referent_email"),
   porteurReferentTelephone: text("porteur_referent_telephone"),
@@ -44,9 +44,9 @@ export const projects = pgTable("projects", {
   porteurReferentFonction: text("porteur_referent_fonction"),
   competences: competencesEnum().array(),
   sousCompetences: sousCompetencesEnum("sous_competences").array(),
-  budget: integer("budget").notNull(),
-  forecastedStartDate: text("forecasted_start_date").notNull(),
-  status: projectStatusEnum().notNull(),
+  budget: integer("budget"),
+  forecastedStartDate: text("forecasted_start_date"),
+  status: projectStatusEnum(),
 });
 
 export const projectsToCommunes = pgTable(

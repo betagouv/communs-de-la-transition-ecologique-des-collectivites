@@ -1,14 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  ArrayNotEmpty,
-  IsArray,
-  IsDateString,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from "class-validator";
+import { ArrayNotEmpty, IsArray, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
 import { competencesWithSousCompetences } from "@/shared/const/competences-list";
 import { CompetenceWithSousCompetence } from "@/shared/types";
@@ -25,9 +16,9 @@ export class CreateProjectRequest {
   @IsNotEmpty()
   nom!: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   description!: string;
 
   @ApiProperty({ required: false, nullable: true, type: String })
@@ -60,28 +51,23 @@ export class CreateProjectRequest {
   @IsOptional()
   porteurReferentFonction?: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ required: false, nullable: true, type: Number })
   @IsNumber()
+  @IsOptional()
   budget!: number;
 
-  @ApiProperty({
-    description: "Forecasted start date in YYYY-MM-DD format",
-    example: "2024-03-01",
-  })
-  @IsDateString(
-    {},
-    {
-      message: "Date must be in YYYY-MM-DD format (e.g., 2024-03-01)",
-    },
-  )
+  @ApiProperty({ required: false, nullable: true, type: String })
+  @IsDateString()
+  @IsOptional()
   forecastedStartDate!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     enum: projectStatusEnum.enumValues,
+    nullable: true,
     description: "Status specific to the service type",
   })
-  @IsEnum(projectStatusEnum.enumValues)
-  status!: ProjectStatus;
+  @IsOptional()
+  status?: ProjectStatus | null;
 
   @ApiProperty({
     type: [String],

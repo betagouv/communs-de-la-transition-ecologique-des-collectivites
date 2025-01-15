@@ -1,5 +1,5 @@
 {
-  "id": "d159336f-abb2-4ae5-8c01-2f4d4f815d66",
+  "id": "7c8b0a5d-4a9d-4ac6-a83d-2e0a8b668043",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -57,7 +57,7 @@
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "code_siret": {
           "name": "code_siret",
@@ -111,20 +111,20 @@
           "name": "budget",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "forecasted_start_date": {
           "name": "forecasted_start_date",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "status": {
           "name": "status",
           "type": "project_status",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},

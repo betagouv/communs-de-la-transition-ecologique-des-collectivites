@@ -30,10 +30,26 @@ export interface paths {
         get: operations["ProjectsController_findOne"];
         put?: never;
         post?: never;
-        delete: operations["ProjectsController_remove"];
+        delete?: never;
         options?: never;
         head?: never;
         patch: operations["ProjectsController_update"];
+        trace?: never;
+    };
+    "/projects/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ProjectsController_createBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/services/debug-sentry": {
@@ -72,26 +88,48 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ProjectResponse: {
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            nom: string;
+            description: Record<string, never>;
+            porteurCodeSiret: Record<string, never>;
+            porteurReferentEmail: Record<string, never>;
+            porteurReferentTelephone: Record<string, never>;
+            porteurReferentPrenom: Record<string, never>;
+            porteurReferentNom: Record<string, never>;
+            porteurReferentFonction: Record<string, never>;
+            communes: string[];
+            budget: Record<string, never>;
+            forecastedStartDate: Record<string, never>;
+            status: Record<string, never>;
+            competencesAndSousCompetences: Record<string, never>;
+        };
+        ErrorResponse: {
+            /** @description HTTP status code */
+            statusCode: number;
+            /** @description Error message */
+            message: string;
+        };
         CreateProjectRequest: {
             nom: string;
-            description: string;
+            description?: string | null;
             porteurCodeSiret?: string | null;
             porteurReferentEmail?: string | null;
             porteurReferentTelephone?: string | null;
             porteurReferentPrenom?: string | null;
             porteurReferentNom?: string | null;
             porteurReferentFonction?: string | null;
-            budget: number;
-            /**
-             * @description Forecasted start date in YYYY-MM-DD format
-             * @example 2024-03-01
-             */
-            forecastedStartDate: string;
+            budget?: number | null;
+            forecastedStartDate?: string | null;
             /**
              * @description Status specific to the service type
-             * @enum {string}
+             * @enum {string|null}
              */
-            status: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE";
+            status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
             /**
              * @description Array of INSEE codes for the communes
              * @example [
@@ -107,52 +145,28 @@ export interface components {
         CreateOrUpdateProjectResponse: {
             id: string;
         };
-        ErrorResponse: {
-            /** @description HTTP status code */
-            statusCode: number;
-            /** @description Error message */
-            message: string;
+        BulkCreateProjectsRequest: {
+            projects: components["schemas"]["CreateProjectRequest"][];
         };
-        ProjectResponse: {
-            id: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            nom: string;
-            description: string;
-            porteurCodeSiret: Record<string, never>;
-            porteurReferentEmail: Record<string, never>;
-            porteurReferentTelephone: Record<string, never>;
-            porteurReferentPrenom: Record<string, never>;
-            porteurReferentNom: Record<string, never>;
-            porteurReferentFonction: Record<string, never>;
-            communes: string[];
-            budget: number;
-            forecastedStartDate: string;
-            status: string;
-            competencesAndSousCompetences: Record<string, never>;
+        BulkCreateProjectsResponse: {
+            ids: string[];
         };
         UpdateProjectDto: {
             nom?: string;
-            description?: string;
+            description?: string | null;
             porteurCodeSiret?: string | null;
             porteurReferentEmail?: string | null;
             porteurReferentTelephone?: string | null;
             porteurReferentPrenom?: string | null;
             porteurReferentNom?: string | null;
             porteurReferentFonction?: string | null;
-            budget?: number;
-            /**
-             * @description Forecasted start date in YYYY-MM-DD format
-             * @example 2024-03-01
-             */
-            forecastedStartDate?: string;
+            budget?: number | null;
+            forecastedStartDate?: string | null;
             /**
              * @description Status specific to the service type
-             * @enum {string}
+             * @enum {string|null}
              */
-            status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE";
+            status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
             /**
              * @description Array of INSEE codes for the communes
              * @example [
@@ -253,23 +267,6 @@ export interface operations {
             };
         };
     };
-    ProjectsController_remove: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: Record<string, unknown>;
-                content?: never;
-            };
-        };
-    };
     ProjectsController_update: {
         parameters: {
             query?: never;
@@ -290,6 +287,35 @@ export interface operations {
                 headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ProjectsController_createBulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkCreateProjectsRequest"];
+            };
+        };
+        responses: {
+            /** @description Bulk Projects created successfully */
+            201: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["BulkCreateProjectsResponse"];
                 };
             };
             /** @description Error response */
