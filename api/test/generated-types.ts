@@ -285,9 +285,19 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Project updated successfully */
             200: {
                 headers: Record<string, unknown>;
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
             };
         };
     };

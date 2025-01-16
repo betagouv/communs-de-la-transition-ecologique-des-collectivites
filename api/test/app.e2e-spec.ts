@@ -193,6 +193,16 @@ describe("AppController (e2e)", () => {
           ),
         });
       });
+
+      it("should reject update when nom is empty", async () => {
+        const { error } = await api.projects.update(projectId, {
+          ...validProject,
+          nom: "",
+        });
+
+        expect(error?.statusCode).toBe(400);
+        expect(error?.message).toContain("nom should not be empty");
+      });
     });
 
     describe("GET /projects/:id", () => {
