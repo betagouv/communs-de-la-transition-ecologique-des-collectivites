@@ -2,6 +2,8 @@
 
 Should you be a service connected to Les communs, here is a [detailed doc in french](CONNECTING_SERVICE.md) :
 
+You can also find a dedicated ADR about the API [here](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/blob/main/api/docs/adr/0001-api-communs-de-la-transition-ecologique-des-collectivites.md)
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
