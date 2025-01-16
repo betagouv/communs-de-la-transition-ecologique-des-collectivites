@@ -55,37 +55,13 @@ Diagramme de séquence pour la solution envisagée :
 
 ```
 
+Pour avoir accès à l'API des communs, il vous faudra une clé d'API qui est fournie via vaultWarden. Chaque service a sa propre clé API utilisable dans les requêtes via header
+``Authorization: `Bearer ${apiKey}
+    ``
+
 ## Permissions
 
-Assurer l’accès aux projets entre MEC et TeT, malgré des règles d’accès différentes. Par un exemple un service connecté peut avoir des règles complexes pour afficher le projet pour un utilisateur (appartenance à une commune ou autre).
-
-Cette logique d'accès est propre à chaque service connecté et Les communs ne peuvent en avoir connaissance. Mais Les Communs devraient quand même avoir une logique de permission pour s'assurer que tel utilisateur est bien autorisé à accéder à ces ressources.
-
-La solution est donc d'avoir un système de permissions basique dans les Communs dont les Services Connectés auront le controle.
-
-Pour les besoins des permissions Les Communs auront donc besoin des emails des utilisateurs que nous utiliserons pour leur associer des permissions.
-
-Pour l'instant le niveau de permission est "READ"/"WRITE" - et pourra évoluer par la suite.
-
-```mermaid
-sequenceDiagram
-participant Service Connecté API
-participant Les Communs API
-participant Les Communs DB
-
-    Service Connecté API->>Les Communs API: Demande de création de permission (email, READ/WRITE)
-    Les Communs API->>Les Communs DB: Sauvegarde de la permission
-
-    Service Connecté API->>Les Communs API: Lecture/Écriture de données
-    Les Communs API->>Les Communs DB: Vérification des permissions (email)
-    alt Permission accordée
-        Les Communs DB-->>Les Communs API: Accès autorisé
-        Les Communs API-->>Service Connecté API: Opération réussie
-    else Permission refusée
-        Les Communs DB-->>Les Communs API: Accès refusé
-        Les Communs API-->>Service Connecté API: Erreur de permission
-    end
-```
+Pas de système de permission partagé entre les services connectés et les communs. voir ADR [permissions](PERMISSIONS.md)
 
 ## Informations personnelles
 
@@ -122,6 +98,8 @@ Cette approche permet de :
 - Préserver l'autonomie des services dans leur gestion détaillée des statuts
 - Assurer une synchronisation cohérente entre les services
 - Faciliter l'intégration de nouveaux services avec des systèmes de statuts différents
+
+⚠️⚠️⚠️ Pour la lecture des catégories ci-dessous, il n’y a pas de lien direct entre les status MEC et Tet (par exemple etudes pré-opérationnelles ne correspond pas à A venir). Les colonnes sont indépendantes, vous fiez uniquement au code couleur de chaque status pour trouver sa correspondance générique.
 
 Recap du mapping potentiel :
 
