@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { ArrayNotEmpty, IsArray, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
 import { competencesWithSousCompetences } from "@/shared/const/competences-list";
@@ -63,17 +63,13 @@ export class CreateProjectRequest {
     description: "Forecasted start date in YYYY-MM-DD format",
     example: "2024-03-01",
   })
-  @IsDateString(
-    {},
-    {
-      message: "Date must be in YYYY-MM-DD format (e.g., 2024-03-01)",
-    },
-  )
+  @IsDateString()
   forecastedStartDate!: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     enum: projectStatusEnum.enumValues,
     nullable: true,
+    required: false,
     description: "Status specific to the service type",
   })
   @IsOptional()
@@ -83,6 +79,7 @@ export class CreateProjectRequest {
     type: [String],
     description: "Array of INSEE codes for the communes",
     example: ["01001", "75056", "97A01"],
+    required: false,
   })
   @IsArray()
   @IsString({ each: true })
@@ -91,9 +88,10 @@ export class CreateProjectRequest {
   })
   communeInseeCodes!: string[];
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     enum: competencesWithSousCompetences,
     isArray: true,
+    required: false,
     nullable: true,
     description: "Array of competences and sous-competences",
   })
