@@ -4,7 +4,7 @@ import { teardownTestModule, testModule } from "@test/helpers/testModule";
 import { TestingModule } from "@nestjs/testing";
 import { communes, projects } from "@database/schema";
 import { inArray } from "drizzle-orm";
-import { getFutureDate } from "@test/helpers/getFutureDate";
+import { getFormattedDate } from "@test/helpers/getFormattedDate";
 
 describe("CommunesService", () => {
   let service: CommunesService;
@@ -32,7 +32,7 @@ describe("CommunesService", () => {
         nom: "Test Project",
         description: "Test Description",
         budget: 100000,
-        forecastedStartDate: getFutureDate(),
+        forecastedStartDate: getFormattedDate(),
         status: "IDEE",
       })
       .returning();

@@ -1,16 +1,39 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Req } from "@nestjs/common";
-import { ProjectsService } from "./services/projects.service";
+import { Body, Controller, Get, Param, Patch, Post, Req } from "@nestjs/common";
 import { CreateOrUpdateProjectResponse, CreateProjectRequest } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { ProjectResponse } from "./dto/project.dto";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { Request } from "express";
+import { CreateProjectsService } from "./services/create-projects/create-projects.service";
+import { UpdateProjectsService } from "./services/update-projects/update-projects.service";
+import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";
+import { BulkCreateProjectsRequest, BulkCreateProjectsResponse } from "./dto/bulk-create-projects.dto";
 
 @ApiBearerAuth()
 @Controller("projects")
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectCreateService: CreateProjectsService,
+    private readonly projectFindService: GetProjectsService,
+    private readonly projectUpdateService: UpdateProjectsService,
+  ) {}
+
+  @Get()
+  @ApiEndpointResponses({
+    successStatus: 200,
+    response: ProjectResponse,
+    isArray: true,
+  })
+  findAll(): Promise<ProjectResponse[]> {
+    return this.projectFindService.findAll();
+  }
+
+  @ApiEndpointResponses({ successStatus: 200, response: ProjectResponse })
+  @Get(":id")
+  findOne(@Param("id") id: string): Promise<ProjectResponse> {
+    return this.projectFindService.findOne(id);
+  }
 
   @Post()
   @ApiEndpointResponses({
@@ -22,23 +45,20 @@ export class ProjectsController {
     @Req() _request: Request,
     @Body() createProjectDto: CreateProjectRequest,
   ): Promise<CreateOrUpdateProjectResponse> {
-    return this.projectsService.create(createProjectDto);
+    return this.projectCreateService.create(createProjectDto);
   }
 
-  @Get()
+  @Post("bulk")
   @ApiEndpointResponses({
-    successStatus: 200,
-    response: ProjectResponse,
-    isArray: true,
+    successStatus: 201,
+    response: BulkCreateProjectsResponse,
+    description: "Bulk Projects created successfully",
   })
-  findAll(): Promise<ProjectResponse[]> {
-    return this.projectsService.findAll();
-  }
-
-  @ApiEndpointResponses({ successStatus: 200, response: ProjectResponse })
-  @Get(":id")
-  findOne(@Param("id") id: string): Promise<ProjectResponse> {
-    return this.projectsService.findOne(id);
+  async createBulk(
+    @Req() _request: Request,
+    @Body() createProjectsDto: BulkCreateProjectsRequest,
+  ): Promise<BulkCreateProjectsResponse> {
+    return await this.projectCreateService.createBulk(createProjectsDto);
   }
 
   @Patch(":id")
@@ -52,12 +72,6 @@ export class ProjectsController {
     @Param("id") id: string,
     @Body() updateProjectDto: UpdateProjectDto,
   ): Promise<CreateOrUpdateProjectResponse> {
-    return this.projectsService.update(id, updateProjectDto);
-  }
-
-  //todo to implement
-  @Delete(":id")
-  remove(@Param("id") id: string): string {
-    return this.projectsService.remove(id);
+    return this.projectUpdateService.update(id, updateProjectDto);
   }
 }

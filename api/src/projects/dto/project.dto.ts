@@ -20,8 +20,8 @@ export class ProjectResponse {
   @ApiProperty()
   nom!: string;
 
-  @ApiProperty()
-  description!: string;
+  @ApiProperty({ nullable: true })
+  description!: string | null;
 
   @ApiProperty({ nullable: true })
   porteurCodeSiret!: string | null;
@@ -46,14 +46,14 @@ export class ProjectResponse {
   @ApiProperty()
   communes!: Commune[];
 
-  @ApiProperty()
-  budget!: number;
+  @ApiProperty({ nullable: true })
+  budget!: number | null;
 
-  @ApiProperty()
-  forecastedStartDate!: string;
+  @ApiProperty({ nullable: true })
+  forecastedStartDate!: string | null;
 
-  @ApiProperty()
-  status!: ProjectStatus;
+  @ApiProperty({ nullable: true })
+  status!: ProjectStatus | null;
 
   @ApiProperty({ nullable: true })
   competencesAndSousCompetences!: CompetencesWithSousCompetences | null;

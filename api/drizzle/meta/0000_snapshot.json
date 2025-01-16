@@ -1,5 +1,5 @@
 {
-  "id": "bfdd2d60-2f2d-4817-bc42-b59bf57b1033",
+  "id": "7c8b0a5d-4a9d-4ac6-a83d-2e0a8b668043",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -31,8 +31,7 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -58,7 +57,7 @@
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "code_siret": {
           "name": "code_siret",
@@ -112,20 +111,20 @@
           "name": "budget",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "forecasted_start_date": {
           "name": "forecasted_start_date",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "status": {
           "name": "status",
           "type": "project_status",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},
@@ -215,8 +214,7 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "createdAt": {
           "name": "createdAt",
@@ -292,6 +290,11 @@
         "Transports publics (hors scolaire)",
         "Transports scolaires"
       ]
+    },
+    "public.permission_type": {
+      "name": "permission_type",
+      "schema": "public",
+      "values": ["EDIT", "VIEW"]
     },
     "public.project_status": {
       "name": "project_status",

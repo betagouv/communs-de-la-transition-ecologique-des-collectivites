@@ -2,7 +2,6 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { DatabaseService } from "@database/database.service";
 import { TestDatabaseService } from "./test-database.service";
 import { AppModule } from "@/app.module";
-import { ProjectsService } from "@/projects/services/projects.service";
 import { Provider } from "@nestjs/common";
 
 export async function testModule(additionalProviders: Provider[] = []) {
@@ -19,10 +18,8 @@ export async function testModule(additionalProviders: Provider[] = []) {
 
   // Get services AFTER module initialization
   const testDbService = module.get<TestDatabaseService>(DatabaseService);
-  // Get ProjectsService AFTER database is initialized
-  const projectsService = module.get<ProjectsService>(ProjectsService);
 
-  return { module, testDbService, projectsService };
+  return { module, testDbService };
 }
 
 export async function teardownTestModule(testDbService: TestDatabaseService, module: TestingModule) {

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Tx } from "@database/database.service";
 import { communes, projectsToCommunes } from "@database/schema";
-import { eq, inArray, not } from "drizzle-orm";
+import { eq, inArray, not, and } from "drizzle-orm";
 
 @Injectable()
 export class CommunesService {
@@ -17,7 +17,7 @@ export class CommunesService {
 
     await tx
       .delete(projectsToCommunes)
-      .where(eq(projectsToCommunes.projectId, projectId) && not(inArray(projectsToCommunes.communeId, inseeCodes)));
+      .where(and(eq(projectsToCommunes.projectId, projectId), not(inArray(projectsToCommunes.communeId, inseeCodes))));
 
     await tx
       .insert(projectsToCommunes)

@@ -30,13 +30,6 @@ export const createApiClient = (apiKey: string) => {
           },
           body: data,
         }),
-
-      remove: (id: string) =>
-        client.DELETE("/projects/{id}", {
-          params: {
-            path: { id },
-          },
-        }),
     },
   };
 };

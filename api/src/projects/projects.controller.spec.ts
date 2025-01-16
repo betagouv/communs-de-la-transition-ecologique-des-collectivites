@@ -1,16 +1,18 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ProjectsController } from "./projects.controller";
-import { ProjectsService } from "./services/projects.service";
 import { CreateProjectRequest } from "./dto/create-project.dto";
 import { ProjectResponse } from "./dto/project.dto";
-import { getFutureDate } from "@test/helpers/getFutureDate";
+import { getFormattedDate } from "@test/helpers/getFormattedDate";
 import { AppModule } from "@/app.module";
 import { NotFoundException } from "@nestjs/common";
 import { mockRequest } from "@test/mocks/mockRequest";
+import { CreateProjectsService } from "@projects/services/create-projects/create-projects.service";
+import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";
 
 describe("ProjectsController", () => {
   let controller: ProjectsController;
-  let projectsService: ProjectsService;
+  let projectCreateService: CreateProjectsService;
+  let projectFindService: GetProjectsService;
   let app: TestingModule;
 
   beforeEach(async () => {
@@ -19,7 +21,8 @@ describe("ProjectsController", () => {
     }).compile();
 
     controller = app.get<ProjectsController>(ProjectsController);
-    projectsService = app.get<ProjectsService>(ProjectsService);
+    projectCreateService = app.get<CreateProjectsService>(CreateProjectsService);
+    projectFindService = app.get<GetProjectsService>(GetProjectsService);
   });
 
   afterEach(async () => {
@@ -33,20 +36,20 @@ describe("ProjectsController", () => {
       porteurCodeSiret: "12345678901234",
       porteurReferentEmail: "test@example.com",
       budget: 100000,
-      forecastedStartDate: getFutureDate(),
+      forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: ["75056"],
     };
 
     it("should create a new project", async () => {
       const expectedResponse = { id: "test-id" };
-      jest.spyOn(projectsService, "create").mockResolvedValue(expectedResponse);
+      jest.spyOn(projectCreateService, "create").mockResolvedValue(expectedResponse);
 
       const result = await controller.create(mockRequest("MEC"), validProject);
 
       expect(result).toEqual(expectedResponse);
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(projectsService.create).toHaveBeenCalledWith(validProject);
+      expect(projectCreateService.create).toHaveBeenCalledWith(validProject);
     });
   });
 
@@ -66,7 +69,7 @@ describe("ProjectsController", () => {
           porteurReferentFonction: null,
           porteurReferentPrenom: null,
           budget: 100000,
-          forecastedStartDate: getFutureDate(),
+          forecastedStartDate: getFormattedDate(),
           status: "IDEE",
           competencesAndSousCompetences: null,
           communes: [
@@ -77,7 +80,7 @@ describe("ProjectsController", () => {
         },
       ];
 
-      jest.spyOn(projectsService, "findAll").mockResolvedValue(expectedProjects);
+      jest.spyOn(projectFindService, "findAll").mockResolvedValue(expectedProjects);
 
       const result = await controller.findAll();
       expect(result).toEqual(expectedProjects);
@@ -99,7 +102,7 @@ describe("ProjectsController", () => {
         porteurReferentFonction: null,
         porteurReferentPrenom: null,
         budget: 100000,
-        forecastedStartDate: getFutureDate(),
+        forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         competencesAndSousCompetences: null,
         communes: [
@@ -109,7 +112,7 @@ describe("ProjectsController", () => {
         ],
       };
 
-      jest.spyOn(projectsService, "findOne").mockResolvedValue(expectedProject);
+      jest.spyOn(projectFindService, "findOne").mockResolvedValue(expectedProject);
 
       const result = await controller.findOne("1");
       expect(result).toEqual(expectedProject);
@@ -117,7 +120,7 @@ describe("ProjectsController", () => {
 
     it("should throw NotFoundException for non-existent project", async () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      jest.spyOn(projectsService, "findOne").mockRejectedValue(new NotFoundException());
+      jest.spyOn(projectFindService, "findOne").mockRejectedValue(new NotFoundException());
 
       await expect(controller.findOne(nonExistentId)).rejects.toThrow(NotFoundException);
     });

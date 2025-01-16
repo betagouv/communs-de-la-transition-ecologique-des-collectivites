@@ -1,5 +1,6 @@
 import { pgTable, text, timestamp, integer, pgEnum, uuid, primaryKey, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { uuidv7 } from "uuidv7";
 import { competences, sousCompetences } from "@/shared/const/competences-list";
 
 export const projectStatusEnum = pgEnum("project_status", [
@@ -16,19 +17,25 @@ export const sousCompetencesEnum = pgEnum("sous_competences", sousCompetences);
 
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
+export const permissionTypeEnum = pgEnum("permission_type", ["EDIT", "VIEW"]);
+
+export type PermissionType = (typeof permissionTypeEnum.enumValues)[number];
+
 export const communes = pgTable("communes", {
   inseeCode: text("insee_code").primaryKey(),
 });
 
 export const projects = pgTable("projects", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
   nom: text("nom").notNull(),
-  description: text("description").notNull(),
+  description: text("description"),
   porteurCodeSiret: text("code_siret"),
   porteurReferentEmail: text("porteur_referent_email"),
   porteurReferentTelephone: text("porteur_referent_telephone"),
@@ -37,9 +44,9 @@ export const projects = pgTable("projects", {
   porteurReferentFonction: text("porteur_referent_fonction"),
   competences: competencesEnum().array(),
   sousCompetences: sousCompetencesEnum("sous_competences").array(),
-  budget: integer("budget").notNull(),
-  forecastedStartDate: text("forecasted_start_date").notNull(),
-  status: projectStatusEnum().notNull(),
+  budget: integer("budget"),
+  forecastedStartDate: text("forecasted_start_date"),
+  status: projectStatusEnum(),
 });
 
 export const projectsToCommunes = pgTable(
@@ -59,7 +66,9 @@ export const projectsToCommunes = pgTable(
 );
 
 export const services = pgTable("services", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
   createdAt: timestamp("createdAt").defaultNow(),
   name: text("name").notNull(),
   description: text("description").notNull(),
