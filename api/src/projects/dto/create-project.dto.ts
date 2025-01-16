@@ -56,9 +56,19 @@ export class CreateProjectRequest {
   @IsOptional()
   budget!: number;
 
-  @ApiProperty({ required: false, nullable: true, type: String })
-  @IsDateString()
-  @IsOptional()
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    type: String,
+    description: "Forecasted start date in YYYY-MM-DD format",
+    example: "2024-03-01",
+  })
+  @IsDateString(
+    {},
+    {
+      message: "Date must be in YYYY-MM-DD format (e.g., 2024-03-01)",
+    },
+  )
   forecastedStartDate!: string;
 
   @ApiPropertyOptional({
