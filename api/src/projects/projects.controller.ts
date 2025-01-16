@@ -42,6 +42,11 @@ export class ProjectsController {
   }
 
   @Patch(":id")
+  @ApiEndpointResponses({
+    successStatus: 200,
+    response: CreateOrUpdateProjectResponse,
+    description: "Project updated successfully",
+  })
   update(
     @Req() _request: Request,
     @Param("id") id: string,
