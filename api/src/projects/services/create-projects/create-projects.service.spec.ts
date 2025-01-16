@@ -51,7 +51,7 @@ describe("ProjectCreateService", () => {
   });
 
   describe("createBulk", () => {
-    it.only("should create multiple projects in a transaction", async () => {
+    it("should create multiple projects in a transaction", async () => {
       const projectsToCreate = {
         projects: [
           {
