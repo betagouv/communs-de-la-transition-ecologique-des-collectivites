@@ -115,7 +115,7 @@ describe("ProjectCreateService", () => {
           {
             nom: "Test Project 2",
             description: "Test Description 2",
-            budget: -1, // Invalid budget to trigger failure
+            budget: "budget", // Invalid budget to trigger failure
             forecastedStartDate: getFormattedDate(),
             status: "IDEE",
             communeInseeCodes: ["75057"],
