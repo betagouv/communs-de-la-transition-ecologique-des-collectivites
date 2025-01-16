@@ -6,35 +6,35 @@
 
 ### Contexte
 
-Les communs et les services connectés doivent restés synchronisés. Les changements d'un projet Tet doivent pouvoir être répercutés dans MEC via les Communs et inversement.
+Les services connectés gèrent les permissions d’accès à leurs données. Ces permissions sont différentes d'un service à l'autre sur la base de règles qui sont propres aux SC.
 
-Dans ce contexte il faut une mécanique de synchronisation résilient entre les 2 sans que le couplage entre les 2 ne soit rédhibitoire.
+Plusieurs niveaux d'intégration des permissions peuvent être envisagés
 
-Les updates sur les projets semblent assez peu fréquentes / non critiques (on parle de données tels que le status du projet, ou le nom du porteur donc des informations qui changent rarement dans la vie du projet).
+- hypothèse 1 : Les permissions sont gérées par les services connectés et les communs ne portent pas cette responsabilité.
+- hypothèse 2 : Les permissions sont gérées par les servces connectés et ils répercutent ces permissions dans une version simplifiée sur les communs.
 
 ### Décision
 
-L'équipe Tet nous a fait part de ses réserves sur le fait de fail les update/create de projets chez eux si LC n'était pas up.
+Le système de partage des permissions tels qu’envisagé dans l'alternative ci-dessous représente un point de complexité avec :
 
-On est arrivé au compromis que Tet ne devrait pas fail si LC fail, mais devrait faire son best effort pour s'assurer que la transaction passe (stratégie retry ou transactional outbox ou autre à la discrétion du service)
+- la synchronisation/centralisation
+- le fait que les services connectés doivent pouvoir garder la main sur leur permissions.
+- l’implication sur la création de nouveaux users dans les services respectifs.
+- Le ratio cout /opportunité d’introduire un tel système dès maintenant ne nous parait pas forcément justifié.
 
-Le principal point à ce stade est de se dire que la validation du use case des communs reposent sur l'adoption par les services connectés. Et au stade nous sommes, ce fort couplage semble rédhibitoire.
+Nous suggérons que dans un premier temps que les permissions soient gérées à même le service connecté et que les communs ne portent pas cette responsabilité.
 
-2 mécaniques sont donc prévues :
-
-- un endpoint d'update / création qui permet au service connecté de faire son best effort pour appliquer la donnée à la BD des communs sans couplage fort.
-- un système de webhook pour notifier les autres services connectés lorsque les données sont mises à jour sur les communs
+Les communs feront confiance au service appelant (via API key) qui aura déjà autorisé l’utilisateur via son propre système de permission
+Lors de la création d’un projet, les autres services qui importeront / recevront ce projet via webhook associeront les permissions correspondantes dans leur propre référentiel.
 
 ### Alternatives
 
-Réaliser l'update sur la BD des services connectés dans la meme transaction que celle sur les communs. Ce qui revient à coupler les 2 transactions.
-
-Cette solution garantie l'intégrité des données mais les services connectés ne peuvent se permettre d'avoir un couplage si fort au commun. (aka si la transaction fail chez les communs, l'update est en erreur sur le service connecté)
+- LC garde une liste d’emails avec 2 niveaux de permissions (voir / éditer)
+- Les services annexes sont libres d’implémenter leurs propres règles en plus, et font de leur mieux pour les synchroniser avec LC. Par exemple, si un membre de la DDT accède à un projet sur MEC visa son SIRET, MEC informe LC pour qu’il soit ajouté à la liste.
 
 ### Partcipants
 
 - Jonathan (MEC)
-- Fred (Tet)
 - Thibaut (Tet)
-- Matt (LC)
-- Jean (LC)
+- Guillaume (Recoco)
+- Matthieu (LC)
