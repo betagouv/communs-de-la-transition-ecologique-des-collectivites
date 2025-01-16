@@ -17,10 +17,6 @@ export const sousCompetencesEnum = pgEnum("sous_competences", sousCompetences);
 
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
-export const permissionTypeEnum = pgEnum("permission_type", ["EDIT", "VIEW"]);
-
-export type PermissionType = (typeof permissionTypeEnum.enumValues)[number];
-
 export const communes = pgTable("communes", {
   inseeCode: text("insee_code").primaryKey(),
 });

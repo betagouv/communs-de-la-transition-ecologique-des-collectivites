@@ -128,6 +128,125 @@ describe("AppController (e2e)", () => {
       });
     });
 
+    describe("POST /projects/bulk", () => {
+      const validProjects = {
+        projects: [
+          {
+            nom: "Bulk Project 1",
+            description: "Bulk Description 1",
+            budget: 100000,
+            porteurReferentEmail: "test1@email.com",
+            porteurCodeSiret: null,
+            forecastedStartDate: getFormattedDate(),
+            status: "IDEE",
+            communeInseeCodes: ["01001", "75056"],
+          },
+          {
+            nom: "Bulk Project 2",
+            description: "Bulk Description 2",
+            budget: 200000,
+            porteurReferentEmail: "test2@email.com",
+            porteurCodeSiret: null,
+            forecastedStartDate: getFormattedDate(),
+            status: "IDEE",
+            communeInseeCodes: ["97A01"],
+          },
+        ] as CreateProjectRequest[],
+      };
+
+      it("should reject when wrong api key", async () => {
+        const wrongApiClient = createApiClient("wrong-api-key");
+        const { error } = await wrongApiClient.projects.createBulk(validProjects);
+
+        expect(error?.statusCode).toBe(401);
+        expect(error?.message).toContain("Invalid API key");
+      });
+
+      it("should create multiple valid projects with MEC api key", async () => {
+        const mecClient = createApiClient(process.env.MEC_API_KEY!);
+        const { data, error } = await mecClient.projects.createBulk(validProjects);
+
+        expect(error).toBeUndefined();
+        expect(data?.ids).toHaveLength(2);
+
+        // Verify each created project
+        for (const id of data!.ids) {
+          const { data: project } = await mecClient.projects.getOne(id);
+          expect(project).toBeDefined();
+          expect(project?.id).toBe(id);
+        }
+      });
+
+      it("should reject when any project in bulk request is invalid", async () => {
+        const invalidProjects = {
+          projects: [
+            {
+              nom: "",
+              description: "Valid Description",
+              budget: 100000,
+              forecastedStartDate: getFormattedDate(),
+              status: "IDEE",
+              communeInseeCodes: ["01001"],
+            },
+            {
+              nom: "", // Invalid: empty name
+              description: "Invalid Project",
+              budget: 100000,
+              forecastedStartDate: getFormattedDate(),
+              status: "IDEE",
+              communeInseeCodes: ["01001"],
+            },
+          ] as CreateProjectRequest[],
+        };
+
+        const { error } = await api.projects.createBulk(invalidProjects);
+
+        expect(error?.statusCode).toBe(400);
+        expect(error?.message).toStrictEqual([
+          "projects.0.nom should not be empty",
+          "projects.1.nom should not be empty",
+        ]);
+      });
+
+      it("should reject when projects array is empty", async () => {
+        const { error } = await api.projects.createBulk({ projects: [] });
+
+        expect(error?.statusCode).toBe(400);
+        expect(error?.message[0]).toBe("At least one project must be provided");
+      });
+
+      it("should rollback all changes if any project creation fails", async () => {
+        const projectsWithInvalidBudget = {
+          projects: [
+            {
+              nom: "Valid Project",
+              description: "Valid Description",
+              budget: 100000,
+              forecastedStartDate: getFormattedDate(),
+              status: "IDEE",
+              communeInseeCodes: ["01001"],
+            },
+            {
+              nom: "Invalid Project",
+              description: "Invalid Description",
+              budget: "hello", // Invalid budget
+              forecastedStartDate: getFormattedDate(),
+              status: "IDEE",
+              communeInseeCodes: ["01001"],
+            },
+          ] as CreateProjectRequest[],
+        };
+
+        const { error } = await api.projects.createBulk(projectsWithInvalidBudget);
+        expect(error?.statusCode).toBe(400);
+
+        // Verify no projects were created
+        const { data: allProjects } = await api.projects.getAll();
+        const matchingProjects = allProjects?.filter((p) => p.nom === "Valid Project" || p.nom === "Invalid Project");
+        expect(matchingProjects).toHaveLength(0);
+      });
+    });
+
     describe("PATCH /projects/:id", () => {
       let projectId: string;
 

@@ -14,6 +14,9 @@ export const createApiClient = (apiKey: string) => {
     projects: {
       create: (data: components["schemas"]["CreateProjectRequest"]) => client.POST("/projects", { body: data }),
 
+      createBulk: (data: components["schemas"]["BulkCreateProjectsRequest"]) =>
+        client.POST("/projects/bulk", { body: data }),
+
       getAll: () => client.GET("/projects"),
 
       getOne: (id: string) =>
