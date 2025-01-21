@@ -3,7 +3,7 @@
 import { ServicesService } from "./services.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/testModule";
-import { CreateServiceDto } from "./dto/create-service.dto";
+import { CreateServiceRequest } from "./dto/create-service.dto";
 import { TestingModule } from "@nestjs/testing";
 
 describe("ServicesService", () => {
@@ -28,11 +28,12 @@ describe("ServicesService", () => {
 
   describe("create", () => {
     it("should create a new service", async () => {
-      const createDto: CreateServiceDto = {
+      const createDto: CreateServiceRequest = {
         name: "Test Service",
         description: "Test Description",
         logoUrl: "https://test.com/logo.png",
-        url: "https://test.com",
+        redirectionUrl: "https://test.com",
+        redirectionLabel: "Go on test service",
       };
 
       const result = await service.create(createDto);

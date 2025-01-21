@@ -3,7 +3,13 @@ import { IsNotEmpty, IsString, IsUrl } from "class-validator";
 import { InferInsertModel } from "drizzle-orm";
 import { services } from "@database/schema";
 
-export class CreateServiceDto implements InferInsertModel<typeof services> {
+export class CreateServiceResponse {
+  @ApiProperty()
+  @IsString()
+  id!: string;
+}
+
+export class CreateServiceRequest implements InferInsertModel<typeof services> {
   @ApiProperty({
     example: "Facili-Tacct",
     description: "The name of the service",
@@ -25,7 +31,6 @@ export class CreateServiceDto implements InferInsertModel<typeof services> {
     example: "https://facili-tacct.beta.gouv.fr/_next/static/media/favicon.f453a8cf.svg",
     description: "The URL of the service logo",
   })
-  @IsString()
   @IsUrl()
   @IsNotEmpty()
   logoUrl!: string;
@@ -34,8 +39,15 @@ export class CreateServiceDto implements InferInsertModel<typeof services> {
     example: "https://www.boussole-te.ecologie.gouv.fr/",
     description: "The URL of the service",
   })
-  @IsString()
   @IsUrl()
   @IsNotEmpty()
-  url!: string;
+  redirectionUrl!: string;
+
+  @ApiProperty({
+    example: "La boussole",
+    description: "label of the redirection",
+  })
+  @IsString()
+  @IsNotEmpty()
+  redirectionLabel!: string;
 }

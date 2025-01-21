@@ -3,14 +3,9 @@ import { relations } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 import { competences, sousCompetences } from "@/shared/const/competences-list";
 
-export const projectStatusEnum = pgEnum("project_status", [
-  "IDEE",
-  "FAISABILITE",
-  "EN_COURS",
-  "IMPACTE",
-  "ABANDONNE",
-  "TERMINE",
-]);
+const projectStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
+
+export const projectStatusEnum = pgEnum("project_status", projectStatus);
 
 export const competencesEnum = pgEnum("competences", competences);
 export const sousCompetencesEnum = pgEnum("sous_competences", sousCompetences);
@@ -64,12 +59,32 @@ export const projectsToCommunes = pgTable(
 export const services = pgTable("services", {
   id: uuid("id")
     .primaryKey()
-    .$defaultFn(() => uuidv7()),
+    .$defaultFn(() => uuidv7()), //todo should this really be a uuid ? there will be a list of finite services
   createdAt: timestamp("createdAt").defaultNow(),
   name: text("name").notNull(),
   description: text("description").notNull(),
   logoUrl: text("logoUrl").notNull(),
-  url: text("url").notNull(),
+  redirectionUrl: text("redirection_url").notNull(),
+  redirectionLabel: text("redirection_label").notNull(),
+});
+
+export const serviceContext = pgTable("service_context", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
+  serviceId: uuid("service_id")
+    .notNull()
+    .references(() => services.id),
+  competences: competencesEnum("competences").array(),
+  sousCompetences: sousCompetencesEnum("sous_competences").array(),
+  statuses: projectStatusEnum("statuses").array(),
+
+  // Custom display options
+  description: text("description"),
+  logoUrl: text("logo_url"),
+  redirectionUrl: text("redirection_url"),
+  redirectionLabel: text("redirection_label"),
+  extendLabel: text("extend_label"),
 });
 
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
@@ -89,5 +104,16 @@ export const projectsToCommunesRelations = relations(projectsToCommunes, ({ one 
   commune: one(communes, {
     fields: [projectsToCommunes.communeId],
     references: [communes.inseeCode],
+  }),
+}));
+
+export const servicesRelations = relations(services, ({ many }) => ({
+  contexts: many(serviceContext),
+}));
+
+export const serviceContextRelations = relations(serviceContext, ({ one }) => ({
+  service: one(services, {
+    fields: [serviceContext.serviceId],
+    references: [services.id],
   }),
 }));
