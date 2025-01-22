@@ -1,10 +1,17 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
-import { ProjectStatus, projectStatusEnum } from "@database/schema";
+import { ProjectStatus, projectStatusEnum, serviceContext } from "@database/schema";
 import { CompetencesWithSousCompetences } from "@/shared/types";
 import { competencesWithSousCompetences } from "@/shared/const/competences-list";
+import { InferInsertModel } from "drizzle-orm";
 
-export class CreateServiceContextDto {
+export class CreateServiceContextResponse {
+  @ApiProperty()
+  @IsString()
+  id!: string;
+}
+
+export class CreateServiceContextRequest implements InferInsertModel<typeof serviceContext> {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()

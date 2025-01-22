@@ -7,6 +7,26 @@ export class CreateServiceResponse {
   @ApiProperty()
   @IsString()
   id!: string;
+
+  @ApiProperty()
+  @IsString()
+  name!: string;
+
+  @ApiProperty()
+  @IsString()
+  description!: string;
+
+  @ApiProperty()
+  @IsUrl()
+  logoUrl!: string;
+
+  @ApiProperty()
+  @IsUrl()
+  redirectionUrl!: string;
+
+  @ApiProperty()
+  @IsString()
+  redirectionLabel!: string;
 }
 
 export class CreateServiceRequest implements InferInsertModel<typeof services> {

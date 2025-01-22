@@ -5,7 +5,7 @@ import { arrayOverlaps, eq } from "drizzle-orm";
 import { Competences } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
 import { CompetencesService } from "@projects/services/competences/competences.service";
-import { CreateServiceContextDto } from "@/services/dto/create-service-context.dto";
+import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/services/dto/create-service-context.dto";
 
 interface ServiceWithContext {
   id: string;
@@ -77,7 +77,7 @@ export class ServiceContextService {
     }));
   }
 
-  async create(createServiceContextDto: CreateServiceContextDto) {
+  async create(createServiceContextDto: CreateServiceContextRequest): Promise<CreateServiceContextResponse> {
     this.logger.debug("Creating service context", { dto: createServiceContextDto });
 
     const service = await this.dbService.database.query.services.findFirst({

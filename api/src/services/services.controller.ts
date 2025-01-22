@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ServicesService } from "./services.service";
 import { ServiceContextService } from "./service-context.service";
-import { CreateServiceContextDto } from "./dto/create-service-context.dto";
+import { CreateServiceContextRequest, CreateServiceContextResponse } from "./dto/create-service-context.dto";
 import { Public } from "@/auth/public.decorator";
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 
@@ -40,13 +40,12 @@ export class ServicesController {
 
   @Post("contexts")
   @ApiOperation({ summary: "Create a new service context" })
-  @ApiResponse({
-    status: 201,
+  @ApiEndpointResponses({
+    successStatus: 201,
+    response: CreateServiceContextResponse,
     description: "The service context has been successfully created.",
-    // You might want to create a response DTO as well
   })
-  @ApiResponse({ status: 400, description: "Invalid input" })
-  createServiceContext(@Body() createContextDto: CreateServiceContextDto) {
+  createServiceContext(@Body() createContextDto: CreateServiceContextRequest): Promise<CreateServiceContextResponse> {
     return this.serviceContextService.create(createContextDto);
   }
 }
