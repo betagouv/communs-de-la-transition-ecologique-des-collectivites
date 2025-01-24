@@ -1,39 +1,9 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication } from "@nestjs/common";
-import { AppModule } from "@/app.module";
-import { setupApp } from "@/setup-app";
-import { e2eTestDbSetup } from "./helpers/e2eTestDbSetup";
-import { e2eTearDownSetup } from "./helpers/e2eTearDownSetup";
-import { getFormattedDate } from "./helpers/getFormattedDate";
+import { getFormattedDate } from "./helpers/get-formatted-date";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
-import { createApiClient } from "@test/helpers/apiClient";
-
-// This is needed to use expect any syntax
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { createApiClient } from "@test/helpers/api-client";
 
 describe("AppController (e2e)", () => {
-  let app: INestApplication;
-  let api: ReturnType<typeof createApiClient>;
-
-  beforeAll(async () => {
-    await e2eTestDbSetup();
-
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    setupApp(app);
-    await app.init();
-    await app.listen(3000);
-
-    api = createApiClient(process.env.MEC_API_KEY!);
-  }, 30000);
-
-  afterAll(async () => {
-    await app?.close();
-    await e2eTearDownSetup();
-  });
+  const api = createApiClient(process.env.MEC_API_KEY!);
 
   describe("Projects (e2e)", () => {
     const validProject: CreateProjectRequest = {

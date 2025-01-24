@@ -18,7 +18,7 @@ interface ServiceWithContext {
 }
 
 @Injectable()
-export class ServiceContextService {
+export class ServicesContextService {
   constructor(
     private readonly dbService: DatabaseService,
     private readonly competencesService: CompetencesService,

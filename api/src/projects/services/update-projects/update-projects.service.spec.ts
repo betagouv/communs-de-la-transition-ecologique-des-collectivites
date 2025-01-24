@@ -1,12 +1,9 @@
-// disabled to use expect any syntax
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { TestDatabaseService } from "@test/helpers/test-database.service";
-import { teardownTestModule, testModule } from "@test/helpers/testModule";
+import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateProjectRequest } from "../../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
-import { getFormattedDate } from "@test/helpers/getFormattedDate";
+import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { UpdateProjectsService } from "./update-projects.service";
 import { CreateProjectsService } from "../create-projects/create-projects.service";
 import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";

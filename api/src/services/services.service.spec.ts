@@ -1,8 +1,6 @@
-// disabled to use expect any syntax
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ServicesService } from "./services.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
-import { teardownTestModule, testModule } from "@test/helpers/testModule";
+import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateServiceRequest } from "./dto/create-service.dto";
 import { TestingModule } from "@nestjs/testing";
 

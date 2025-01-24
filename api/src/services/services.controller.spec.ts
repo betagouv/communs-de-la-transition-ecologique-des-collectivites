@@ -2,14 +2,14 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AppModule } from "@/app.module";
 import { ServicesController } from "@/services/services.controller";
 import { ServicesService } from "@/services/services.service";
-import { ServiceContextService } from "@/services/service-context.service";
+import { ServicesContextService } from "@/services/services-context.service";
 import { CreateServiceRequest } from "@/services/dto/create-service.dto";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
 
 describe("ServiceController", () => {
   let controller: ServicesController;
   let serviceServices: ServicesService;
-  let serviceContextServices: ServiceContextService;
+  let serviceContextServices: ServicesContextService;
   let app: TestingModule;
 
   beforeEach(async () => {
@@ -19,7 +19,7 @@ describe("ServiceController", () => {
 
     controller = app.get<ServicesController>(ServicesController);
     serviceServices = app.get<ServicesService>(ServicesService);
-    serviceContextServices = app.get<ServiceContextService>(ServiceContextService);
+    serviceContextServices = app.get<ServicesContextService>(ServicesContextService);
   });
 
   afterEach(async () => {

@@ -1,16 +1,13 @@
-// disabled to use expect any syntax
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { TestingModule } from "@nestjs/testing";
-import { ServiceContextService } from "./service-context.service";
+import { ServicesContextService } from "./services-context.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
-import { teardownTestModule, testModule } from "@test/helpers/testModule";
+import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateServiceContextRequest } from "./dto/create-service-context.dto";
 import { NotFoundException } from "@nestjs/common";
 import { ServicesService } from "./services.service";
 
 describe("ServiceContextService", () => {
-  let serviceContextService: ServiceContextService;
+  let serviceContextService: ServicesContextService;
   let servicesService: ServicesService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
@@ -19,7 +16,7 @@ describe("ServiceContextService", () => {
     const { module: internalModule, testDbService: tds } = await testModule();
     module = internalModule;
     testDbService = tds;
-    serviceContextService = module.get<ServiceContextService>(ServiceContextService);
+    serviceContextService = module.get<ServicesContextService>(ServicesContextService);
     servicesService = module.get<ServicesService>(ServicesService);
   });
 
