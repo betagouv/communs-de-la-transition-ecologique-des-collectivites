@@ -16,7 +16,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
     enum: competencesWithSousCompetences,
     isArray: true,
     required: true,
-    description: "Array of competences and sous-competences",
+    description: "Array of competences and sous-competences, empty array means all competences/sous-competences",
   })
   @IsArray()
   competencesAndSousCompetences!: CompetencesWithSousCompetences;
@@ -76,10 +76,10 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
 
   @ApiProperty({
     enum: projectStatusEnum.enumValues,
-    nullable: true,
-    required: false,
-    description: "Project status for which the serviceContext applies",
+    isArray: true,
+    required: true,
+    description: "Project status for which the serviceContext applies, empty array means all statuses",
   })
-  @IsOptional()
-  status?: ProjectStatus | null;
+  @IsArray()
+  status!: ProjectStatus[];
 }

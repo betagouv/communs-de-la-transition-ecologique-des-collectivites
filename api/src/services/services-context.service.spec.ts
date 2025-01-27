@@ -50,6 +50,7 @@ describe("ServiceContextService", () => {
         redirectionUrl: "https://test.com/context",
         redirectionLabel: "Context Label",
         extendLabel: "Extend Label",
+        status: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -82,6 +83,7 @@ describe("ServiceContextService", () => {
 
       const createContextDto: CreateServiceContextRequest = {
         competencesAndSousCompetences: ["Santé"],
+        status: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -113,6 +115,7 @@ describe("ServiceContextService", () => {
       const createContextDto: CreateServiceContextRequest = {
         competencesAndSousCompetences: ["Culture__Arts plastiques et photographie"],
         description: "Context Description",
+        status: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -148,6 +151,7 @@ describe("ServiceContextService", () => {
       const createContextDto: CreateServiceContextRequest = {
         competencesAndSousCompetences: ["Action sociale (hors APA et RSA)__Citoyenneté"],
         description: "Context Description",
+        status: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -172,6 +176,7 @@ describe("ServiceContextService", () => {
       const createContextDto: CreateServiceContextRequest = {
         competencesAndSousCompetences: ["Culture__Arts plastiques et photographie"],
         description: "Context Description",
+        status: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -193,6 +198,7 @@ describe("ServiceContextService", () => {
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
         competencesAndSousCompetences: [], // Empty array should match all
+        status: [], // Empty array should match all
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -239,6 +245,7 @@ describe("ServiceContextService", () => {
         redirectionUrl: "https://test.com/context",
         redirectionLabel: "Context Label",
         extendLabel: "Extend Label",
+        status: [],
       };
 
       const result = await serviceContextService.create(service.id, createContextDto);
@@ -261,6 +268,7 @@ describe("ServiceContextService", () => {
     it("should throw NotFoundException when service does not exist", async () => {
       const createContextDto: CreateServiceContextRequest = {
         competencesAndSousCompetences: ["Santé"],
+        status: [],
       };
 
       await expect(serviceContextService.create(crypto.randomUUID(), createContextDto)).rejects.toThrow(
