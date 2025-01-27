@@ -78,7 +78,7 @@ describe("Services (e2e)", () => {
         serviceId,
         description: validServiceContext.description,
         competences: ["Santé"],
-        sousCompetences: null,
+        sousCompetences: [],
       });
     });
   });

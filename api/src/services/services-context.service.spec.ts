@@ -185,6 +185,46 @@ describe("ServiceContextService", () => {
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0].id).toBe(service.id);
     });
+
+    it("should match all competences when service context has empty competences array", async () => {
+      const service = await servicesService.create({
+        name: "Test Service",
+        description: "Original Description",
+        logoUrl: "https://test.com/logo.png",
+        redirectionUrl: "https://test.com",
+        redirectionLabel: "Original Label",
+      });
+
+      const createContextDto: CreateServiceContextRequest = {
+        serviceId: service.id,
+        description: "Context Description",
+        competencesAndSousCompetences: [], // Empty array should match all
+      };
+      await serviceContextService.create(createContextDto);
+
+      // Should match any competence
+      const serviceContexts = await serviceContextService.findMatchingServices(
+        ["Culture"],
+        ["Arts plastiques et photographie"],
+        null,
+      );
+
+      expect(serviceContexts).toHaveLength(1);
+      expect(serviceContexts[0]).toEqual({
+        id: service.id,
+        createdAt: expect.any(Date),
+        name: service.name,
+        description: "Context Description",
+        logoUrl: service.logoUrl,
+        redirectionUrl: service.redirectionUrl,
+        redirectionLabel: service.redirectionLabel,
+        extendLabel: null,
+        iframeUrl: null,
+      });
+
+      const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
+      expect(otherServiceContexts).toHaveLength(1);
+    });
   });
 
   describe("create", () => {
@@ -220,7 +260,7 @@ describe("ServiceContextService", () => {
         redirectionUrl: "https://test.com/context",
         redirectionLabel: "Context Label",
         extendLabel: "Extend Label",
-        statuses: null,
+        statuses: [],
         iframeUrl: null,
       });
     });

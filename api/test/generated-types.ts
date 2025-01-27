@@ -246,6 +246,8 @@ export interface components {
              * @example La boussole
              */
             redirectionLabel: string;
+            iframeUrl?: string | null;
+            extendLabel?: string | null;
         };
         CreateServiceResponse: {
             id: string;
@@ -254,6 +256,8 @@ export interface components {
             logoUrl: string;
             redirectionUrl: string;
             redirectionLabel: string;
+            iframeUrl: Record<string, never>;
+            extendLabel: Record<string, never>;
         };
         CreateServiceContextRequest: {
             serviceId: string;
@@ -276,10 +280,11 @@ export interface components {
              */
             redirectionLabel?: string | null;
             /**
-             * @description Custom label for extending/expanding the service details
+             * @description Custom label for expanding the service details
              * @example Show climate data
              */
             extendLabel?: string | null;
+            iframeUrl?: string | null;
             /**
              * @description Project status for which the serviceContext applies
              * @enum {string|null}

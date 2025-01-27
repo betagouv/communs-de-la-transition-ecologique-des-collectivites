@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { ProjectStatus, serviceContext, services } from "@database/schema";
-import { arrayOverlaps, eq, InferSelectModel } from "drizzle-orm";
+import { arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
 import { Competences, SousCompetences } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
 import { CompetencesService } from "@projects/services/competences/competences.service";
@@ -42,7 +42,9 @@ export class ServicesContextService {
         .select()
         .from(serviceContext)
         .innerJoin(services, eq(services.id, serviceContext.serviceId))
-        .where(arrayOverlaps(serviceContext.sousCompetences, sousCompetences));
+        .where(
+          or(arrayOverlaps(serviceContext.sousCompetences, sousCompetences), eq(serviceContext.sousCompetences, [])),
+        );
     }
 
     // If no matches found with sous competences or no sous competences provided,
@@ -52,7 +54,7 @@ export class ServicesContextService {
         .select()
         .from(serviceContext)
         .innerJoin(services, eq(services.id, serviceContext.serviceId))
-        .where(arrayOverlaps(serviceContext.competences, competences));
+        .where(or(arrayOverlaps(serviceContext.competences, competences), eq(serviceContext.competences, [])));
     }
 
     if (matchingContexts.length === 0) {
@@ -76,6 +78,7 @@ export class ServicesContextService {
     const service = await this.dbService.database.query.services.findFirst({
       where: eq(services.id, createServiceContextDto.serviceId),
     });
+
     const { competencesAndSousCompetences, ...otherFields } = createServiceContextDto;
     const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
 
@@ -85,7 +88,12 @@ export class ServicesContextService {
 
     const [newServiceContext] = await this.dbService.database
       .insert(serviceContext)
-      .values({ ...otherFields, competences, sousCompetences })
+      .values({
+        ...otherFields,
+        competences: competences ?? [],
+        sousCompetences: sousCompetences ?? [],
+        statuses: [],
+      })
       .returning();
 
     this.logger.log("Service context created successfully", {

@@ -6,7 +6,6 @@ import { competences, sousCompetences } from "@/shared/const/competences-list";
 const projectStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
 
 export const projectStatusEnum = pgEnum("project_status", projectStatus);
-
 export const competencesEnum = pgEnum("competences", competences);
 export const sousCompetencesEnum = pgEnum("sous_competences", sousCompetences);
 
@@ -77,9 +76,9 @@ export const serviceContext = pgTable("service_context", {
   serviceId: uuid("service_id")
     .notNull()
     .references(() => services.id),
-  competences: competencesEnum("competences").array(),
-  sousCompetences: sousCompetencesEnum("sous_competences").array(),
-  statuses: projectStatusEnum("statuses").array(),
+  competences: competencesEnum("competences").array().notNull().default([]),
+  sousCompetences: sousCompetencesEnum("sous_competences").array().notNull().default([]),
+  statuses: projectStatusEnum("statuses").array().notNull().default([]),
 
   // Custom display options
   description: text("description"),
