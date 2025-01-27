@@ -44,7 +44,6 @@ describe("ServiceContextService", () => {
       });
 
       const createContextDto: CreateServiceContextRequest = {
-        serviceId: service.id,
         description: "Context Description",
         competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
         logoUrl: "https://test.com/context-logo.png",
@@ -52,7 +51,7 @@ describe("ServiceContextService", () => {
         redirectionLabel: "Context Label",
         extendLabel: "Extend Label",
       };
-      await serviceContextService.create(createContextDto);
+      await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
 
@@ -82,10 +81,9 @@ describe("ServiceContextService", () => {
       });
 
       const createContextDto: CreateServiceContextRequest = {
-        serviceId: service.id,
         competencesAndSousCompetences: ["Santé"],
       };
-      await serviceContextService.create(createContextDto);
+      await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
 
@@ -113,11 +111,10 @@ describe("ServiceContextService", () => {
       });
 
       const createContextDto: CreateServiceContextRequest = {
-        serviceId: service.id,
         competencesAndSousCompetences: ["Culture__Arts plastiques et photographie"],
         description: "Context Description",
       };
-      await serviceContextService.create(createContextDto);
+      await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServices(
         ["Culture"],
@@ -149,11 +146,10 @@ describe("ServiceContextService", () => {
       });
 
       const createContextDto: CreateServiceContextRequest = {
-        serviceId: service.id,
         competencesAndSousCompetences: ["Action sociale (hors APA et RSA)__Citoyenneté"],
         description: "Context Description",
       };
-      await serviceContextService.create(createContextDto);
+      await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServices(
         ["Culture"],
@@ -174,11 +170,10 @@ describe("ServiceContextService", () => {
       });
 
       const createContextDto: CreateServiceContextRequest = {
-        serviceId: service.id,
         competencesAndSousCompetences: ["Culture__Arts plastiques et photographie"],
         description: "Context Description",
       };
-      await serviceContextService.create(createContextDto);
+      await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServices(["Culture"], null, null);
 
@@ -196,11 +191,10 @@ describe("ServiceContextService", () => {
       });
 
       const createContextDto: CreateServiceContextRequest = {
-        serviceId: service.id,
         description: "Context Description",
         competencesAndSousCompetences: [], // Empty array should match all
       };
-      await serviceContextService.create(createContextDto);
+      await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
       const serviceContexts = await serviceContextService.findMatchingServices(
@@ -239,7 +233,6 @@ describe("ServiceContextService", () => {
       });
 
       const createContextDto: CreateServiceContextRequest = {
-        serviceId: service.id,
         description: "Context Description",
         competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
         logoUrl: "https://test.com/context-logo.png",
@@ -248,7 +241,7 @@ describe("ServiceContextService", () => {
         extendLabel: "Extend Label",
       };
 
-      const result = await serviceContextService.create(createContextDto);
+      const result = await serviceContextService.create(service.id, createContextDto);
 
       expect(result).toEqual({
         id: result.id,
@@ -267,11 +260,12 @@ describe("ServiceContextService", () => {
 
     it("should throw NotFoundException when service does not exist", async () => {
       const createContextDto: CreateServiceContextRequest = {
-        serviceId: crypto.randomUUID(),
         competencesAndSousCompetences: ["Santé"],
       };
 
-      await expect(serviceContextService.create(createContextDto)).rejects.toThrow(NotFoundException);
+      await expect(serviceContextService.create(crypto.randomUUID(), createContextDto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

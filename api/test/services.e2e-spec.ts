@@ -47,7 +47,6 @@ describe("Services (e2e)", () => {
     });
 
     const validServiceContext: CreateServiceContextRequest = {
-      serviceId: "will-be-set-in-test",
       competencesAndSousCompetences: ["Santé"],
       description: "Context Description",
       logoUrl: "https://test.com/logo.png",
@@ -57,26 +56,20 @@ describe("Services (e2e)", () => {
     };
 
     it("should reject when using regular API key", async () => {
-      const { error } = await regularApi.services.createContext({
-        ...validServiceContext,
-        serviceId,
-      });
+      const { error } = await regularApi.services.createContext(serviceId, validServiceContext);
 
       expect(error?.statusCode).toBe(401);
       expect(error?.message).toContain("Invalid service management API key");
     });
 
     it("should create service context with service management API key", async () => {
-      const { data, error } = await serviceManagementApi.services.createContext({
-        ...validServiceContext,
-        serviceId,
-      });
+      const { data, error } = await serviceManagementApi.services.createContext(serviceId, validServiceContext);
 
       expect(error).toBeUndefined();
       expect(data).toMatchObject({
         id: expect.any(String),
         serviceId,
-        description: validServiceContext.description,
+        description: "Context Description",
         competences: ["Santé"],
         sousCompetences: [],
       });

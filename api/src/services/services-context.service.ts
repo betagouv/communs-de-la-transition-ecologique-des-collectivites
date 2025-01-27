@@ -72,23 +72,27 @@ export class ServicesContextService {
     }));
   }
 
-  async create(createServiceContextDto: CreateServiceContextRequest): Promise<CreateServiceContextResponse> {
+  async create(
+    serviceId: string,
+    createServiceContextDto: CreateServiceContextRequest,
+  ): Promise<CreateServiceContextResponse> {
     this.logger.debug("Creating service context", { dto: createServiceContextDto });
 
     const service = await this.dbService.database.query.services.findFirst({
-      where: eq(services.id, createServiceContextDto.serviceId),
+      where: eq(services.id, serviceId),
     });
 
     const { competencesAndSousCompetences, ...otherFields } = createServiceContextDto;
     const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
 
     if (!service) {
-      throw new NotFoundException(`Service with ID ${createServiceContextDto.serviceId} not found`);
+      throw new NotFoundException(`Service with ID ${serviceId} not found`);
     }
 
     const [newServiceContext] = await this.dbService.database
       .insert(serviceContext)
       .values({
+        serviceId,
         ...otherFields,
         competences: competences ?? [],
         sousCompetences: sousCompetences ?? [],

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
+import { IsArray, IsOptional, IsString, IsUrl } from "class-validator";
 import { ProjectStatus, projectStatusEnum, serviceContext } from "@database/schema";
 import { CompetencesWithSousCompetences } from "@/shared/types";
 import { competencesWithSousCompetences } from "@/shared/const/competences-list";
@@ -11,12 +11,7 @@ export class CreateServiceContextResponse {
   id!: string;
 }
 
-export class CreateServiceContextRequest implements InferInsertModel<typeof serviceContext> {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  serviceId!: string;
-
+export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof serviceContext>, "serviceId"> {
   @ApiProperty({
     enum: competencesWithSousCompetences,
     isArray: true,

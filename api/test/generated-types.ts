@@ -75,6 +75,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get all services corresponding to a project */
         get: operations["ServicesController_getServicesByProjectId"];
         put?: never;
         post?: never;
@@ -100,7 +101,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/services/contexts": {
+    "/services/{serviceId}/contexts": {
         parameters: {
             query?: never;
             header?: never;
@@ -260,7 +261,6 @@ export interface components {
             extendLabel: Record<string, never>;
         };
         CreateServiceContextRequest: {
-            serviceId: string;
             /** @description Array of competences and sous-competences */
             competencesAndSousCompetences: ("Autres interventions de protection civile" | "Autres services annexes de l'enseignement" | "Collecte et traitement des déchets" | "Développement touristique" | "Enseignement du premier degré" | "Enseignement du second degré" | "Enseignement supérieur, professionnel et continu" | "Foires et marchés" | "Hébergement et restauration scolaires" | "Hygiène et salubrité publique" | "Incendie et secours" | "Infrastructures de transport" | "Jeunesse et loisirs" | "Police, sécurité, justice" | "Propreté urbaine" | "Routes et voiries" | "Santé" | "Sports" | "Transports publics (hors scolaire)" | "Transports scolaires" | "Action sociale (hors APA et RSA)__Citoyenneté" | "Action sociale (hors APA et RSA)__Cohésion sociale et inclusion" | "Action sociale (hors APA et RSA)__Egalité des chances" | "Action sociale (hors APA et RSA)__Famille et enfance" | "Action sociale (hors APA et RSA)__Handicap" | "Action sociale (hors APA et RSA)__Inclusion numérique" | "Action sociale (hors APA et RSA)__Jeunesse" | "Action sociale (hors APA et RSA)__Lutte contre la précarité" | "Action sociale (hors APA et RSA)__Personnes âgées" | "Action sociale (hors APA et RSA)__Protection animale" | "Actions en matière de gestion des eaux__Assainissement des eaux" | "Actions en matière de gestion des eaux__Cours d'eau / canaux / plans d'eau" | "Actions en matière de gestion des eaux__Eau pluviale" | "Actions en matière de gestion des eaux__Eau potable" | "Actions en matière de gestion des eaux__Eau souterraine" | "Actions en matière de gestion des eaux__Mers et océans" | "Agriculture, pêche et agro-alimentaire__Consommation alimentaire" | "Agriculture, pêche et agro-alimentaire__Déchets alimentaires et/ou agricoles" | "Agriculture, pêche et agro-alimentaire__Distribution" | "Agriculture, pêche et agro-alimentaire__Précarité et aide alimentaire" | "Agriculture, pêche et agro-alimentaire__Production agricole et foncier" | "Agriculture, pêche et agro-alimentaire__Transformation des produits agricoles" | "Aménagement des territoires__Foncier" | "Aménagement des territoires__Friche" | "Aménagement des territoires__Paysage" | "Aménagement des territoires__Réseaux" | "Culture__Arts plastiques et photographie" | "Culture__Bibliothèques et livres" | "Culture__Médias et communication" | "Culture__Musée" | "Culture__Patrimoine et monuments historiques" | "Culture__Spectacle vivant" | "Habitat__Accessibilité" | "Habitat__Architecture" | "Habitat__Bâtiments et construction" | "Habitat__Cimetières et funéraire" | "Habitat__Equipement public" | "Habitat__Espace public" | "Habitat__Espaces verts" | "Habitat__Logement et habitat" | "Industrie, commerce et artisanat__Artisanat" | "Industrie, commerce et artisanat__Commerces et Services" | "Industrie, commerce et artisanat__Economie locale et circuits courts" | "Industrie, commerce et artisanat__Economie sociale et solidaire" | "Industrie, commerce et artisanat__Fiscalité des entreprises" | "Industrie, commerce et artisanat__Industrie" | "Industrie, commerce et artisanat__Innovation, créativité et recherche" | "Industrie, commerce et artisanat__Technologies numériques et numérisation" | "Industrie, commerce et artisanat__Tiers-lieux")[];
             description?: string | null;
@@ -313,14 +313,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -342,14 +346,18 @@ export interface operations {
         responses: {
             /** @description Project created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -368,14 +376,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -399,14 +411,18 @@ export interface operations {
         responses: {
             /** @description Project updated successfully */
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -428,14 +444,18 @@ export interface operations {
         responses: {
             /** @description Bulk Projects created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["BulkCreateProjectsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -452,7 +472,9 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -469,7 +491,9 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -489,14 +513,18 @@ export interface operations {
         responses: {
             /** @description Service created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -507,7 +535,10 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** @description ID of the service */
+                serviceId: string;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -516,16 +547,20 @@ export interface operations {
             };
         };
         responses: {
-            /** @description The service context has been successfully created. */
+            /** @description Service context created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceContextResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };

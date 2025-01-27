@@ -3,7 +3,7 @@ import { ServicesService } from "./services.service";
 import { ServicesContextService } from "./services-context.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "./dto/create-service-context.dto";
 import { Public } from "@/auth/public.decorator";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiTags, ApiParam } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
@@ -25,6 +25,7 @@ export class ServicesController {
   }
 
   @Public()
+  @ApiOperation({ summary: "Get all services corresponding to a project" })
   @Get("project/:projectId")
   getServicesByProjectId(@Param("projectId") projectId: string) {
     return this.servicesService.getServicesByProjectId(projectId);
@@ -40,14 +41,18 @@ export class ServicesController {
     return this.servicesService.create(createServiceDto);
   }
 
-  @Post("contexts")
+  @Post(":serviceId/contexts")
   @ApiOperation({ summary: "Create a new service context" })
+  @ApiParam({ name: "serviceId", description: "ID of the service" })
   @ApiEndpointResponses({
     successStatus: 201,
     response: CreateServiceContextResponse,
-    description: "The service context has been successfully created.",
+    description: "Service context created successfully",
   })
-  createServiceContext(@Body() createContextDto: CreateServiceContextRequest): Promise<CreateServiceContextResponse> {
-    return this.serviceContextService.create(createContextDto);
+  async createServiceContext(
+    @Param("serviceId") serviceId: string,
+    @Body() createServiceContextDto: CreateServiceContextRequest,
+  ): Promise<CreateServiceContextResponse> {
+    return this.serviceContextService.create(serviceId, createServiceContextDto);
   }
 }

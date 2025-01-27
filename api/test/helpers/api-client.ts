@@ -39,8 +39,13 @@ export const createApiClient = (apiKey: string) => {
     services: {
       create: (data: components["schemas"]["CreateServiceRequest"]) => client.POST("/services", { body: data }),
 
-      createContext: (data: components["schemas"]["CreateServiceContextRequest"]) =>
-        client.POST("/services/contexts", { body: data }),
+      createContext: (serviceId: string, data: components["schemas"]["CreateServiceContextRequest"]) =>
+        client.POST("/services/{serviceId}/contexts", {
+          params: {
+            path: { serviceId },
+          },
+          body: data,
+        }),
 
       getByProjectId: (projectId: string) =>
         client.GET("/services/project/{projectId}", {
