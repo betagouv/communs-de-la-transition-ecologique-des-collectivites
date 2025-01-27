@@ -26,7 +26,7 @@ export class CreateServiceContextRequest implements InferInsertModel<typeof serv
   @IsArray()
   competencesAndSousCompetences!: CompetencesWithSousCompetences;
 
-  @ApiProperty({ required: false, nullable: true, type: String })
+  @ApiProperty({ required: false, nullable: true })
   @IsString()
   @IsOptional()
   description?: string;
@@ -62,7 +62,7 @@ export class CreateServiceContextRequest implements InferInsertModel<typeof serv
   redirectionLabel?: string;
 
   @ApiProperty({
-    description: "Custom label for extending/expanding the service details",
+    description: "Custom label for expanding the service details",
     example: "Show climate data",
     required: false,
     nullable: true,
@@ -70,6 +70,14 @@ export class CreateServiceContextRequest implements InferInsertModel<typeof serv
   @IsString()
   @IsOptional()
   extendLabel?: string;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+  })
+  @IsString()
+  @IsOptional()
+  iframeUrl?: string;
 
   @ApiProperty({
     enum: projectStatusEnum.enumValues,

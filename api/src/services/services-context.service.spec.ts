@@ -30,7 +30,7 @@ describe("ServiceContextService", () => {
 
   describe("findMatchingServices", () => {
     it("should return empty array when no competences and project status provided", async () => {
-      const result = await serviceContextService.findMatchingServices(null, null);
+      const result = await serviceContextService.findMatchingServices(null, null, null);
       expect(result).toEqual([]);
     });
 
@@ -54,7 +54,7 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], null);
+      const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -66,6 +66,7 @@ describe("ServiceContextService", () => {
         redirectionUrl: serviceContexts[0].redirectionUrl,
         redirectionLabel: serviceContexts[0].redirectionLabel,
         extendLabel: serviceContexts[0].extendLabel,
+        iframeUrl: serviceContexts[0].iframeUrl,
       });
     });
 
@@ -76,6 +77,8 @@ describe("ServiceContextService", () => {
         logoUrl: "https://test.com/logo.png",
         redirectionUrl: "https://test.com",
         redirectionLabel: "Original Label",
+        iframeUrl: "https://test.com/iframe",
+        extendLabel: "Extend Label",
       });
 
       const createContextDto: CreateServiceContextRequest = {
@@ -84,7 +87,7 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], null);
+      const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -95,8 +98,92 @@ describe("ServiceContextService", () => {
         logoUrl: service.logoUrl,
         redirectionUrl: service.redirectionUrl,
         redirectionLabel: service.redirectionLabel,
-        extendLabel: null,
+        extendLabel: service.extendLabel,
+        iframeUrl: service.iframeUrl,
       });
+    });
+
+    it("should match services by exact sous competence", async () => {
+      const service = await servicesService.create({
+        name: "Test Service",
+        description: "Original Description",
+        logoUrl: "https://test.com/logo.png",
+        redirectionUrl: "https://test.com",
+        redirectionLabel: "Original Label",
+      });
+
+      const createContextDto: CreateServiceContextRequest = {
+        serviceId: service.id,
+        competencesAndSousCompetences: ["Culture__Arts plastiques et photographie"],
+        description: "Context Description",
+      };
+      await serviceContextService.create(createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServices(
+        ["Culture"],
+        ["Arts plastiques et photographie"],
+        null,
+      );
+
+      expect(serviceContexts).toHaveLength(1);
+      expect(serviceContexts[0]).toEqual({
+        id: service.id,
+        createdAt: expect.any(Date),
+        name: service.name,
+        description: "Context Description",
+        logoUrl: service.logoUrl,
+        redirectionUrl: service.redirectionUrl,
+        redirectionLabel: service.redirectionLabel,
+        extendLabel: service.extendLabel,
+        iframeUrl: service.iframeUrl,
+      });
+    });
+
+    it("should not match services with different sous competence and competence", async () => {
+      const service = await servicesService.create({
+        name: "Test Service",
+        description: "Original Description",
+        logoUrl: "https://test.com/logo.png",
+        redirectionUrl: "https://test.com",
+        redirectionLabel: "Original Label",
+      });
+
+      const createContextDto: CreateServiceContextRequest = {
+        serviceId: service.id,
+        competencesAndSousCompetences: ["Action sociale (hors APA et RSA)__Citoyenneté"],
+        description: "Context Description",
+      };
+      await serviceContextService.create(createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServices(
+        ["Culture"],
+        ["Bibliothèques et livres"],
+        null,
+      );
+
+      expect(serviceContexts).toHaveLength(0);
+    });
+
+    it("should fall back to base competence when no sous competence matches", async () => {
+      const service = await servicesService.create({
+        name: "Test Service",
+        description: "Original Description",
+        logoUrl: "https://test.com/logo.png",
+        redirectionUrl: "https://test.com",
+        redirectionLabel: "Original Label",
+      });
+
+      const createContextDto: CreateServiceContextRequest = {
+        serviceId: service.id,
+        competencesAndSousCompetences: ["Culture__Arts plastiques et photographie"],
+        description: "Context Description",
+      };
+      await serviceContextService.create(createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServices(["Culture"], null, null);
+
+      expect(serviceContexts).toHaveLength(1);
+      expect(serviceContexts[0].id).toBe(service.id);
     });
   });
 
@@ -134,6 +221,7 @@ describe("ServiceContextService", () => {
         redirectionLabel: "Context Label",
         extendLabel: "Extend Label",
         statuses: null,
+        iframeUrl: null,
       });
     });
 

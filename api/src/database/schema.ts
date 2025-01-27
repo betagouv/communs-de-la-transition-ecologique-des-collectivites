@@ -63,9 +63,11 @@ export const services = pgTable("services", {
   createdAt: timestamp("createdAt").defaultNow(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  logoUrl: text("logoUrl").notNull(),
+  logoUrl: text("logo_url").notNull(),
+  iframeUrl: text("iframe_url"),
   redirectionUrl: text("redirection_url").notNull(),
   redirectionLabel: text("redirection_label").notNull(),
+  extendLabel: text("extend_label"),
 });
 
 export const serviceContext = pgTable("service_context", {
@@ -85,6 +87,7 @@ export const serviceContext = pgTable("service_context", {
   redirectionUrl: text("redirection_url"),
   redirectionLabel: text("redirection_label"),
   extendLabel: text("extend_label"),
+  iframeUrl: text("iframe_url"),
 });
 
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations

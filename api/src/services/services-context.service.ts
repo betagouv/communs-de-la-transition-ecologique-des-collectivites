@@ -1,20 +1,18 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { ProjectStatus, serviceContext, services } from "@database/schema";
-import { arrayOverlaps, eq } from "drizzle-orm";
-import { Competences } from "@/shared/types";
+import { arrayOverlaps, eq, InferSelectModel } from "drizzle-orm";
+import { Competences, SousCompetences } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
 import { CompetencesService } from "@projects/services/competences/competences.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/services/dto/create-service-context.dto";
 
-interface ServiceWithContext {
-  id: string;
-  name: string;
-  description: string;
-  logoUrl: string;
-  redirectionUrl?: string;
-  redirectionLabel?: string;
-  extendLabel?: string | null;
+type ServiceWithContext = InferSelectModel<typeof services> &
+  Pick<InferSelectModel<typeof serviceContext>, "extendLabel">;
+
+interface JoinResult {
+  services: InferSelectModel<typeof services>;
+  service_context: InferSelectModel<typeof serviceContext>;
 }
 
 @Injectable()
@@ -27,41 +25,35 @@ export class ServicesContextService {
 
   async findMatchingServices(
     competences: Competences | null,
+    sousCompetences: SousCompetences | null,
     projectStatus: ProjectStatus | null,
   ): Promise<ServiceWithContext[]> {
     if (!competences?.length && !projectStatus) {
       return [];
     }
 
-    // we shout get competences and sous competences from the project
-    // we should also get the levier from the project
-
-    // todo add sous comp
     // todo add project status
+    // todo add code insee
 
-    // we should get all the services contexts where the
-    // competences and sous competences match and the project status match
+    // First try to match by sous competences if they exist
+    let matchingContexts: JoinResult[] = [];
+    if (sousCompetences?.length) {
+      matchingContexts = await this.dbService.database
+        .select()
+        .from(serviceContext)
+        .innerJoin(services, eq(services.id, serviceContext.serviceId))
+        .where(arrayOverlaps(serviceContext.sousCompetences, sousCompetences));
+    }
 
-    const matchingContexts = await this.dbService.database
-      .select()
-      .from(serviceContext)
-      .innerJoin(services, eq(services.id, serviceContext.serviceId))
-      .where(arrayOverlaps(serviceContext.competences, competences ?? []));
-
-    // const matchingContexts = await this.dbService.database
-    //   .select()
-    //   .from(serviceContext)
-    //   .innerJoin(services, eq(services.id, serviceContext.serviceId))
-    //   .where(
-    //     or(
-    //       and(notNull(serviceContext.competences), overlap(serviceContext.competences, competences ?? [])),
-    //       and(notNull(serviceContext.sousCompetences), overlap(serviceContext.sousCompetences, sousCompetences ?? [])),
-    //       and(
-    //         notNull(serviceContext.statuses),
-    //         projectStatus ? inArray(serviceContext.statuses, [projectStatus]) : undefined,
-    //       ),
-    //     ),
-    //   );
+    // If no matches found with sous competences or no sous competences provided,
+    // fall back to matching by base competences
+    if (matchingContexts.length === 0 && competences?.length) {
+      matchingContexts = await this.dbService.database
+        .select()
+        .from(serviceContext)
+        .innerJoin(services, eq(services.id, serviceContext.serviceId))
+        .where(arrayOverlaps(serviceContext.competences, competences));
+    }
 
     if (matchingContexts.length === 0) {
       return [];
@@ -73,7 +65,8 @@ export class ServicesContextService {
       logoUrl: service_context.logoUrl ?? services.logoUrl,
       redirectionUrl: service_context.redirectionUrl ?? services.redirectionUrl,
       redirectionLabel: service_context.redirectionLabel ?? services.redirectionLabel,
-      extendLabel: service_context.extendLabel,
+      extendLabel: service_context.extendLabel ?? services.extendLabel,
+      iframeUrl: service_context.iframeUrl ?? services.iframeUrl,
     }));
   }
 

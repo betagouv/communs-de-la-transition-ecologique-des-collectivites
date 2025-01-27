@@ -32,6 +32,8 @@ describe("ServicesService", () => {
         logoUrl: "https://test.com/logo.png",
         redirectionUrl: "https://test.com",
         redirectionLabel: "Go on test service",
+        extendLabel: "Extend label",
+        iframeUrl: "https://test.com/iframe",
       };
 
       const result = await service.create(createDto);

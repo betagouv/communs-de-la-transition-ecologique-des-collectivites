@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsUrl } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
 import { InferInsertModel } from "drizzle-orm";
 import { services } from "@database/schema";
 
@@ -27,6 +27,12 @@ export class CreateServiceResponse {
   @ApiProperty()
   @IsString()
   redirectionLabel!: string;
+
+  @ApiProperty({ nullable: true })
+  iframeUrl!: string | null;
+
+  @ApiProperty({ nullable: true })
+  extendLabel!: string | null;
 }
 
 export class CreateServiceRequest implements InferInsertModel<typeof services> {
@@ -70,4 +76,20 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
   @IsString()
   @IsNotEmpty()
   redirectionLabel!: string;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+  })
+  @IsString()
+  @IsOptional()
+  iframeUrl?: string;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+  })
+  @IsString()
+  @IsOptional()
+  extendLabel?: string;
 }

@@ -36,7 +36,7 @@ describe("ServiceController", () => {
 
   describe("service", () => {
     it("should create a new service", async () => {
-      const expectedResponse = { ...validService, id: "test-id" };
+      const expectedResponse = { ...validService, id: "test-id", extendLabel: null, iframeUrl: null };
       jest.spyOn(serviceServices, "create").mockResolvedValue(expectedResponse);
 
       const result = await controller.create(validService);
