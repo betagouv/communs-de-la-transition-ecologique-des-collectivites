@@ -6,6 +6,7 @@ const config: Config = {
   testRegex: ".e2e-spec.ts$",
   roots: ["<rootDir>/test/"],
   globalSetup: "<rootDir>/test/helpers/e2e-global-setup.ts", // Runs once at the start
+  globalTeardown: "<rootDir>/test/helpers/e2e-global-teardown.ts",
 };
 
 export default config;
