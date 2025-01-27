@@ -53,4 +53,7 @@ export default async function globalSetup() {
   setupApp(app);
   await app.init();
   await app.listen(3000);
+
+  global.testApp = app;
+  global.testDbService = moduleFixture.get(TestDatabaseService);
 }
