@@ -15,6 +15,7 @@ describe("AppController (e2e)", () => {
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
+      serviceId: "MEC-service-id",
     };
 
     describe("POST /projects", () => {
@@ -265,7 +266,6 @@ describe("AppController (e2e)", () => {
 
         const { data: updatedProject } = await api.projects.getOne(projectId);
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { communeInseeCodes, ...expectedFields } = updateData;
 
         expect(updatedProject).toMatchObject({
@@ -297,11 +297,7 @@ describe("AppController (e2e)", () => {
 
         const { data, error } = await api.projects.getOne(projectId);
 
-        const {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          communeInseeCodes: communeCodesInProject1,
-          ...expectedFields
-        } = validProject;
+        const { communeInseeCodes: communeCodesInProject1, ...expectedFields } = validProject;
 
         expect(error).toBeUndefined();
         expect(data).toEqual({
