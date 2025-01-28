@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { CreateOrUpdateProjectResponse, CreateProjectRequest } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { ProjectResponse } from "./dto/project.dto";
@@ -9,9 +9,11 @@ import { CreateProjectsService } from "./services/create-projects/create-project
 import { UpdateProjectsService } from "./services/update-projects/update-projects.service";
 import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";
 import { BulkCreateProjectsRequest, BulkCreateProjectsResponse } from "./dto/bulk-create-projects.dto";
+import { ApiKeyGuard } from "@/auth/api-key-guard";
 
 @ApiBearerAuth()
 @Controller("projects")
+@UseGuards(ApiKeyGuard)
 export class ProjectsController {
   constructor(
     private readonly projectCreateService: CreateProjectsService,

@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { ArrayNotEmpty, IsArray, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
 import { competencesWithSousCompetences } from "@/shared/const/competences-list";
-import { CompetenceWithSousCompetence } from "@/shared/types";
+import { CompetencesWithSousCompetences } from "@/shared/types";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
@@ -19,7 +19,7 @@ export class CreateProjectRequest {
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
-  description!: string;
+  description?: string | null;
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
@@ -70,7 +70,7 @@ export class CreateProjectRequest {
     enum: projectStatusEnum.enumValues,
     nullable: true,
     required: false,
-    description: "Status specific to the service type",
+    description: "Current Status for the project",
   })
   @IsOptional()
   status?: ProjectStatus | null;
@@ -97,5 +97,5 @@ export class CreateProjectRequest {
   })
   @IsArray()
   @IsOptional()
-  competencesAndSousCompetences?: CompetenceWithSousCompetence[] | null;
+  competencesAndSousCompetences?: CompetencesWithSousCompetences | null;
 }

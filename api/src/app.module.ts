@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { ProjectsModule } from "@projects/projects.module";
 import { ConfigModule } from "@nestjs/config";
-import { ApiKeyGuardProvider } from "./auth/api-key-guard";
 import { DatabaseModule } from "@database/database.module";
 import { LoggerModule } from "@/logging/logger.module";
 import { RequestLoggingInterceptor } from "@/logging/request-logging.interceptor";
@@ -24,6 +23,6 @@ import { SentryModule } from "@sentry/nestjs/setup";
     ServicesModule,
     LoggerModule,
   ],
-  providers: [AppService, ApiKeyGuardProvider, ThrottlerGuardProvider, RequestLoggingInterceptor],
+  providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
 })
 export class AppModule {}

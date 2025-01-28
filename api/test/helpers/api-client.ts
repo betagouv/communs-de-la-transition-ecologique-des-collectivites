@@ -2,8 +2,10 @@ import type { paths, components } from "../generated-types";
 import createClient from "openapi-fetch";
 
 export const createApiClient = (apiKey: string) => {
+  const baseUrl = "http://localhost:3000";
+
   const client = createClient<paths>({
-    baseUrl: process.env.API_URL ?? "http://localhost:3000",
+    baseUrl,
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
@@ -32,6 +34,22 @@ export const createApiClient = (apiKey: string) => {
             path: { id },
           },
           body: data,
+        }),
+    },
+    services: {
+      create: (data: components["schemas"]["CreateServiceRequest"]) => client.POST("/services", { body: data }),
+
+      createContext: (serviceId: string, data: components["schemas"]["CreateServiceContextRequest"]) =>
+        client.POST("/services/{serviceId}/contexts", {
+          params: {
+            path: { serviceId },
+          },
+          body: data,
+        }),
+
+      getByProjectId: (projectId: string) =>
+        client.GET("/services/project/{projectId}", {
+          params: { path: { projectId } },
         }),
     },
   };

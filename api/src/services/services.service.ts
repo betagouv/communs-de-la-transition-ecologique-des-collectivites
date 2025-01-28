@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { CreateServiceDto } from "./dto/create-service.dto";
+import { CreateServiceRequest, CreateServiceResponse } from "./dto/create-service.dto";
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@logging/logger.service";
@@ -66,7 +66,7 @@ export class ServicesService {
     private logger: CustomLogger,
   ) {}
 
-  async create(createServiceDto: CreateServiceDto) {
+  async create(createServiceDto: CreateServiceRequest): Promise<CreateServiceResponse> {
     this.logger.debug("Creating new service", { dto: createServiceDto });
 
     const [newService] = await this.dbService.database.insert(services).values(createServiceDto).returning();

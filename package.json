@@ -3,8 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "cd api && pnpm build",
-    "start": "cd api && pnpm start",
     "build:api": "pnpm --filter api build",
     "build:widget": "pnpm --filter widget build",
     "format": "pnpm -r format",

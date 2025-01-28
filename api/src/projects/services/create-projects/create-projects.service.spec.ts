@@ -1,11 +1,8 @@
-// disabled to use expect any syntax
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { TestDatabaseService } from "@test/helpers/test-database.service";
-import { teardownTestModule, testModule } from "@test/helpers/testModule";
+import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateProjectRequest } from "../../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
-import { getFormattedDate } from "@test/helpers/getFormattedDate";
+import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { CreateProjectsService } from "./create-projects.service";
 import { projects, projectsToCommunes } from "@database/schema";
 import { and, inArray } from "drizzle-orm";

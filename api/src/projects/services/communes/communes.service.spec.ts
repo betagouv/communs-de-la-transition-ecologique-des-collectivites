@@ -1,10 +1,10 @@
 import { CommunesService } from "./communes.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
-import { teardownTestModule, testModule } from "@test/helpers/testModule";
+import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { TestingModule } from "@nestjs/testing";
 import { communes, projects } from "@database/schema";
 import { inArray } from "drizzle-orm";
-import { getFormattedDate } from "@test/helpers/getFormattedDate";
+import { getFormattedDate } from "@test/helpers/get-formatted-date";
 
 describe("CommunesService", () => {
   let service: CommunesService;

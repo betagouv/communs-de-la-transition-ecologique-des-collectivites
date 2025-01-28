@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ProjectsController } from "./projects.controller";
 import { CreateProjectRequest } from "./dto/create-project.dto";
 import { ProjectResponse } from "./dto/project.dto";
-import { getFormattedDate } from "@test/helpers/getFormattedDate";
+import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { AppModule } from "@/app.module";
 import { NotFoundException } from "@nestjs/common";
 import { mockRequest } from "@test/mocks/mockRequest";
