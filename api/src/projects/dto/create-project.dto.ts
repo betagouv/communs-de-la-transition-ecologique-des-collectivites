@@ -98,4 +98,9 @@ export class CreateProjectRequest {
   @IsArray()
   @IsOptional()
   competencesAndSousCompetences?: CompetencesWithSousCompetences | null;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @IsNotEmpty()
+  serviceId!: string;
 }

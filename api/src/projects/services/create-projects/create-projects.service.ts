@@ -5,6 +5,7 @@ import { projects } from "@database/schema";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { CompetencesService } from "@projects/services/competences/competences.service";
 import { BulkCreateProjectsRequest } from "@projects/dto/bulk-create-projects.dto";
+import { ServiceIdentifierService } from "../service-identifier/service-identifier.service";
 
 @Injectable()
 export class CreateProjectsService {
@@ -12,10 +13,13 @@ export class CreateProjectsService {
     private dbService: DatabaseService,
     private readonly competencesService: CompetencesService,
     private readonly communesService: CommunesService,
+    private readonly serviceIdentifierService: ServiceIdentifierService,
   ) {}
 
-  async create(createProjectDto: CreateProjectRequest): Promise<{ id: string }> {
-    const { competencesAndSousCompetences, ...otherFields } = createProjectDto;
+  async create(createProjectDto: CreateProjectRequest, apiKey: string): Promise<{ id: string }> {
+    const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
+
+    const { competencesAndSousCompetences, serviceId, ...otherFields } = createProjectDto;
     const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
 
     return this.dbService.database.transaction(async (tx) => {
@@ -25,6 +29,7 @@ export class CreateProjectsService {
           ...otherFields,
           competences,
           sousCompetences,
+          [serviceIdField]: serviceId,
         })
         .returning();
 
@@ -34,12 +39,14 @@ export class CreateProjectsService {
     });
   }
 
-  async createBulk(bulkCreateProjectsRequest: BulkCreateProjectsRequest): Promise<{ ids: string[] }> {
+  async createBulk(bulkCreateProjectsRequest: BulkCreateProjectsRequest, apiKey: string): Promise<{ ids: string[] }> {
+    const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
+
     return this.dbService.database.transaction(async (tx) => {
       const createdProjects = [];
 
       for (const projectDto of bulkCreateProjectsRequest.projects) {
-        const { competencesAndSousCompetences, communeInseeCodes, ...projectFields } = projectDto;
+        const { competencesAndSousCompetences, communeInseeCodes, serviceId, ...projectFields } = projectDto;
         const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
 
         const [newProject] = await tx
@@ -48,6 +55,7 @@ export class CreateProjectsService {
             ...projectFields,
             competences,
             sousCompetences,
+            [serviceIdField]: serviceId,
           })
           .returning({ id: projects.id });
 

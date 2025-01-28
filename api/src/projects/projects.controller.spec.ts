@@ -39,6 +39,7 @@ describe("ProjectsController", () => {
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: ["75056"],
+      serviceId: "test-service-id",
     };
 
     it("should create a new project", async () => {
@@ -49,7 +50,7 @@ describe("ProjectsController", () => {
 
       expect(result).toEqual(expectedResponse);
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(projectCreateService.create).toHaveBeenCalledWith(validProject);
+      expect(projectCreateService.create).toHaveBeenCalledWith(validProject, "MEC_test_api_key");
     });
   });
 
@@ -77,6 +78,9 @@ describe("ProjectsController", () => {
               inseeCode: "75056",
             },
           ],
+          tetId: null,
+          mecId: null,
+          recocoId: null,
         },
       ];
 
@@ -110,6 +114,9 @@ describe("ProjectsController", () => {
             inseeCode: "75056",
           },
         ],
+        tetId: null,
+        mecId: null,
+        recocoId: null,
       };
 
       jest.spyOn(projectFindService, "findOne").mockResolvedValue(expectedProject);

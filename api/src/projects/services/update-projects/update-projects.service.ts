@@ -6,6 +6,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "../communes/communes.service";
 import { CompetencesService } from "@projects/services/competences/competences.service";
+import { ServiceIdentifierService } from "@projects/services/service-identifier/service-identifier.service";
 
 @Injectable()
 export class UpdateProjectsService {
@@ -13,11 +14,13 @@ export class UpdateProjectsService {
     private dbService: DatabaseService,
     private readonly communesService: CommunesService,
     private readonly competencesService: CompetencesService,
+    private readonly serviceIdentifierService: ServiceIdentifierService,
   ) {}
 
-  async update(id: string, updateProjectDto: UpdateProjectDto): Promise<{ id: string }> {
-    const { competencesAndSousCompetences, ...otherFields } = updateProjectDto;
+  async update(id: string, updateProjectDto: UpdateProjectDto, apiKey: string): Promise<{ id: string }> {
+    const { competencesAndSousCompetences, serviceId, ...otherFields } = updateProjectDto;
     const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
+    const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
     return this.dbService.database.transaction(async (tx) => {
       const [existingProject] = await tx
@@ -37,6 +40,7 @@ export class UpdateProjectsService {
         ...otherFields,
         competences,
         sousCompetences,
+        [serviceIdField]: serviceId,
       });
 
       if (communeInseeCodes) {

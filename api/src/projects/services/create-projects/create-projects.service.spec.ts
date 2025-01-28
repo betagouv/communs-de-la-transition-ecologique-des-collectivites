@@ -38,9 +38,10 @@ describe("ProjectCreateService", () => {
       status: "IDEE",
       communeInseeCodes: mockedCommunes,
       competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
+      serviceId: "test-service-id",
     };
 
-    const result = await service.create(createDto);
+    const result = await service.create(createDto, "MEC_test_api_key");
 
     expect(result).toEqual({
       id: expect.any(String),
@@ -70,7 +71,7 @@ describe("ProjectCreateService", () => {
         ] as CreateProjectRequest[],
       };
 
-      const result = await service.createBulk(projectsToCreate);
+      const result = await service.createBulk(projectsToCreate, "MEC_test_api_key");
 
       expect(result.ids).toHaveLength(2);
 
@@ -120,7 +121,7 @@ describe("ProjectCreateService", () => {
         ] as CreateProjectRequest[],
       };
 
-      await expect(service.createBulk(projectsToCreate)).rejects.toThrow();
+      await expect(service.createBulk(projectsToCreate, "MEC_test_api_key")).rejects.toThrow();
 
       // Verify no projects were created
       const createdProjects = await testDbService.database.select().from(projects);

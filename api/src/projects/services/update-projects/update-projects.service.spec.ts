@@ -18,7 +18,7 @@ describe("ProjectUpdateService", () => {
   let projectId: string;
 
   const mockedCommunes = ["01001", "75056", "97A01"];
-
+  const MEC_API_KEY = "MEC_test_api_key";
   beforeAll(async () => {
     const { module: internalModule, testDbService: tds } = await testModule();
     module = internalModule;
@@ -42,9 +42,10 @@ describe("ProjectUpdateService", () => {
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: mockedCommunes,
+      serviceId: "test-service-id",
     };
 
-    const result = await createService.create(createDto);
+    const result = await createService.create(createDto, MEC_API_KEY);
     projectId = result.id;
   });
 
@@ -53,13 +54,14 @@ describe("ProjectUpdateService", () => {
       nom: "Updated Project",
       description: "Updated Description",
       budget: 200000,
+      serviceId: "test-service-id-1",
     };
 
-    await updateService.update(projectId, updateDto);
+    await updateService.update(projectId, updateDto, MEC_API_KEY);
     const updatedProject = await findService.findOne(projectId);
-
+    const { serviceId, ...expectedfields } = updateDto;
     expect(updatedProject).toMatchObject({
-      ...updateDto,
+      ...expectedfields,
       id: projectId,
       porteurReferentEmail: "initial@email.com",
       communes: expect.arrayContaining(
@@ -79,13 +81,16 @@ describe("ProjectUpdateService", () => {
         "Culture__Arts plastiques et photographie",
       ] as CompetenceWithSousCompetence[],
       budget: 200000,
+      serviceId: "test-service-id-2",
     };
 
-    await updateService.update(projectId, updateDto);
+    const { serviceId, ...expectedFields } = updateDto;
+
+    await updateService.update(projectId, updateDto, MEC_API_KEY);
     const updatedProject = await findService.findOne(projectId);
 
     expect(updatedProject).toMatchObject({
-      ...updateDto,
+      ...expectedFields,
       id: projectId,
       porteurReferentEmail: "initial@email.com",
       competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
@@ -96,9 +101,10 @@ describe("ProjectUpdateService", () => {
     const newCommunes = ["34567", "89012"];
     const updateDto = {
       communeInseeCodes: newCommunes,
+      serviceId: "test-service-id-3",
     };
 
-    await updateService.update(projectId, updateDto);
+    await updateService.update(projectId, updateDto, MEC_API_KEY);
     const updatedProject = await findService.findOne(projectId);
 
     expect(updatedProject.communes).toHaveLength(newCommunes.length);
@@ -113,10 +119,10 @@ describe("ProjectUpdateService", () => {
 
   it("should throw NotFoundException when project doesn't exist", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
-    const updateDto = { nom: "Updated Name" };
+    const updateDto = { nom: "Updated Name", serviceId: "test-service-id-4" };
 
-    await expect(updateService.update(nonExistentId, updateDto)).rejects.toThrow(NotFoundException);
-    await expect(updateService.update(nonExistentId, updateDto)).rejects.toThrow(
+    await expect(updateService.update(nonExistentId, updateDto, "MEC_test_api_key")).rejects.toThrow(NotFoundException);
+    await expect(updateService.update(nonExistentId, updateDto, "MEC_test_api_key")).rejects.toThrow(
       `Project with ID ${nonExistentId} not found`,
     );
   });

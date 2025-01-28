@@ -57,4 +57,13 @@ export class ProjectResponse {
 
   @ApiProperty({ nullable: true })
   competencesAndSousCompetences!: CompetencesWithSousCompetences | null;
+
+  @ApiProperty({ nullable: true })
+  mecId!: string | null;
+
+  @ApiProperty({ nullable: true })
+  tetId!: string | null;
+
+  @ApiProperty({ nullable: true })
+  recocoId!: string | null;
 }

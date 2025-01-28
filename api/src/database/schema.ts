@@ -37,6 +37,9 @@ export const projects = pgTable("projects", {
   budget: integer("budget"),
   forecastedStartDate: text("forecasted_start_date"),
   status: projectStatusEnum(),
+  mecId: text("mec_id").unique(),
+  tetId: text("tet_id").unique(),
+  recocoId: text("recoco_id").unique(),
 });
 
 export const projectsToCommunes = pgTable(

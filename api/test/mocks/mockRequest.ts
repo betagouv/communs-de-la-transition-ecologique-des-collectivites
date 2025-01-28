@@ -1,6 +1,15 @@
 import { Request } from "express";
-import { ServiceType } from "@/shared/types";
 
-export const mockRequest = (serviceType: ServiceType): Request => {
-  return { serviceType } as any as Request;
+export const mockRequest = (service: "MEC" | "TET" | "RECOCO") => {
+  const apiKeys = {
+    MEC: process.env.MEC_API_KEY,
+    TET: process.env.TET_API_KEY,
+    RECOCO: process.env.RECOCO_API_KEY,
+  };
+
+  return {
+    headers: {
+      authorization: `Bearer ${apiKeys[service]}`,
+    },
+  } as any as Request;
 };
