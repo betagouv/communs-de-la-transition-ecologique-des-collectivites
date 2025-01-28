@@ -2,7 +2,7 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateProjectRequest } from "../../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
-import { NotFoundException } from "@nestjs/common";
+import { NotFoundException, ConflictException } from "@nestjs/common";
 import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { UpdateProjectsService } from "./update-projects.service";
 import { CreateProjectsService } from "../create-projects/create-projects.service";
@@ -19,6 +19,8 @@ describe("ProjectUpdateService", () => {
 
   const mockedCommunes = ["01001", "75056", "97A01"];
   const MEC_API_KEY = "MEC_test_api_key";
+  const EXTERNAL_ID = "test-service-id";
+
   beforeAll(async () => {
     const { module: internalModule, testDbService: tds } = await testModule();
     module = internalModule;
@@ -42,7 +44,7 @@ describe("ProjectUpdateService", () => {
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: mockedCommunes,
-      serviceId: "test-service-id",
+      externalId: EXTERNAL_ID,
     };
 
     const result = await createService.create(createDto, MEC_API_KEY);
@@ -54,12 +56,12 @@ describe("ProjectUpdateService", () => {
       nom: "Updated Project",
       description: "Updated Description",
       budget: 200000,
-      serviceId: "test-service-id-1",
+      externalId: EXTERNAL_ID,
     };
 
     await updateService.update(projectId, updateDto, MEC_API_KEY);
     const updatedProject = await findService.findOne(projectId);
-    const { serviceId, ...expectedfields } = updateDto;
+    const { externalId, ...expectedfields } = updateDto;
     expect(updatedProject).toMatchObject({
       ...expectedfields,
       id: projectId,
@@ -81,10 +83,10 @@ describe("ProjectUpdateService", () => {
         "Culture__Arts plastiques et photographie",
       ] as CompetenceWithSousCompetence[],
       budget: 200000,
-      serviceId: "test-service-id-2",
+      externalId: EXTERNAL_ID,
     };
 
-    const { serviceId, ...expectedFields } = updateDto;
+    const { externalId, ...expectedFields } = updateDto;
 
     await updateService.update(projectId, updateDto, MEC_API_KEY);
     const updatedProject = await findService.findOne(projectId);
@@ -101,7 +103,7 @@ describe("ProjectUpdateService", () => {
     const newCommunes = ["34567", "89012"];
     const updateDto = {
       communeInseeCodes: newCommunes,
-      serviceId: "test-service-id-3",
+      externalId: EXTERNAL_ID,
     };
 
     await updateService.update(projectId, updateDto, MEC_API_KEY);
@@ -119,11 +121,26 @@ describe("ProjectUpdateService", () => {
 
   it("should throw NotFoundException when project doesn't exist", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
-    const updateDto = { nom: "Updated Name", serviceId: "test-service-id-4" };
+    const updateDto = { nom: "Updated Name", externalId: "test-external-id-4" };
 
     await expect(updateService.update(nonExistentId, updateDto, "MEC_test_api_key")).rejects.toThrow(NotFoundException);
     await expect(updateService.update(nonExistentId, updateDto, "MEC_test_api_key")).rejects.toThrow(
       `Project with ID ${nonExistentId} not found`,
+    );
+  });
+
+  it("should throw ConflictException when externalId doesn't match", async () => {
+    const updateDto = {
+      nom: "Updated Project",
+      description: "Updated Description",
+      budget: 200000,
+      externalId: "different-external-id", // Different from the one used in creation
+    };
+
+    await expect(updateService.update(projectId, updateDto, MEC_API_KEY)).rejects.toThrow(
+      new ConflictException(
+        `Project with ID ${projectId} cannot be updated: externalId mismatch (current: test-service-id, requested: different-external-id)`,
+      ),
     );
   });
 });

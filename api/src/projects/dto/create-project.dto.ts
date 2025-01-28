@@ -102,5 +102,5 @@ export class CreateProjectRequest {
   @ApiProperty({ required: true })
   @IsString()
   @IsNotEmpty()
-  serviceId!: string;
+  externalId!: string;
 }

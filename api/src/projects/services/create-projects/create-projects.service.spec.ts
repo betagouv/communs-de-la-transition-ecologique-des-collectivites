@@ -6,6 +6,7 @@ import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { CreateProjectsService } from "./create-projects.service";
 import { projects, projectsToCommunes } from "@database/schema";
 import { and, inArray } from "drizzle-orm";
+import { ConflictException } from "@nestjs/common";
 
 describe("ProjectCreateService", () => {
   let service: CreateProjectsService;
@@ -29,22 +30,63 @@ describe("ProjectCreateService", () => {
     await testDbService.cleanDatabase();
   });
 
-  it("should create a new project", async () => {
-    const createDto: CreateProjectRequest = {
-      nom: "Test Project",
-      description: "Test Description",
-      budget: 100000,
-      forecastedStartDate: getFormattedDate(),
-      status: "IDEE",
-      communeInseeCodes: mockedCommunes,
-      competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
-      serviceId: "test-service-id",
-    };
+  describe("create", () => {
+    it("should create a new project", async () => {
+      const createDto: CreateProjectRequest = {
+        nom: "Test Project",
+        description: "Test Description",
+        budget: 100000,
+        forecastedStartDate: getFormattedDate(),
+        status: "IDEE",
+        communeInseeCodes: mockedCommunes,
+        competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
+        externalId: "test-external-id",
+      };
 
-    const result = await service.create(createDto, "MEC_test_api_key");
+      const result = await service.create(createDto, "MEC_test_api_key");
 
-    expect(result).toEqual({
-      id: expect.any(String),
+      expect(result).toEqual({
+        id: expect.any(String),
+      });
+    });
+
+    it("should throw ConflictException when project with same externalId exists", async () => {
+      const createDto: CreateProjectRequest = {
+        nom: "Test Project",
+        description: "Test Description",
+        budget: 100000,
+        forecastedStartDate: getFormattedDate(),
+        status: "IDEE",
+        communeInseeCodes: mockedCommunes,
+        competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
+        externalId: "duplicate-id",
+      };
+
+      await service.create(createDto, "MEC_test_api_key");
+
+      await expect(service.create(createDto, "MEC_test_api_key")).rejects.toThrow(
+        new ConflictException("Project with mecId duplicate-id already exists"),
+      );
+    });
+
+    it("should allow same externalId for different services", async () => {
+      const createDto: CreateProjectRequest = {
+        nom: "Test Project",
+        description: "Test Description",
+        budget: 100000,
+        forecastedStartDate: getFormattedDate(),
+        status: "IDEE",
+        communeInseeCodes: mockedCommunes,
+        externalId: "same-external-id",
+      };
+
+      // Create project with MEC API key
+      await service.create(createDto, "MEC_test_api_key");
+
+      // Should succeed with TET API key
+      await expect(service.create(createDto, "TET_test_api_key")).resolves.toEqual({
+        id: expect.any(String),
+      });
     });
   });
 

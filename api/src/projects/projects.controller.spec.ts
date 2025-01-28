@@ -39,7 +39,7 @@ describe("ProjectsController", () => {
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: ["75056"],
-      serviceId: "test-service-id",
+      externalId: "test-service-id",
     };
 
     it("should create a new project", async () => {

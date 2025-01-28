@@ -2,7 +2,7 @@ import { DatabaseService } from "@database/database.service";
 import { projects } from "@database/schema";
 import { UpdateProjectDto } from "@projects/dto/update-project.dto";
 import { removeUndefined } from "@/shared/utils/remove-undefined";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "../communes/communes.service";
 import { CompetencesService } from "@projects/services/competences/competences.service";
@@ -18,29 +18,30 @@ export class UpdateProjectsService {
   ) {}
 
   async update(id: string, updateProjectDto: UpdateProjectDto, apiKey: string): Promise<{ id: string }> {
-    const { competencesAndSousCompetences, serviceId, ...otherFields } = updateProjectDto;
-    const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
+    const { competencesAndSousCompetences, externalId, ...otherFields } = updateProjectDto;
+    const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
+
     return this.dbService.database.transaction(async (tx) => {
-      const [existingProject] = await tx
-        .select({
-          id: projects.id,
-          porteurReferentEmail: projects.porteurReferentEmail,
-        })
-        .from(projects)
-        .where(eq(projects.id, id))
-        .limit(1);
+      const [existingProject] = await tx.select().from(projects).where(eq(projects.id, id)).limit(1);
 
       if (!existingProject) {
         throw new NotFoundException(`Project with ID ${id} not found`);
+      }
+
+      // Check if project belongs to the service making the update
+      if (existingProject[serviceIdField] !== externalId) {
+        throw new ConflictException(
+          `Project with ID ${id} cannot be updated: externalId mismatch (current: ${existingProject[serviceIdField]}, requested: ${externalId})`,
+        );
       }
 
       const { communeInseeCodes, ...fieldsToUpdate } = removeUndefined({
         ...otherFields,
         competences,
         sousCompetences,
-        [serviceIdField]: serviceId,
+        [serviceIdField]: externalId,
       });
 
       if (communeInseeCodes) {
@@ -51,7 +52,7 @@ export class UpdateProjectsService {
         await tx.update(projects).set(fieldsToUpdate).where(eq(projects.id, id));
       }
 
-      return { id: existingProject.id };
+      return { id };
     });
   }
 }

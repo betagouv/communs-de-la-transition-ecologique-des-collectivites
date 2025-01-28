@@ -41,7 +41,7 @@ describe("ProjectFindService", () => {
         forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         communeInseeCodes: mockedCommunes,
-        serviceId: "test-service-id-1",
+        externalId: "test-service-id-1",
       };
       const createDto2: CreateProjectRequest = {
         nom: "Project 2",
@@ -50,16 +50,16 @@ describe("ProjectFindService", () => {
         forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         communeInseeCodes: mockedCommunes,
-        serviceId: "test-service-id-2",
+        externalId: "test-service-id-2",
       };
 
       await createService.create(createDto1, "MEC_test_api_key");
       await createService.create(createDto2, "MEC_test_api_key");
 
-      const { communeInseeCodes: communeCodesInProject1, serviceId, ...expectedFieldsProject1 } = createDto1;
+      const { communeInseeCodes: communeCodesInProject1, externalId, ...expectedFieldsProject1 } = createDto1;
       const {
         communeInseeCodes: communeCodesInProject2,
-        serviceId: serviceIdInProject2,
+        externalId: serviceIdInProject2,
         ...expectedFieldsProject2
       } = createDto2;
 
@@ -114,12 +114,12 @@ describe("ProjectFindService", () => {
         status: "IDEE",
         competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
         communeInseeCodes: mockedCommunes,
-        serviceId: "test-service-id",
+        externalId: "test-service-id",
       };
 
       const createdProject = await createService.create(createDto, "MEC_test_api_key");
       const result = await findService.findOne(createdProject.id);
-      const { communeInseeCodes, competencesAndSousCompetences, serviceId, ...expectedFields } = createDto;
+      const { communeInseeCodes, competencesAndSousCompetences, externalId, ...expectedFields } = createDto;
       expect(result).toEqual({
         ...expectedFields,
         communes: expect.arrayContaining(
