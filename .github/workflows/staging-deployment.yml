@@ -61,6 +61,9 @@ jobs:
       - name: Unit tests
         run: pnpm run test
         env:
+          MEC_API_KEY: ${{ secrets.MEC_API_KEY }}
+          TET_API_KEY: ${{ secrets.TET_API_KEY }}
+          RECOCO_API_KEY: ${{ secrets.RECOCO_API_KEY }}
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
 
       - name: Integrated tests
