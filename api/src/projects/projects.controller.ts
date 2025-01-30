@@ -10,6 +10,7 @@ import { UpdateProjectsService } from "./services/update-projects/update-project
 import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";
 import { BulkCreateProjectsRequest, BulkCreateProjectsResponse } from "./dto/bulk-create-projects.dto";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
+import { extractApiKey } from "@projects/extract-api-key";
 
 @ApiBearerAuth()
 @Controller("projects")
@@ -44,10 +45,10 @@ export class ProjectsController {
     description: "Project created successfully",
   })
   create(
-    @Req() _request: Request,
+    @Req() request: Request,
     @Body() createProjectDto: CreateProjectRequest,
   ): Promise<CreateOrUpdateProjectResponse> {
-    return this.projectCreateService.create(createProjectDto);
+    return this.projectCreateService.create(createProjectDto, extractApiKey(request));
   }
 
   @Post("bulk")
@@ -57,10 +58,10 @@ export class ProjectsController {
     description: "Bulk Projects created successfully",
   })
   async createBulk(
-    @Req() _request: Request,
+    @Req() request: Request,
     @Body() createProjectsDto: BulkCreateProjectsRequest,
   ): Promise<BulkCreateProjectsResponse> {
-    return await this.projectCreateService.createBulk(createProjectsDto);
+    return await this.projectCreateService.createBulk(createProjectsDto, extractApiKey(request));
   }
 
   @Patch(":id")
@@ -70,10 +71,10 @@ export class ProjectsController {
     description: "Project updated successfully",
   })
   update(
-    @Req() _request: Request,
+    @Req() request: Request,
     @Param("id") id: string,
     @Body() updateProjectDto: UpdateProjectDto,
   ): Promise<CreateOrUpdateProjectResponse> {
-    return this.projectUpdateService.update(id, updateProjectDto);
+    return this.projectUpdateService.update(id, updateProjectDto, extractApiKey(request));
   }
 }

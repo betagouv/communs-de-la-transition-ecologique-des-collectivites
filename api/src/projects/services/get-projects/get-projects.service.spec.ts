@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateProjectRequest } from "../../dto/create-project.dto";
@@ -41,6 +42,7 @@ describe("ProjectFindService", () => {
         forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         communeInseeCodes: mockedCommunes,
+        externalId: "test-service-id-1",
       };
       const createDto2: CreateProjectRequest = {
         nom: "Project 2",
@@ -49,19 +51,16 @@ describe("ProjectFindService", () => {
         forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         communeInseeCodes: mockedCommunes,
+        externalId: "test-service-id-2",
       };
 
-      await createService.create(createDto1);
-      await createService.create(createDto2);
+      await createService.create(createDto1, "MEC_test_api_key");
+      await createService.create(createDto2, "MEC_test_api_key");
 
+      const { communeInseeCodes: communeCodesInProject1, externalId, ...expectedFieldsProject1 } = createDto1;
       const {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        communeInseeCodes: communeCodesInProject1,
-        ...expectedFieldsProject1
-      } = createDto1;
-      const {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         communeInseeCodes: communeCodesInProject2,
+        externalId: serviceIdInProject2,
         ...expectedFieldsProject2
       } = createDto2;
 
@@ -83,6 +82,8 @@ describe("ProjectFindService", () => {
             inseeCode: code,
           })),
         ),
+        tetId: null,
+        recocoId: null,
       };
 
       expect(result).toHaveLength(2);
@@ -91,12 +92,14 @@ describe("ProjectFindService", () => {
         ...expectedCommonFields,
         porteurReferentEmail: "porteurReferentEmail@email.com",
         status: "IDEE",
+        mecId: "test-service-id-1",
       });
 
       expect(result[1]).toEqual({
         ...expectedFieldsProject2,
         ...expectedCommonFields,
         status: "IDEE",
+        mecId: "test-service-id-2",
       });
     });
   });
@@ -112,12 +115,12 @@ describe("ProjectFindService", () => {
         status: "IDEE",
         competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
         communeInseeCodes: mockedCommunes,
+        externalId: "test-service-id",
       };
 
-      const createdProject = await createService.create(createDto);
+      const createdProject = await createService.create(createDto, "MEC_test_api_key");
       const result = await findService.findOne(createdProject.id);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { communeInseeCodes, competencesAndSousCompetences, ...expectedFields } = createDto;
+      const { communeInseeCodes, competencesAndSousCompetences, externalId, ...expectedFields } = createDto;
       expect(result).toEqual({
         ...expectedFields,
         communes: expect.arrayContaining(
@@ -135,6 +138,9 @@ describe("ProjectFindService", () => {
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
         status: "IDEE",
+        recocoId: null,
+        mecId: "test-service-id",
+        tetId: null,
       });
     });
 

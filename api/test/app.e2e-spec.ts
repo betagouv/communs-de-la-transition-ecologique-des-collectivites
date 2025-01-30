@@ -1,10 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { getFormattedDate } from "./helpers/get-formatted-date";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { createApiClient } from "@test/helpers/api-client";
 
 describe("AppController (e2e)", () => {
   const api = createApiClient(process.env.MEC_API_KEY!);
-
+  afterEach(async () => {
+    await global.testDbService.cleanDatabase();
+  });
   describe("Projects (e2e)", () => {
     const validProject: CreateProjectRequest = {
       nom: "Test Project",
@@ -15,6 +19,7 @@ describe("AppController (e2e)", () => {
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
+      externalId: "MEC-service-id",
     };
 
     describe("POST /projects", () => {
@@ -36,18 +41,37 @@ describe("AppController (e2e)", () => {
 
       it("should create a valid project with TeT api key", async () => {
         const tetClient = createApiClient(process.env.TET_API_KEY!);
-        const { data, error } = await tetClient.projects.create({ ...validProject, status: "IDEE" });
+        const { data, error } = await tetClient.projects.create({
+          ...validProject,
+          status: "IDEE",
+          externalId: "TeT-service-id",
+        });
 
         expect(error).toBeUndefined();
         expect(data).toHaveProperty("id");
+
+        const { data: updatedProject } = await api.projects.getOne(data!.id);
+
+        expect(updatedProject).toMatchObject({
+          tetId: "TeT-service-id",
+        });
       });
 
       it("should create a valid project with Recoco api key", async () => {
         const recocoClient = createApiClient(process.env.RECOCO_API_KEY!);
-        const { data, error } = await recocoClient.projects.create(validProject);
 
+        const { data, error } = await recocoClient.projects.create({
+          ...validProject,
+          externalId: "Recoco-service-id",
+        });
         expect(error).toBeUndefined();
         expect(data).toHaveProperty("id");
+
+        const { data: updatedProject } = await api.projects.getOne(data!.id);
+
+        expect(updatedProject).toMatchObject({
+          recocoId: "Recoco-service-id",
+        });
       });
 
       it("should reject when nom is empty", async () => {
@@ -60,21 +84,22 @@ describe("AppController (e2e)", () => {
         expect(error?.message).toContain("nom should not be empty");
       });
 
+      it("should reject when externalId is empty", async () => {
+        const { error } = await api.projects.create({
+          ...validProject,
+          externalId: "",
+        });
+
+        expect(error?.statusCode).toBe(400);
+        expect(error?.message).toContain("externalId should not be empty");
+      });
+
       it("should reject when required fields are missing", async () => {
         const { error } = await api.projects.create({
           nom: "Test Project",
         } as CreateProjectRequest);
 
         expect(error?.statusCode).toBe(400);
-      });
-
-      it("should create a valid project", async () => {
-        const { data, error } = await api.projects.create(validProject);
-
-        expect(error).toBeUndefined();
-        expect(data).toMatchObject({
-          id: expect.any(String),
-        });
       });
 
       it("should reject when date is not an isoDate string", async () => {
@@ -110,6 +135,7 @@ describe("AppController (e2e)", () => {
             forecastedStartDate: getFormattedDate(),
             status: "IDEE",
             communeInseeCodes: ["01001", "75056"],
+            externalId: "bulk-project-1",
           },
           {
             nom: "Bulk Project 2",
@@ -120,6 +146,7 @@ describe("AppController (e2e)", () => {
             forecastedStartDate: getFormattedDate(),
             status: "IDEE",
             communeInseeCodes: ["97A01"],
+            externalId: "bulk-project-2",
           },
         ] as CreateProjectRequest[],
       };
@@ -157,6 +184,7 @@ describe("AppController (e2e)", () => {
               forecastedStartDate: getFormattedDate(),
               status: "IDEE",
               communeInseeCodes: ["01001"],
+              externalId: "invalid-project-1",
             },
             {
               nom: "", // Invalid: empty name
@@ -165,6 +193,7 @@ describe("AppController (e2e)", () => {
               forecastedStartDate: getFormattedDate(),
               status: "IDEE",
               communeInseeCodes: ["01001"],
+              externalId: "invalid-project-2",
             },
           ] as CreateProjectRequest[],
         };
@@ -229,6 +258,7 @@ describe("AppController (e2e)", () => {
         const newEmail = "new.referent@email.com";
         const updateData = {
           porteurReferentEmail: newEmail,
+          externalId: validProject.externalId,
         };
 
         const { data, error } = await api.projects.update(projectId, updateData);
@@ -238,7 +268,6 @@ describe("AppController (e2e)", () => {
           id: projectId,
         });
 
-        // Use new email to verify permissions
         const { data: updatedProject } = await api.projects.getOne(projectId);
 
         expect(updatedProject).toMatchObject({
@@ -254,6 +283,7 @@ describe("AppController (e2e)", () => {
           budget: 200000,
           communeInseeCodes: ["34567", "89012"],
           porteurReferentEmail: "new.referent@email.com",
+          externalId: validProject.externalId,
         };
 
         const { data, error } = await api.projects.update(projectId, updateData);
@@ -265,8 +295,7 @@ describe("AppController (e2e)", () => {
 
         const { data: updatedProject } = await api.projects.getOne(projectId);
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { communeInseeCodes, ...expectedFields } = updateData;
+        const { communeInseeCodes, externalId, ...expectedFields } = updateData;
 
         expect(updatedProject).toMatchObject({
           ...expectedFields,
@@ -276,6 +305,9 @@ describe("AppController (e2e)", () => {
               inseeCode: code,
             })),
           ),
+          mecId: validProject.externalId,
+          recocoId: null,
+          tetId: null,
         });
       });
 
@@ -292,16 +324,14 @@ describe("AppController (e2e)", () => {
 
     describe("GET /projects/:id", () => {
       it("should return a specific project", async () => {
-        const { data: createdProject } = await api.projects.create(validProject);
+        const { data: createdProject, error: createError } = await api.projects.create(validProject);
+        console.log("createError", createError);
+
         const projectId = createdProject!.id;
 
         const { data, error } = await api.projects.getOne(projectId);
 
-        const {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          communeInseeCodes: communeCodesInProject1,
-          ...expectedFields
-        } = validProject;
+        const { communeInseeCodes: communeCodesInProject1, externalId, ...expectedFields } = validProject;
 
         expect(error).toBeUndefined();
         expect(data).toEqual({
@@ -321,6 +351,9 @@ describe("AppController (e2e)", () => {
             }),
           ]),
           status: "IDEE",
+          mecId: "MEC-service-id",
+          recocoId: null,
+          tetId: null,
         });
       });
 
