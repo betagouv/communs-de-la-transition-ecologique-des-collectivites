@@ -39,18 +39,37 @@ describe("AppController (e2e)", () => {
 
       it("should create a valid project with TeT api key", async () => {
         const tetClient = createApiClient(process.env.TET_API_KEY!);
-        const { data, error } = await tetClient.projects.create({ ...validProject, status: "IDEE" });
+        const { data, error } = await tetClient.projects.create({
+          ...validProject,
+          status: "IDEE",
+          externalId: "TeT-service-id",
+        });
 
         expect(error).toBeUndefined();
         expect(data).toHaveProperty("id");
+
+        const { data: updatedProject } = await api.projects.getOne(data!.id);
+
+        expect(updatedProject).toMatchObject({
+          tetId: "TeT-service-id",
+        });
       });
 
       it("should create a valid project with Recoco api key", async () => {
         const recocoClient = createApiClient(process.env.RECOCO_API_KEY!);
-        const { data, error } = await recocoClient.projects.create(validProject);
 
+        const { data, error } = await recocoClient.projects.create({
+          ...validProject,
+          externalId: "Recoco-service-id",
+        });
         expect(error).toBeUndefined();
         expect(data).toHaveProperty("id");
+
+        const { data: updatedProject } = await api.projects.getOne(data!.id);
+
+        expect(updatedProject).toMatchObject({
+          recocoId: "Recoco-service-id",
+        });
       });
 
       it("should reject when nom is empty", async () => {
@@ -79,15 +98,6 @@ describe("AppController (e2e)", () => {
         } as CreateProjectRequest);
 
         expect(error?.statusCode).toBe(400);
-      });
-
-      it("should create a valid project", async () => {
-        const { data, error } = await api.projects.create(validProject);
-
-        expect(error).toBeUndefined();
-        expect(data).toMatchObject({
-          id: expect.any(String),
-        });
       });
 
       it("should reject when date is not an isoDate string", async () => {
@@ -256,7 +266,6 @@ describe("AppController (e2e)", () => {
           id: projectId,
         });
 
-        // Use new email to verify permissions
         const { data: updatedProject } = await api.projects.getOne(projectId);
 
         expect(updatedProject).toMatchObject({
