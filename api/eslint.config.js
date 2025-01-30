@@ -24,7 +24,6 @@ module.exports = tseslint.config(
     files: ["**/*.spec.ts", "**/*.e2e-spec.ts", "**/test/**/*.ts"],
     rules: {
       "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unused-vars": "off",
     },
   },
 );
