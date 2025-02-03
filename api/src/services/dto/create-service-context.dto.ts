@@ -13,7 +13,7 @@ export class CreateServiceContextResponse {
 
 export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof serviceContext>, "serviceId"> {
   @ApiProperty({
-    type: [String],
+    type: String,
     enum: competencesWithSousCompetences,
     isArray: true,
     required: true,

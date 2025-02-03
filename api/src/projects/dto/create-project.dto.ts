@@ -85,9 +85,10 @@ export class CreateProjectRequest {
   status?: ProjectStatus | null;
 
   @ApiProperty({
-    type: [String],
+    type: String,
     description: "Array of INSEE codes for the communes",
     example: ["01001", "75056", "97A01"],
+    isArray: true,
     required: false,
   })
   @IsArray()
@@ -98,7 +99,7 @@ export class CreateProjectRequest {
   communeInseeCodes!: string[];
 
   @ApiProperty({
-    type: [String],
+    type: String,
     enum: competencesWithSousCompetences,
     isArray: true,
     required: false,
