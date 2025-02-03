@@ -105,7 +105,7 @@ export class CreateProjectRequest {
     required: false,
     nullable: true,
     description: "Array of competences and sous-competences",
-    example: ["Santé", "Culture__Arts plastiques et photographie"],
+    example: ["Santé", "Culture > Arts plastiques et photographie"],
   })
   @IsArray()
   @IsOptional()

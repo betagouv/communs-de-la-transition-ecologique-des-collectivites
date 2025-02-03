@@ -113,7 +113,7 @@ describe("ProjectFindService", () => {
         budget: 100000,
         forecastedStartDate: getFormattedDate(),
         status: "IDEE",
-        competences: ["Santé", "Culture__Arts plastiques et photographie"],
+        competences: ["Santé", "Culture > Arts plastiques et photographie"],
         communeInseeCodes: mockedCommunes,
         externalId: "test-service-id",
       };

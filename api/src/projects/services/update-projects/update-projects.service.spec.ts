@@ -80,7 +80,7 @@ describe("ProjectUpdateService", () => {
     const updateDto: UpdateProjectDto = {
       nom: "Updated Project",
       description: "Updated Description",
-      competences: ["Santé", "Culture__Arts plastiques et photographie"],
+      competences: ["Santé", "Culture > Arts plastiques et photographie"],
       budget: 200000,
       externalId: EXTERNAL_ID,
     };

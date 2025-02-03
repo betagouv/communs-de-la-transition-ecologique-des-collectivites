@@ -20,7 +20,7 @@ describe("AppController (e2e)", () => {
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
-      competences: ["Santé", "Culture__Arts plastiques et photographie"],
+      competences: ["Santé", "Culture > Arts plastiques et photographie"],
       externalId: "MEC-service-id",
     };
 
@@ -72,7 +72,7 @@ describe("AppController (e2e)", () => {
         const { data: updatedProject } = await api.projects.getOne(data!.id);
 
         expect(updatedProject).toMatchObject({
-          competences: ["Santé", "Culture__Arts plastiques et photographie"],
+          competences: ["Santé", "Culture > Arts plastiques et photographie"],
           recocoId: "Recoco-service-id",
         });
       });
@@ -359,7 +359,7 @@ describe("AppController (e2e)", () => {
           porteurReferentNom: null,
           porteurReferentPrenom: null,
           porteurReferentTelephone: null,
-          competences: ["Santé", "Culture__Arts plastiques et photographie"],
+          competences: ["Santé", "Culture > Arts plastiques et photographie"],
           communes: expect.arrayContaining([
             expect.objectContaining({
               inseeCode: expect.any(String),

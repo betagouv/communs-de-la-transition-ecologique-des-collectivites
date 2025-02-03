@@ -39,7 +39,7 @@ describe("ProjectCreateService", () => {
         forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         communeInseeCodes: mockedCommunes,
-        competences: ["Santé", "Culture__Arts plastiques et photographie"],
+        competences: ["Santé", "Culture > Arts plastiques et photographie"],
         externalId: "test-external-id",
       };
 
@@ -58,7 +58,7 @@ describe("ProjectCreateService", () => {
         forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         communeInseeCodes: mockedCommunes,
-        competences: ["Santé", "Culture__Arts plastiques et photographie"],
+        competences: ["Santé", "Culture > Arts plastiques et photographie"],
         externalId: "duplicate-id",
       };
 

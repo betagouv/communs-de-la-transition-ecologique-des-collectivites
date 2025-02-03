@@ -18,7 +18,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
     isArray: true,
     required: true,
     description: "Array of competences and sous-competences, empty array means all competences/sous-competences",
-    example: ["Santé", "Culture__Arts plastiques et photographie"],
+    example: ["Santé", "Culture > Arts plastiques et photographie"],
   })
   @IsArray()
   @IsIn(competencesWithSousCompetences, { each: true })

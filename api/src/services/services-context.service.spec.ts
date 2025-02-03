@@ -45,7 +45,7 @@ describe("ServiceContextService", () => {
 
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
-        competences: ["Santé", "Culture__Arts plastiques et photographie"],
+        competences: ["Santé", "Culture > Arts plastiques et photographie"],
         logoUrl: "https://test.com/context-logo.png",
         redirectionUrl: "https://test.com/context",
         redirectionLabel: "Context Label",
@@ -113,14 +113,14 @@ describe("ServiceContextService", () => {
       });
 
       const createContextDto: CreateServiceContextRequest = {
-        competences: ["Culture__Arts plastiques et photographie"],
+        competences: ["Culture > Arts plastiques et photographie"],
         description: "Context Description",
         status: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServices(
-        ["Culture__Arts plastiques et photographie"],
+        ["Culture > Arts plastiques et photographie"],
         null,
       );
 
@@ -148,14 +148,14 @@ describe("ServiceContextService", () => {
       });
 
       const createContextDto: CreateServiceContextRequest = {
-        competences: ["Action sociale (hors APA et RSA)__Citoyenneté"],
+        competences: ["Action sociale (hors APA et RSA) > Citoyenneté"],
         description: "Context Description",
         status: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServices(
-        ["Culture__Bibliothèques et livres"],
+        ["Culture > Arts plastiques et photographie"],
         null,
       );
 
@@ -172,14 +172,14 @@ describe("ServiceContextService", () => {
       });
 
       const createContextDto: CreateServiceContextRequest = {
-        competences: ["Culture__Arts plastiques et photographie"],
+        competences: ["Culture > Arts plastiques et photographie"],
         description: "Context Description",
         status: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServices(
-        ["Culture__Arts plastiques et photographie"],
+        ["Culture > Arts plastiques et photographie"],
         null,
       );
 
@@ -205,7 +205,7 @@ describe("ServiceContextService", () => {
 
       // Should match any competence
       const serviceContexts = await serviceContextService.findMatchingServices(
-        ["Culture__Arts plastiques et photographie"],
+        ["Culture > Arts plastiques et photographie"],
         null,
       );
 
@@ -240,7 +240,7 @@ describe("ServiceContextService", () => {
 
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
-        competences: ["Santé", "Culture__Arts plastiques et photographie"],
+        competences: ["Santé", "Culture > Arts plastiques et photographie"],
         logoUrl: "https://test.com/context-logo.png",
         redirectionUrl: "https://test.com/context",
         redirectionLabel: "Context Label",
@@ -254,7 +254,7 @@ describe("ServiceContextService", () => {
         id: result.id,
         serviceId: service.id,
         description: "Context Description",
-        competences: ["Santé", "Culture__Arts plastiques et photographie"],
+        competences: ["Santé", "Culture > Arts plastiques et photographie"],
         logoUrl: "https://test.com/context-logo.png",
         redirectionUrl: "https://test.com/context",
         redirectionLabel: "Context Label",
