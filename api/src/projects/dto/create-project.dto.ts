@@ -1,8 +1,17 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ArrayNotEmpty, IsArray, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsDateString,
+  IsIn,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from "class-validator";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
-import { competencesWithSousCompetences } from "@/shared/const/competences-list";
 import { CompetencesWithSousCompetences } from "@/shared/types";
+import { competencesWithSousCompetences } from "@/shared/const/competences-list";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
@@ -76,9 +85,10 @@ export class CreateProjectRequest {
   status?: ProjectStatus | null;
 
   @ApiProperty({
-    type: [String],
+    type: String,
     description: "Array of INSEE codes for the communes",
     example: ["01001", "75056", "97A01"],
+    isArray: true,
     required: false,
   })
   @IsArray()
@@ -89,15 +99,18 @@ export class CreateProjectRequest {
   communeInseeCodes!: string[];
 
   @ApiProperty({
+    type: String,
     enum: competencesWithSousCompetences,
     isArray: true,
     required: false,
     nullable: true,
     description: "Array of competences and sous-competences",
+    example: ["Santé", "Culture > Arts plastiques et photographie"],
   })
   @IsArray()
   @IsOptional()
-  competencesAndSousCompetences?: CompetencesWithSousCompetences | null;
+  @IsIn(competencesWithSousCompetences, { each: true })
+  competences?: CompetencesWithSousCompetences | null;
 
   @ApiProperty({ required: true })
   @IsString()

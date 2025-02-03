@@ -76,7 +76,7 @@ describe("ProjectFindService", () => {
         porteurReferentNom: null,
         porteurReferentPrenom: null,
         porteurReferentTelephone: null,
-        competencesAndSousCompetences: null,
+        competences: null,
         communes: expect.arrayContaining(
           mockedCommunes.map((code) => ({
             inseeCode: code,
@@ -113,14 +113,14 @@ describe("ProjectFindService", () => {
         budget: 100000,
         forecastedStartDate: getFormattedDate(),
         status: "IDEE",
-        competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
+        competences: ["Santé", "Culture > Arts plastiques et photographie"],
         communeInseeCodes: mockedCommunes,
         externalId: "test-service-id",
       };
 
       const createdProject = await createService.create(createDto, "MEC_test_api_key");
       const result = await findService.findOne(createdProject.id);
-      const { communeInseeCodes, competencesAndSousCompetences, externalId, ...expectedFields } = createDto;
+      const { communeInseeCodes, externalId, ...expectedFields } = createDto;
       expect(result).toEqual({
         ...expectedFields,
         communes: expect.arrayContaining(
@@ -133,7 +133,6 @@ describe("ProjectFindService", () => {
         porteurReferentNom: null,
         porteurReferentPrenom: null,
         porteurReferentTelephone: null,
-        competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),

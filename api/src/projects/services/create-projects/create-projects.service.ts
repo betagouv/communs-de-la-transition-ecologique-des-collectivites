@@ -3,7 +3,6 @@ import { ConflictException, Injectable } from "@nestjs/common";
 import { CommunesService } from "../communes/communes.service";
 import { projects } from "@database/schema";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
-import { CompetencesService } from "@projects/services/competences/competences.service";
 import { BulkCreateProjectsRequest } from "@projects/dto/bulk-create-projects.dto";
 import { ServiceIdentifierService } from "../service-identifier/service-identifier.service";
 import { eq } from "drizzle-orm";
@@ -12,7 +11,6 @@ import { eq } from "drizzle-orm";
 export class CreateProjectsService {
   constructor(
     private dbService: DatabaseService,
-    private readonly competencesService: CompetencesService,
     private readonly communesService: CommunesService,
     private readonly serviceIdentifierService: ServiceIdentifierService,
   ) {}
@@ -20,8 +18,7 @@ export class CreateProjectsService {
   async create(createProjectDto: CreateProjectRequest, apiKey: string): Promise<{ id: string }> {
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
-    const { competencesAndSousCompetences, externalId, ...otherFields } = createProjectDto;
-    const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
+    const { competences, externalId, ...otherFields } = createProjectDto;
 
     // Check if project already exists with this externalId
     const existingProject = await this.dbService.database
@@ -40,7 +37,6 @@ export class CreateProjectsService {
         .values({
           ...otherFields,
           competences,
-          sousCompetences,
           [serviceIdField]: externalId,
         })
         .returning();
@@ -58,8 +54,7 @@ export class CreateProjectsService {
       const createdProjects = [];
 
       for (const projectDto of bulkCreateProjectsRequest.projects) {
-        const { competencesAndSousCompetences, communeInseeCodes, externalId, ...projectFields } = projectDto;
-        const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
+        const { competences, communeInseeCodes, externalId, ...projectFields } = projectDto;
 
         const existingProject = await this.dbService.database
           .select()
@@ -76,7 +71,6 @@ export class CreateProjectsService {
           .values({
             ...projectFields,
             competences,
-            sousCompetences,
             [serviceIdField]: externalId,
           })
           .returning({ id: projects.id });

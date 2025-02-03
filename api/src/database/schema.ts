@@ -32,8 +32,7 @@ export const projects = pgTable("projects", {
   porteurReferentPrenom: text("porteur_referent_prenom"),
   porteurReferentNom: text("porteur_referent_nom"),
   porteurReferentFonction: text("porteur_referent_fonction"),
-  competences: competencesEnum().array(),
-  sousCompetences: sousCompetencesEnum("sous_competences").array(),
+  competences: text("competences").array(),
   budget: integer("budget"),
   forecastedStartDate: text("forecasted_start_date"),
   status: projectStatusEnum(),
@@ -79,8 +78,7 @@ export const serviceContext = pgTable("service_context", {
   serviceId: uuid("service_id")
     .notNull()
     .references(() => services.id),
-  competences: competencesEnum("competences").array().notNull().default([]),
-  sousCompetences: sousCompetencesEnum("sous_competences").array().notNull().default([]),
+  competences: text("competences").array().notNull().default([]),
   statuses: projectStatusEnum("statuses").array().notNull().default([]),
 
   // Custom display options
