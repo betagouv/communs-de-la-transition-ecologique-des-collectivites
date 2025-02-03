@@ -344,7 +344,7 @@ describe("AppController (e2e)", () => {
           porteurReferentNom: null,
           porteurReferentPrenom: null,
           porteurReferentTelephone: null,
-          competencesAndSousCompetences: null,
+          competences: null,
           communes: expect.arrayContaining([
             expect.objectContaining({
               inseeCode: expect.any(String),

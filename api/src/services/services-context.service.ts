@@ -2,9 +2,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { ProjectStatus, serviceContext, services } from "@database/schema";
 import { arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
-import { Competences, SousCompetences } from "@/shared/types";
+import { CompetencesWithSousCompetences } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
-import { CompetencesService } from "@projects/services/competences/competences.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/services/dto/create-service-context.dto";
 
 type ServiceWithContext = InferSelectModel<typeof services> &
@@ -19,13 +18,11 @@ interface JoinResult {
 export class ServicesContextService {
   constructor(
     private readonly dbService: DatabaseService,
-    private readonly competencesService: CompetencesService,
     private readonly logger: CustomLogger,
   ) {}
 
   async findMatchingServices(
-    competences: Competences | null,
-    sousCompetences: SousCompetences | null,
+    competences: CompetencesWithSousCompetences | null,
     projectStatus: ProjectStatus | null,
   ): Promise<ServiceWithContext[]> {
     if (!competences?.length && !projectStatus) {
@@ -35,21 +32,8 @@ export class ServicesContextService {
     // todo add project status
     // todo add code insee
 
-    // First try to match by sous competences if they exist
     let matchingContexts: JoinResult[] = [];
-    if (sousCompetences?.length) {
-      matchingContexts = await this.dbService.database
-        .select()
-        .from(serviceContext)
-        .innerJoin(services, eq(services.id, serviceContext.serviceId))
-        .where(
-          or(arrayOverlaps(serviceContext.sousCompetences, sousCompetences), eq(serviceContext.sousCompetences, [])),
-        );
-    }
-
-    // If no matches found with sous competences or no sous competences provided,
-    // fall back to matching by base competences
-    if (matchingContexts.length === 0 && competences?.length) {
+    if (competences?.length) {
       matchingContexts = await this.dbService.database
         .select()
         .from(serviceContext)
@@ -82,8 +66,7 @@ export class ServicesContextService {
       where: eq(services.id, serviceId),
     });
 
-    const { competencesAndSousCompetences, ...otherFields } = createServiceContextDto;
-    const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
+    const { competences, ...otherFields } = createServiceContextDto;
 
     if (!service) {
       throw new NotFoundException(`Service with ID ${serviceId} not found`);
@@ -95,7 +78,6 @@ export class ServicesContextService {
         serviceId,
         ...otherFields,
         competences: competences ?? [],
-        sousCompetences: sousCompetences ?? [],
         statuses: [],
       })
       .returning();

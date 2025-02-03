@@ -4,12 +4,12 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateProjectRequest } from "../../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
-import { NotFoundException, ConflictException } from "@nestjs/common";
+import { ConflictException, NotFoundException } from "@nestjs/common";
 import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { UpdateProjectsService } from "./update-projects.service";
 import { CreateProjectsService } from "../create-projects/create-projects.service";
 import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";
-import { CompetenceWithSousCompetence } from "@/shared/types";
+import { UpdateProjectDto } from "@projects/dto/update-project.dto";
 
 describe("ProjectUpdateService", () => {
   let updateService: UpdateProjectsService;
@@ -76,14 +76,11 @@ describe("ProjectUpdateService", () => {
     });
   });
 
-  it("should update competences and sous-competences properly", async () => {
-    const updateDto = {
+  it("should update competences properly", async () => {
+    const updateDto: UpdateProjectDto = {
       nom: "Updated Project",
       description: "Updated Description",
-      competencesAndSousCompetences: [
-        "Santé",
-        "Culture__Arts plastiques et photographie",
-      ] as CompetenceWithSousCompetence[],
+      competences: ["Santé", "Culture__Arts plastiques et photographie"],
       budget: 200000,
       externalId: EXTERNAL_ID,
     };
@@ -97,7 +94,6 @@ describe("ProjectUpdateService", () => {
       ...expectedFields,
       id: projectId,
       porteurReferentEmail: "initial@email.com",
-      competencesAndSousCompetences: ["Santé", "Culture__Arts plastiques et photographie"],
     });
   });
 

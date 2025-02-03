@@ -2,10 +2,9 @@ import { DatabaseService } from "@database/database.service";
 import { projects } from "@database/schema";
 import { UpdateProjectDto } from "@projects/dto/update-project.dto";
 import { removeUndefined } from "@/shared/utils/remove-undefined";
-import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { CommunesService } from "../communes/communes.service";
-import { CompetencesService } from "@projects/services/competences/competences.service";
 import { ServiceIdentifierService } from "@projects/services/service-identifier/service-identifier.service";
 
 @Injectable()
@@ -13,15 +12,13 @@ export class UpdateProjectsService {
   constructor(
     private dbService: DatabaseService,
     private readonly communesService: CommunesService,
-    private readonly competencesService: CompetencesService,
     private readonly serviceIdentifierService: ServiceIdentifierService,
   ) {}
 
   async update(id: string, updateProjectDto: UpdateProjectDto, apiKey: string): Promise<{ id: string }> {
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
-    const { competencesAndSousCompetences, externalId, ...otherFields } = updateProjectDto;
-    const { competences, sousCompetences } = this.competencesService.splitCompetence(competencesAndSousCompetences);
+    const { competences, externalId, ...otherFields } = updateProjectDto;
 
     return this.dbService.database.transaction(async (tx) => {
       const [existingProject] = await tx.select().from(projects).where(eq(projects.id, id)).limit(1);
@@ -40,7 +37,6 @@ export class UpdateProjectsService {
       const { communeInseeCodes, ...fieldsToUpdate } = removeUndefined({
         ...otherFields,
         competences,
-        sousCompetences,
         [serviceIdField]: externalId,
       });
 

@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { ArrayNotEmpty, IsArray, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
-import { competencesWithSousCompetences } from "@/shared/const/competences-list";
 import { CompetencesWithSousCompetences } from "@/shared/types";
+import { competencesWithSousCompetences } from "@/shared/const/competences-list";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
@@ -97,7 +97,7 @@ export class CreateProjectRequest {
   })
   @IsArray()
   @IsOptional()
-  competencesAndSousCompetences?: CompetencesWithSousCompetences | null;
+  competences?: CompetencesWithSousCompetences | null;
 
   @ApiProperty({ required: true })
   @IsString()
