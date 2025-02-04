@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { ProjectStatus, serviceContext, services } from "@database/schema";
-import { arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
-import { Competences } from "@/shared/types";
+import { and, arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
+import { Competences, Leviers } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/services/dto/create-service-context.dto";
 
@@ -23,27 +23,44 @@ export class ServicesContextService {
 
   async findMatchingServices(
     competences: Competences | null,
+    leviers: Leviers | null,
     projectStatus: ProjectStatus | null,
   ): Promise<ServiceWithContext[]> {
-    if (!competences?.length && !projectStatus) {
-      return [];
-    }
-
-    // todo add project status
-    // todo add code insee
-
     let matchingContexts: JoinResult[] = [];
+    const conditions = [];
+    const categorizationConditions = [];
+
+    // Build categorization condition (competences OR leviers)
     if (competences?.length) {
-      matchingContexts = await this.dbService.database
-        .select()
-        .from(serviceContext)
-        .innerJoin(services, eq(services.id, serviceContext.serviceId))
-        .where(or(arrayOverlaps(serviceContext.competences, competences), eq(serviceContext.competences, [])));
+      categorizationConditions.push(
+        or(arrayOverlaps(serviceContext.competences, competences), eq(serviceContext.competences, [])),
+      );
+    }
+    if (leviers?.length) {
+      categorizationConditions.push(or(arrayOverlaps(serviceContext.leviers, leviers), eq(serviceContext.leviers, [])));
     }
 
-    if (matchingContexts.length === 0) {
+    // Add categorization condition if any exists
+    if (categorizationConditions.length > 0) {
+      conditions.push(or(...categorizationConditions));
+    }
+
+    // Add status condition if status is provided
+    if (projectStatus) {
+      const statusCondition = or(arrayOverlaps(serviceContext.status, [projectStatus]), eq(serviceContext.status, []));
+      conditions.push(statusCondition);
+    }
+
+    // If no conditions (no categorization and no status), return empty array
+    if (conditions.length === 0) {
       return [];
     }
+
+    matchingContexts = await this.dbService.database
+      .select()
+      .from(serviceContext)
+      .innerJoin(services, eq(services.id, serviceContext.serviceId))
+      .where(and(...conditions));
 
     return matchingContexts.map(({ services, service_context }) => ({
       ...services,
@@ -78,7 +95,6 @@ export class ServicesContextService {
         serviceId,
         ...otherFields,
         competences: competences ?? [],
-        statuses: [],
       })
       .returning();
 

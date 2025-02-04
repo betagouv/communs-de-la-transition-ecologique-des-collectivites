@@ -83,7 +83,7 @@ export const serviceContext = pgTable("service_context", {
     .references(() => services.id),
   competences: text("competences").array().notNull().default([]),
   leviers: text("leviers").array(),
-  statuses: projectStatusEnum("statuses").array().notNull().default([]),
+  status: projectStatusEnum("status").array().notNull().default([]),
 
   // Custom display options
   description: text("description"),
