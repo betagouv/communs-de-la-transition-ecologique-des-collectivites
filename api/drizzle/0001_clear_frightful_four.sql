@@ -1,0 +1,1 @@
+ALTER TABLE "service_context" RENAME COLUMN "statuses" TO "status";

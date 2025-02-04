@@ -73,6 +73,7 @@ describe("ProjectsController", () => {
           forecastedStartDate: getFormattedDate(),
           status: "IDEE",
           competences: null,
+          leviers: null,
           communes: [
             {
               inseeCode: "75056",
@@ -109,6 +110,7 @@ describe("ProjectsController", () => {
         forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         competences: null,
+        leviers: null,
         communes: [
           {
             inseeCode: "75056",

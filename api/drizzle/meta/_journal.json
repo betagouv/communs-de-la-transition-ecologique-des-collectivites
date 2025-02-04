@@ -5,36 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1736959460920,
-      "tag": "0000_big_sharon_carter",
+      "when": 1738662923384,
+      "tag": "0000_tearful_sinister_six",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1737451558844,
-      "tag": "0001_living_expediter",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1737973028719,
-      "tag": "0002_solid_lightspeed",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1738072775796,
-      "tag": "0003_funny_ben_urich",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1738255428547,
-      "tag": "0004_boring_storm",
+      "when": 1738678637684,
+      "tag": "0001_clear_frightful_four",
       "breakpoints": true
     }
   ]

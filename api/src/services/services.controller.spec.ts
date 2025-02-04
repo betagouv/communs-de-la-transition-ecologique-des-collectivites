@@ -58,6 +58,7 @@ describe("ServiceController", () => {
         redirectionLabel: "Go to test service",
         extendLabel: "Extend Label",
         status: [],
+        leviers: ["Covoiturage", "Bio-carburants"],
       };
       const expectedResponse = { ...validService, id: "service-context-id" };
       jest.spyOn(serviceContextServices, "create").mockResolvedValue(expectedResponse);

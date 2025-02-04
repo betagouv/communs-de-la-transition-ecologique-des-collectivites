@@ -1,6 +1,6 @@
 {
-  "id": "ba95c4e6-32a9-4e63-afb0-00a906a910ad",
-  "prevId": "7c8b0a5d-4a9d-4ac6-a83d-2e0a8b668043",
+  "id": "96455f7f-9cda-4c55-aab5-016fce24891f",
+  "prevId": "f8abfc90-e5d1-40ef-9bdd-465a25acabea",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -59,6 +59,25 @@
           "primaryKey": false,
           "notNull": false
         },
+        "budget": {
+          "name": "budget",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "forecasted_start_date": {
+          "name": "forecasted_start_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "project_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
         "code_siret": {
           "name": "code_siret",
           "type": "text",
@@ -97,32 +116,31 @@
         },
         "competences": {
           "name": "competences",
-          "type": "competences[]",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },
-        "sous_competences": {
-          "name": "sous_competences",
-          "type": "sous_competences[]",
+        "leviers": {
+          "name": "leviers",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },
-        "budget": {
-          "name": "budget",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "forecasted_start_date": {
-          "name": "forecasted_start_date",
+        "mec_id": {
+          "name": "mec_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "status": {
-          "name": "status",
-          "type": "project_status",
-          "typeSchema": "public",
+        "tet_id": {
+          "name": "tet_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "recoco_id": {
+          "name": "recoco_id",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         }
@@ -130,7 +148,23 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "projects_mec_id_unique": {
+          "name": "projects_mec_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["mec_id"]
+        },
+        "projects_tet_id_unique": {
+          "name": "projects_tet_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["tet_id"]
+        },
+        "projects_recoco_id_unique": {
+          "name": "projects_recoco_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["recoco_id"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -224,21 +258,23 @@
         },
         "competences": {
           "name": "competences",
-          "type": "competences[]",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "leviers": {
+          "name": "leviers",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },
-        "sous_competences": {
-          "name": "sous_competences",
-          "type": "sous_competences[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "statuses": {
-          "name": "statuses",
+        "status": {
+          "name": "status",
           "type": "project_status[]",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'{}'"
         },
         "description": {
           "name": "description",
@@ -266,6 +302,12 @@
         },
         "extend_label": {
           "name": "extend_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "iframe_url": {
+          "name": "iframe_url",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -318,11 +360,17 @@
           "primaryKey": false,
           "notNull": true
         },
-        "logoUrl": {
-          "name": "logoUrl",
+        "logo_url": {
+          "name": "logo_url",
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "iframe_url": {
+          "name": "iframe_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "redirection_url": {
           "name": "redirection_url",
@@ -335,6 +383,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "extend_label": {
+          "name": "extend_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -347,98 +401,10 @@
     }
   },
   "enums": {
-    "public.competences": {
-      "name": "competences",
-      "schema": "public",
-      "values": [
-        "Action sociale (hors APA et RSA)",
-        "Actions en matière de gestion des eaux",
-        "Agriculture, pêche et agro-alimentaire",
-        "Aménagement des territoires",
-        "Autres interventions de protection civile",
-        "Autres services annexes de l'enseignement",
-        "Collecte et traitement des déchets",
-        "Culture",
-        "Développement touristique",
-        "Enseignement du premier degré",
-        "Enseignement du second degré",
-        "Enseignement supérieur, professionnel et continu",
-        "Foires et marchés",
-        "Habitat",
-        "Hygiène et salubrité publique",
-        "Hébergement et restauration scolaires",
-        "Incendie et secours",
-        "Industrie, commerce et artisanat",
-        "Infrastructures de transport",
-        "Jeunesse et loisirs",
-        "Police, sécurité, justice",
-        "Propreté urbaine",
-        "Routes et voiries",
-        "Santé",
-        "Sports",
-        "Transports publics (hors scolaire)",
-        "Transports scolaires"
-      ]
-    },
     "public.project_status": {
       "name": "project_status",
       "schema": "public",
       "values": ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"]
-    },
-    "public.sous_competences": {
-      "name": "sous_competences",
-      "schema": "public",
-      "values": [
-        "Accessibilité",
-        "Architecture",
-        "Artisanat",
-        "Arts plastiques et photographie",
-        "Assainissement des eaux",
-        "Bibliothèques et livres",
-        "Bâtiments et construction",
-        "Cimetières et funéraire",
-        "Citoyenneté",
-        "Cohésion sociale et inclusion",
-        "Commerces et Services",
-        "Consommation alimentaire",
-        "Cours d'eau / canaux / plans d'eau",
-        "Distribution",
-        "Déchets alimentaires et/ou agricoles",
-        "Eau pluviale",
-        "Eau potable",
-        "Eau souterraine",
-        "Economie locale et circuits courts",
-        "Economie sociale et solidaire",
-        "Egalité des chances",
-        "Equipement public",
-        "Espace public",
-        "Espaces verts",
-        "Famille et enfance",
-        "Fiscalité des entreprises",
-        "Foncier",
-        "Friche",
-        "Handicap",
-        "Inclusion numérique",
-        "Industrie",
-        "Innovation, créativité et recherche",
-        "Jeunesse",
-        "Logement et habitat",
-        "Lutte contre la précarité",
-        "Mers et océans",
-        "Musée",
-        "Médias et communication",
-        "Patrimoine et monuments historiques",
-        "Paysage",
-        "Personnes âgées",
-        "Production agricole et foncier",
-        "Protection animale",
-        "Précarité et aide alimentaire",
-        "Réseaux",
-        "Spectacle vivant",
-        "Technologies numériques et numérisation",
-        "Tiers-lieux",
-        "Transformation des produits agricoles"
-      ]
     }
   },
   "schemas": {},

@@ -77,6 +77,7 @@ describe("ProjectFindService", () => {
         porteurReferentPrenom: null,
         porteurReferentTelephone: null,
         competences: null,
+        leviers: null,
         communes: expect.arrayContaining(
           mockedCommunes.map((code) => ({
             inseeCode: code,
@@ -114,6 +115,7 @@ describe("ProjectFindService", () => {
         forecastedStartDate: getFormattedDate(),
         status: "IDEE",
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
+        leviers: ["Bio-carburants"],
         communeInseeCodes: mockedCommunes,
         externalId: "test-service-id",
       };

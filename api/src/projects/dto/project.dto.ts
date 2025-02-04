@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { ProjectStatus } from "@database/schema";
-import { Competences } from "@/shared/types";
+import { Competences, Leviers } from "@/shared/types";
+import { ApiProperty } from "@nestjs/swagger";
 
 class Commune {
   @ApiProperty()
@@ -57,6 +57,12 @@ export class ProjectResponse {
 
   @ApiProperty({ nullable: true })
   competences!: Competences | null;
+
+  @ApiProperty({
+    nullable: true,
+    description: "Array of leviers",
+  })
+  leviers!: Leviers | null;
 
   @ApiProperty({ nullable: true })
   mecId!: string | null;

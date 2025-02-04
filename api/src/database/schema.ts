@@ -3,9 +3,7 @@ import { relations } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 const projectStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
-
 export const projectStatusEnum = pgEnum("project_status", projectStatus);
-
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
 export const communes = pgTable("communes", {
@@ -21,18 +19,26 @@ export const projects = pgTable("projects", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
+
   nom: text("nom").notNull(),
   description: text("description"),
+  budget: integer("budget"),
+  forecastedStartDate: text("forecasted_start_date"),
+  status: projectStatusEnum(),
+
+  // porteur info
   porteurCodeSiret: text("code_siret"),
   porteurReferentEmail: text("porteur_referent_email"),
   porteurReferentTelephone: text("porteur_referent_telephone"),
   porteurReferentPrenom: text("porteur_referent_prenom"),
   porteurReferentNom: text("porteur_referent_nom"),
   porteurReferentFonction: text("porteur_referent_fonction"),
+
+  //categorization
   competences: text("competences").array(),
-  budget: integer("budget"),
-  forecastedStartDate: text("forecasted_start_date"),
-  status: projectStatusEnum(),
+  leviers: text("leviers").array(),
+
+  // external service id
   mecId: text("mec_id").unique(),
   tetId: text("tet_id").unique(),
   recocoId: text("recoco_id").unique(),
@@ -76,7 +82,8 @@ export const serviceContext = pgTable("service_context", {
     .notNull()
     .references(() => services.id),
   competences: text("competences").array().notNull().default([]),
-  statuses: projectStatusEnum("statuses").array().notNull().default([]),
+  leviers: text("leviers").array(),
+  status: projectStatusEnum("status").array().notNull().default([]),
 
   // Custom display options
   description: text("description"),
