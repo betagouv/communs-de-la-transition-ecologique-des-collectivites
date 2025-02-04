@@ -29,7 +29,7 @@ export class GetProjectsService {
     return results.map((result) => {
       return {
         ...result,
-        competences: result.competences ? (result.competences as unknown as Competences[]) : null,
+        competences: result.competences ? (result.competences as Competences) : null,
         communes: result.communes.map((c) => c.commune),
       };
     });
@@ -54,7 +54,7 @@ export class GetProjectsService {
 
     return {
       ...result,
-      competences: result.competences ? (result.competences as unknown as Competences[]) : null,
+      competences: result.competences ? (result.competences as Competences) : null,
       communes: result.communes.map((c) => c.commune),
     };
   }

@@ -56,7 +56,7 @@ export class ProjectResponse {
   status!: ProjectStatus | null;
 
   @ApiProperty({ nullable: true })
-  competences!: Competences[] | null;
+  competences!: Competences | null;
 
   @ApiProperty({ nullable: true })
   mecId!: string | null;
