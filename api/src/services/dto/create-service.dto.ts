@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl } from "class-validator";
 import { InferInsertModel } from "drizzle-orm";
 import { services } from "@database/schema";
 
@@ -92,4 +92,13 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
   @IsString()
   @IsOptional()
   extendLabel?: string;
+
+  @ApiProperty({
+    description: "Whether the service will be associated with projects",
+    required: false,
+    nullable: true,
+  })
+  @IsBoolean()
+  @IsOptional()
+  isListed?: boolean;
 }

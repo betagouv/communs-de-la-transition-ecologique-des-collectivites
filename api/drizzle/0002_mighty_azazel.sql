@@ -1,0 +1,1 @@
+ALTER TABLE "services" ADD COLUMN "is_listed" boolean DEFAULT false;

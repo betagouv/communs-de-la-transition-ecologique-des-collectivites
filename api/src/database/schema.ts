@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, pgEnum, uuid, primaryKey, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, pgEnum, uuid, primaryKey, index, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
@@ -68,6 +68,7 @@ export const services = pgTable("services", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   logoUrl: text("logo_url").notNull(),
+  isListed: boolean("is_listed").default(false),
   iframeUrl: text("iframe_url"),
   redirectionUrl: text("redirection_url").notNull(),
   redirectionLabel: text("redirection_label").notNull(),
