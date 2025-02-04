@@ -53,6 +53,7 @@ describe("Services (e2e)", () => {
       redirectionUrl: "https://test.com",
       redirectionLabel: "Go to test service",
       extendLabel: "Extend Label",
+      leviers: [],
       status: [],
     };
 

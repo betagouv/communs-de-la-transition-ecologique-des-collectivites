@@ -10,8 +10,9 @@ import {
   IsString,
 } from "class-validator";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
-import { Competences } from "@/shared/types";
+import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
+import { leviers } from "@/shared/const/leviers";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
@@ -111,6 +112,19 @@ export class CreateProjectRequest {
   @IsOptional()
   @IsIn(competences, { each: true })
   competences?: Competences | null;
+
+  @ApiProperty({
+    type: String,
+    enum: leviers,
+    isArray: true,
+    required: false,
+    nullable: true,
+    description: "Array of leviers de la transition écologique",
+  })
+  @IsArray()
+  @IsOptional()
+  @IsIn(leviers, { each: true })
+  leviers?: Leviers | null;
 
   @ApiProperty({ required: true })
   @IsString()

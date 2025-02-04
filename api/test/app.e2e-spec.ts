@@ -3,13 +3,15 @@
 import { getFormattedDate } from "./helpers/get-formatted-date";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { createApiClient } from "@test/helpers/api-client";
-import { Competence } from "@/shared/types";
+import { Competence, Levier } from "@/shared/types";
 
 describe("AppController (e2e)", () => {
   const api = createApiClient(process.env.MEC_API_KEY!);
+
   afterEach(async () => {
     await global.testDbService.cleanDatabase();
   });
+
   describe("Projects (e2e)", () => {
     const validProject: CreateProjectRequest = {
       nom: "Test Project",
@@ -21,6 +23,7 @@ describe("AppController (e2e)", () => {
       status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
       competences: ["Santé", "Culture > Arts plastiques et photographie"],
+      leviers: ["Bio-carburants", "Covoiturage"],
       externalId: "MEC-service-id",
     };
 
@@ -134,6 +137,18 @@ describe("AppController (e2e)", () => {
         expect(error?.statusCode).toBe(400);
         expect(error?.message[0]).toContain(
           "each value in competences must be one of the following values: Autres interventions de protection civile",
+        );
+      });
+
+      it("should reject when project has wrong leviers", async () => {
+        const { error } = await api.projects.create({
+          ...validProject,
+          leviers: ["WrongLevier" as Levier],
+        });
+
+        expect(error?.statusCode).toBe(400);
+        expect(error?.message[0]).toContain(
+          "each value in leviers must be one of the following values: Gestion des forêts et produits bois, Changements de pratiques de fertilisation azotée,",
         );
       });
     });
@@ -360,6 +375,7 @@ describe("AppController (e2e)", () => {
           porteurReferentPrenom: null,
           porteurReferentTelephone: null,
           competences: ["Santé", "Culture > Arts plastiques et photographie"],
+          leviers: ["Bio-carburants", "Covoiturage"],
           communes: expect.arrayContaining([
             expect.objectContaining({
               inseeCode: expect.any(String),
