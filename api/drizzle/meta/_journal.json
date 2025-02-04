@@ -15,6 +15,13 @@
       "when": 1738678637684,
       "tag": "0001_clear_frightful_four",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1738687338852,
+      "tag": "0002_mighty_azazel",
+      "breakpoints": true
     }
   ]
 }

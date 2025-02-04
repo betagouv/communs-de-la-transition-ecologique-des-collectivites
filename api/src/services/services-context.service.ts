@@ -60,7 +60,7 @@ export class ServicesContextService {
       .select()
       .from(serviceContext)
       .innerJoin(services, eq(services.id, serviceContext.serviceId))
-      .where(and(...conditions));
+      .where(and(eq(services.isListed, true), ...conditions));
 
     return matchingContexts.map(({ services, service_context }) => ({
       ...services,

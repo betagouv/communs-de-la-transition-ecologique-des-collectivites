@@ -42,6 +42,7 @@ describe("ServicesService", () => {
         id: expect.any(String),
         createdAt: expect.any(Date),
         ...createDto,
+        isListed: false,
       });
     });
   });
