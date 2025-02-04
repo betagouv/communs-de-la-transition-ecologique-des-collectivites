@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { ProjectStatus } from "@database/schema";
-import { CompetencesWithSousCompetences } from "@/shared/types";
+import { Competences } from "@/shared/types";
 
 class Commune {
   @ApiProperty()
@@ -56,7 +56,7 @@ export class ProjectResponse {
   status!: ProjectStatus | null;
 
   @ApiProperty({ nullable: true })
-  competencesAndSousCompetences!: CompetencesWithSousCompetences | null;
+  competences!: Competences | null;
 
   @ApiProperty({ nullable: true })
   mecId!: string | null;

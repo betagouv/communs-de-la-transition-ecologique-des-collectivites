@@ -3,6 +3,7 @@
 import { getFormattedDate } from "./helpers/get-formatted-date";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { createApiClient } from "@test/helpers/api-client";
+import { Competence } from "@/shared/types";
 
 describe("AppController (e2e)", () => {
   const api = createApiClient(process.env.MEC_API_KEY!);
@@ -19,6 +20,7 @@ describe("AppController (e2e)", () => {
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: ["01001", "75056", "97A01"],
+      competences: ["Santé", "Culture > Arts plastiques et photographie"],
       externalId: "MEC-service-id",
     };
 
@@ -70,6 +72,7 @@ describe("AppController (e2e)", () => {
         const { data: updatedProject } = await api.projects.getOne(data!.id);
 
         expect(updatedProject).toMatchObject({
+          competences: ["Santé", "Culture > Arts plastiques et photographie"],
           recocoId: "Recoco-service-id",
         });
       });
@@ -120,6 +123,18 @@ describe("AppController (e2e)", () => {
 
         expect(error?.statusCode).toBe(400);
         expect(error?.message[0]).toBe("At least one commune insee code must be provided");
+      });
+
+      it("should reject when project has wrong competences", async () => {
+        const { error } = await api.projects.create({
+          ...validProject,
+          competences: ["Wrong_Competence" as Competence],
+        });
+
+        expect(error?.statusCode).toBe(400);
+        expect(error?.message[0]).toContain(
+          "each value in competences must be one of the following values: Autres interventions de protection civile",
+        );
       });
     });
 
@@ -344,7 +359,7 @@ describe("AppController (e2e)", () => {
           porteurReferentNom: null,
           porteurReferentPrenom: null,
           porteurReferentTelephone: null,
-          competencesAndSousCompetences: null,
+          competences: ["Santé", "Culture > Arts plastiques et photographie"],
           communes: expect.arrayContaining([
             expect.objectContaining({
               inseeCode: expect.any(String),

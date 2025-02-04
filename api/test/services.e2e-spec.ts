@@ -47,7 +47,7 @@ describe("Services (e2e)", () => {
     });
 
     const validServiceContext: CreateServiceContextRequest = {
-      competencesAndSousCompetences: ["Santé"],
+      competences: ["Santé"],
       description: "Context Description",
       logoUrl: "https://test.com/logo.png",
       redirectionUrl: "https://test.com",
@@ -72,7 +72,6 @@ describe("Services (e2e)", () => {
         serviceId,
         description: "Context Description",
         competences: ["Santé"],
-        sousCompetences: [],
       });
     });
   });

@@ -51,7 +51,7 @@ describe("ServiceController", () => {
     it("should create a new service context", async () => {
       const serviceId = "service-id";
       const validServiceContext: Omit<CreateServiceContextRequest, "serviceId"> = {
-        competencesAndSousCompetences: ["Santé"],
+        competences: ["Santé"],
         description: "Context Description",
         logoUrl: "https://test.com/logo.png",
         redirectionUrl: "https://test.com",

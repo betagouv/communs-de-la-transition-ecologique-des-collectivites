@@ -9,20 +9,14 @@ async function generateCompetencesList() {
     const jsonContent = await fs.promises.readFile(jsonPath, "utf-8");
     const competencesData = JSON.parse(jsonContent) as CompetencesData;
 
-    const competences = Object.keys(competencesData).sort();
-    const sousCompetences = Object.values(competencesData)
-      .flat()
-      .filter(Boolean) // Remove empty strings if any
-      .sort();
-
     // Generate the sorted list
     const combinedStrings = Object.entries(competencesData)
       .flatMap(([competence, sousCompetences]) =>
-        sousCompetences.length > 0 ? sousCompetences.map((sous) => `${competence}__${sous}`) : [competence],
+        sousCompetences.length > 0 ? sousCompetences.map((sous) => `${competence} > ${sous}`) : [competence],
       )
       .sort((a, b) => {
-        const aHasSousCompetence = a.includes("__");
-        const bHasSousCompetence = b.includes("__");
+        const aHasSousCompetence = a.includes(" > ");
+        const bHasSousCompetence = b.includes(" > ");
 
         if (aHasSousCompetence === bHasSousCompetence) {
           return a.localeCompare(b);
@@ -32,11 +26,7 @@ async function generateCompetencesList() {
       });
 
     const outputContent = `// Generated file - do not edit directly
-export const competencesWithSousCompetences = ${JSON.stringify(combinedStrings, null, 2)} as const;
-
-export const competences = ${JSON.stringify(competences, null, 2)} as const;
-
-export const sousCompetences = ${JSON.stringify(sousCompetences, null, 2)} as const;
+export const competences = ${JSON.stringify(combinedStrings, null, 2)} as const;
 `;
 
     const outputPath = path.join(__dirname, "../src/shared/const/competences-list.ts");

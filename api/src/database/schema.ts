@@ -1,13 +1,10 @@
 import { pgTable, text, timestamp, integer, pgEnum, uuid, primaryKey, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
-import { competences, sousCompetences } from "@/shared/const/competences-list";
 
 const projectStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
 
 export const projectStatusEnum = pgEnum("project_status", projectStatus);
-export const competencesEnum = pgEnum("competences", competences);
-export const sousCompetencesEnum = pgEnum("sous_competences", sousCompetences);
 
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
@@ -32,8 +29,7 @@ export const projects = pgTable("projects", {
   porteurReferentPrenom: text("porteur_referent_prenom"),
   porteurReferentNom: text("porteur_referent_nom"),
   porteurReferentFonction: text("porteur_referent_fonction"),
-  competences: competencesEnum().array(),
-  sousCompetences: sousCompetencesEnum("sous_competences").array(),
+  competences: text("competences").array(),
   budget: integer("budget"),
   forecastedStartDate: text("forecasted_start_date"),
   status: projectStatusEnum(),
@@ -79,8 +75,7 @@ export const serviceContext = pgTable("service_context", {
   serviceId: uuid("service_id")
     .notNull()
     .references(() => services.id),
-  competences: competencesEnum("competences").array().notNull().default([]),
-  sousCompetences: sousCompetencesEnum("sous_competences").array().notNull().default([]),
+  competences: text("competences").array().notNull().default([]),
   statuses: projectStatusEnum("statuses").array().notNull().default([]),
 
   // Custom display options

@@ -4,13 +4,12 @@ import { CustomLogger } from "@logging/logger.service";
 import { ProjectResponse } from "@projects/dto/project.dto";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
-import { CompetencesService } from "@projects/services/competences/competences.service";
+import { Competences } from "@/shared/types";
 
 @Injectable()
 export class GetProjectsService {
   constructor(
     private readonly dbService: DatabaseService,
-    private readonly competencesService: CompetencesService,
     private readonly logger: CustomLogger,
   ) {}
 
@@ -28,12 +27,9 @@ export class GetProjectsService {
     });
 
     return results.map((result) => {
-      const { competences, sousCompetences, ...rest } = result;
-      const combinedCompetences = this.competencesService.combineCompetences(competences, sousCompetences);
-
       return {
-        ...rest,
-        competencesAndSousCompetences: combinedCompetences,
+        ...result,
+        competences: result.competences ? (result.competences as Competences) : null,
         communes: result.communes.map((c) => c.commune),
       };
     });
@@ -56,13 +52,10 @@ export class GetProjectsService {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }
 
-    const { competences, sousCompetences, ...rest } = result;
-    const combinedCompetences = this.competencesService.combineCompetences(competences, sousCompetences);
-
     return {
-      ...rest,
+      ...result,
+      competences: result.competences ? (result.competences as Competences) : null,
       communes: result.communes.map((c) => c.commune),
-      competencesAndSousCompetences: combinedCompetences,
     };
   }
 }
