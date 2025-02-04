@@ -3,7 +3,7 @@
 import { getFormattedDate } from "./helpers/get-formatted-date";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { createApiClient } from "@test/helpers/api-client";
-import { CompetenceWithSousCompetence } from "@/shared/types";
+import { Competence } from "@/shared/types";
 
 describe("AppController (e2e)", () => {
   const api = createApiClient(process.env.MEC_API_KEY!);
@@ -128,7 +128,7 @@ describe("AppController (e2e)", () => {
       it("should reject when project has wrong competences", async () => {
         const { error } = await api.projects.create({
           ...validProject,
-          competences: ["Wrong_Competence" as CompetenceWithSousCompetence],
+          competences: ["Wrong_Competence" as Competence],
         });
 
         expect(error?.statusCode).toBe(400);

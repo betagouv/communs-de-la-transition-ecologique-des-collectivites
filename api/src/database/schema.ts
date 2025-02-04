@@ -1,13 +1,10 @@
 import { pgTable, text, timestamp, integer, pgEnum, uuid, primaryKey, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
-import { competences, sousCompetences } from "@/shared/const/competences-list";
 
 const projectStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
 
 export const projectStatusEnum = pgEnum("project_status", projectStatus);
-export const competencesEnum = pgEnum("competences", competences);
-export const sousCompetencesEnum = pgEnum("sous_competences", sousCompetences);
 
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 

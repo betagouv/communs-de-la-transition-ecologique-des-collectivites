@@ -26,7 +26,7 @@ async function generateCompetencesList() {
       });
 
     const outputContent = `// Generated file - do not edit directly
-export const competencesWithSousCompetences = ${JSON.stringify(combinedStrings, null, 2)} as const;
+export const competences = ${JSON.stringify(combinedStrings, null, 2)} as const;
 `;
 
     const outputPath = path.join(__dirname, "../src/shared/const/competences-list.ts");

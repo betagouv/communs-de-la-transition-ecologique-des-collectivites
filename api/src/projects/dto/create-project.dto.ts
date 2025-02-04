@@ -10,8 +10,8 @@ import {
   IsString,
 } from "class-validator";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
-import { CompetencesWithSousCompetences } from "@/shared/types";
-import { competencesWithSousCompetences } from "@/shared/const/competences-list";
+import { Competences } from "@/shared/types";
+import { competences } from "@/shared/const/competences-list";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
@@ -100,7 +100,7 @@ export class CreateProjectRequest {
 
   @ApiProperty({
     type: String,
-    enum: competencesWithSousCompetences,
+    enum: competences,
     isArray: true,
     required: false,
     nullable: true,
@@ -109,8 +109,8 @@ export class CreateProjectRequest {
   })
   @IsArray()
   @IsOptional()
-  @IsIn(competencesWithSousCompetences, { each: true })
-  competences?: CompetencesWithSousCompetences | null;
+  @IsIn(competences, { each: true })
+  competences?: Competences | null;
 
   @ApiProperty({ required: true })
   @IsString()

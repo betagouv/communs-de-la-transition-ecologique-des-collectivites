@@ -2,8 +2,8 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsIn, IsOptional, IsString, IsUrl } from "class-validator";
 import { ProjectStatus, projectStatusEnum, serviceContext } from "@database/schema";
 import { InferInsertModel } from "drizzle-orm";
-import { CompetencesWithSousCompetences } from "@/shared/types";
-import { competencesWithSousCompetences } from "@/shared/const/competences-list";
+import { Competences } from "@/shared/types";
+import { competences } from "@/shared/const/competences-list";
 
 export class CreateServiceContextResponse {
   @ApiProperty()
@@ -14,15 +14,15 @@ export class CreateServiceContextResponse {
 export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof serviceContext>, "serviceId"> {
   @ApiProperty({
     type: String,
-    enum: competencesWithSousCompetences,
+    enum: competences,
     isArray: true,
     required: true,
     description: "Array of competences and sous-competences, empty array means all competences/sous-competences",
     example: ["Santé", "Culture > Arts plastiques et photographie"],
   })
   @IsArray()
-  @IsIn(competencesWithSousCompetences, { each: true })
-  competences!: CompetencesWithSousCompetences;
+  @IsIn(competences, { each: true })
+  competences!: Competences;
 
   @ApiProperty({ required: false, nullable: true })
   @IsString()

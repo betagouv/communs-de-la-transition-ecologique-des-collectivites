@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { ProjectStatus, serviceContext, services } from "@database/schema";
 import { arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
-import { CompetencesWithSousCompetences } from "@/shared/types";
+import { Competences } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/services/dto/create-service-context.dto";
 
@@ -22,7 +22,7 @@ export class ServicesContextService {
   ) {}
 
   async findMatchingServices(
-    competences: CompetencesWithSousCompetences | null,
+    competences: Competences | null,
     projectStatus: ProjectStatus | null,
   ): Promise<ServiceWithContext[]> {
     if (!competences?.length && !projectStatus) {

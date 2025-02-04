@@ -4,6 +4,7 @@ import { CustomLogger } from "@logging/logger.service";
 import { ProjectResponse } from "@projects/dto/project.dto";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
+import { Competences } from "@/shared/types";
 
 @Injectable()
 export class GetProjectsService {
@@ -28,6 +29,7 @@ export class GetProjectsService {
     return results.map((result) => {
       return {
         ...result,
+        competences: result.competences ? (result.competences as unknown as Competences[]) : null,
         communes: result.communes.map((c) => c.commune),
       };
     });
@@ -52,6 +54,7 @@ export class GetProjectsService {
 
     return {
       ...result,
+      competences: result.competences ? (result.competences as unknown as Competences[]) : null,
       communes: result.communes.map((c) => c.commune),
     };
   }
