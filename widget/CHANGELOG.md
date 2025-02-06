@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.1.0
+
+### Minor Changes
+
+- make widget compatible with react 18 and react 19
+
 ## 0.0.11
 
 ### Patch Changes
