@@ -32,7 +32,7 @@ export default defineConfig({
       fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {
-      external: ["react", "react-dom", "@codegouvfr/react-dsfr"],
+      external: ["react", "react-dom", "react/jsx-runtime", "@codegouvfr/react-dsfr", "@codegouvfr/react-dsfr/spa"],
     },
   },
 });
