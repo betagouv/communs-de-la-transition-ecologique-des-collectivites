@@ -69,9 +69,9 @@ export const services = pgTable("services", {
   description: text("description").notNull(),
   logoUrl: text("logo_url").notNull(),
   isListed: boolean("is_listed").default(false),
-  iframeUrl: text("iframe_url"),
   redirectionUrl: text("redirection_url").notNull(),
   redirectionLabel: text("redirection_label").notNull(),
+  iframeUrl: text("iframe_url"),
   extendLabel: text("extend_label"),
 });
 

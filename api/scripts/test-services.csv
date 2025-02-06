@@ -1,0 +1,4 @@
+name,description,logoUrl,redirectionUrl,redirectionLabel,iframeUrl,extendLabel
+"Service 1","Description du service 1","https://example.com/logo1.png","https://service1.com","Accéder au service 1","https://service1.com/iframe","En savoir plus"
+"Service 2","Description du service 2","https://example.com/logo2.png","https://service2.com","Accéder au service 2",,
+"Service 3","Description du service 3","https://example.com/logo3.png","https://service3.com","Accéder au service 3",,
