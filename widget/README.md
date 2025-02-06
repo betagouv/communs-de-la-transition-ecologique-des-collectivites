@@ -84,21 +84,28 @@ The sandbox will automatically reload when you make changes to the widget code.
 
 ### Testing Your Changes
 
-1. After making changes to the widget, rebuild it:
+1. When you want to test your changes, you need to publish the widget locally (we use yalc):
 
 ```bash
-cd les-communs-widget
-pnpm build
+pnpm dev:widget:publish
 ```
 
-2. The sandbox will automatically pick up the changes since it uses a local file reference:
+2. Link the widget sandbox to the published yalc package
 
-```json
-{
-  "dependencies": {
-    "les-communs-widget": "file:../les-communs-widget"
-  }
-}
+```bash
+pnpm dev:widget-sandbox:link
+```
+
+3. Should you make further updates run the below command to avoid having to re-link the widget sandbox
+
+```bash
+pnpm dev:widget:push
+```
+
+4. When your testing is done, unlink the widget sandbox
+
+```bash
+pnpm dev:widget-sandbox:unlink
 ```
 
 ## Publishing
