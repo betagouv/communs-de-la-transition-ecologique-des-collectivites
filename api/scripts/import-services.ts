@@ -8,6 +8,7 @@ import * as path from "path";
 interface CsvRecord {
   name: string;
   description: string;
+  subtitle: string;
   logoUrl: string;
   redirectionUrl: string;
   redirectionLabel: string;
@@ -17,6 +18,7 @@ interface CsvRecord {
 }
 
 // Load environment variables from .env file
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 config({ path: path.resolve(__dirname, "../.env") });
 
 if (!process.env.SERVICE_MANAGEMENT_API_KEY) {
@@ -48,6 +50,7 @@ async function importServices(csvFilePath: string) {
     const service = {
       name: record.name,
       description: record.description,
+      sousTitre: record.subtitle,
       logoUrl: record.logoUrl,
       redirectionUrl: record.redirectionUrl,
       redirectionLabel: record.redirectionLabel,

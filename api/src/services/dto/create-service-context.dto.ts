@@ -42,6 +42,11 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @IsOptional()
   description?: string;
 
+  @ApiProperty({ required: false, nullable: true })
+  @IsString()
+  @IsOptional()
+  sousTitre?: string;
+
   @ApiProperty({
     description: "Custom logo URL for the service in this context",
     example: "https://example.com/custom-logo.png",

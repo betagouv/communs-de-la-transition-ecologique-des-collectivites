@@ -1,0 +1,439 @@
+{
+  "id": "b4efc389-9e2b-4dcf-83c9-963da86d12ee",
+  "prevId": "378ee2f4-8062-44b0-aa54-1a2411f74520",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.communes": {
+      "name": "communes",
+      "schema": "",
+      "columns": {
+        "insee_code": {
+          "name": "insee_code",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.projects": {
+      "name": "projects",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget": {
+          "name": "budget",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "forecasted_start_date": {
+          "name": "forecasted_start_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "project_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "code_siret": {
+          "name": "code_siret",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "porteur_referent_email": {
+          "name": "porteur_referent_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "porteur_referent_telephone": {
+          "name": "porteur_referent_telephone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "porteur_referent_prenom": {
+          "name": "porteur_referent_prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "porteur_referent_nom": {
+          "name": "porteur_referent_nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "porteur_referent_fonction": {
+          "name": "porteur_referent_fonction",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "competences": {
+          "name": "competences",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "leviers": {
+          "name": "leviers",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mec_id": {
+          "name": "mec_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tet_id": {
+          "name": "tet_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "recoco_id": {
+          "name": "recoco_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "projects_mec_id_unique": {
+          "name": "projects_mec_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["mec_id"]
+        },
+        "projects_tet_id_unique": {
+          "name": "projects_tet_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["tet_id"]
+        },
+        "projects_recoco_id_unique": {
+          "name": "projects_recoco_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["recoco_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.projects_to_communes": {
+      "name": "projects_to_communes",
+      "schema": "",
+      "columns": {
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "commune_id": {
+          "name": "commune_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "commune_project_idx": {
+          "name": "commune_project_idx",
+          "columns": [
+            {
+              "expression": "commune_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "projects_to_communes_project_id_projects_id_fk": {
+          "name": "projects_to_communes_project_id_projects_id_fk",
+          "tableFrom": "projects_to_communes",
+          "tableTo": "projects",
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "projects_to_communes_commune_id_communes_insee_code_fk": {
+          "name": "projects_to_communes_commune_id_communes_insee_code_fk",
+          "tableFrom": "projects_to_communes",
+          "tableTo": "communes",
+          "columnsFrom": ["commune_id"],
+          "columnsTo": ["insee_code"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "projects_to_communes_project_id_commune_id_pk": {
+          "name": "projects_to_communes_project_id_commune_id_pk",
+          "columns": ["project_id", "commune_id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.service_context": {
+      "name": "service_context",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "service_id": {
+          "name": "service_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "competences": {
+          "name": "competences",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "leviers": {
+          "name": "leviers",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "project_status[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sous_titre": {
+          "name": "sous_titre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "logo_url": {
+          "name": "logo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "redirection_url": {
+          "name": "redirection_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "redirection_label": {
+          "name": "redirection_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "extend_label": {
+          "name": "extend_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "iframe_url": {
+          "name": "iframe_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "service_context_service_id_services_id_fk": {
+          "name": "service_context_service_id_services_id_fk",
+          "tableFrom": "service_context",
+          "tableTo": "services",
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.services": {
+      "name": "services",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sous_titre": {
+          "name": "sous_titre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "logo_url": {
+          "name": "logo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_listed": {
+          "name": "is_listed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "redirection_url": {
+          "name": "redirection_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "redirection_label": {
+          "name": "redirection_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "iframe_url": {
+          "name": "iframe_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "extend_label": {
+          "name": "extend_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.project_status": {
+      "name": "project_status",
+      "schema": "public",
+      "values": ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

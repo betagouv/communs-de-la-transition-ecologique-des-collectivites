@@ -354,8 +354,7 @@ describe("AppController (e2e)", () => {
 
     describe("GET /projects/:id", () => {
       it("should return a specific project", async () => {
-        const { data: createdProject, error: createError } = await api.projects.create(validProject);
-        console.log("createError", createError);
+        const { data: createdProject, error: _createError } = await api.projects.create(validProject);
 
         const projectId = createdProject!.id;
 

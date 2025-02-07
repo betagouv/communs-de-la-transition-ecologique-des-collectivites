@@ -252,8 +252,10 @@ export interface components {
             name: string;
             /**
              * @description Objectivez votre diagnostic avec les données socio-économiques qui rendent votre territoire unique et découvrez des arguments et ressources pour mobiliser vos collègues et partenaires externes sur l'adaptation au changement climatique.
-             * @example Version control and collaboration platform
+             * @example Docurba centralise les ressources nécessaires à chaque étape de vos procédures d'urbanisme
              */
+            sousTitre: string;
+            /** @example Docurba est l’outil de transformation de la planification territoriale. Il facilite la collaboration entre services de l’Etat, collectivités et bureaux d’études pour faciliter l’élaboration et le suivi d’un document d’urbanisme afin que les enjeux et les politiques publiques soient plus rapidement et mieux pris en compte au niveau local. */
             description: string;
             /**
              * @description The URL of the service logo
@@ -267,9 +269,9 @@ export interface components {
             redirectionUrl: string;
             /**
              * @description label of the redirection
-             * @example La boussole
+             * @example Découvrez la boussole
              */
-            redirectionLabel: string;
+            redirectionLabel?: string | null;
             iframeUrl?: string | null;
             extendLabel?: string | null;
             /** @description Whether the service will be associated with projects */
@@ -279,9 +281,10 @@ export interface components {
             id: string;
             name: string;
             description: string;
+            sousTitre: string;
             logoUrl: string;
             redirectionUrl: string;
-            redirectionLabel: string;
+            redirectionLabel: Record<string, never>;
             iframeUrl: Record<string, never>;
             extendLabel: Record<string, never>;
         };
@@ -303,6 +306,7 @@ export interface components {
              */
             leviers?: ("Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Collecte et tri des déchets" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF")[];
             description?: string | null;
+            sousTitre?: string | null;
             /**
              * @description Custom logo URL for the service in this context
              * @example https://example.com/custom-logo.png
@@ -349,14 +353,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -378,14 +386,18 @@ export interface operations {
         responses: {
             /** @description Project created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -404,14 +416,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -435,14 +451,18 @@ export interface operations {
         responses: {
             /** @description Project updated successfully */
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -464,14 +484,18 @@ export interface operations {
         responses: {
             /** @description Bulk Projects created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["BulkCreateProjectsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -488,7 +512,9 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -505,7 +531,9 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -525,14 +553,18 @@ export interface operations {
         responses: {
             /** @description Service created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -557,14 +589,18 @@ export interface operations {
         responses: {
             /** @description Service context created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceContextResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };

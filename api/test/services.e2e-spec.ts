@@ -9,6 +9,7 @@ describe("Services (e2e)", () => {
     const validService = {
       name: "Test Service",
       description: "Test Description",
+      sousTitre: "Test sous-titre",
       logoUrl: "https://test.com/logo.png",
       redirectionUrl: "https://test.com",
       redirectionLabel: "Go to test service",
@@ -39,6 +40,7 @@ describe("Services (e2e)", () => {
       const { data } = await serviceManagementApi.services.create({
         name: "Context Test Service",
         description: "Test Description",
+        sousTitre: "Test sous-titre",
         logoUrl: "https://test.com/logo.png",
         redirectionUrl: "https://test.com",
         redirectionLabel: "Go to test service",

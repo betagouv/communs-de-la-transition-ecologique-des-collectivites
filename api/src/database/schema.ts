@@ -63,14 +63,15 @@ export const projectsToCommunes = pgTable(
 export const services = pgTable("services", {
   id: uuid("id")
     .primaryKey()
-    .$defaultFn(() => uuidv7()), //todo should this really be a uuid ? there will be a list of finite services
+    .$defaultFn(() => uuidv7()),
   createdAt: timestamp("createdAt").defaultNow(),
   name: text("name").notNull(),
   description: text("description").notNull(),
+  sousTitre: text("sous_titre").notNull(),
   logoUrl: text("logo_url").notNull(),
   isListed: boolean("is_listed").default(false),
   redirectionUrl: text("redirection_url").notNull(),
-  redirectionLabel: text("redirection_label").notNull(),
+  redirectionLabel: text("redirection_label"),
   iframeUrl: text("iframe_url"),
   extendLabel: text("extend_label"),
 });
@@ -88,6 +89,7 @@ export const serviceContext = pgTable("service_context", {
 
   // Custom display options
   description: text("description"),
+  sousTitre: text("sous_titre"),
   logoUrl: text("logo_url"),
   redirectionUrl: text("redirection_url"),
   redirectionLabel: text("redirection_label"),
