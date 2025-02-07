@@ -29,6 +29,7 @@ describe("ServiceController", () => {
   const validService: CreateServiceRequest = {
     name: "Test Service",
     description: "Test Description",
+    sousTitre: "Test Sous Titre",
     logoUrl: "https://test.com/logo.png",
     redirectionUrl: "https://test.com",
     redirectionLabel: "Go to test service",
@@ -36,7 +37,13 @@ describe("ServiceController", () => {
 
   describe("service", () => {
     it("should create a new service", async () => {
-      const expectedResponse = { ...validService, id: "test-id", extendLabel: null, iframeUrl: null };
+      const expectedResponse = {
+        ...validService,
+        id: "test-id",
+        extendLabel: null,
+        iframeUrl: null,
+        redirectionLabel: validService.redirectionLabel ?? null,
+      };
       jest.spyOn(serviceServices, "create").mockResolvedValue(expectedResponse);
 
       const result = await controller.create(validService);

@@ -29,6 +29,7 @@ describe("ServicesService", () => {
       const createDto: CreateServiceRequest = {
         name: "Test Service",
         description: "Test Description",
+        sousTitre: "Test Sous Titre",
         logoUrl: "https://test.com/logo.png",
         redirectionUrl: "https://test.com",
         redirectionLabel: "Go on test service",

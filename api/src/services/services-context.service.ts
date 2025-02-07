@@ -65,6 +65,7 @@ export class ServicesContextService {
     return matchingContexts.map(({ services, service_context }) => ({
       ...services,
       description: service_context.description ?? services.description,
+      sousTitre: service_context.sousTitre ?? services.sousTitre,
       logoUrl: service_context.logoUrl ?? services.logoUrl,
       redirectionUrl: service_context.redirectionUrl ?? services.redirectionUrl,
       redirectionLabel: service_context.redirectionLabel ?? services.redirectionLabel,

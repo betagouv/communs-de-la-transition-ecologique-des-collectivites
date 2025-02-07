@@ -33,6 +33,7 @@ describe("ServiceContextService", () => {
     const servicePayload: CreateServiceRequest = {
       name: "Test Service",
       description: "Original Description",
+      sousTitre: "Test Sous Titre",
       logoUrl: "https://test.com/logo.png",
       redirectionUrl: "https://test.com",
       redirectionLabel: "Original Label",
@@ -48,6 +49,7 @@ describe("ServiceContextService", () => {
 
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
+        sousTitre: "Context Sous Titre",
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         logoUrl: "https://test.com/context-logo.png",
         redirectionUrl: "https://test.com/context",
@@ -66,6 +68,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         name: service.name,
         description: serviceContexts[0].description,
+        sousTitre: serviceContexts[0].sousTitre,
         logoUrl: serviceContexts[0].logoUrl,
         redirectionUrl: serviceContexts[0].redirectionUrl,
         redirectionLabel: serviceContexts[0].redirectionLabel,
@@ -94,6 +97,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         name: service.name,
         description: "Context Description",
+        sousTitre: service.sousTitre,
         logoUrl: service.logoUrl,
         redirectionUrl: service.redirectionUrl,
         redirectionLabel: service.redirectionLabel,
@@ -122,6 +126,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         name: service.name,
         description: "Context Description",
+        sousTitre: service.sousTitre,
         logoUrl: service.logoUrl,
         redirectionUrl: service.redirectionUrl,
         redirectionLabel: service.redirectionLabel,
@@ -153,6 +158,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         name: service.name,
         description: service.description,
+        sousTitre: service.sousTitre,
         logoUrl: service.logoUrl,
         redirectionUrl: service.redirectionUrl,
         redirectionLabel: service.redirectionLabel,
@@ -167,7 +173,7 @@ describe("ServiceContextService", () => {
 
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
-        // Empty array should match all
+        sousTitre: "Context Sous Titre",
         competences: ["Santé"],
         status: ["IDEE", "FAISABILITE"],
         leviers: [],
@@ -187,6 +193,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         name: service.name,
         description: "Context Description",
+        sousTitre: "Context Sous Titre",
         logoUrl: service.logoUrl,
         redirectionUrl: service.redirectionUrl,
         redirectionLabel: service.redirectionLabel,
@@ -277,6 +284,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         name: service.name,
         description: "Context Description",
+        sousTitre: service.sousTitre,
         logoUrl: service.logoUrl,
         redirectionUrl: service.redirectionUrl,
         redirectionLabel: service.redirectionLabel,
@@ -314,6 +322,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         name: service.name,
         description: "Context Description",
+        sousTitre: service.sousTitre,
         logoUrl: service.logoUrl,
         redirectionUrl: service.redirectionUrl,
         redirectionLabel: service.redirectionLabel,
@@ -347,6 +356,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         name: service.name,
         description: "Context Description",
+        sousTitre: service.sousTitre,
         logoUrl: service.logoUrl,
         redirectionUrl: service.redirectionUrl,
         redirectionLabel: service.redirectionLabel,
@@ -380,6 +390,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         name: service.name,
         description: "Context Description",
+        sousTitre: service.sousTitre,
         logoUrl: service.logoUrl,
         redirectionUrl: service.redirectionUrl,
         redirectionLabel: service.redirectionLabel,
@@ -442,6 +453,7 @@ describe("ServiceContextService", () => {
       const service = await servicesService.create({
         name: "Test Service",
         description: "Test Description",
+        sousTitre: "Test Sous Titre",
         logoUrl: "https://test.com/logo.png",
         redirectionUrl: "https://test.com",
         redirectionLabel: "Go to test service",
@@ -449,6 +461,7 @@ describe("ServiceContextService", () => {
 
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
+        sousTitre: "Context Sous Titre",
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         logoUrl: "https://test.com/context-logo.png",
         redirectionUrl: "https://test.com/context",
@@ -464,6 +477,7 @@ describe("ServiceContextService", () => {
         id: result.id,
         serviceId: service.id,
         description: "Context Description",
+        sousTitre: "Context Sous Titre",
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         logoUrl: "https://test.com/context-logo.png",
         redirectionUrl: "https://test.com/context",

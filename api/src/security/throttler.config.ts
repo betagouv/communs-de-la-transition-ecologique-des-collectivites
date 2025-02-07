@@ -8,7 +8,7 @@ export const throttlerConfig: ThrottlerModuleOptions = {
   throttlers: [
     {
       ttl: 60, //ms
-      limit: 10,
+      limit: 50,
     },
   ],
 };

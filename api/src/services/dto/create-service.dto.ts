@@ -17,6 +17,10 @@ export class CreateServiceResponse {
   description!: string;
 
   @ApiProperty()
+  @IsString()
+  sousTitre!: string;
+
+  @ApiProperty()
   @IsUrl()
   logoUrl!: string;
 
@@ -24,9 +28,9 @@ export class CreateServiceResponse {
   @IsUrl()
   redirectionUrl!: string;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   @IsString()
-  redirectionLabel!: string;
+  redirectionLabel!: string | null;
 
   @ApiProperty({ nullable: true })
   iframeUrl!: string | null;
@@ -45,9 +49,17 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
   name!: string;
 
   @ApiProperty({
-    example: "Version control and collaboration platform",
+    example: "Docurba centralise les ressources nécessaires à chaque étape de vos procédures d'urbanisme",
     description:
       "Objectivez votre diagnostic avec les données socio-économiques qui rendent votre territoire unique et découvrez des arguments et ressources pour mobiliser vos collègues et partenaires externes sur l'adaptation au changement climatique.",
+  })
+  @IsString()
+  @IsNotEmpty()
+  sousTitre!: string;
+
+  @ApiProperty({
+    example:
+      "Docurba est l’outil de transformation de la planification territoriale. Il facilite la collaboration entre services de l’Etat, collectivités et bureaux d’études pour faciliter l’élaboration et le suivi d’un document d’urbanisme afin que les enjeux et les politiques publiques soient plus rapidement et mieux pris en compte au niveau local.",
   })
   @IsString()
   @IsNotEmpty()
@@ -70,12 +82,14 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
   redirectionUrl!: string;
 
   @ApiProperty({
-    example: "La boussole",
+    example: "Découvrez la boussole",
     description: "label of the redirection",
+    required: false,
+    nullable: true,
   })
   @IsString()
-  @IsNotEmpty()
-  redirectionLabel!: string;
+  @IsOptional()
+  redirectionLabel?: string;
 
   @ApiProperty({
     required: false,

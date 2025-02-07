@@ -1,0 +1,1 @@
+ALTER TABLE "services" ALTER COLUMN "redirection_label" DROP NOT NULL;
