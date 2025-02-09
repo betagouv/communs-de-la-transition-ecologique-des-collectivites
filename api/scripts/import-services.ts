@@ -26,7 +26,7 @@ if (!process.env.SERVICE_MANAGEMENT_API_KEY) {
   process.exit(1);
 }
 
-const baseUrl = "http://localhost:3000";
+const baseUrl = "https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/";
 const apiKey = process.env.SERVICE_MANAGEMENT_API_KEY;
 
 const apiClient = createClient<paths>({
