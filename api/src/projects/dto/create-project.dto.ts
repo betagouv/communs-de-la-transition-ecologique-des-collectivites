@@ -3,6 +3,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsDateString,
+  IsEnum,
   IsIn,
   IsNotEmpty,
   IsNumber,
@@ -74,6 +75,7 @@ export class CreateProjectRequest {
     description: "Forecasted start date in YYYY-MM-DD format",
     example: "2024-03-01",
   })
+  @IsOptional()
   @IsDateString()
   forecastedStartDate?: string;
 
@@ -84,6 +86,7 @@ export class CreateProjectRequest {
     description: "Current Status for the project",
   })
   @IsOptional()
+  @IsEnum(projectStatusEnum.enumValues)
   status?: ProjectStatus | null;
 
   @ApiProperty({
