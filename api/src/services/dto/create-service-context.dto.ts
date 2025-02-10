@@ -103,4 +103,14 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   })
   @IsArray()
   status!: ProjectStatus[];
+
+  @ApiProperty({
+    description: "Array of extra field names required for this service context",
+    example: ["field1", "field2"],
+    required: false,
+    nullable: true,
+  })
+  @IsArray()
+  @IsOptional()
+  extraFields?: string[];
 }

@@ -36,6 +36,13 @@
       "when": 1738857220142,
       "tag": "0004_bouncy_reavers",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1739171067335,
+      "tag": "0005_mature_santa_claus",
+      "breakpoints": true
     }
   ]
 }

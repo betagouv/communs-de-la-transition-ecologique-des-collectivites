@@ -56,6 +56,7 @@ describe("Services (e2e)", () => {
       redirectionLabel: "Go to test service",
       extendLabel: "Extend Label",
       leviers: [],
+      extraFields: ["surface"],
       status: [],
     };
 
@@ -75,6 +76,7 @@ describe("Services (e2e)", () => {
         serviceId,
         description: "Context Description",
         competences: ["Santé"],
+        extraFields: ["surface"],
       });
     });
   });
