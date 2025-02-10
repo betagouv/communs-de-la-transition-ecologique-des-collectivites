@@ -330,6 +330,14 @@ export interface components {
             iframeUrl?: string | null;
             /** @description Project status for which the serviceContext applies, empty array means all statuses */
             status: ("IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE")[];
+            /**
+             * @description Array of extra field names required for this service context
+             * @example [
+             *       "field1",
+             *       "field2"
+             *     ]
+             */
+            extraFields?: string[] | null;
         };
         CreateServiceContextResponse: {
             id: string;

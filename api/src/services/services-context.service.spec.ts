@@ -67,14 +67,15 @@ describe("ServiceContextService", () => {
         id: service.id,
         createdAt: expect.any(Date),
         name: service.name,
-        description: serviceContexts[0].description,
-        sousTitre: serviceContexts[0].sousTitre,
-        logoUrl: serviceContexts[0].logoUrl,
-        redirectionUrl: serviceContexts[0].redirectionUrl,
-        redirectionLabel: serviceContexts[0].redirectionLabel,
-        extendLabel: serviceContexts[0].extendLabel,
-        iframeUrl: serviceContexts[0].iframeUrl,
+        description: createContextDto.description,
+        sousTitre: createContextDto.sousTitre,
+        logoUrl: createContextDto.logoUrl,
+        redirectionUrl: createContextDto.redirectionUrl,
+        redirectionLabel: createContextDto.redirectionLabel,
+        extendLabel: createContextDto.extendLabel,
+        iframeUrl: null,
         isListed: true,
+        extraFields: [],
       });
     });
 
@@ -93,17 +94,11 @@ describe("ServiceContextService", () => {
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
-        id: service.id,
+        ...service,
         createdAt: expect.any(Date),
-        name: service.name,
-        description: "Context Description",
-        sousTitre: service.sousTitre,
-        logoUrl: service.logoUrl,
-        redirectionUrl: service.redirectionUrl,
-        redirectionLabel: service.redirectionLabel,
-        extendLabel: service.extendLabel,
-        iframeUrl: service.iframeUrl,
+        description: createContextDto.description,
         isListed: true,
+        extraFields: [],
       });
     });
 
@@ -122,17 +117,13 @@ describe("ServiceContextService", () => {
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
+        ...service,
         id: service.id,
         createdAt: expect.any(Date),
         name: service.name,
         description: "Context Description",
-        sousTitre: service.sousTitre,
-        logoUrl: service.logoUrl,
-        redirectionUrl: service.redirectionUrl,
-        redirectionLabel: service.redirectionLabel,
-        extendLabel: service.extendLabel,
-        iframeUrl: service.iframeUrl,
         isListed: true,
+        extraFields: [],
       });
     });
 
@@ -165,6 +156,7 @@ describe("ServiceContextService", () => {
         extendLabel: service.extendLabel,
         iframeUrl: service.iframeUrl,
         isListed: true,
+        extraFields: [],
       });
     });
 
@@ -200,6 +192,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         isListed: true,
         iframeUrl: null,
+        extraFields: [],
       });
 
       const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
@@ -291,6 +284,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        extraFields: [],
       });
 
       const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
@@ -329,6 +323,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        extraFields: [],
       });
 
       const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
@@ -363,6 +358,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        extraFields: [],
       });
 
       const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
@@ -397,6 +393,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        extraFields: [],
       });
 
       const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
@@ -449,7 +446,6 @@ describe("ServiceContextService", () => {
 
   describe("create", () => {
     it("should create a new service context", async () => {
-      // Create a test service first
       const service = await servicesService.create({
         name: "Test Service",
         description: "Test Description",
@@ -476,16 +472,9 @@ describe("ServiceContextService", () => {
       expect(result).toEqual({
         id: result.id,
         serviceId: service.id,
-        description: "Context Description",
-        sousTitre: "Context Sous Titre",
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
-        logoUrl: "https://test.com/context-logo.png",
-        redirectionUrl: "https://test.com/context",
-        redirectionLabel: "Context Label",
-        extendLabel: "Extend Label",
-        leviers: ["Bio-carburants", "Covoiturage"],
-        status: [],
+        ...createContextDto,
         iframeUrl: null,
+        extraFields: [],
       });
     });
 
@@ -499,6 +488,39 @@ describe("ServiceContextService", () => {
       await expect(serviceContextService.create(crypto.randomUUID(), createContextDto)).rejects.toThrow(
         NotFoundException,
       );
+    });
+
+    it("should create a service context with extra fields", async () => {
+      const service = await servicesService.create({
+        name: "Test Service",
+        description: "Test Description",
+        sousTitre: "Test Sous Titre",
+        logoUrl: "https://test.com/logo.png",
+        redirectionUrl: "https://test.com",
+        redirectionLabel: "Go to test service",
+      });
+
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        sousTitre: "Context Sous Titre",
+        competences: ["Santé", "Culture > Arts plastiques et photographie"],
+        logoUrl: "https://test.com/context-logo.png",
+        redirectionUrl: "https://test.com/context",
+        leviers: ["Bio-carburants", "Covoiturage"],
+        redirectionLabel: "Context Label",
+        extendLabel: "Extend Label",
+        status: [],
+        extraFields: ["field1", "field2"],
+      };
+
+      const result = await serviceContextService.create(service.id, createContextDto);
+
+      expect(result).toEqual({
+        id: expect.any(String),
+        serviceId: service.id,
+        ...createContextDto,
+        iframeUrl: null,
+      });
     });
   });
 });
