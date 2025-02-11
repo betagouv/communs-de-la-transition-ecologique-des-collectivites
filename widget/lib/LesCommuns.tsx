@@ -1,8 +1,9 @@
 import { fr } from "@codegouvfr/react-dsfr";
 import classNames from "classnames";
 import { useEffect, useState } from "react";
-import { Service } from "./components/Service.tsx";
+import { ExtraField, Service } from "./components/Service.tsx";
 import styles from "./LesCommuns.module.css";
+import { getApiUrl } from "./utils.ts";
 
 export interface LesCommunsProps {
   projectId: string;
@@ -18,12 +19,14 @@ interface Service {
   logoUrl: string;
   customRedirectionUrl?: string;
   redirectionLabel?: string;
+  extraFields: string[];
 }
 
 export const LesCommuns = ({ projectId, isStagingEnv }: LesCommunsProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [projectExtraFields, setProjectExtraFields] = useState<ExtraField[]>([]);
 
   const apiUrl = getApiUrl(isStagingEnv);
 
@@ -31,12 +34,12 @@ export const LesCommuns = ({ projectId, isStagingEnv }: LesCommunsProps) => {
     const fetchServices = async () => {
       try {
         const response = await fetch(`${apiUrl}/services/project/${projectId}`);
+        const fieldsResponse = await fetch(`${apiUrl}/projects/${projectId}/extra-fields`);
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch services");
-        }
-
+        const fieldsData = (await fieldsResponse.json()) as { extraFields: ExtraField[] };
         const data = (await response.json()) as Service[];
+
+        setProjectExtraFields(fieldsData.extraFields);
         setServices(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -61,14 +64,16 @@ export const LesCommuns = ({ projectId, isStagingEnv }: LesCommunsProps) => {
       </span>
       <div className={classNames(fr.cx("fr-mt-3w"), styles.services)}>
         {services.map((service) => (
-          <Service key={service.id} {...service} />
+          <Service
+            key={service.id}
+            {...service}
+            projectExtraFields={projectExtraFields}
+            isStagingEnv={isStagingEnv}
+            projectId={projectId}
+            setProjectExtraFields={setProjectExtraFields}
+          />
         ))}
       </div>
     </div>
   );
-};
-
-export const getApiUrl = (isStaging?: boolean, isDev = import.meta.env.DEV) => {
-  if (isDev) return "http://localhost:3000";
-  return `https://les-communs-transition-ecologique-api-${isStaging ? "staging" : "prod"}.osc-fr1.scalingo.io`;
 };

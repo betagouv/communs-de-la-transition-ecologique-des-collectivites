@@ -2,7 +2,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
-import { LesCommuns, getApiUrl } from "./LesCommuns.tsx";
+import { LesCommuns } from "./LesCommuns.tsx";
+import { getApiUrl } from "./utils.ts";
 
 const getMockedServices = (env: "prod" | "staging") => [
   {

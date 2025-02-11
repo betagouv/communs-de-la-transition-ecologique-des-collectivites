@@ -25,9 +25,10 @@
     "test": "vitest",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
-    "lint": "eslint .",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "type-check": "tsc --noEmit -p tsconfig.app.json",
     "validate": "npm run type-check && npm run lint && npm run format:check",
+    "generate-api-type": "openapi-typescript http://localhost:3000/openapi.json -o lib/generated-types.ts",
     "update-version": "changeset version",
     "release": "npm publish",
     "prerelease": "pnpm build & pnpm validate && pnpm test",
@@ -42,7 +43,8 @@
   },
   "dependencies": {
     "@iframe-resizer/react": "^5.3.2",
-    "classnames": "^2.5.1"
+    "classnames": "^2.5.1",
+    "openapi-fetch": "^0.13.3"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.11",
@@ -50,6 +52,7 @@
     "@testing-library/react": "^16.1.0",
     "jsdom": "^25.0.1",
     "msw": "^2.6.8",
+    "openapi-typescript": "^7.4.4",
     "path": "^0.12.7",
     "vite-plugin-dts": "^4.3.0",
     "vite-plugin-lib-inject-css": "^2.1.1",
