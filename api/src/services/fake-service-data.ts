@@ -10,6 +10,59 @@ export const fakeServiceData = [
     createdAt: new Date(),
     redirectionUrl: "https://facili-tacct.beta.gouv.fr",
   },
+
+  {
+    id: "7",
+    name: "Bénéfriches",
+    description:
+      "Bénéfriches quantifie et monétarise les impacts environnementaux, sociaux et économiques d'un projet d'aménagement, sur friche ou en extension urbaine.",
+    logoUrl: "https://benefriches.ademe.fr/favicon/favicon-192.png",
+    createdAt: new Date(),
+    extraFields: ["surface"],
+    redirectionUrl: "https://benefriches.ademe.fr/",
+    iframeUrl:
+      "https://benefriches-staging.osc-fr1.scalingo.io/embed/mes-projets/fc0983ba-a464-462b-9b11-ba6b0d8cf0b8/impacts",
+  },
+  {
+    id: "8",
+    name: "UrbanVitaliz",
+    description:
+      "UrbanVitaliz donne des recommandations d’actions à la collectivité, en fonction du projet qu’elle lui a soumis et des caractéristiques de la friches. Elle oriente ainsi vers les acteurs, dispositifs, financements, prestations, outils et stratégies disponibles, susceptibles de débloquer le porteur de projet.",
+    logoUrl: "https://urbanvitaliz.fr/static/img/favicons/apple-touch-icon.png",
+    createdAt: new Date(),
+    redirectionUrl: "https://urbanvitaliz.fr/",
+    iframeUrl: "https://urbanvitaliz.fr/project/198/recommandations/embed?key=af408518b67048a9bef11802765d08c0",
+  },
+  {
+    id: "12",
+    name: "Vapp",
+    description:
+      "Chaque jour, des collectivités comme la vôtre trouvent des aides pour financer et accompagner leurs projets sur de nombreuses thématiques. Vous aussi, découvrez les aides disponibles",
+    logoUrl:
+      "https://aides-territoires-prod.s3.fr-par.scw.cloud/aides-territoires-prod/blog/on-vous-presente-la-plateforme-aides-territoires-w_logo.png",
+    createdAt: new Date(),
+    redirectionUrl: "https://aides-territoires.beta.gouv.fr/",
+    extendLabel: "Voir les aides adaptées à mon projet",
+    iframeUrl:
+      "https://vapp-preprod-pr146.osc-fr1.scalingo.io/widget/projets/0194e0fe-546a-75fb-bdad-bcb3ecfff030/aides",
+  },
+  {
+    id: "6",
+    name: "Levier_SGPE",
+    description: "Comprendre le levier de la transition : Voitures électriques",
+    logoUrl: "https://www.boussole-te.ecologie.gouv.fr//IMG/svg/img_boussole.svg",
+    createdAt: new Date(),
+    extendLabel: "Afficher le levier Voiture électrique",
+  },
+  {
+    id: "13",
+    name: "Docurba",
+    description:
+      "Docurba est l’outil de transformation de la planification territoriale. Il facilite la collaboration entre services de l’Etat, collectivités et bureaux d’études pour faciliter l’élaboration et le suivi d’un document d’urbanisme afin que les enjeux et les politiques publiques soient plus rapidement et mieux pris en compte au niveau local.",
+    logoUrl: "https://docurba.beta.gouv.fr/_nuxt/icons/icon_512x512.5f6a36.png",
+    createdAt: new Date(),
+    redirectionUrl: "https://docurba.beta.gouv.fr",
+  },
   {
     id: "2",
     name: "La boussole de la transition écologique",
@@ -22,9 +75,9 @@ export const fakeServiceData = [
   },
   {
     id: "4",
-    name: "Expertises Territoires",
+    name: "QUARTIERS DE DEMAIN",
     description:
-      "La Communauté quartiers de demain est une communauté pour permettre l'émergence de nouvelles pratiques sur l'aménagement urbain  ....pour des quartiers plus sobres, plus résilients, plus inclusifs et plus créatifs      ! Retrouvez-y des actualités, des ressources et proposez des sujets d'échange !",
+      "Une communauté pour permettre l'émergence de nouvelles pratiques sur l'aménagement urbain  ....pour des quartiers plus sobres, plus résilients, plus inclusifs et plus créatifs      !",
     logoUrl:
       "https://media.licdn.com/dms/image/C560BAQG0_4dWZ8o_tg/company-logo_200_200/0/1643296953981?e=2147483647&v=beta&t=vW7NKroCvzZceLyP46QWuSnKuDx-tE2IG0XaIE4jYwI",
     createdAt: new Date(),
@@ -43,19 +96,14 @@ export const fakeServiceData = [
     redirectionLabel: "Venez partager des actualités et des ressources",
   },
   {
-    id: "6",
-    name: "Levier_SGPE",
-    description: "Comprendre le levier de la transition : Voitures électriques",
-    logoUrl: "https://www.boussole-te.ecologie.gouv.fr//IMG/svg/img_boussole.svg",
+    id: "10",
+    name: "GESTION DU TRAIT DE CÔTE",
+    description:
+      "Les territoires littoraux sont particulièrement exposés aux effets du changement climatique, qui aggravent et s’ajoutent à la mobilité naturelle du trait de côte.",
+    logoUrl:
+      "https://media.licdn.com/dms/image/C560BAQG0_4dWZ8o_tg/company-logo_200_200/0/1643296953981?e=2147483647&v=beta&t=vW7NKroCvzZceLyP46QWuSnKuDx-tE2IG0XaIE4jYwI",
     createdAt: new Date(),
-    extendLabel: "Afficher le levier Voiture électrique",
-  },
-  {
-    id: "6",
-    name: "BeneFriche",
-    description: "Comprendre le levier de la transition : Voitures électriques",
-    logoUrl: "https://www.boussole-te.ecologie.gouv.fr//IMG/svg/img_boussole.svg",
-    createdAt: new Date(),
-    extraFields: ["surface"],
+    redirectionUrl: "https://www.expertises-territoires.fr/jcms/pl1_8340",
+    redirectionLabel: "Venez partager des actualités et des ressources",
   },
 ];
