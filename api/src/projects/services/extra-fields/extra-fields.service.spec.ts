@@ -30,7 +30,7 @@ describe("ExtraFieldService", () => {
     await testDbService.cleanDatabase();
   });
 
-  describe("getProjectExtraField", () => {
+  describe("getExtraFieldsByProjectId", () => {
     it("should return default extrafields for a project", async () => {
       const createDto: CreateProjectRequest = {
         nom: "Test Project",
@@ -51,8 +51,8 @@ describe("ExtraFieldService", () => {
     });
   });
 
-  describe("updateExtraFields", () => {
-    it("should return updated extrafields for a project", async () => {
+  describe("createExtraFields", () => {
+    it("should return created extrafields for a project", async () => {
       const createDto: CreateProjectRequest = {
         nom: "Test Project",
         description: "Test Description",

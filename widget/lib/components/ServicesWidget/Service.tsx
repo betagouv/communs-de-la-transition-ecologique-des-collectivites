@@ -52,7 +52,7 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
   };
 
   return (
-    <div className={classNames(styles.container)}>
+    <div className={classNames(styles.container)} key={name}>
       <div className={classNames(fr.cx("fr-m-2w"), styles.header)}>
         <div className={styles.header}>
           <div className={styles.logoContainer}>

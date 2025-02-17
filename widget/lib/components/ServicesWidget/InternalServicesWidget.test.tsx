@@ -28,7 +28,7 @@ const getMockedServices = (env: "prod" | "staging") => [
     sousTitre: "",
     redirectionLabel: null,
     extendLabel: null,
-    extraFields: ["surface"],
+    extraFields: [{ name: "surface", label: "Surface de la friche en m2" }],
   },
 ];
 
@@ -49,11 +49,11 @@ describe("LesCommuns", () => {
   it("displays services when data is loaded", async () => {
     render(<ServicesWidget projectId="123" />);
 
-    await screen.findByRole("heading", { name: /service 1 prod/i });
-    await screen.findByRole("heading", { name: /service 2 prod/i });
+    await screen.findByText("Service 1 prod");
+    await screen.findByText("Service 2 prod");
 
-    expect(screen.getByRole("heading", { name: /description for service 1/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /description for service 2/i })).toBeInTheDocument();
+    expect(screen.getByText("Description for service 1")).toBeInTheDocument();
+    expect(screen.getByText("Description for service 2")).toBeInTheDocument();
   });
 
   it("should display extra field input when project has no extra field associated yet", async () => {
@@ -62,11 +62,11 @@ describe("LesCommuns", () => {
     expect(await screen.findByRole("textbox", { name: /surface de la friche en m2/i })).toBeInTheDocument();
   });
 
-  it.only("should display iframe or 'voir le détail' button when corresponding extrafield is present", async () => {
+  it("should display 'voir le détail' button when corresponding extrafield is present", async () => {
     server.use(
       http.get("http://localhost:3000/projects/123/extra-fields", () => {
         return HttpResponse.json({
-          extraFields: [{ fieldName: "surface", fieldValue: "1000" }],
+          extraFields: [{ name: "surface", value: "1000" }],
         });
       }),
     );
