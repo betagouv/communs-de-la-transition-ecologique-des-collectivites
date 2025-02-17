@@ -6,3 +6,5 @@ export interface ServicesWidgetProps {
   projectId: string;
   isStagingEnv?: boolean;
 }
+
+export type ExtraFields = components["schemas"]["ExtraField"][];

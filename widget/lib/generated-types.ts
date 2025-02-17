@@ -147,7 +147,7 @@ export interface components {
       nom: string;
       description: string | null;
       porteurCodeSiret: string | null;
-      porteurReferentEmail: Record<string, never> | null;
+      porteurReferentEmail: string | null;
       porteurReferentTelephone: string | null;
       porteurReferentPrenom: string | null;
       porteurReferentNom: string | null;
@@ -297,17 +297,18 @@ export interface components {
     };
     ExtraField: {
       /** @description Name of the extra field */
-      fieldName: string;
+      name: string;
       /** @description Value of the extra field */
-      fieldValue: string;
+      value: string;
     };
     ProjectExtraFieldsResponse: {
       /**
-       * @description Array of extra field names and their values
+       * @description Array of extra field names, values, and labels
        * @example [
        *       {
        *         "fieldName": "surface",
-       *         "fieldValue": "100"
+       *         "fieldValue": "100",
+       *         "fieldLabel": "Surface (m²)"
        *       }
        *     ]
        */
@@ -315,11 +316,12 @@ export interface components {
     };
     CreateProjectExtraFieldRequest: {
       /**
-       * @description Array of extra field names and their values
+       * @description Array of extra field names, values, and labels
        * @example [
        *       {
        *         "fieldName": "surface",
-       *         "fieldValue": "100"
+       *         "fieldValue": "100",
+       *         "fieldLabel": "Surface (m²)"
        *       }
        *     ]
        */
@@ -666,6 +668,12 @@ export interface components {
         | null;
       externalId: string;
     };
+    ExtraFieldConfig: {
+      /** @description Name of the extra field */
+      name: string;
+      /** @description Value of the extra field */
+      label: string;
+    };
     ServicesByProjectIdResponse: {
       id: string;
       name: string;
@@ -673,7 +681,16 @@ export interface components {
       sousTitre: string;
       redirectionUrl: string;
       logoUrl: string;
-      extraFields: string[];
+      /**
+       * @description Array of extra field definitions with name and label
+       * @example [
+       *       {
+       *         "name": "surface",
+       *         "label": "Surface (m²)"
+       *       }
+       *     ]
+       */
+      extraFields: components["schemas"]["ExtraFieldConfig"][];
       redirectionLabel: string | null;
       iframeUrl: string | null;
       extendLabel: string | null;
@@ -886,13 +903,15 @@ export interface components {
       /** @description Project status for which the serviceContext applies, empty array means all statuses */
       status: ("IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE")[];
       /**
-       * @description Array of extra field names required for this service context
+       * @description Array of extra field definitions required for this service context
        * @example [
-       *       "field1",
-       *       "field2"
+       *       {
+       *         "name": "field1",
+       *         "label": "Field 1 Label"
+       *       }
        *     ]
        */
-      extraFields?: string[] | null;
+      extraFields?: components["schemas"]["ExtraFieldConfig"][] | null;
     };
     CreateServiceContextResponse: {
       id: string;
@@ -1157,8 +1176,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Service created successfully */
-      201: {
+      200: {
         headers: {
           [name: string]: unknown;
         };

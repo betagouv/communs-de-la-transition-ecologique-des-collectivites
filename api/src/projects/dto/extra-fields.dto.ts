@@ -4,17 +4,17 @@ import { IsArray, IsString } from "class-validator";
 class ExtraField {
   @ApiProperty({ description: "Name of the extra field" })
   @IsString()
-  fieldName!: string;
+  name!: string;
 
   @ApiProperty({ description: "Value of the extra field" })
   @IsString()
-  fieldValue!: string;
+  value!: string;
 }
 
 export class ProjectExtraFieldsResponse {
   @ApiProperty({
-    description: "Array of extra field names and their values",
-    example: [{ fieldName: "surface", fieldValue: "100" }],
+    description: "Array of extra field names, values, and labels",
+    example: [{ name: "surface", value: "100" }],
     type: [ExtraField],
   })
   @IsArray()
@@ -23,8 +23,8 @@ export class ProjectExtraFieldsResponse {
 
 export class CreateProjectExtraFieldRequest {
   @ApiProperty({
-    description: "Array of extra field names and their values",
-    example: [{ fieldName: "surface", fieldValue: "100" }],
+    description: "Array of extra field names, values, and labels",
+    example: [{ name: "surface", value: "100" }],
     type: [ExtraField],
   })
   @IsArray()
