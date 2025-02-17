@@ -1,2 +1,2 @@
-export { LesCommuns } from "./LesCommuns.tsx";
-export type { LesCommunsProps } from "./LesCommuns.tsx";
+export type { ServicesWidgetProps } from "./components/ServicesWidget/types.ts";
+export { ServicesWidget } from "./components/ServicesWidget/ServicesWidget.tsx";

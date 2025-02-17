@@ -7,7 +7,9 @@ import { ApiBearerAuth, ApiOperation, ApiTags, ApiParam, ApiExcludeEndpoint } fr
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
+import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 
+@ApiBearerAuth()
 @ApiTags("services")
 @Controller("services")
 @UseGuards(ServiceApiKeyGuard)
@@ -26,8 +28,13 @@ export class ServicesController {
 
   @Public()
   @ApiOperation({ summary: "Get all services corresponding to a project" })
+  @ApiEndpointResponses({
+    successStatus: 200,
+    response: ServicesByProjectIdResponse,
+    isArray: true,
+  })
   @Get("project/:projectId")
-  getServicesByProjectId(@Param("projectId") projectId: string) {
+  getServicesByProjectId(@Param("projectId") projectId: string): Promise<ServicesByProjectIdResponse[]> {
     return this.servicesService.getServicesByProjectId(projectId);
   }
 
@@ -52,7 +59,7 @@ export class ServicesController {
     response: CreateServiceContextResponse,
     description: "Service context created successfully",
   })
-  async createServiceContext(
+  createServiceContext(
     @Param("serviceId") serviceId: string,
     @Body() createServiceContextDto: CreateServiceContextRequest,
   ): Promise<CreateServiceContextResponse> {

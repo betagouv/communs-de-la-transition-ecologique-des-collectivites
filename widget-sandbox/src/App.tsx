@@ -1,10 +1,10 @@
-import { LesCommuns } from "@les-communs/widget";
+import { Widget } from "@les-communs/widget";
 
 function App() {
   return (
     <div className="fr-container">
       <h1>Widget Test Sandbox</h1>
-      <LesCommuns projectId="your-test-project-id" />
+      <Widget projectId="your-test-project-id" />
     </div>
   );
 }

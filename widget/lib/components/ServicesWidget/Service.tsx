@@ -2,13 +2,14 @@ import styles from "./Service.module.css";
 import Button from "@codegouvfr/react-dsfr/Button";
 import classNames from "classnames";
 import { fr } from "@codegouvfr/react-dsfr";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import IFrameResized from "./IFrameResized.tsx";
 import LevierDetails, { LevierData } from "./LevierDetails.tsx";
-import voiture_electrique from "../leviers/voiture_electrique.json";
+import voiture_electrique from "../../leviers_data/voiture_electrique.json";
 import Input from "@codegouvfr/react-dsfr/Input";
-import { getApiUrl } from "../utils.ts";
+import { ServiceType } from "./types.ts";
+import { usePostExtraFields } from "./queries.ts";
 
 export interface ExtraField {
   fieldName: string;
@@ -16,41 +17,22 @@ export interface ExtraField {
 }
 
 interface ServiceProps {
-  name: string;
-  description: string;
-  iframeUrl?: string;
-  logoUrl: string;
-  redirectionUrl?: string;
-  customRedirectionUrl?: string;
-  redirectionLabel?: string;
-  extendLabel?: string;
-  extraFields: string[];
+  service: ServiceType;
   projectExtraFields: ExtraField[];
   isStagingEnv?: boolean;
   projectId: string;
-  setProjectExtraFields: Dispatch<SetStateAction<ExtraField[]>>;
 }
 
-export const Service = ({
-  name,
-  description,
-  iframeUrl,
-  logoUrl,
-  redirectionUrl,
-  redirectionLabel,
-  extendLabel,
-  extraFields,
-  projectExtraFields,
-  isStagingEnv,
-  projectId,
-  setProjectExtraFields,
-}: ServiceProps) => {
+export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }: ServiceProps) => {
   const [expanded, setExpanded] = useState(false);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const { mutate: postExtraFields } = usePostExtraFields();
 
+  const { name, description, iframeUrl, redirectionUrl, redirectionLabel, extendLabel, extraFields, logoUrl } = service;
   const isLevier = name === "Levier_SGPE";
+
   const missingExtraFields = (extraFields || []).filter(
-    (fieldName) => !projectExtraFields.some((projectExtraField) => projectExtraField.fieldName === fieldName)
+    (fieldName) => !projectExtraFields.some((projectExtraField) => projectExtraField.fieldName === fieldName),
   );
   const needsAccordion = (isLevier || iframeUrl) && missingExtraFields.length === 0;
 
@@ -58,34 +40,16 @@ export const Service = ({
     setFieldValues((prev) => ({ ...prev, [fieldName]: value }));
   };
 
-  const handleSubmit = async (fieldName: string) => {
+  const handleSubmit = (fieldName: string) => {
     const fieldValue = fieldValues[fieldName];
     if (!fieldValue) return;
 
-    try {
-      const apiUrl = getApiUrl(isStagingEnv);
+    postExtraFields({
+      postExtraFielsPayload: { fieldName, fieldValue, projectId },
+      isStagingEnv: Boolean(isStagingEnv),
+    });
 
-      const response = await fetch(`${apiUrl}/projects/${projectId}/extra-fields`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          extraFields: [{ fieldName, fieldValue }],
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update extra fields");
-      }
-      // todo this is a hack for now to show the accordion once the update is done
-      //  ideally this should be done through cache invalidation to let the backend drive the state      setProjectExtraFields([{ fieldName, fieldValue }]);
-      setExpanded(true);
-      setProjectExtraFields([{ fieldName, fieldValue }]);
-      console.log(`Field ${fieldName} updated successfully`);
-    } catch (error) {
-      console.error("Error updating extra fields:", error);
-    }
+    setExpanded(true);
   };
 
   return (
@@ -126,7 +90,7 @@ export const Service = ({
                 className={fr.cx("fr-text--sm")}
                 key={fieldName}
                 addon={<Button onClick={() => void handleSubmit(fieldName)}>Enregistrer</Button>}
-                label={`${fieldName} de la friche`}
+                label={`${fieldName} de la friche en m2`}
                 nativeInputProps={{
                   value: fieldValues[fieldName] ?? "",
                   onChange: (e) => handleInputChange(fieldName, e.target.value),
@@ -145,9 +109,16 @@ export const Service = ({
           expanded={expanded}
         >
           {isLevier ? <LevierDetails {...(voiture_electrique as LevierData)} /> : null}
-          {iframeUrl && <IFrameResized src={iframeUrl} />}
+          {iframeUrl && <IFrameResized src={replaceUrlParamsDirect(iframeUrl, projectExtraFields)} />}
         </Accordion>
       )}
     </div>
   );
 };
+
+function replaceUrlParamsDirect(url: string, projectExtraField: { fieldName: string; fieldValue: string }[]): string {
+  return url.replace(/{(\w+)}/g, (_, key) => {
+    const matchingExtraField = projectExtraField.find((field) => field.fieldName === key);
+    return matchingExtraField?.fieldValue ?? `{${key}}`;
+  });
+}

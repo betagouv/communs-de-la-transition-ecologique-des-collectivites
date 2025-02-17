@@ -5,6 +5,7 @@ import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@logging/logger.service";
 import { services } from "@database/schema";
 import { fakeServiceData } from "@/services/fake-service-data";
+import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 
 @Injectable()
 export class ServicesService {
@@ -39,9 +40,9 @@ export class ServicesService {
     return service;
   }
 
-  getServicesByProjectId(projectId: string) {
+  getServicesByProjectId(projectId: string): Promise<ServicesByProjectIdResponse[]> {
     // For now, return mock data
     console.log("Returning mock services by projectid", projectId);
-    return fakeServiceData;
+    return Promise.resolve(fakeServiceData);
   }
 }
