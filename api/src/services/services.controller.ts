@@ -3,12 +3,11 @@ import { ServicesService } from "./services.service";
 import { ServicesContextService } from "./services-context.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "./dto/create-service-context.dto";
 import { Public } from "@/auth/public.decorator";
-import { ApiBearerAuth, ApiOperation, ApiTags, ApiParam } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiTags, ApiParam, ApiExcludeEndpoint } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
 
-@ApiBearerAuth()
 @ApiTags("services")
 @Controller("services")
 @UseGuards(ServiceApiKeyGuard)
@@ -18,6 +17,7 @@ export class ServicesController {
     private readonly serviceContextService: ServicesContextService,
   ) {}
 
+  @ApiExcludeEndpoint()
   @Public()
   @Get("debug-sentry")
   getError(): void {
@@ -31,6 +31,8 @@ export class ServicesController {
     return this.servicesService.getServicesByProjectId(projectId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Create a new service" })
   @Post()
   @ApiEndpointResponses({
     successStatus: 201,
@@ -41,8 +43,9 @@ export class ServicesController {
     return this.servicesService.create(createServiceDto);
   }
 
+  @ApiBearerAuth()
   @Post(":serviceId/contexts")
-  @ApiOperation({ summary: "Create a new service context" })
+  @ApiOperation({ summary: "Create a new service context for a specific service to match some projects " })
   @ApiParam({ name: "serviceId", description: "ID of the service" })
   @ApiEndpointResponses({
     successStatus: 201,

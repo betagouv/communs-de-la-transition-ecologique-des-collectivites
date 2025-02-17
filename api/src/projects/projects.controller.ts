@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nest
 import { CreateOrUpdateProjectResponse, CreateProjectRequest } from "./dto/create-project.dto";
 import { UpdateProjectDto } from "./dto/update-project.dto";
 import { ProjectResponse } from "./dto/project.dto";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { Request } from "express";
 import { CreateProjectsService } from "./services/create-projects/create-projects.service";
@@ -22,6 +22,7 @@ export class ProjectsController {
     private readonly projectUpdateService: UpdateProjectsService,
   ) {}
 
+  @ApiOperation({ summary: "Get all projects" })
   @Get()
   @ApiEndpointResponses({
     successStatus: 200,
@@ -32,12 +33,14 @@ export class ProjectsController {
     return this.projectFindService.findAll();
   }
 
+  @ApiOperation({ summary: "Get specific project by id" })
   @ApiEndpointResponses({ successStatus: 200, response: ProjectResponse })
   @Get(":id")
   findOne(@Param("id") id: string): Promise<ProjectResponse> {
     return this.projectFindService.findOne(id);
   }
 
+  @ApiOperation({ summary: "Create a new project" })
   @Post()
   @ApiEndpointResponses({
     successStatus: 201,
@@ -51,19 +54,21 @@ export class ProjectsController {
     return this.projectCreateService.create(createProjectDto, extractApiKey(request));
   }
 
+  @ApiOperation({ summary: "Create new projects in bulk" })
   @Post("bulk")
   @ApiEndpointResponses({
     successStatus: 201,
     response: BulkCreateProjectsResponse,
     description: "Bulk Projects created successfully",
   })
-  async createBulk(
+  createBulk(
     @Req() request: Request,
     @Body() createProjectsDto: BulkCreateProjectsRequest,
   ): Promise<BulkCreateProjectsResponse> {
-    return await this.projectCreateService.createBulk(createProjectsDto, extractApiKey(request));
+    return this.projectCreateService.createBulk(createProjectsDto, extractApiKey(request));
   }
 
+  @ApiOperation({ summary: "Update a specific project" })
   @Patch(":id")
   @ApiEndpointResponses({
     successStatus: 200,
