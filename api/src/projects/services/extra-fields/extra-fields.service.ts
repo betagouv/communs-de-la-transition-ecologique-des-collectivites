@@ -10,7 +10,7 @@ export class ExtraFieldsService {
 
   async getExtraFieldsByProjectId(projectId: string): Promise<ProjectExtraFieldsResponse> {
     const extraFields = await this.dbService.database
-      .select({ fieldName: serviceExtraFields.fieldName, fieldValue: serviceExtraFields.fieldValue })
+      .select({ name: serviceExtraFields.name, value: serviceExtraFields.value })
       .from(serviceExtraFields)
       .where(eq(serviceExtraFields.projectId, projectId));
 
@@ -29,8 +29,8 @@ export class ExtraFieldsService {
         .values(
           extraFieldsDto.extraFields.map((field) => ({
             projectId,
-            fieldName: field.fieldName,
-            fieldValue: field.fieldValue,
+            name: field.name,
+            value: field.value,
           })),
         )
         .returning();

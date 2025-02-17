@@ -8,17 +8,12 @@ import IFrameResized from "./IFrameResized.tsx";
 import LevierDetails, { LevierData } from "./LevierDetails.tsx";
 import voiture_electrique from "../../leviers_data/voiture_electrique.json";
 import Input from "@codegouvfr/react-dsfr/Input";
-import { ServiceType } from "./types.ts";
+import { ExtraFields, ServiceType } from "./types.ts";
 import { usePostExtraFields } from "./queries.ts";
-
-export interface ExtraField {
-  fieldName: string;
-  fieldValue: string;
-}
 
 interface ServiceProps {
   service: ServiceType;
-  projectExtraFields: ExtraField[];
+  projectExtraFields: ExtraFields;
   isStagingEnv?: boolean;
   projectId: string;
 }
@@ -32,7 +27,7 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
   const isLevier = name === "Levier_SGPE";
 
   const missingExtraFields = (extraFields || []).filter(
-    (fieldName) => !projectExtraFields.some((projectExtraField) => projectExtraField.fieldName === fieldName),
+    (field) => !projectExtraFields.some((projectExtraField) => projectExtraField.name === field.name),
   );
   const needsAccordion = (isLevier || iframeUrl) && missingExtraFields.length === 0;
 
@@ -40,12 +35,16 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
     setFieldValues((prev) => ({ ...prev, [fieldName]: value }));
   };
 
-  const handleSubmit = (fieldName: string) => {
-    const fieldValue = fieldValues[fieldName];
+  const handleSubmit = (field: { name: string; label: string }) => {
+    const fieldValue = fieldValues[field.name];
     if (!fieldValue) return;
 
     postExtraFields({
-      postExtraFielsPayload: { fieldName, fieldValue, projectId },
+      postExtraFielsPayload: {
+        fieldName: field.name,
+        fieldValue,
+        projectId,
+      },
       isStagingEnv: Boolean(isStagingEnv),
     });
 
@@ -85,17 +84,17 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
             Les champs suivants sont manquants pour afficher les données liées au projet
           </span>
           <div className={styles.extraFieldsForm}>
-            {missingExtraFields.map((fieldName) => (
-              <Input
-                className={fr.cx("fr-text--sm")}
-                key={fieldName}
-                addon={<Button onClick={() => void handleSubmit(fieldName)}>Enregistrer</Button>}
-                label={`${fieldName} de la friche en m2`}
-                nativeInputProps={{
-                  value: fieldValues[fieldName] ?? "",
-                  onChange: (e) => handleInputChange(fieldName, e.target.value),
-                }}
-              />
+            {missingExtraFields.map((field) => (
+              <div key={field.name} className={styles.extraField}>
+                <Input
+                  label={field.label}
+                  nativeInputProps={{
+                    value: fieldValues[field.name] || "",
+                    onChange: (e) => handleInputChange(field.name, e.target.value),
+                  }}
+                />
+                <Button onClick={() => handleSubmit(field)}>Valider</Button>
+              </div>
             ))}
           </div>
         </div>
@@ -116,9 +115,9 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
   );
 };
 
-function replaceUrlParamsDirect(url: string, projectExtraField: { fieldName: string; fieldValue: string }[]): string {
+function replaceUrlParamsDirect(url: string, projectExtraField: ExtraFields): string {
   return url.replace(/{(\w+)}/g, (_, key) => {
-    const matchingExtraField = projectExtraField.find((field) => field.fieldName === key);
-    return matchingExtraField?.fieldValue ?? `{${key}}`;
+    const matchingExtraField = projectExtraField.find((field) => field.name === key);
+    return matchingExtraField?.value ?? `{${key}}`;
   });
 }

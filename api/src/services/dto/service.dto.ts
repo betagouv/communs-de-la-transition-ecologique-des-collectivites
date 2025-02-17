@@ -2,6 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsArray } from "class-validator";
 import { serviceContext, services } from "@database/schema";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { ExtraFieldConfig } from "@/services/dto/extra-fields-config.dto";
 
 type ServiceBaseFields = Pick<
   InferSelectModel<typeof services>,
@@ -28,9 +29,13 @@ export class ServicesByProjectIdResponse implements ServiceBaseFields, ServiceCo
   @ApiProperty()
   logoUrl!: string;
 
-  @ApiProperty({ type: [String] })
+  @ApiProperty({
+    type: [ExtraFieldConfig],
+    description: "Array of extra field definitions with name and label",
+    example: [{ name: "surface", label: "Surface (m²)" }],
+  })
   @IsArray()
-  extraFields!: string[];
+  extraFields!: { name: string; label: string }[];
 
   @ApiProperty({ nullable: true, type: String })
   redirectionLabel?: string | null;

@@ -123,7 +123,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     sousTitre: "",
     redirectionLabel: null,
     extendLabel: null,
-    extraFields: ["surface"],
+    extraFields: [{ name: "surface", label: "surface de la friche en m2" }],
   },
   {
     id: "6",

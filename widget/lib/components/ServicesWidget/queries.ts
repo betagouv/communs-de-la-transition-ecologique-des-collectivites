@@ -93,11 +93,12 @@ interface PostExtraFields {
   fieldName: string;
   fieldValue: string;
 }
+
 const postExtraFields = async ({ projectId, fieldName, fieldValue }: PostExtraFields, isStagingEnv = false) => {
   const apiClient = makeApiClient(isStagingEnv);
 
   const { data, error } = await apiClient.POST("/projects/{id}/extra-fields", {
-    body: { extraFields: [{ fieldName, fieldValue }] },
+    body: { extraFields: [{ name: fieldName, value: fieldValue }] },
     params: {
       path: { id: projectId },
     },

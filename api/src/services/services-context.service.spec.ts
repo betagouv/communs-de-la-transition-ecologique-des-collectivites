@@ -510,7 +510,10 @@ describe("ServiceContextService", () => {
         redirectionLabel: "Context Label",
         extendLabel: "Extend Label",
         status: [],
-        extraFields: ["field1", "field2"],
+        extraFields: [
+          { name: "field1", label: "field1 label" },
+          { name: "field2", label: "field2 label" },
+        ],
       };
 
       const result = await serviceContextService.create(service.id, createContextDto);

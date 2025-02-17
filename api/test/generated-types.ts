@@ -145,23 +145,28 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             nom: string;
-            description: Record<string, never> | null;
-            porteurCodeSiret: Record<string, never> | null;
-            porteurReferentEmail: Record<string, never> | null;
-            porteurReferentTelephone: Record<string, never> | null;
-            porteurReferentPrenom: Record<string, never> | null;
-            porteurReferentNom: Record<string, never> | null;
-            porteurReferentFonction: Record<string, never> | null;
+            description: string | null;
+            porteurCodeSiret: string | null;
+            porteurReferentEmail: string | null;
+            porteurReferentTelephone: string | null;
+            porteurReferentPrenom: string | null;
+            porteurReferentNom: string | null;
+            porteurReferentFonction: string | null;
             communes: string[];
-            budget: Record<string, never> | null;
-            forecastedStartDate: Record<string, never> | null;
-            status: Record<string, never> | null;
-            competences: Record<string, never> | null;
-            /** @description Array of leviers */
-            leviers: Record<string, never> | null;
-            mecId: Record<string, never> | null;
-            tetId: Record<string, never> | null;
-            recocoId: Record<string, never> | null;
+            budget: number | null;
+            forecastedStartDate: string | null;
+            /** @enum {string|null} */
+            status: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
+            /** @enum {string|null} */
+            competences: "Autres interventions de protection civile" | "Autres services annexes de l'enseignement" | "Collecte et traitement des déchets" | "Développement touristique" | "Enseignement du premier degré" | "Enseignement du second degré" | "Enseignement supérieur, professionnel et continu" | "Foires et marchés" | "Hébergement et restauration scolaires" | "Hygiène et salubrité publique" | "Incendie et secours" | "Infrastructures de transport" | "Jeunesse et loisirs" | "Police, sécurité, justice" | "Propreté urbaine" | "Routes et voiries" | "Santé" | "Sports" | "Transports publics (hors scolaire)" | "Transports scolaires" | "Action sociale (hors APA et RSA) > Citoyenneté" | "Action sociale (hors APA et RSA) > Cohésion sociale et inclusion" | "Action sociale (hors APA et RSA) > Egalité des chances" | "Action sociale (hors APA et RSA) > Famille et enfance" | "Action sociale (hors APA et RSA) > Handicap" | "Action sociale (hors APA et RSA) > Inclusion numérique" | "Action sociale (hors APA et RSA) > Jeunesse" | "Action sociale (hors APA et RSA) > Lutte contre la précarité" | "Action sociale (hors APA et RSA) > Personnes âgées" | "Action sociale (hors APA et RSA) > Protection animale" | "Actions en matière de gestion des eaux > Assainissement des eaux" | "Actions en matière de gestion des eaux > Cours d'eau / canaux / plans d'eau" | "Actions en matière de gestion des eaux > Eau pluviale" | "Actions en matière de gestion des eaux > Eau potable" | "Actions en matière de gestion des eaux > Eau souterraine" | "Actions en matière de gestion des eaux > Mers et océans" | "Agriculture, pêche et agro-alimentaire > Consommation alimentaire" | "Agriculture, pêche et agro-alimentaire > Déchets alimentaires et/ou agricoles" | "Agriculture, pêche et agro-alimentaire > Distribution" | "Agriculture, pêche et agro-alimentaire > Précarité et aide alimentaire" | "Agriculture, pêche et agro-alimentaire > Production agricole et foncier" | "Agriculture, pêche et agro-alimentaire > Transformation des produits agricoles" | "Aménagement des territoires > Foncier" | "Aménagement des territoires > Friche" | "Aménagement des territoires > Paysage" | "Aménagement des territoires > Réseaux" | "Culture > Arts plastiques et photographie" | "Culture > Bibliothèques et livres" | "Culture > Médias et communication" | "Culture > Musée" | "Culture > Patrimoine et monuments historiques" | "Culture > Spectacle vivant" | "Habitat > Accessibilité" | "Habitat > Architecture" | "Habitat > Bâtiments et construction" | "Habitat > Cimetières et funéraire" | "Habitat > Equipement public" | "Habitat > Espace public" | "Habitat > Espaces verts" | "Habitat > Logement et habitat" | "Industrie, commerce et artisanat > Artisanat" | "Industrie, commerce et artisanat > Commerces et Services" | "Industrie, commerce et artisanat > Economie locale et circuits courts" | "Industrie, commerce et artisanat > Economie sociale et solidaire" | "Industrie, commerce et artisanat > Fiscalité des entreprises" | "Industrie, commerce et artisanat > Industrie" | "Industrie, commerce et artisanat > Innovation, créativité et recherche" | "Industrie, commerce et artisanat > Technologies numériques et numérisation" | "Industrie, commerce et artisanat > Tiers-lieux" | null;
+            /**
+             * @description Array of leviers
+             * @enum {string|null}
+             */
+            leviers: "Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Collecte et tri des déchets" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF" | null;
+            mecId: string | null;
+            tetId: string | null;
+            recocoId: string | null;
         };
         ErrorResponse: {
             /** @description HTTP status code */
@@ -171,17 +176,18 @@ export interface components {
         };
         ExtraField: {
             /** @description Name of the extra field */
-            fieldName: string;
+            name: string;
             /** @description Value of the extra field */
-            fieldValue: string;
+            value: string;
         };
         ProjectExtraFieldsResponse: {
             /**
-             * @description Array of extra field names and their values
+             * @description Array of extra field names, values, and labels
              * @example [
              *       {
              *         "fieldName": "surface",
-             *         "fieldValue": "100"
+             *         "fieldValue": "100",
+             *         "fieldLabel": "Surface (m²)"
              *       }
              *     ]
              */
@@ -189,11 +195,12 @@ export interface components {
         };
         CreateProjectExtraFieldRequest: {
             /**
-             * @description Array of extra field names and their values
+             * @description Array of extra field names, values, and labels
              * @example [
              *       {
              *         "fieldName": "surface",
-             *         "fieldValue": "100"
+             *         "fieldValue": "100",
+             *         "fieldLabel": "Surface (m²)"
              *       }
              *     ]
              */
@@ -290,6 +297,12 @@ export interface components {
             leviers?: ("Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Collecte et tri des déchets" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF")[] | null;
             externalId: string;
         };
+        ExtraFieldConfig: {
+            /** @description Name of the extra field */
+            name: string;
+            /** @description Value of the extra field */
+            label: string;
+        };
         ServicesByProjectIdResponse: {
             id: string;
             name: string;
@@ -297,10 +310,19 @@ export interface components {
             sousTitre: string;
             redirectionUrl: string;
             logoUrl: string;
-            extraFields: string[];
-            redirectionLabel: Record<string, never> | null;
-            iframeUrl: Record<string, never> | null;
-            extendLabel: Record<string, never> | null;
+            /**
+             * @description Array of extra field definitions with name and label
+             * @example [
+             *       {
+             *         "name": "surface",
+             *         "label": "Surface (m²)"
+             *       }
+             *     ]
+             */
+            extraFields: components["schemas"]["ExtraFieldConfig"][];
+            redirectionLabel: string | null;
+            iframeUrl: string | null;
+            extendLabel: string | null;
         };
         CreateServiceRequest: {
             /**
@@ -389,13 +411,15 @@ export interface components {
             /** @description Project status for which the serviceContext applies, empty array means all statuses */
             status: ("IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE")[];
             /**
-             * @description Array of extra field names required for this service context
+             * @description Array of extra field definitions required for this service context
              * @example [
-             *       "field1",
-             *       "field2"
+             *       {
+             *         "name": "field1",
+             *         "label": "Field 1 Label"
+             *       }
              *     ]
              */
-            extraFields?: string[] | null;
+            extraFields?: components["schemas"]["ExtraFieldConfig"][] | null;
         };
         CreateServiceContextResponse: {
             id: string;
@@ -630,8 +654,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Service created successfully */
-            201: {
+            200: {
                 headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["ServicesByProjectIdResponse"][];
