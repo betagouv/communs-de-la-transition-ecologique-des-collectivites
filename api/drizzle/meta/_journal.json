@@ -50,6 +50,13 @@
       "when": 1739784498430,
       "tag": "0006_lying_thanos",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1739809646533,
+      "tag": "0007_modern_vision",
+      "breakpoints": true
     }
   ]
 }

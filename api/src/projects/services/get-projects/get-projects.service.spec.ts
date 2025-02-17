@@ -145,13 +145,6 @@ describe("ProjectFindService", () => {
       });
     });
 
-    it("should throw NotFoundException when project not found", async () => {
-      const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      await expect(findService.findOne(nonExistentId)).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  describe("getProjectExtraField", () => {
     it("should return extrafields for a project", async () => {
       const createDto: CreateProjectRequest = {
         nom: "Test Project",

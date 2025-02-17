@@ -116,8 +116,8 @@ export const serviceExtraFields = pgTable("service_extra_fields", {
   projectId: uuid("project_id")
     .notNull()
     .references(() => projects.id),
-  name: text("field_name").notNull(),
-  value: text("field_value").notNull(),
+  name: text("name").notNull(),
+  value: text("value").notNull(),
 });
 
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
