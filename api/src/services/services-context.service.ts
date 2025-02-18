@@ -71,6 +71,7 @@ export class ServicesContextService {
       redirectionLabel: service_context.redirectionLabel ?? services.redirectionLabel,
       extendLabel: service_context.extendLabel ?? services.extendLabel,
       iframeUrl: service_context.iframeUrl ?? services.iframeUrl,
+      extraFields: service_context.extraFields,
     }));
   }
 

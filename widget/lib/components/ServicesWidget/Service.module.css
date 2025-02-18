@@ -38,6 +38,16 @@
   font-weight: 500;
 }
 
+.extraFields {
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.extraFieldsForm {
+  width: 50%;
+}
+
 .title,
 .button {
   width: max-content;

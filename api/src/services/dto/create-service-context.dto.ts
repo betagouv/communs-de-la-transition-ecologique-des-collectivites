@@ -5,6 +5,7 @@ import { InferInsertModel } from "drizzle-orm";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
+import { ExtraFieldConfig } from "@/services/dto/extra-fields-config.dto";
 
 export class CreateServiceContextResponse {
   @ApiProperty()
@@ -103,4 +104,15 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   })
   @IsArray()
   status!: ProjectStatus[];
+
+  @ApiProperty({
+    description: "Array of extra field definitions required for this service context",
+    example: [{ name: "field1", label: "Field 1 Label" }],
+    type: [ExtraFieldConfig],
+    required: false,
+    nullable: true,
+  })
+  @IsArray()
+  @IsOptional()
+  extraFields?: { name: string; label: string }[];
 }

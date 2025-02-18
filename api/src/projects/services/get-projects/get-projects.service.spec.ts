@@ -145,6 +145,45 @@ describe("ProjectFindService", () => {
       });
     });
 
+    it("should return extrafields for a project", async () => {
+      const createDto: CreateProjectRequest = {
+        nom: "Test Project",
+        description: "Test Description",
+        porteurCodeSiret: "12345678901234",
+        budget: 100000,
+        forecastedStartDate: getFormattedDate(),
+        status: "IDEE",
+        competences: ["Santé", "Culture > Arts plastiques et photographie"],
+        leviers: ["Bio-carburants"],
+        communeInseeCodes: mockedCommunes,
+        externalId: "test-service-id",
+      };
+
+      const createdProject = await createService.create(createDto, "MEC_test_api_key");
+      const result = await findService.findOne(createdProject.id);
+      const { communeInseeCodes, externalId, ...expectedFields } = createDto;
+      expect(result).toEqual({
+        ...expectedFields,
+        communes: expect.arrayContaining(
+          mockedCommunes.map((code) => ({
+            inseeCode: code,
+          })),
+        ),
+        porteurReferentEmail: null,
+        porteurReferentFonction: null,
+        porteurReferentNom: null,
+        porteurReferentPrenom: null,
+        porteurReferentTelephone: null,
+        id: expect.any(String),
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+        status: "IDEE",
+        recocoId: null,
+        mecId: "test-service-id",
+        tetId: null,
+      });
+    });
+
     it("should throw NotFoundException when project not found", async () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
       await expect(findService.findOne(nonExistentId)).rejects.toThrow(NotFoundException);

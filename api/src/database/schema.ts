@@ -1,4 +1,15 @@
-import { pgTable, text, timestamp, integer, pgEnum, uuid, primaryKey, index, boolean } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  integer,
+  pgEnum,
+  uuid,
+  primaryKey,
+  index,
+  boolean,
+  jsonb,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
@@ -95,11 +106,24 @@ export const serviceContext = pgTable("service_context", {
   redirectionLabel: text("redirection_label"),
   extendLabel: text("extend_label"),
   iframeUrl: text("iframe_url"),
+  extraFields: jsonb("extra_fields").$type<{ name: string; label: string }>().array().default([]),
+});
+
+export const serviceExtraFields = pgTable("service_extra_fields", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id),
+  name: text("name").notNull(),
+  value: text("value").notNull(),
 });
 
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
 export const projectsRelations = relations(projects, ({ many }) => ({
   communes: many(projectsToCommunes),
+  extraFields: many(serviceExtraFields),
 }));
 
 export const communesRelations = relations(communes, ({ many }) => ({
@@ -125,5 +149,12 @@ export const serviceContextRelations = relations(serviceContext, ({ one }) => ({
   service: one(services, {
     fields: [serviceContext.serviceId],
     references: [services.id],
+  }),
+}));
+
+export const serviceExtraFieldsRelations = relations(serviceExtraFields, ({ one }) => ({
+  project: one(projects, {
+    fields: [serviceExtraFields.projectId],
+    references: [projects.id],
   }),
 }));

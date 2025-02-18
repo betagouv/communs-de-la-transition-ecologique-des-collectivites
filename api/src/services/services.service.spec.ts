@@ -49,10 +49,10 @@ describe("ServicesService", () => {
   });
 
   describe("getServicesByProjectId", () => {
-    it("should return mock services for now", () => {
-      const result = service.getServicesByProjectId("any-id");
-      expect(result).toHaveLength(5);
-      expect(result[0]).toHaveProperty("name", "Facili-Tacct");
+    it("should return mock services for now", async () => {
+      const result = await service.getServicesByProjectId("any-id");
+      expect(result).toHaveLength(10);
+      expect(result[0]).toHaveProperty("name", "Docurba");
       expect(result[1]).toHaveProperty("name", "La boussole de la transition écologique");
     });
   });
