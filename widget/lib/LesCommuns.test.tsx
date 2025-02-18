@@ -29,7 +29,7 @@ describe("LesCommuns", () => {
     server.use(
       http.get("http://localhost:3000/services/project/123", () => {
         return HttpResponse.json(getMockedServices("prod"));
-      })
+      }),
     );
 
     render(<LesCommuns projectId="123" />);
