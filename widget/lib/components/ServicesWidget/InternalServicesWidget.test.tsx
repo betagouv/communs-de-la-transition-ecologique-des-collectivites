@@ -2,8 +2,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
-import { getApiUrl } from "../../utils.ts";
 import { ServicesWidget } from "./ServicesWidget.tsx";
+import { getApiUrl } from "../../utils.ts";
 
 const getMockedServices = (env: "prod" | "staging") => [
   {
@@ -32,7 +32,17 @@ const getMockedServices = (env: "prod" | "staging") => [
   },
 ];
 
-const server = setupServer();
+// Set up MSW handlers
+const handlers = [
+  http.get("http://localhost:3000/services/project/:projectId", () => {
+    return HttpResponse.json(getMockedServices("prod"));
+  }),
+  http.get("http://localhost:3000/projects/:projectId/extra-fields", () => {
+    return HttpResponse.json({ extraFields: [] });
+  }),
+];
+
+const server = setupServer(...handlers);
 
 // Setup & teardown
 beforeAll(() => server.listen());
@@ -40,12 +50,6 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe("LesCommuns", () => {
-  server.use(
-    http.get("http://localhost:3000/services/project/123", () => {
-      return HttpResponse.json(getMockedServices("prod"));
-    }),
-  );
-
   it("displays services when data is loaded", async () => {
     render(<ServicesWidget projectId="123" />);
 
@@ -64,12 +68,13 @@ describe("LesCommuns", () => {
 
   it("should display 'voir le détail' button when corresponding extrafield is present", async () => {
     server.use(
-      http.get("http://localhost:3000/projects/123/extra-fields", () => {
+      http.get("http://localhost:3000/projects/:projectId/extra-fields", () => {
         return HttpResponse.json({
           extraFields: [{ name: "surface", value: "1000" }],
         });
       }),
     );
+
     render(<ServicesWidget projectId="123" />);
 
     expect(await screen.findByRole("button", { name: /voir le détail/i })).toBeInTheDocument();

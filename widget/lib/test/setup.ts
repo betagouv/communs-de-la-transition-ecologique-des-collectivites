@@ -10,3 +10,9 @@ expect.extend(matchers);
 afterEach(() => {
   cleanup();
 });
+
+Object.defineProperty(import.meta, "env", {
+  value: {
+    DEV: true,
+  },
+});
