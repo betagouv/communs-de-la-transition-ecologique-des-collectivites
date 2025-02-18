@@ -1,5 +1,13 @@
-# Modèle de Rapport de Bug
+---
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
 
+---
+
+# Modèle de Rapport de Bug
 
 Fournissez un résumé général du problème dans le titre ci-dessus.
 

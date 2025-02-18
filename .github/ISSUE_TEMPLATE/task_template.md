@@ -1,3 +1,12 @@
+---
+name: Feature request
+about: Suggest an idea for this project
+title: ''
+labels: ''
+assignees: ''
+
+---
+
 # Modèle de Tâche
 
 Fournissez un résumé général du problème dans le titre ci-dessus.
