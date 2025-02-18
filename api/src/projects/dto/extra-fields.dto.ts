@@ -14,7 +14,6 @@ class ExtraField {
 export class ProjectExtraFieldsResponse {
   @ApiProperty({
     description: "Array of extra field names, values, and labels",
-    example: [{ name: "surface", value: "100" }],
     type: [ExtraField],
   })
   @IsArray()
@@ -24,7 +23,6 @@ export class ProjectExtraFieldsResponse {
 export class CreateProjectExtraFieldRequest {
   @ApiProperty({
     description: "Array of extra field names, values, and labels",
-    example: [{ name: "surface", value: "100" }],
     type: [ExtraField],
   })
   @IsArray()

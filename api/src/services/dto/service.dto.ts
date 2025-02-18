@@ -35,7 +35,7 @@ export class ServicesByProjectIdResponse implements ServiceBaseFields, ServiceCo
     example: [{ name: "surface", label: "Surface (m²)" }],
   })
   @IsArray()
-  extraFields!: { name: string; label: string }[];
+  extraFields!: ExtraFieldConfig[];
 
   @ApiProperty({ nullable: true, type: String })
   redirectionLabel?: string | null;
