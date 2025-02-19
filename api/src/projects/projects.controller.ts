@@ -11,6 +11,9 @@ import { GetProjectsService } from "@projects/services/get-projects/get-projects
 import { BulkCreateProjectsRequest, BulkCreateProjectsResponse } from "./dto/bulk-create-projects.dto";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { extractApiKey } from "@projects/extract-api-key";
+import { CreateProjectExtraFieldRequest, ProjectExtraFieldsResponse } from "@projects/dto/extra-fields.dto";
+import { Public } from "@/auth/public.decorator";
+import { ExtraFieldsService } from "@projects/services/extra-fields/extra-fields.service";
 
 @ApiBearerAuth()
 @Controller("projects")
@@ -20,6 +23,7 @@ export class ProjectsController {
     private readonly projectCreateService: CreateProjectsService,
     private readonly projectFindService: GetProjectsService,
     private readonly projectUpdateService: UpdateProjectsService,
+    private readonly extraFieldsService: ExtraFieldsService,
   ) {}
 
   @ApiOperation({ summary: "Get all projects" })
@@ -40,7 +44,23 @@ export class ProjectsController {
     return this.projectFindService.findOne(id);
   }
 
-  @ApiOperation({ summary: "Create a new project" })
+  @Public()
+  @ApiEndpointResponses({ successStatus: 200, response: ProjectExtraFieldsResponse })
+  @Get(":id/extra-fields")
+  getExtraFields(@Param("id") id: string): Promise<ProjectExtraFieldsResponse> {
+    return this.extraFieldsService.getExtraFieldsByProjectId(id);
+  }
+
+  @Public()
+  @ApiEndpointResponses({ successStatus: 201, response: ProjectExtraFieldsResponse })
+  @Post(":id/extra-fields")
+  updateExtraFields(
+    @Param("id") id: string,
+    @Body() extraFieldsDto: CreateProjectExtraFieldRequest,
+  ): Promise<ProjectExtraFieldsResponse> {
+    return this.extraFieldsService.createExtraFields(id, extraFieldsDto);
+  }
+
   @Post()
   @ApiEndpointResponses({
     successStatus: 201,
