@@ -2,6 +2,13 @@
 
 ## 0.1.0
 
+### Breaking Changes
+
+- change import name for widget
+- add react query + openapi client to handle async server state
+
+## 0.1.0
+
 ### Minor Changes
 
 - make widget compatible with react 18 and react 19

@@ -20,10 +20,10 @@ pnpm add @betagouv/les-communs-widget
 Then import and use the component:
 
 ```tsx
-import { LesCommuns } from "@betagouv/les-communs-widget";
+import { ServicesWidget } from "@betagouv/les-communs-widget";
 
 function App() {
-  return <LesCommuns projectId="your-project-id" />;
+  return <ServicesWidget projectId="your-project-id" />;
 }
 ```
 
@@ -32,11 +32,29 @@ function App() {
 You can test against the staging environment by passing prop `isStagingEnv`:
 
 ```tsx
-import { LesCommuns } from "@betagouv/les-communs-widget";
+import { ServicesWidget } from "@betagouv/les-communs-widget";
 
 function App() {
-  return <LesCommuns projectId="your-project-id" isStagingEnv />;
+  return <ServicesWidget projectId="your-project-id" isStagingEnv />;
 }
+```
+
+### Test Configuration
+
+If you encounter an error related to unknown file extensions in your test (e.g., `.css`), you may need to adjust your Vite configuration. Add the following to your `vite.config.ts` file.
+
+The inlined package will be processed and bundled directly into the application rather than being treated as an external dependency. This is particularly useful for dependencies that include non-JavaScript assets (like CSS).
+
+```
+// ... existing code ...
+export default defineConfig({
+  server: {
+    deps: {
+      inline: ['@betagouv/les-communs-widget'], // Ensure this dependency is processed correctly
+    },
+  },
+  // ... existing code ...
+});
 ```
 
 ## Local Development
