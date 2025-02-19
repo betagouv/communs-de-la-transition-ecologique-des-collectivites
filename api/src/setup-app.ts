@@ -3,11 +3,16 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { RequestLoggingInterceptor } from "@/logging/request-logging.interceptor";
 import { GlobalExceptionFilter } from "@/exceptions/global-exception-filter";
 import { CustomLogger } from "@/logging/logger.service";
+import { json } from "express";
 
 export function setupApp(app: INestApplication) {
   const logger = app.get(CustomLogger);
 
   app.useLogger(logger);
+
+  // could not find a satisfying way to handle this through middleware
+  app.use("/projects/bulk", json({ limit: "2mb" }));
+  app.use(json({ limit: "100kb" }));
 
   app.useGlobalFilters(new GlobalExceptionFilter(logger));
 

@@ -6,6 +6,9 @@ import { config } from "dotenv";
 import * as path from "path";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { ProjectStatus, projectStatusEnum } from "@database/schema";
+import { Competences, Leviers } from "@/shared/types";
+import { leviers } from "@/shared/const/leviers";
+import { competences } from "@/shared/const/competences-list";
 
 config({ path: path.resolve(__dirname, "../.env") });
 
@@ -23,8 +26,8 @@ interface CsvRecord {
 }
 
 async function importProjectsTet(csvFilePath: string) {
-  const baseUrl = "https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/";
-  const apiKey = process.env.MEC_API_KEY;
+  const baseUrl = "http://localhost:3000";
+  const apiKey = process.env.TET_API_KEY;
 
   const apiClient = createClient<paths>({
     baseUrl,
@@ -43,18 +46,17 @@ async function importProjectsTet(csvFilePath: string) {
   fs.createReadStream(csvFilePath).pipe(parser);
 
   const projects: CreateProjectRequest[] = [];
-  for await (const record of parser as AsyncIterable<CsvRecord>) {
-    /*    const parsedLeviers = parseFieldToArray(record.leviers, leviers);
-    const parsedCompetences = parseFieldToArray(record.competences, competences);
+  const invalidItemsFile = fs.createWriteStream("invalid_items.txt", { flags: "a" });
 
-    console.log("transformed levier", parsedLeviers);
-    console.log("transformed comp", parsedCompetences);*/
+  for await (const record of parser as AsyncIterable<CsvRecord>) {
+    const parsedLeviers = parseFieldToArray(record.leviers, leviers, "levier", invalidItemsFile);
+    const parsedCompetences = parseFieldToArray(record.competences, competences, "competence", invalidItemsFile);
 
     // Validate and handle project status
     const validStatuses = projectStatusEnum.enumValues;
     const status = validStatuses.includes(record.project_status as ProjectStatus)
       ? (record.project_status as ProjectStatus)
-      : null; // Handle invalid status as needed
+      : null;
 
     projects.push({
       externalId: record.tet_id,
@@ -64,14 +66,20 @@ async function importProjectsTet(csvFilePath: string) {
       budget: parseFloat(record.budget),
       status,
       communeInseeCodes: [record.insee_code],
-      //leviers: parsedLeviers as Leviers,
-      //competences: parsedCompetences as Competences,
+      leviers: parsedLeviers as Leviers,
+      competences: parsedCompetences as Competences,
     });
   }
+
+  // Close the write stream when done
+  invalidItemsFile.end();
 
   const batchSize = 100;
   for (let i = 0; i < projects.length; i += batchSize) {
     const batch = projects.slice(i, i + batchSize);
+
+    printBatchWeight(batch);
+
     const { data, error } = await apiClient.POST("/projects/bulk", {
       body: { projects: batch },
     });
@@ -82,35 +90,47 @@ async function importProjectsTet(csvFilePath: string) {
     } else {
       console.log(`Successfully imported ${data?.ids.length} projects from batch starting at index ${i}`);
     }
-    //console.error(`Error during project import for batch starting at index ${i}:`, error);
   }
 }
 
-/*function parseFieldToArray(field: string, validList: readonly string[]): string[] {
+function parseFieldToArray(
+  field: string,
+  validList: readonly string[],
+  mode: "competence" | "levier",
+  invalidItemsFile: fs.WriteStream,
+): string[] {
   // Remove curly braces and quotes
   const cleanedField = field.replace(/[{}"]/g, "");
 
-  // Split by comma followed by a space and a capital letter
+  // Split by comma followed by a capital letter or a digit
   return cleanedField
-    .split(/,(?=[A-Z])/)
+    .split(/,(?=[A-Z0-9])/)
     .map((item) => item.trim())
     .filter((item) => {
       if (item === "NULL" || item === "") {
         return false;
       }
       if (!validList.includes(item)) {
-        throw new Error(`Invalid item: ${item}`);
+        invalidItemsFile.write(`Invalid ${mode}: ${item}\n`);
+        return false;
       }
       return true;
     });
-}*/
+}
 
-// Check if CSV file path is provided
+const printBatchWeight = (batch: CreateProjectRequest[]) => {
+  const jsonString = JSON.stringify(batch);
+  // Calculate the size in bytes
+  const sizeInBytes = Buffer.byteLength(jsonString, "utf8");
+  // Convert bytes to kilobytes for easier reading
+  const sizeInKilobytes = sizeInBytes / 1024;
+  console.log(`Batch size: ${sizeInBytes} bytes (${sizeInKilobytes.toFixed(2)} KB)`);
+};
+
 const csvFilePath = process.argv[2];
 if (!csvFilePath) {
   console.error("Please provide a CSV file path");
   process.exit(1);
 }
 
-// Run the import
 void importProjectsTet(csvFilePath);
