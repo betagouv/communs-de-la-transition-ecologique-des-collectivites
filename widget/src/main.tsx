@@ -8,5 +8,5 @@ startReactDsfr({ defaultColorScheme: "system" });
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <LesCommuns projectId="test-id" />
-  </StrictMode>
+  </StrictMode>,
 );
