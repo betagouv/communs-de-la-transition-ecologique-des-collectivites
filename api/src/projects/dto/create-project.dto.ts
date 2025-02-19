@@ -3,6 +3,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsDateString,
+  IsEnum,
   IsIn,
   IsNotEmpty,
   IsNumber,
@@ -21,10 +22,32 @@ export class CreateOrUpdateProjectResponse {
 }
 
 export class CreateProjectRequest {
+  // MANDATORY FIELDS
+  @ApiProperty({ required: true })
+  @IsString()
+  @IsNotEmpty()
+  externalId!: string;
+
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   nom!: string;
+
+  @ApiProperty({
+    type: String,
+    description: "Array of INSEE codes for the communes",
+    example: ["01001", "75056", "97A01"],
+    isArray: true,
+    required: false,
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayNotEmpty({
+    message: "At least one commune insee code must be provided",
+  })
+  communeInseeCodes!: string[];
+
+  // OPTIONAL FIELDS
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
@@ -73,8 +96,9 @@ export class CreateProjectRequest {
     description: "Forecasted start date in YYYY-MM-DD format",
     example: "2024-03-01",
   })
+  @IsOptional()
   @IsDateString()
-  forecastedStartDate!: string;
+  forecastedStartDate?: string;
 
   @ApiProperty({
     enum: projectStatusEnum.enumValues,
@@ -83,21 +107,8 @@ export class CreateProjectRequest {
     description: "Current Status for the project",
   })
   @IsOptional()
+  @IsEnum(projectStatusEnum.enumValues)
   status?: ProjectStatus | null;
-
-  @ApiProperty({
-    type: String,
-    description: "Array of INSEE codes for the communes",
-    example: ["01001", "75056", "97A01"],
-    isArray: true,
-    required: false,
-  })
-  @IsArray()
-  @IsString({ each: true })
-  @ArrayNotEmpty({
-    message: "At least one commune insee code must be provided",
-  })
-  communeInseeCodes!: string[];
 
   @ApiProperty({
     type: String,
@@ -125,9 +136,4 @@ export class CreateProjectRequest {
   @IsOptional()
   @IsIn(leviers, { each: true })
   leviers?: Leviers | null;
-
-  @ApiProperty({ required: true })
-  @IsString()
-  @IsNotEmpty()
-  externalId!: string;
 }
