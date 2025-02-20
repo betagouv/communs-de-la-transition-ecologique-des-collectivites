@@ -1,10 +1,11 @@
 import { ServicesWidget } from "@les-communs/widget";
 
 function App() {
+  const PROJECT_ID_WITHOUT_EXTRAFIELD = "01950465-1384-7332-88ff-b535cb868ed8";
   return (
     <div className="fr-container">
       <h1>Widget Test Sandbox</h1>
-      <ServicesWidget projectId="your-test-project-id" isStagingEnv />
+      <ServicesWidget projectId={PROJECT_ID_WITHOUT_EXTRAFIELD} debug />
     </div>
   );
 }
