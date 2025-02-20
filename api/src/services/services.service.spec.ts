@@ -3,17 +3,22 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateServiceRequest } from "./dto/create-service.dto";
 import { TestingModule } from "@nestjs/testing";
+import { CreateProjectsService } from "@projects/services/create-projects/create-projects.service";
+import { CreateProjectRequest } from "@projects/dto/create-project.dto";
+import { NotFoundException } from "@nestjs/common";
 
 describe("ServicesService", () => {
   let service: ServicesService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
+  let createProjectService: CreateProjectsService;
 
   beforeAll(async () => {
     const { module: internalModule, testDbService: tds } = await testModule();
     module = internalModule;
     testDbService = tds;
     service = module.get<ServicesService>(ServicesService);
+    createProjectService = module.get<CreateProjectsService>(CreateProjectsService);
   });
 
   afterAll(async () => {
@@ -49,11 +54,22 @@ describe("ServicesService", () => {
   });
 
   describe("getServicesByProjectId", () => {
-    it("should return mock services for now", async () => {
-      const result = await service.getServicesByProjectId("any-id");
-      expect(result).toHaveLength(10);
-      expect(result[0]).toHaveProperty("name", "Docurba");
-      expect(result[1]).toHaveProperty("name", "La boussole de la transition écologique");
+    it("should return no service for project without services", async () => {
+      const createDto: CreateProjectRequest = {
+        nom: "Test Project",
+        status: "IDEE",
+        communeInseeCodes: ["12345"],
+        externalId: "test-external-id",
+      };
+
+      const project = await createProjectService.create(createDto, "MEC_test_api_key");
+
+      const result = await service.getServicesByProjectId(project.id);
+      expect(result).toStrictEqual([]);
+    });
+
+    it("should return 404 response when project does not exist services for now", async () => {
+      await expect(service.getServicesByProjectId(crypto.randomUUID())).rejects.toThrow(NotFoundException);
     });
   });
 });

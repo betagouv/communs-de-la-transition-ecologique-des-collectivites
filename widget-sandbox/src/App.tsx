@@ -4,7 +4,7 @@ function App() {
   return (
     <div className="fr-container">
       <h1>Widget Test Sandbox</h1>
-      <ServicesWidget projectId="your-test-project-id" />
+      <ServicesWidget projectId="your-test-project-id" isStagingEnv />
     </div>
   );
 }

@@ -11,6 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get all projects */
         get: operations["ProjectsController_findAll"];
         put?: never;
         post: operations["ProjectsController_create"];
@@ -27,12 +28,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get specific project by id */
         get: operations["ProjectsController_findOne"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
+        /** Update a specific project */
         patch: operations["ProjectsController_update"];
         trace?: never;
     };
@@ -61,23 +64,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Create new projects in bulk */
         post: operations["ProjectsController_createBulk"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/services/debug-sentry": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["ServicesController_getError"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -110,6 +98,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Create a new service */
         post: operations["ServicesController_create"];
         delete?: never;
         options?: never;
@@ -117,7 +106,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/services/{serviceId}/contexts": {
+    "/services/contexts/{serviceId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -126,7 +115,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a new service context */
+        /** Create a new service context for a specific service to match some projects  */
         post: operations["ServicesController_createServiceContext"];
         delete?: never;
         options?: never;
@@ -181,29 +170,11 @@ export interface components {
             value: string;
         };
         ProjectExtraFieldsResponse: {
-            /**
-             * @description Array of extra field names, values, and labels
-             * @example [
-             *       {
-             *         "fieldName": "surface",
-             *         "fieldValue": "100",
-             *         "fieldLabel": "Surface (m²)"
-             *       }
-             *     ]
-             */
+            /** @description Array of extra field names, values, and labels */
             extraFields: components["schemas"]["ExtraField"][];
         };
         CreateProjectExtraFieldRequest: {
-            /**
-             * @description Array of extra field names, values, and labels
-             * @example [
-             *       {
-             *         "fieldName": "surface",
-             *         "fieldValue": "100",
-             *         "fieldLabel": "Surface (m²)"
-             *       }
-             *     ]
-             */
+            /** @description Array of extra field names, values, and labels */
             extraFields: components["schemas"]["ExtraField"][];
         };
         CreateProjectRequest: {
@@ -628,24 +599,11 @@ export interface operations {
             };
         };
     };
-    ServicesController_getError: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: Record<string, unknown>;
-                content?: never;
-            };
-        };
-    };
     ServicesController_getServicesByProjectId: {
         parameters: {
-            query?: never;
+            query: {
+                debug: boolean;
+            };
             header?: never;
             path: {
                 projectId: string;

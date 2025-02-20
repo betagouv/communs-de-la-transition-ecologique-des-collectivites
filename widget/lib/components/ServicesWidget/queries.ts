@@ -16,18 +16,19 @@ const makeApiClient = (isStagingEnv = false) => {
 
 // -------------- Services by Projects - GET -------------- //
 
-export const useGetServicesByProjectId = (projectId: string, isStagingEnv = false) => {
+export const useGetServicesByProjectId = (projectId: string, isStagingEnv = false, debug = false) => {
   return useQuery({
     queryKey: ["project-services", projectId],
-    queryFn: () => fetchServicesByProjectId(projectId, isStagingEnv),
+    queryFn: () => fetchServicesByProjectId(projectId, isStagingEnv, debug),
   });
 };
 
-const fetchServicesByProjectId = async (projectId: string, isStagingEnv: boolean) => {
+const fetchServicesByProjectId = async (projectId: string, isStagingEnv: boolean, debug: boolean) => {
   const apiClient = makeApiClient(isStagingEnv);
 
-  const { data, error } = await apiClient.GET("/services/project/{projectId}", {
+  const { data, error } = await apiClient.GET(`/services/project/{projectId}`, {
     params: {
+      query: { debug },
       path: { projectId: projectId },
     },
   });
