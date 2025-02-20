@@ -9,13 +9,7 @@ export class ExtraFieldsService {
   constructor(private readonly dbService: DatabaseService) {}
 
   async getExtraFieldsByProjectId(projectId: string): Promise<ProjectExtraFieldsResponse> {
-    const project = await this.dbService.database.query.projects.findFirst({
-      where: eq(projects.id, projectId),
-    });
-
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
-    }
+    await this.throwIfProjectIsNotFound(projectId);
 
     const extraFields = await this.dbService.database
       .select({ name: serviceExtraFields.name, value: serviceExtraFields.value })
@@ -29,6 +23,8 @@ export class ExtraFieldsService {
     projectId: string,
     extraFieldsDto: CreateProjectExtraFieldRequest,
   ): Promise<ProjectExtraFieldsResponse> {
+    await this.throwIfProjectIsNotFound(projectId);
+
     return this.dbService.database.transaction(async (tx) => {
       // todo handle conflictual update / deletion
 
@@ -45,5 +41,15 @@ export class ExtraFieldsService {
 
       return { extraFields: updatedExtrafields };
     });
+  }
+
+  private async throwIfProjectIsNotFound(projectId: string) {
+    const project = await this.dbService.database.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+    });
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
   }
 }

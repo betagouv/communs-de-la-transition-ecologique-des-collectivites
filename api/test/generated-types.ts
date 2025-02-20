@@ -72,7 +72,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/services/project/{projectId}": {
+    "/services/project/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -106,7 +106,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/services/contexts/{serviceId}": {
+    "/services/contexts/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -414,14 +414,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -443,14 +447,18 @@ export interface operations {
         responses: {
             /** @description Project created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -462,6 +470,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description An Id in a UUID format */
                 id: string;
             };
             cookie?: never;
@@ -469,14 +478,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -488,6 +501,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description An Id in a UUID format */
                 id: string;
             };
             cookie?: never;
@@ -500,14 +514,18 @@ export interface operations {
         responses: {
             /** @description Project updated successfully */
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -519,6 +537,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description An Id in a UUID format */
                 id: string;
             };
             cookie?: never;
@@ -526,14 +545,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectExtraFieldsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -545,6 +568,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description An Id in a UUID format */
                 id: string;
             };
             cookie?: never;
@@ -556,14 +580,18 @@ export interface operations {
         };
         responses: {
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectExtraFieldsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -585,14 +613,18 @@ export interface operations {
         responses: {
             /** @description Bulk Projects created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["BulkCreateProjectsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -606,21 +638,26 @@ export interface operations {
             };
             header?: never;
             path: {
-                projectId: string;
+                /** @description An Id in a UUID format */
+                id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ServicesByProjectIdResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -642,14 +679,18 @@ export interface operations {
         responses: {
             /** @description Service created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -661,8 +702,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description ID of the service */
-                serviceId: string;
+                /** @description An Id in a UUID format */
+                id: string;
             };
             cookie?: never;
         };
@@ -674,14 +715,18 @@ export interface operations {
         responses: {
             /** @description Service context created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceContextResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };

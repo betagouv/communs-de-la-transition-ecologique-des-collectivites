@@ -3,12 +3,13 @@ import { ServicesService } from "./services.service";
 import { ServicesContextService } from "./services-context.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "./dto/create-service-context.dto";
 import { Public } from "@/auth/public.decorator";
-import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { fakeServiceData } from "@/services/fake-service-data";
+import { UUIDDto } from "@/shared/dto/uuid";
 
 @ApiBearerAuth()
 @ApiTags("services")
@@ -34,9 +35,9 @@ export class ServicesController {
     response: ServicesByProjectIdResponse,
     isArray: true,
   })
-  @Get("project/:projectId")
+  @Get("project/:id")
   getServicesByProjectId(
-    @Param("projectId") projectId: string,
+    @Param() { id }: UUIDDto,
     @Query("debug") debug: boolean,
   ): Promise<ServicesByProjectIdResponse[]> {
     // todo this should be changed to send back all service context
@@ -44,7 +45,7 @@ export class ServicesController {
     if (debug) {
       return Promise.resolve(fakeServiceData);
     }
-    return this.servicesService.getServicesByProjectId(projectId);
+    return this.servicesService.getServicesByProjectId(id);
   }
 
   @ApiBearerAuth()
@@ -60,18 +61,17 @@ export class ServicesController {
   }
 
   @ApiBearerAuth()
-  @Post("contexts/:serviceId")
+  @Post("contexts/:id")
   @ApiOperation({ summary: "Create a new service context for a specific service to match some projects " })
-  @ApiParam({ name: "serviceId", description: "ID of the service" })
   @ApiEndpointResponses({
     successStatus: 201,
     response: CreateServiceContextResponse,
     description: "Service context created successfully",
   })
   createServiceContext(
-    @Param("serviceId") serviceId: string,
+    @Param() { id }: UUIDDto,
     @Body() createServiceContextDto: CreateServiceContextRequest,
   ): Promise<CreateServiceContextResponse> {
-    return this.serviceContextService.create(serviceId, createServiceContextDto);
+    return this.serviceContextService.create(id, createServiceContextDto);
   }
 }

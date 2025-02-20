@@ -962,6 +962,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description An Id in a UUID format */
         id: string;
       };
       cookie?: never;
@@ -1027,6 +1028,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description An Id in a UUID format */
         id: string;
       };
       cookie?: never;

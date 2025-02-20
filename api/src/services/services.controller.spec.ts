@@ -56,7 +56,7 @@ describe("ServiceController", () => {
 
   describe("service context", () => {
     it("should create a new service context", async () => {
-      const serviceId = "service-id";
+      const serviceId = crypto.randomUUID();
       const validServiceContext: Omit<CreateServiceContextRequest, "serviceId"> = {
         competences: ["Santé"],
         description: "Context Description",
@@ -70,7 +70,7 @@ describe("ServiceController", () => {
       const expectedResponse = { ...validService, id: "service-context-id" };
       jest.spyOn(serviceContextServices, "create").mockResolvedValue(expectedResponse);
 
-      const result = await controller.createServiceContext(serviceId, validServiceContext);
+      const result = await controller.createServiceContext({ id: serviceId }, validServiceContext);
 
       expect(result).toEqual(expectedResponse);
       // eslint-disable-next-line @typescript-eslint/unbound-method
