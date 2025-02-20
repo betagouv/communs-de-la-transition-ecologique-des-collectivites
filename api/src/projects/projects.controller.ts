@@ -14,6 +14,7 @@ import { extractApiKey } from "@projects/extract-api-key";
 import { CreateProjectExtraFieldRequest, ProjectExtraFieldsResponse } from "@projects/dto/extra-fields.dto";
 import { Public } from "@/auth/public.decorator";
 import { ExtraFieldsService } from "@projects/services/extra-fields/extra-fields.service";
+import { UUIDDto } from "@/shared/dto/uuid";
 
 @ApiBearerAuth()
 @Controller("projects")
@@ -40,14 +41,14 @@ export class ProjectsController {
   @ApiOperation({ summary: "Get specific project by id" })
   @ApiEndpointResponses({ successStatus: 200, response: ProjectResponse })
   @Get(":id")
-  findOne(@Param("id") id: string): Promise<ProjectResponse> {
+  findOne(@Param() { id }: UUIDDto): Promise<ProjectResponse> {
     return this.projectFindService.findOne(id);
   }
 
   @Public()
   @ApiEndpointResponses({ successStatus: 200, response: ProjectExtraFieldsResponse })
   @Get(":id/extra-fields")
-  getExtraFields(@Param("id") id: string): Promise<ProjectExtraFieldsResponse> {
+  getExtraFields(@Param() { id }: UUIDDto): Promise<ProjectExtraFieldsResponse> {
     return this.extraFieldsService.getExtraFieldsByProjectId(id);
   }
 
@@ -55,7 +56,7 @@ export class ProjectsController {
   @ApiEndpointResponses({ successStatus: 201, response: ProjectExtraFieldsResponse })
   @Post(":id/extra-fields")
   updateExtraFields(
-    @Param("id") id: string,
+    @Param() { id }: UUIDDto,
     @Body() extraFieldsDto: CreateProjectExtraFieldRequest,
   ): Promise<ProjectExtraFieldsResponse> {
     return this.extraFieldsService.createExtraFields(id, extraFieldsDto);
@@ -97,7 +98,7 @@ export class ProjectsController {
   })
   update(
     @Req() request: Request,
-    @Param("id") id: string,
+    @Param() { id }: UUIDDto,
     @Body() updateProjectDto: UpdateProjectDto,
   ): Promise<CreateOrUpdateProjectResponse> {
     return this.projectUpdateService.update(id, updateProjectDto, extractApiKey(request));

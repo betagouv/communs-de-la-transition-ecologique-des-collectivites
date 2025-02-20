@@ -1,6 +1,12 @@
 # @betagouv/les-communs-widget
 
-## 0.1.0
+## 0.1.2
+
+### Minor Changes
+
+- add debug mode to see all services
+
+## 0.1.1
 
 ### Breaking Changes
 

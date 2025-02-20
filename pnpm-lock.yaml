@@ -175,7 +175,7 @@ importers:
         specifier: ^0.13.3
         version: 0.13.4
       openapi-typescript:
-        specifier: ^7.4.4
+        specifier: ^7.6.1
         version: 7.6.1(typescript@5.7.2)
       source-map-support:
         specifier: ^0.5.21
@@ -230,7 +230,7 @@ importers:
         specifier: ^2.6.8
         version: 2.7.0(@types/node@22.13.2)(typescript@5.7.3)
       openapi-typescript:
-        specifier: ^7.4.4
+        specifier: ^7.6.1
         version: 7.6.1(typescript@5.7.3)
       path:
         specifier: ^0.12.7
@@ -254,8 +254,8 @@ importers:
   widget-sandbox:
     dependencies:
       '@betagouv/les-communs-widget':
-        specifier: 0.1.1
-        version: 0.1.1(@codegouvfr/react-dsfr@1.19.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.1.0
+        version: 0.1.0(@codegouvfr/react-dsfr@1.19.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@codegouvfr/react-dsfr':
         specifier: ^1.14.6
         version: 1.19.0
@@ -531,8 +531,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@betagouv/les-communs-widget@0.1.1':
-    resolution: {integrity: sha512-NP+e0/c5furmSYcuhaUxgnIFQ/PUtB4qX1r1Q3T1HT8vLPnW3T++LKUZKm4hObS9h440oqwRRiDjVCe7ugXzJQ==}
+  '@betagouv/les-communs-widget@0.1.0':
+    resolution: {integrity: sha512-+Kb8X4FVwRBjhirhOlGWZ2OM1kI7FGu61qBSXTFBX4vsDZDqQqnWT/jRtL8GjxXFg90UTMNE0btcQJAoE4x0Sw==}
     peerDependencies:
       '@codegouvfr/react-dsfr': ^1.14.6
       react: ^18.0.0 || ^19.0.0
@@ -6511,13 +6511,11 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@betagouv/les-communs-widget@0.1.1(@codegouvfr/react-dsfr@1.19.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@betagouv/les-communs-widget@0.1.0(@codegouvfr/react-dsfr@1.19.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@codegouvfr/react-dsfr': 1.19.0
       '@iframe-resizer/react': 5.3.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tanstack/react-query': 5.66.0(react@18.3.1)
       classnames: 2.5.1
-      openapi-fetch: 0.13.4
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 

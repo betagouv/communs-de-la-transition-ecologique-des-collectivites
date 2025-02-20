@@ -1,6 +1,6 @@
 {
   "name": "@betagouv/les-communs-widget",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publishConfig": {
     "access": "public"
   },
@@ -54,7 +54,7 @@
     "@testing-library/react": "^16.1.0",
     "jsdom": "^25.0.1",
     "msw": "^2.6.8",
-    "openapi-typescript": "^7.4.4",
+    "openapi-typescript": "^7.6.1",
     "path": "^0.12.7",
     "vite-plugin-dts": "^4.3.0",
     "vite-plugin-lib-inject-css": "^2.1.1",

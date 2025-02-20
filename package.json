@@ -16,6 +16,7 @@
     "dev:widget-sandbox": "pnpm --filter widget-sandbox dev",
     "dev:widget-sandbox:link": "cd widget-sandbox && yalc add @betagouv/les-communs-widget && pnpm install",
     "dev:widget-sandbox:unlink": "cd widget-sandbox && yalc remove @betagouv/les-communs-widget && pnpm install",
+    "dev:widget:unlink": "cd widget && yalc remove @betagouv/les-communs-widget && pnpm install",
     "lint": "pnpm -r lint",
     "lint:api": "pnpm --filter api lint",
     "lint:widget": "pnpm --filter widget lint",

@@ -3,15 +3,17 @@ import { CreateServiceRequest, CreateServiceResponse } from "./dto/create-servic
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@logging/logger.service";
-import { services } from "@database/schema";
-import { fakeServiceData } from "@/services/fake-service-data";
+import { projects, services } from "@database/schema";
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
+import { ServicesContextService } from "@/services/services-context.service";
+import { Competences, Leviers } from "@/shared/types";
 
 @Injectable()
 export class ServicesService {
   constructor(
     private dbService: DatabaseService,
     private logger: CustomLogger,
+    private serviceContextService: ServicesContextService,
   ) {}
 
   async create(createServiceDto: CreateServiceRequest): Promise<CreateServiceResponse> {
@@ -40,9 +42,19 @@ export class ServicesService {
     return service;
   }
 
-  getServicesByProjectId(projectId: string): Promise<ServicesByProjectIdResponse[]> {
-    // For now, return mock data
-    console.log("Returning mock services by projectid", projectId);
-    return Promise.resolve(fakeServiceData);
+  async getServicesByProjectId(projectId: string): Promise<ServicesByProjectIdResponse[]> {
+    const project = await this.dbService.database.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+    });
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    return this.serviceContextService.findMatchingServices(
+      project.competences as Competences,
+      project.leviers as Leviers,
+      project.status,
+    );
   }
 }

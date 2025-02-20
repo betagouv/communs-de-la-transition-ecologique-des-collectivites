@@ -5,9 +5,8 @@ import { and, arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
 import { Competences, Leviers } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/services/dto/create-service-context.dto";
-
-type ServiceWithContext = InferSelectModel<typeof services> &
-  Pick<InferSelectModel<typeof serviceContext>, "extendLabel">;
+import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
+import { ExtraFieldConfig } from "./dto/extra-fields-config.dto";
 
 interface JoinResult {
   services: InferSelectModel<typeof services>;
@@ -25,7 +24,7 @@ export class ServicesContextService {
     competences: Competences | null,
     leviers: Leviers | null,
     projectStatus: ProjectStatus | null,
-  ): Promise<ServiceWithContext[]> {
+  ): Promise<ServicesByProjectIdResponse[]> {
     let matchingContexts: JoinResult[] = [];
     const conditions = [];
     const categorizationConditions = [];
@@ -71,7 +70,8 @@ export class ServicesContextService {
       redirectionLabel: service_context.redirectionLabel ?? services.redirectionLabel,
       extendLabel: service_context.extendLabel ?? services.extendLabel,
       iframeUrl: service_context.iframeUrl ?? services.iframeUrl,
-      extraFields: service_context.extraFields,
+      // workaround to a specific jsonb array bug in drizzle https://github.com/drizzle-team/drizzle-orm/issues/2913
+      extraFields: (service_context.extraFields ?? []) as ExtraFieldConfig[],
     }));
   }
 

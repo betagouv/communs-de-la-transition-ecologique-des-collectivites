@@ -5,10 +5,10 @@ import styles from "./InternalServicesWidget.module.css";
 import { useGetProjectExtraFields, useGetServicesByProjectId } from "./queries.ts";
 import { ServicesWidgetProps } from "./types.ts";
 
-export const InternalServicesWidget = ({ projectId, isStagingEnv }: ServicesWidgetProps) => {
+export const InternalServicesWidget = ({ projectId, isStagingEnv, debug }: ServicesWidgetProps) => {
   // todo add proper error handling through error boundaries with retry
 
-  const { data: servicesData, error, isLoading } = useGetServicesByProjectId(projectId, isStagingEnv);
+  const { data: servicesData, error, isLoading } = useGetServicesByProjectId(projectId, isStagingEnv, debug);
   const { data } = useGetProjectExtraFields(projectId, isStagingEnv);
 
   // do not display anything while we don't know if there are any services or there are no services

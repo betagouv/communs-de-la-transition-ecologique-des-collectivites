@@ -123,7 +123,7 @@ describe("ProjectsController", () => {
 
       jest.spyOn(projectFindService, "findOne").mockResolvedValue(expectedProject);
 
-      const result = await controller.findOne("1");
+      const result = await controller.findOne({ id: crypto.randomUUID() });
       expect(result).toEqual(expectedProject);
     });
 
@@ -131,7 +131,7 @@ describe("ProjectsController", () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
       jest.spyOn(projectFindService, "findOne").mockRejectedValue(new NotFoundException());
 
-      await expect(controller.findOne(nonExistentId)).rejects.toThrow(NotFoundException);
+      await expect(controller.findOne({ id: nonExistentId })).rejects.toThrow(NotFoundException);
     });
   });
 });

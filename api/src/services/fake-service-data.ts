@@ -105,8 +105,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
       "https://aides-territoires-prod.s3.fr-par.scw.cloud/aides-territoires-prod/blog/on-vous-presente-la-plateforme-aides-territoires-w_logo.png",
     redirectionUrl: "https://aides-territoires.beta.gouv.fr/",
     extendLabel: "Voir les aides adaptées à mon projet",
-    iframeUrl:
-      "https://vapp-preprod-pr146.osc-fr1.scalingo.io/widget/projets/0194e0fe-546a-75fb-bdad-bcb3ecfff030/aides",
+    iframeUrl: "https://vapp.incubateur.net/widget/projets/0194e0fe-546a-75fb-bdad-bcb3ecfff030/aides",
     sousTitre: "",
     redirectionLabel: null,
     extraFields: [],
