@@ -27,6 +27,20 @@ function App() {
 }
 ```
 
+### Debug mode
+
+When testing the widget integration in can be useful to check how each service is displayed (since some iframe might have specific CSP rules against your domain)
+
+In order to see all services regardless of their matching with the current project, you can pass prop `debug` as such:
+
+```tsx
+import { ServicesWidget } from "@betagouv/les-communs-widget";
+
+function App() {
+  return <ServicesWidget projectId="your-project-id" debug />;
+}
+```
+
 ### Staging environment
 
 You can test against the staging environment by passing prop `isStagingEnv`:
