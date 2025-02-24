@@ -41,12 +41,12 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @ApiProperty({ required: false, nullable: true })
   @IsString()
   @IsOptional()
-  description?: string;
+  description?: string | null;
 
   @ApiProperty({ required: false, nullable: true })
   @IsString()
   @IsOptional()
-  sousTitre?: string;
+  sousTitre?: string | null;
 
   @ApiProperty({
     description: "Custom logo URL for the service in this context",
@@ -56,7 +56,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   })
   @IsUrl()
   @IsOptional()
-  logoUrl?: string;
+  logoUrl?: string | null;
 
   @ApiProperty({
     description: "Custom redirection URL for the service in this context",
@@ -66,7 +66,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   })
   @IsUrl()
   @IsOptional()
-  redirectionUrl?: string;
+  redirectionUrl?: string | null;
 
   @ApiProperty({
     description: "Custom label for the redirection button",
@@ -76,7 +76,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   })
   @IsString()
   @IsOptional()
-  redirectionLabel?: string;
+  redirectionLabel?: string | null;
 
   @ApiProperty({
     description: "Custom label for expanding the service details",
@@ -86,7 +86,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   })
   @IsString()
   @IsOptional()
-  extendLabel?: string;
+  extendLabel?: string | null;
 
   @ApiProperty({
     required: false,
@@ -94,7 +94,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   })
   @IsString()
   @IsOptional()
-  iframeUrl?: string;
+  iframeUrl?: string | null;
 
   @ApiProperty({
     enum: projectStatusEnum.enumValues,
@@ -114,5 +114,5 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   })
   @IsArray()
   @IsOptional()
-  extraFields?: { name: string; label: string }[];
+  extraFields?: { name: string; label: string }[] | null;
 }
