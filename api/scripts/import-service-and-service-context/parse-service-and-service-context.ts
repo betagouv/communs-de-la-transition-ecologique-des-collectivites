@@ -41,14 +41,13 @@ export interface ParsedData {
   serviceContexts: ParsedServiceContext[];
 }
 
-export async function parseCSVFiles(
+export async function parseServiceAndServiceContextsCSVFiles(
   servicesFilePath: string,
   contextsFilePath: string,
-  invalidItemsFilePath: string,
+  invalidRecords: string[],
 ): Promise<ParsedData> {
   const services: CreateServiceRequest[] = [];
   const serviceContexts: ParsedServiceContext[] = [];
-  const invalidItemsFile = fs.createWriteStream(invalidItemsFilePath, { flags: "a" });
 
   // Parse services
   const servicesParser = parse({
@@ -71,17 +70,14 @@ export async function parseCSVFiles(
 
   const serviceContextsCSVData = fs.createReadStream(contextsFilePath).pipe(serviceContextsParser);
   for await (const serviceContextRecord of serviceContextsCSVData as AsyncIterable<CsvContextRecord>) {
-    serviceContexts.push(parseServiceContextFromCsvRecord(serviceContextRecord, invalidItemsFile));
+    serviceContexts.push(parseServiceContextFromCsvRecord(serviceContextRecord, invalidRecords));
   }
 
-  invalidItemsFile.end();
+  // invalidItemsFile.end();
   return { services, serviceContexts };
 }
 
-function parseServiceContextFromCsvRecord(
-  record: CsvContextRecord,
-  invalidItemsFile: fs.WriteStream,
-): ParsedServiceContext {
+function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItemsFile: string[]): ParsedServiceContext {
   const status: ProjectStatus[] = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
 
   const parsedLeviers = record.leviers ? parseFieldToArray(record.leviers, leviers, "levier", invalidItemsFile) : [];

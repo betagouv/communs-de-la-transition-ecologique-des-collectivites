@@ -2,10 +2,8 @@ import createClient from "openapi-fetch";
 import type { paths } from "@test/generated-types";
 import { config } from "dotenv";
 import * as path from "path";
-import { parseCSVFiles, ParsedData } from "./parse-service-and-service-context";
-import fs from "fs";
+import { parseServiceAndServiceContextsCSVFiles, ParsedData } from "./parse-service-and-service-context";
 
-// Setup and configuration
 config({ path: path.resolve(__dirname, "../../.env") });
 
 if (!process.env.SERVICE_MANAGEMENT_API_KEY) {
@@ -15,7 +13,7 @@ if (!process.env.SERVICE_MANAGEMENT_API_KEY) {
 
 const baseUrl = "http://localhost:3000";
 const apiKey = process.env.SERVICE_MANAGEMENT_API_KEY;
-const invalidItemsFilePath = "./invalid_items.txt";
+const invalidRecords: string[] = [];
 
 const apiClient = createClient<paths>({
   baseUrl,
@@ -27,11 +25,15 @@ const apiClient = createClient<paths>({
 
 async function importServicesAndServiceContexts(csvServiceFilePath: string, csvContextFilePath: string) {
   try {
-    const parsedData = await parseCSVFiles(csvServiceFilePath, csvContextFilePath, invalidItemsFilePath);
+    const parsedData = await parseServiceAndServiceContextsCSVFiles(
+      csvServiceFilePath,
+      csvContextFilePath,
+      invalidRecords,
+    );
 
     //if there are any content in invalidItemsFile then exit
-    if (fs.readFileSync(invalidItemsFilePath, "utf8").length > 0) {
-      console.error("Invalid items found, exiting, please fix the data and try again");
+    if (invalidRecords.length > 0) {
+      console.error("Invalid items found, exiting, please fix the data and try again", invalidRecords);
       process.exit(1);
     }
 
