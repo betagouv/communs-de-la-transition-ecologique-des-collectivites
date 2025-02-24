@@ -31,7 +31,7 @@ async function importServicesAndServiceContexts(csvServiceFilePath: string, csvC
       invalidRecords,
     );
 
-    //if there are any content in invalidItemsFile then exit
+    // we do not want to trigger the import if there are any invalid records
     if (invalidRecords.length > 0) {
       console.error("Invalid items found, exiting, please fix the data and try again", invalidRecords);
       process.exit(1);

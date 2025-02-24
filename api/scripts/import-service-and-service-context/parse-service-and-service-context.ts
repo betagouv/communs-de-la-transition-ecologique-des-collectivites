@@ -73,7 +73,6 @@ export async function parseServiceAndServiceContextsCSVFiles(
     serviceContexts.push(parseServiceContextFromCsvRecord(serviceContextRecord, invalidRecords));
   }
 
-  // invalidItemsFile.end();
   return { services, serviceContexts };
 }
 
