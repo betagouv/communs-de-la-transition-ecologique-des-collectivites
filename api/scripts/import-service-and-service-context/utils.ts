@@ -1,5 +1,3 @@
-import fs from "fs";
-
 export function parseExtraField(extraFieldString: string | undefined): { name: string; label: string }[] {
   if (!extraFieldString) {
     return [];
@@ -32,7 +30,7 @@ export function parseFieldToArray(
   field: string,
   validList: readonly string[],
   mode: "competence" | "levier" | "status",
-  invalidItemsFile: fs.WriteStream,
+  invalidItemsFile: string[],
 ): string[] {
   // Remove curly braces and quotes
   const cleanedField = field.replace(/[{}"]/g, "");
@@ -49,7 +47,7 @@ export function parseFieldToArray(
         return false;
       }
       if (!validList.includes(item)) {
-        invalidItemsFile.write(`Invalid ${mode}: ${item}\n`);
+        invalidItemsFile.push(`Invalid ${mode}: ${item}`);
         return false;
       }
       return true;
