@@ -1,4 +1,4 @@
-import { ServicesWidget } from "@les-communs/widget";
+import { ServicesWidget } from "@betagouv/les-communs-widget";
 
 function App() {
   const PROJECT_ID_WITHOUT_EXTRAFIELD = "01950465-1384-7332-88ff-b535cb868ed8";
