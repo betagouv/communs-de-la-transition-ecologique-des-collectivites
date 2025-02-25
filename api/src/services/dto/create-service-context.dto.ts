@@ -38,12 +38,12 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @IsIn(leviers, { each: true })
   leviers!: Leviers;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
   description?: string | null;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
   sousTitre?: string | null;
@@ -53,6 +53,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
     example: "https://example.com/custom-logo.png",
     required: false,
     nullable: true,
+    type: String,
   })
   @IsUrl()
   @IsOptional()
@@ -61,6 +62,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @ApiProperty({
     description: "Custom redirection URL for the service in this context",
     example: "https://service.example.com/specific-page",
+    type: String,
     required: false,
     nullable: true,
   })
@@ -71,6 +73,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @ApiProperty({
     description: "Custom label for the redirection button",
     example: "Access Climate Tools",
+    type: String,
     required: false,
     nullable: true,
   })
@@ -81,6 +84,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @ApiProperty({
     description: "Custom label for expanding the service details",
     example: "Show climate data",
+    type: String,
     required: false,
     nullable: true,
   })
@@ -91,6 +95,7 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @ApiProperty({
     required: false,
     nullable: true,
+    type: String,
   })
   @IsString()
   @IsOptional()
