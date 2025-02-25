@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { ProjectStatus, serviceContext, services } from "@database/schema";
 import { and, arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
@@ -85,10 +85,25 @@ export class ServicesContextService {
       where: eq(services.id, serviceId),
     });
 
-    const { competences, ...otherFields } = createServiceContextDto;
-
     if (!service) {
       throw new NotFoundException(`Service with ID ${serviceId} not found`);
+    }
+
+    const { competences, description, ...otherFields } = createServiceContextDto;
+
+    // Check if a service context with the same description already exists for this service
+    if (description) {
+      const existingServiceContext = await this.dbService.database
+        .select()
+        .from(serviceContext)
+        .where(and(eq(serviceContext.serviceId, serviceId), eq(serviceContext.description, description)))
+        .limit(1);
+
+      if (existingServiceContext.length > 0) {
+        throw new ConflictException(
+          `A service context with the description "${description}" already exists for this service`,
+        );
+      }
     }
 
     const [newServiceContext] = await this.dbService.database
@@ -96,6 +111,7 @@ export class ServicesContextService {
       .values({
         serviceId,
         ...otherFields,
+        description,
         competences: competences ?? [],
       })
       .returning();

@@ -3,7 +3,7 @@ import { ServicesContextService } from "./services-context.service";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateServiceContextRequest } from "./dto/create-service-context.dto";
-import { NotFoundException } from "@nestjs/common";
+import { NotFoundException, ConflictException } from "@nestjs/common";
 import { ServicesService } from "./services.service";
 import { CreateServiceRequest } from "@/services/dto/create-service.dto";
 
@@ -445,47 +445,68 @@ describe("ServiceContextService", () => {
   });
 
   describe("create", () => {
+    const validService: CreateServiceRequest = {
+      name: "Test Service",
+      description: "Test Description",
+      sousTitre: "Test Sous Titre",
+      logoUrl: "https://test.com/logo.png",
+      redirectionUrl: "https://test.com",
+      redirectionLabel: "Go to test service",
+    };
+
+    const validServiceContext: CreateServiceContextRequest = {
+      description: "Context Description",
+      sousTitre: "Context Sous Titre",
+      competences: ["Santé", "Culture > Arts plastiques et photographie"],
+      logoUrl: "https://test.com/context-logo.png",
+      redirectionUrl: "https://test.com/context",
+      leviers: ["Bio-carburants", "Covoiturage"],
+      redirectionLabel: "Context Label",
+      extendLabel: "Extend Label",
+      status: [],
+    };
+
     it("should create a new service context", async () => {
-      const service = await servicesService.create({
-        name: "Test Service",
-        description: "Test Description",
-        sousTitre: "Test Sous Titre",
-        logoUrl: "https://test.com/logo.png",
-        redirectionUrl: "https://test.com",
-        redirectionLabel: "Go to test service",
-      });
-
-      const createContextDto: CreateServiceContextRequest = {
-        description: "Context Description",
-        sousTitre: "Context Sous Titre",
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
-        logoUrl: "https://test.com/context-logo.png",
-        redirectionUrl: "https://test.com/context",
-        leviers: ["Bio-carburants", "Covoiturage"],
-        redirectionLabel: "Context Label",
-        extendLabel: "Extend Label",
-        status: [],
-      };
-
-      const result = await serviceContextService.create(service.id, createContextDto);
+      const service = await servicesService.create(validService);
+      const result = await serviceContextService.create(service.id, validServiceContext);
 
       expect(result).toEqual({
         id: result.id,
         serviceId: service.id,
-        ...createContextDto,
+        ...validServiceContext,
         iframeUrl: null,
         extraFields: [],
       });
     });
 
-    it("should throw NotFoundException when service does not exist", async () => {
-      const createContextDto: CreateServiceContextRequest = {
-        competences: ["Santé"],
-        leviers: [],
-        status: [],
-      };
+    it("should throw ConflictException when creating a service context with duplicate description for the same service", async () => {
+      const service = await servicesService.create(validService);
+      await serviceContextService.create(service.id, validServiceContext);
 
-      await expect(serviceContextService.create(crypto.randomUUID(), createContextDto)).rejects.toThrow(
+      // Try to create second service context with same description
+      await expect(serviceContextService.create(service.id, validServiceContext)).rejects.toThrow(
+        new ConflictException(
+          `A service context with the description "${validServiceContext.description}" already exists for this service`,
+        ),
+      );
+    });
+
+    it("should allow same description for different services", async () => {
+      const service1 = await servicesService.create(validService);
+      const context1 = await serviceContextService.create(service1.id, validServiceContext);
+
+      const service2 = await servicesService.create({
+        ...validService,
+        name: "Test Service 2",
+      });
+      const context2 = await serviceContextService.create(service2.id, validServiceContext);
+
+      expect(context2).toBeDefined();
+      expect(context2.id).not.toBe(context1.id);
+    });
+
+    it("should throw NotFoundException when service does not exist", async () => {
+      await expect(serviceContextService.create(crypto.randomUUID(), validServiceContext)).rejects.toThrow(
         NotFoundException,
       );
     });
