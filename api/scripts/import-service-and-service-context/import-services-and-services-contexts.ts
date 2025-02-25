@@ -13,7 +13,6 @@ if (!process.env.SERVICE_MANAGEMENT_API_KEY) {
 
 const baseUrl = "http://localhost:3000";
 const apiKey = process.env.SERVICE_MANAGEMENT_API_KEY;
-const invalidRecords: string[] = [];
 
 const apiClient = createClient<paths>({
   baseUrl,
@@ -25,19 +24,15 @@ const apiClient = createClient<paths>({
 
 async function importServicesAndServiceContexts(csvServiceFilePath: string, csvContextFilePath: string) {
   try {
-    const parsedData = await parseServiceAndServiceContextsCSVFiles(
-      csvServiceFilePath,
-      csvContextFilePath,
-      invalidRecords,
-    );
+    const { data, errors } = await parseServiceAndServiceContextsCSVFiles(csvServiceFilePath, csvContextFilePath);
 
     // we do not want to trigger the import if there are any invalid records
-    if (invalidRecords.length > 0) {
-      console.error("Invalid items found, exiting, please fix the data and try again", invalidRecords);
+    if (errors.length > 0) {
+      console.error("Invalid items found, exiting, please fix the data and try again", errors);
       process.exit(1);
     }
 
-    await importParsedDataToDatabase(parsedData);
+    await importParsedDataToDatabase(data);
   } catch (error) {
     console.error("Error during import:", error);
     process.exit(1);
@@ -47,7 +42,7 @@ async function importServicesAndServiceContexts(csvServiceFilePath: string, csvC
 // Run the import
 void importServicesAndServiceContexts("./services-import.csv", "./services-context-import.csv");
 
-async function importParsedDataToDatabase(parsedData: ParsedData) {
+async function importParsedDataToDatabase(parsedData: ParsedData["data"]) {
   const serviceIdMap: Record<string, string> = {};
 
   // Import services

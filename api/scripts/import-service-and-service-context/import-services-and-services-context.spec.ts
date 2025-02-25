@@ -6,7 +6,6 @@ describe("parseCSVFiles", () => {
   const tempDir = path.join(__dirname, "temp");
   const serviceCSVPath = path.join(tempDir, "service.csv");
   const serviceContextPath = path.join(tempDir, "context.csv");
-  let invalidRecords: string[];
 
   const serviceData =
     "name,subtitle,description,logoUrl,redirectionUrl,redirectionLabel,iframeUrl,extendLabel\n" +
@@ -23,7 +22,6 @@ describe("parseCSVFiles", () => {
       console.log("creating temp dir");
       fs.mkdirSync(tempDir);
     }
-    invalidRecords = [];
   });
 
   afterEach(() => {
@@ -35,9 +33,9 @@ describe("parseCSVFiles", () => {
     const invalidServiceContextData = contextValidData.replace(/FAISABILITE/g, "Invalid_status");
     fs.writeFileSync(serviceContextPath, invalidServiceContextData.replace(/Aménagement/g, "Améenagement"));
 
-    await parseServiceAndServiceContextsCSVFiles(serviceCSVPath, serviceContextPath, invalidRecords);
+    const { errors } = await parseServiceAndServiceContextsCSVFiles(serviceCSVPath, serviceContextPath);
 
-    expect(invalidRecords).toStrictEqual([
+    expect(errors).toStrictEqual([
       "Invalid competence: Améenagement des territoires > Friche",
       "Invalid status: Invalid_status",
       "Invalid competence: Améenagement des territoires > Friche",
@@ -49,7 +47,7 @@ describe("parseCSVFiles", () => {
     fs.writeFileSync(serviceCSVPath, serviceData);
     fs.writeFileSync(serviceContextPath, contextValidData);
 
-    await parseServiceAndServiceContextsCSVFiles(serviceCSVPath, serviceContextPath, invalidRecords);
-    expect(invalidRecords.length).toBe(0);
+    const { errors } = await parseServiceAndServiceContextsCSVFiles(serviceCSVPath, serviceContextPath);
+    expect(errors.length).toBe(0);
   });
 });

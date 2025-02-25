@@ -37,15 +37,15 @@ interface CsvContextRecord {
 type ParsedServiceContext = CreateServiceContextRequest & { serviceName: string };
 
 export interface ParsedData {
-  services: CreateServiceRequest[];
-  serviceContexts: ParsedServiceContext[];
+  data: { services: CreateServiceRequest[]; serviceContexts: ParsedServiceContext[] };
+  errors: string[];
 }
 
 export async function parseServiceAndServiceContextsCSVFiles(
   servicesFilePath: string,
   contextsFilePath: string,
-  invalidRecords: string[],
 ): Promise<ParsedData> {
+  const parsingErrors: string[] = [];
   const services: CreateServiceRequest[] = [];
   const serviceContexts: ParsedServiceContext[] = [];
 
@@ -70,10 +70,10 @@ export async function parseServiceAndServiceContextsCSVFiles(
 
   const serviceContextsCSVData = fs.createReadStream(contextsFilePath).pipe(serviceContextsParser);
   for await (const serviceContextRecord of serviceContextsCSVData as AsyncIterable<CsvContextRecord>) {
-    serviceContexts.push(parseServiceContextFromCsvRecord(serviceContextRecord, invalidRecords));
+    serviceContexts.push(parseServiceContextFromCsvRecord(serviceContextRecord, parsingErrors));
   }
 
-  return { services, serviceContexts };
+  return { data: { services, serviceContexts }, errors: parsingErrors };
 }
 
 function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItemsFile: string[]): ParsedServiceContext {
