@@ -1,0 +1,2 @@
+ALTER TABLE "service_context" ADD CONSTRAINT "service_context_id_description_unique" UNIQUE NULLS NOT DISTINCT("id","description");--> statement-breakpoint
+ALTER TABLE "services" ADD CONSTRAINT "services_name_unique" UNIQUE("name");
