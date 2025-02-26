@@ -9,6 +9,7 @@ import {
   index,
   boolean,
   jsonb,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
@@ -76,7 +77,7 @@ export const services = pgTable("services", {
     .primaryKey()
     .$defaultFn(() => uuidv7()),
   createdAt: timestamp("createdAt").defaultNow(),
-  name: text("name").notNull(),
+  name: text("name").notNull().unique(),
   description: text("description").notNull(),
   sousTitre: text("sous_titre").notNull(),
   logoUrl: text("logo_url").notNull(),
@@ -87,27 +88,31 @@ export const services = pgTable("services", {
   extendLabel: text("extend_label"),
 });
 
-export const serviceContext = pgTable("service_context", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => uuidv7()),
-  serviceId: uuid("service_id")
-    .notNull()
-    .references(() => services.id),
-  competences: text("competences").array().notNull().default([]),
-  leviers: text("leviers").array(),
-  status: projectStatusEnum("status").array().notNull().default([]),
+export const serviceContext = pgTable(
+  "service_context",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    serviceId: uuid("service_id")
+      .notNull()
+      .references(() => services.id),
+    competences: text("competences").array().notNull().default([]),
+    leviers: text("leviers").array(),
+    status: projectStatusEnum("status").array().notNull().default([]),
 
-  // Custom display options
-  description: text("description"),
-  sousTitre: text("sous_titre"),
-  logoUrl: text("logo_url"),
-  redirectionUrl: text("redirection_url"),
-  redirectionLabel: text("redirection_label"),
-  extendLabel: text("extend_label"),
-  iframeUrl: text("iframe_url"),
-  extraFields: jsonb("extra_fields").$type<{ name: string; label: string }>().array().default([]),
-});
+    // Custom display options
+    description: text("description"),
+    sousTitre: text("sous_titre"),
+    logoUrl: text("logo_url"),
+    redirectionUrl: text("redirection_url"),
+    redirectionLabel: text("redirection_label"),
+    extendLabel: text("extend_label"),
+    iframeUrl: text("iframe_url"),
+    extraFields: jsonb("extra_fields").$type<{ name: string; label: string }>().array().default([]),
+  },
+  (t) => [unique().on(t.id, t.description).nullsNotDistinct()],
+);
 
 export const serviceExtraFields = pgTable("service_extra_fields", {
   id: uuid("id")

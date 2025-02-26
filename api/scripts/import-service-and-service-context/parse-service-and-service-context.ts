@@ -3,7 +3,7 @@ import { parse } from "csv-parse";
 import { makeNullIfEmptyString, parseExtraField, parseFieldToArray } from "./utils";
 import { leviers } from "@/shared/const/leviers";
 import { competences } from "@/shared/const/competences-list";
-import { ProjectStatus } from "@database/schema";
+import { ProjectStatus, projectStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { CreateServiceRequest } from "@/services/dto/create-service.dto";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
@@ -77,13 +77,13 @@ export async function parseServiceAndServiceContextsCSVFiles(
 }
 
 function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItemsFile: string[]): ParsedServiceContext {
-  const status: ProjectStatus[] = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
-
   const parsedLeviers = record.leviers ? parseFieldToArray(record.leviers, leviers, "levier", invalidItemsFile) : [];
   const parsedCompetences = record.competences
     ? parseFieldToArray(record.competences, competences, "competence", invalidItemsFile)
     : [];
-  const parsedStatus = record.status ? parseFieldToArray(record.status, status, "status", invalidItemsFile) : [];
+  const parsedStatus = record.status
+    ? parseFieldToArray(record.status, projectStatusEnum.enumValues, "status", invalidItemsFile)
+    : [];
 
   return {
     serviceName: record.serviceName,
