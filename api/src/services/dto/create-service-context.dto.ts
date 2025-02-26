@@ -38,63 +38,68 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @IsIn(leviers, { each: true })
   leviers!: Leviers;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
-  description?: string;
+  description?: string | null;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
-  sousTitre?: string;
+  sousTitre?: string | null;
 
   @ApiProperty({
     description: "Custom logo URL for the service in this context",
     example: "https://example.com/custom-logo.png",
     required: false,
     nullable: true,
+    type: String,
   })
   @IsUrl()
   @IsOptional()
-  logoUrl?: string;
+  logoUrl?: string | null;
 
   @ApiProperty({
     description: "Custom redirection URL for the service in this context",
     example: "https://service.example.com/specific-page",
+    type: String,
     required: false,
     nullable: true,
   })
   @IsUrl()
   @IsOptional()
-  redirectionUrl?: string;
+  redirectionUrl?: string | null;
 
   @ApiProperty({
     description: "Custom label for the redirection button",
     example: "Access Climate Tools",
+    type: String,
     required: false,
     nullable: true,
   })
   @IsString()
   @IsOptional()
-  redirectionLabel?: string;
+  redirectionLabel?: string | null;
 
   @ApiProperty({
     description: "Custom label for expanding the service details",
     example: "Show climate data",
+    type: String,
     required: false,
     nullable: true,
   })
   @IsString()
   @IsOptional()
-  extendLabel?: string;
+  extendLabel?: string | null;
 
   @ApiProperty({
     required: false,
     nullable: true,
+    type: String,
   })
   @IsString()
   @IsOptional()
-  iframeUrl?: string;
+  iframeUrl?: string | null;
 
   @ApiProperty({
     enum: projectStatusEnum.enumValues,
@@ -114,5 +119,5 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   })
   @IsArray()
   @IsOptional()
-  extraFields?: { name: string; label: string }[];
+  extraFields?: { name: string; label: string }[] | null;
 }

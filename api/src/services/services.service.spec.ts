@@ -5,7 +5,7 @@ import { CreateServiceRequest } from "./dto/create-service.dto";
 import { TestingModule } from "@nestjs/testing";
 import { CreateProjectsService } from "@projects/services/create-projects/create-projects.service";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
-import { NotFoundException } from "@nestjs/common";
+import { ConflictException, NotFoundException } from "@nestjs/common";
 
 describe("ServicesService", () => {
   let service: ServicesService;
@@ -30,18 +30,18 @@ describe("ServicesService", () => {
   });
 
   describe("create", () => {
-    it("should create a new service", async () => {
-      const createDto: CreateServiceRequest = {
-        name: "Test Service",
-        description: "Test Description",
-        sousTitre: "Test Sous Titre",
-        logoUrl: "https://test.com/logo.png",
-        redirectionUrl: "https://test.com",
-        redirectionLabel: "Go on test service",
-        extendLabel: "Extend label",
-        iframeUrl: "https://test.com/iframe",
-      };
+    const createDto: CreateServiceRequest = {
+      name: "Test Service",
+      description: "Test Description",
+      sousTitre: "Test Sous Titre",
+      logoUrl: "https://test.com/logo.png",
+      redirectionUrl: "https://test.com",
+      redirectionLabel: "Go on test service",
+      extendLabel: "Extend label",
+      iframeUrl: "https://test.com/iframe",
+    };
 
+    it("should create a new service", async () => {
       const result = await service.create(createDto);
 
       expect(result).toEqual({
@@ -50,6 +50,16 @@ describe("ServicesService", () => {
         ...createDto,
         isListed: false,
       });
+    });
+
+    it("should throw ConflictException when creating a service with duplicate name", async () => {
+      // Create first service
+      await service.create(createDto);
+
+      // Try to create second service with same name
+      await expect(service.create(createDto)).rejects.toThrow(
+        new ConflictException(`A service with the name "${createDto.name}" already exists`),
+      );
     });
   });
 

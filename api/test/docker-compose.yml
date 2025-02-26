@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   e2e_test_db:
-    image: postgres:14
+    image: postgres:15
     ports:
       - "5433:5432"
     environment:
