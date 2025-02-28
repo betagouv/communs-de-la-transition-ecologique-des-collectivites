@@ -4,47 +4,18 @@ import { paths, components } from "@/geo/api";
 
 const GEO_API_URL = "https://geo.api.gouv.fr";
 
-//  id: uuid("id").primaryKey().$defaultFn(() => uuidv7()),
-//   nom: text("nom").notNull(),
-//   type: collectiviteTypeEnum("type").notNull(),
-//
-//   // Codes officiels
-//   codeInsee: text("code_insee").unique(),
-//   codeDepartement: text("code_departement"),
-//   codeRegion: text("code_region"),
-//   codeEpci: text("code_epci").unique(),
-//   siren: text("siren").unique(),
-//   siret: text("siret").unique(),
-//
-//   createdAt: timestamp("created_at").notNull().defaultNow(),
-//   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-// }, (table) => ({
-//   inseeIdx: index("collectivite_insee_idx").on(table.codeInsee),
-//   deptIdx: index("collectivite_dept_idx").on(table.codeDepartement),
-//   regionIdx: index("collectivite_region_idx").on(table.codeRegion),
-//   epciIdx: index("collectivite_epci_idx").on(table.codeEpci),
-//   sirenIdx: index("collectivite_siren_idx").on(table.siren),
-// }));
-
 type CommuneFromApi = components["schemas"]["Commune"];
 type EpciFromApi = components["schemas"]["Epci"];
 
-export interface Commune {
+export interface Collectivite {
   nom: string;
-  codeInsee: string;
-  codeDepartement: string;
-  codeRegion: string;
+  type: "Commune" | "EPCI" | "Departement" | "Region";
+  codeInsee?: string | null;
+  // in case of EPCI, we have multiple departements and regions
+  codeDepartements: string[] | null;
+  codeRegions: string[] | null;
   codeEpci: string | null;
   siren: string;
-  collectiviteType: "Commune";
-}
-
-export interface Epci {
-  nom: string;
-  codeEpci: string;
-  codeDepartements: string[];
-  codeRegions: string[];
-  collectiviteType: "EPCI";
 }
 
 @Injectable()
@@ -55,45 +26,54 @@ export class GeoApiService {
     this.client = createClient<paths>({ baseUrl: GEO_API_URL });
   }
 
-  public async getAllCommunes(): Promise<Commune[]> {
-    const { data, error } = await this.client.GET("/communes", { params: { query: {} } });
+  public async getAllCommunes(): Promise<Collectivite[]> {
+    const { data, error } = await this.client.GET("/communes");
 
     if (error) {
-      throw new Error(`Geo API Error ${error as any}`);
+      throw new Error(`Geo API Error ${error?.message}`);
     }
 
-    return data.map((commune) => this.toCommune(commune));
+    return data.map((commune) => this.toCollectiviteCommune(commune));
   }
 
-  public async getAllEpcis(): Promise<Epci[]> {
-    const { data, error } = await this.client.GET("/epcis", { params: { query: {} } });
+  public async getAllEpcis(): Promise<Collectivite[]> {
+    const { data, error } = await this.client.GET("/epcis");
 
+    console.log("epci", data);
     if (error) {
-      throw new Error(`Geo API Error ${error as any}`);
+      throw new Error(`Geo API Error ${error?.message}`);
     }
 
-    return data.map((epci) => this.toEpci(epci));
+    return data.map((epci) => this.toCollectiviteEpci(epci));
   }
 
-  private toCommune({ code, codeRegion, codeDepartement, codeEpci, nom, siren }: CommuneFromApi): Commune {
+  private toCollectiviteCommune({
+    code,
+    codeRegion,
+    codeDepartement,
+    codeEpci,
+    nom,
+    siren,
+  }: CommuneFromApi): Collectivite {
     return {
-      siren: siren!,
-      codeInsee: code!,
       nom: nom!,
-      codeRegion: codeRegion!,
-      codeDepartement: codeDepartement!,
+      type: "Commune",
+      codeInsee: code!,
+      codeRegions: [codeRegion!],
+      codeDepartements: [codeDepartement!],
       codeEpci: codeEpci ?? null,
-      collectiviteType: "Commune",
+      siren: siren!,
     };
   }
 
-  private toEpci({ nom, code, codesDepartements, codesRegions }: EpciFromApi): Epci {
+  private toCollectiviteEpci({ nom, code, codesDepartements, codesRegions }: EpciFromApi): Collectivite {
     return {
       nom: nom!,
+      type: "EPCI",
       codeEpci: code!,
-      codeDepartements: codesDepartements!,
-      codeRegions: codesRegions!,
-      collectiviteType: "EPCI",
+      codeDepartements: codesDepartements ?? null,
+      codeRegions: codesRegions ?? null,
+      siren: code!,
     };
   }
 }

@@ -18,6 +18,10 @@ const projectStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE"
 export const projectStatusEnum = pgEnum("project_status", projectStatus);
 export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
 
+const collectiviteType = ["Commune", "EPCI"] as const;
+export const collectiviteTypeEnum = pgEnum("collectivite_type", collectiviteType);
+export type CollectiviteType = (typeof collectiviteTypeEnum.enumValues)[number];
+
 export const communes = pgTable("communes", {
   inseeCode: text("insee_code").primaryKey(),
 });
@@ -56,6 +60,29 @@ export const projects = pgTable("projects", {
   recocoId: text("recoco_id").unique(),
 });
 
+export const collectivites = pgTable(
+  "collectivites",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    nom: text("nom").notNull(),
+    type: collectiviteTypeEnum("type").notNull(),
+
+    // Codes officiels
+    codeInsee: text("code_insee"),
+    codeDepartements: text("code_departements").array(),
+    codeRegions: text("code_regions").array(),
+    codeEpci: text("code_epci").unique(),
+    siren: text("siren").unique(),
+
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  //todo add unique constraint for epci code and type epci + codeInsee and type commune
+  // (t) => [unique().on(t.id, t.description).nullsNotDistinct()],
+);
+
 export const projectsToCommunes = pgTable(
   "projects_to_communes",
   {
@@ -69,6 +96,22 @@ export const projectsToCommunes = pgTable(
   (t) => [
     primaryKey({ columns: [t.projectId, t.communeId] }),
     index("commune_project_idx").on(t.communeId, t.projectId),
+  ],
+);
+
+export const projectsToCollectivites = pgTable(
+  "projects_to_collectivites",
+  {
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id),
+    collectiviteId: uuid("collectivite_id")
+      .notNull()
+      .references(() => collectivites.id),
+  },
+  (t) => [
+    primaryKey({ columns: [t.projectId, t.collectiviteId] }),
+    index("collectivite_project_idx").on(t.collectiviteId, t.projectId),
   ],
 );
 
@@ -128,11 +171,16 @@ export const serviceExtraFields = pgTable("service_extra_fields", {
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
 export const projectsRelations = relations(projects, ({ many }) => ({
   communes: many(projectsToCommunes),
+  collectivites: many(projectsToCollectivites),
   extraFields: many(serviceExtraFields),
 }));
 
 export const communesRelations = relations(communes, ({ many }) => ({
   projects: many(projectsToCommunes),
+}));
+
+export const collectivitesRelations = relations(collectivites, ({ many }) => ({
+  projects: many(projectsToCollectivites),
 }));
 
 export const projectsToCommunesRelations = relations(projectsToCommunes, ({ one }) => ({
@@ -143,6 +191,17 @@ export const projectsToCommunesRelations = relations(projectsToCommunes, ({ one 
   commune: one(communes, {
     fields: [projectsToCommunes.communeId],
     references: [communes.inseeCode],
+  }),
+}));
+
+export const projectsToCollectivitesRelations = relations(projectsToCollectivites, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectsToCollectivites.projectId],
+    references: [projects.id],
+  }),
+  collectivite: one(collectivites, {
+    fields: [projectsToCollectivites.collectiviteId],
+    references: [collectivites.id],
   }),
 }));
 

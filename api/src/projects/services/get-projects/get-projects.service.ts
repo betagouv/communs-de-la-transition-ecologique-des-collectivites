@@ -23,15 +23,22 @@ export class GetProjectsService {
             commune: true,
           },
         },
+        collectivites: {
+          with: {
+            collectivite: true,
+          },
+        },
       },
     });
 
+    //todo check why I need to remap collectivites and communes
     return results.map((result) => {
       return {
         ...result,
         competences: result.competences ? (result.competences as Competences) : null,
         leviers: result.leviers ? (result.leviers as Leviers) : null,
         communes: result.communes.map((c) => c.commune),
+        collectivites: result.collectivites.map((c) => c.collectivite),
       };
     });
   }
@@ -43,6 +50,11 @@ export class GetProjectsService {
         communes: {
           with: {
             commune: true,
+          },
+        },
+        collectivites: {
+          with: {
+            collectivite: true,
           },
         },
       },
@@ -58,6 +70,7 @@ export class GetProjectsService {
       competences: result.competences ? (result.competences as Competences) : null,
       leviers: result.leviers ? (result.leviers as Leviers) : null,
       communes: result.communes.map((c) => c.commune),
+      collectivites: result.collectivites.map((c) => c.collectivite),
     };
   }
 }

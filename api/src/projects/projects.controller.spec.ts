@@ -8,12 +8,54 @@ import { NotFoundException } from "@nestjs/common";
 import { mockRequest } from "@test/mocks/mockRequest";
 import { CreateProjectsService } from "@projects/services/create-projects/create-projects.service";
 import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";
+import { CollectiviteReference } from "@projects/dto/collectivite.dto";
 
 describe("ProjectsController", () => {
   let controller: ProjectsController;
   let projectCreateService: CreateProjectsService;
   let projectFindService: GetProjectsService;
   let app: TestingModule;
+
+  const mockedCollectivites: CollectiviteReference[] = [{ type: "Commune", code: "01001" }];
+
+  const expectedProject: ProjectResponse = {
+    id: "test-id",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    nom: "Test Project",
+    description: "Test Description",
+    porteurCodeSiret: "12345678901234",
+    porteurReferentEmail: "test@example.com",
+    porteurReferentTelephone: null,
+    porteurReferentNom: null,
+    porteurReferentFonction: null,
+    porteurReferentPrenom: null,
+    budget: 100000,
+    forecastedStartDate: getFormattedDate(),
+    status: "IDEE",
+    competences: null,
+    leviers: null,
+    communes: [
+      {
+        inseeCode: "75056",
+      },
+    ],
+    collectivites: mockedCollectivites.map(({ code }) => ({
+      codeInsee: code,
+      codeEpci: null,
+      type: "Commune",
+      siren: null,
+      codeDepartements: null,
+      codeRegions: null,
+      nom: "Commune 1",
+      id: expect.any(String),
+      createdAt: expect.any(Date),
+      updatedAt: expect.any(Date),
+    })),
+    tetId: null,
+    mecId: null,
+    recocoId: null,
+  };
 
   beforeEach(async () => {
     app = await Test.createTestingModule({
@@ -39,6 +81,7 @@ describe("ProjectsController", () => {
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
       communeInseeCodes: ["75056"],
+      collectivitesRef: mockedCollectivites,
       externalId: "test-service-id",
     };
 
@@ -56,34 +99,7 @@ describe("ProjectsController", () => {
 
   describe("findAll", () => {
     it("should return an array of projects", async () => {
-      const expectedProjects: ProjectResponse[] = [
-        {
-          id: "test-id",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          nom: "Test Project",
-          description: "Test Description",
-          porteurCodeSiret: "12345678901234",
-          porteurReferentEmail: "test@example.com",
-          porteurReferentTelephone: null,
-          porteurReferentNom: null,
-          porteurReferentFonction: null,
-          porteurReferentPrenom: null,
-          budget: 100000,
-          forecastedStartDate: getFormattedDate(),
-          status: "IDEE",
-          competences: null,
-          leviers: null,
-          communes: [
-            {
-              inseeCode: "75056",
-            },
-          ],
-          tetId: null,
-          mecId: null,
-          recocoId: null,
-        },
-      ];
+      const expectedProjects: ProjectResponse[] = [expectedProject];
 
       jest.spyOn(projectFindService, "findAll").mockResolvedValue(expectedProjects);
 
@@ -94,33 +110,6 @@ describe("ProjectsController", () => {
 
   describe("findOne", () => {
     it("should return a single project", async () => {
-      const expectedProject: ProjectResponse = {
-        id: "test-id",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        nom: "Test Project",
-        description: "Test Description",
-        porteurCodeSiret: "12345678901234",
-        porteurReferentEmail: "test@example.com",
-        porteurReferentTelephone: null,
-        porteurReferentNom: null,
-        porteurReferentFonction: null,
-        porteurReferentPrenom: null,
-        budget: 100000,
-        forecastedStartDate: getFormattedDate(),
-        status: "IDEE",
-        competences: null,
-        leviers: null,
-        communes: [
-          {
-            inseeCode: "75056",
-          },
-        ],
-        tetId: null,
-        mecId: null,
-        recocoId: null,
-      };
-
       jest.spyOn(projectFindService, "findOne").mockResolvedValue(expectedProject);
 
       const result = await controller.findOne({ id: crypto.randomUUID() });

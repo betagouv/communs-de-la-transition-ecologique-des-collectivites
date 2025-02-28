@@ -1,18 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
-import {
-  ArrayNotEmpty,
-  IsArray,
-  IsDateString,
-  IsIn,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from "class-validator";
-import { ProjectStatus, projectStatusEnum } from "@database/schema";
+import { IsArray, IsDateString, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { CollectiviteType, ProjectStatus, projectStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
+import { CollectiviteReference } from "@projects/dto/collectivite.dto";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
@@ -86,18 +78,25 @@ export class CreateProjectRequest {
   status?: ProjectStatus | null;
 
   @ApiProperty({
-    type: String,
-    description: "Array of INSEE codes for the communes",
-    example: ["01001", "75056", "97A01"],
-    isArray: true,
-    required: false,
+    type: [String],
+    required: true,
+    description: "Array of INSEE codes of communes",
+    deprecated: true,
   })
   @IsArray()
   @IsString({ each: true })
-  @ArrayNotEmpty({
-    message: "At least one commune insee code must be provided",
-  })
   communeInseeCodes!: string[];
+
+  @ApiProperty({
+    description: "Array of collectivite references",
+    example: [
+      { type: "Commune", code: "12345" },
+      { type: "EPCI", code: "123456789" },
+    ],
+    type: [CollectiviteReference],
+  })
+  @IsArray()
+  collectivitesRef!: { type: CollectiviteType; code: string }[];
 
   @ApiProperty({
     type: String,

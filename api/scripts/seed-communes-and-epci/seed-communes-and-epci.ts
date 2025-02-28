@@ -18,12 +18,7 @@ async function seedCommunesAndEpci() {
 
   try {
     console.log("Fetching communes...");
-    const communes = await geoService.createAllCommunes();
-    console.log("Fetched communes successfully:", communes.length);
-
-    console.log("\nFetching EPCIs...");
-    const epcis = await geoService.createAllEpcis();
-    console.log("Fetched EPCIs successfully:", epcis.length);
+    await geoService.createAllCollectivites();
   } catch (error) {
     console.error("Error fetching data:", error);
   } finally {
