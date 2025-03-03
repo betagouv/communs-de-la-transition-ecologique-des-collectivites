@@ -17,9 +17,6 @@ export class CollectiviteReference {
   code!: string;
 }
 
-//todo should infer from database model
-// implements InferSelectModel<typeof collectivites>
-
 export class Collectivite {
   @ApiProperty()
   id!: string;

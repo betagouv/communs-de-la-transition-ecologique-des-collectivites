@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common";
-import { GeoApiService } from "@/geo/geo-api.service";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { Collectivite, GeoApiService } from "@/geo/geo-api.service";
 import { DatabaseService } from "@database/database.service";
 import { collectivites } from "@database/schema";
 import { CustomLogger } from "@logging/logger.service";
 import { formatError } from "@/exceptions/utils";
+import { CollectiviteReference } from "@projects/dto/collectivite.dto";
 
 @Injectable()
 export class GeoService {
@@ -46,5 +47,14 @@ export class GeoService {
 
       this.logger.log(`Inserted batch ${i / BATCH_SIZE + 1} of ${Math.ceil(allCollectivites.length / BATCH_SIZE)}`);
     }
+  }
+
+  public async validateAndGetCollectivite({ code, type }: CollectiviteReference): Promise<Collectivite> {
+    const { data, error } = type === "Commune" ? await this.geoApi.getCommune(code) : await this.geoApi.getEpci(code);
+
+    if (error) {
+      throw new BadRequestException(`Cannot find a corresponding Commune for this code ${code}`);
+    }
+    return data!;
   }
 }

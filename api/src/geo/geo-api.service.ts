@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import createClient, { Client } from "openapi-fetch";
-import { paths, components } from "@/geo/api";
+import { components, paths } from "@/geo/api";
 
 const GEO_API_URL = "https://geo.api.gouv.fr";
 
@@ -16,6 +16,11 @@ export interface Collectivite {
   codeRegions: string[] | null;
   codeEpci: string | null;
   siren: string;
+}
+export interface GeoApiError {
+  name?: string;
+  message?: string;
+  description?: string;
 }
 
 @Injectable()
@@ -44,6 +49,26 @@ export class GeoApiService {
     }
 
     return data.map((epci) => this.toCollectiviteEpci(epci));
+  }
+
+  public async getCommune(code: string): Promise<{ error?: GeoApiError; data?: Collectivite }> {
+    const { data, error } = await this.client.GET(`/communes/{code}`, { params: { path: { code } } });
+
+    if (error) {
+      return { error, data: undefined };
+    }
+
+    return { error: undefined, data: this.toCollectiviteCommune(data) };
+  }
+
+  public async getEpci(code: string): Promise<{ error?: GeoApiError; data?: Collectivite }> {
+    const { data, error } = await this.client.GET(`/epcis/{code}`, { params: { path: { code } } });
+
+    if (error) {
+      return { error, data };
+    }
+
+    return { error: undefined, data: this.toCollectiviteEpci(data) };
   }
 
   private toCollectiviteCommune({

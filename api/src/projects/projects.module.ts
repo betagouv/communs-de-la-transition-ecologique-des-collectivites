@@ -6,8 +6,10 @@ import { UpdateProjectsService } from "@projects/services/update-projects/update
 import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";
 import { ServiceIdentifierService } from "@projects/services/service-identifier/service-identifier.service";
 import { ExtraFieldsService } from "@projects/services/extra-fields/extra-fields.service";
+import { GeoModule } from "@/geo/geo.module";
 
 @Module({
+  imports: [GeoModule],
   controllers: [ProjectsController],
   providers: [
     CollectivitesService,

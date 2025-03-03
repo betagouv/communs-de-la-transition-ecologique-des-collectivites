@@ -76,6 +76,50 @@ describe("Projects (e2e)", () => {
       });
     });
 
+    it("should create a valid project when missing valid collectivites", async () => {
+      const missingCodeInsee = "10110"; //Courteranges
+
+      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+      const { data, error } = await mecClient.projects.create({
+        ...validProject,
+        collectivitesRef: [{ code: missingCodeInsee, type: "Commune" }],
+      });
+      expect(error).toBeUndefined();
+      expect(data).toHaveProperty("id");
+
+      const { data: updatedProject } = await api.projects.getOne(data!.id);
+
+      expect(updatedProject).toMatchObject({
+        competences: ["Santé", "Culture > Arts plastiques et photographie"],
+        collectivites: [
+          {
+            codeInsee: missingCodeInsee,
+            codeEpci: "200069250",
+            type: "Commune",
+            siren: "211001045",
+            codeDepartements: ["10"],
+            codeRegions: ["44"],
+            nom: "Courteranges",
+            id: expect.any(String),
+            createdAt: expect.any(String),
+            updatedAt: expect.any(String),
+          },
+        ],
+      });
+    });
+
+    it("should reject a project when collectivites are not valid", async () => {
+      const missingCodeInsee = "invalidCodeInsee";
+
+      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+      const { error } = await mecClient.projects.create({
+        ...validProject,
+        collectivitesRef: [{ code: missingCodeInsee, type: "Commune" }],
+      });
+      expect(error?.statusCode).toBe(400);
+      expect(error?.message).toContain("Cannot find a corresponding Commune for this code invalidCodeInsee");
+    });
+
     it("should reject when nom is empty", async () => {
       const { error } = await api.projects.create({
         ...validProject,

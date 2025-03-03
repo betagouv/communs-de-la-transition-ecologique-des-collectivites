@@ -118,25 +118,30 @@ describe("ProjectUpdateService", () => {
     });
   });
 
-  // it("should only update communes when this is the only change", async () => {
-  //   const newCommunes = ["34567", "89012"];
-  //   const updateDto = {
-  //     communeInseeCodes: newCommunes,
-  //     externalId: EXTERNAL_ID,
-  //   };
-  //
-  //   await updateService.update(projectId, updateDto, MEC_API_KEY);
-  //   const updatedProject = await findService.findOne(projectId);
-  //
-  //   expect(updatedProject.communes).toHaveLength(newCommunes.length);
-  //   expect(updatedProject.communes).toEqual(
-  //     expect.arrayContaining(
-  //       newCommunes.map((code) => ({
-  //         inseeCode: code,
-  //       })),
-  //     ),
-  //   );
-  // });
+  it("should only update collectivites when this is the only change", async () => {
+    const newCollectivite: CollectiviteReference = { code: "new_EPCI", type: "EPCI" };
+
+    await testDbService.database.insert(collectivites).values({
+      type: newCollectivite.type,
+      codeEpci: newCollectivite.code,
+      nom: "new EPCI Collectivite",
+    });
+
+    const updateDto: UpdateProjectDto = {
+      collectivitesRef: [newCollectivite],
+      externalId: EXTERNAL_ID,
+    };
+
+    await updateService.update(projectId, updateDto, MEC_API_KEY);
+    const updatedProject = await findService.findOne(projectId);
+
+    expect(updatedProject.collectivites).toHaveLength(1);
+    expect(updatedProject.collectivites[0]).toMatchObject({
+      type: newCollectivite.type,
+      codeEpci: newCollectivite.code,
+      nom: "new EPCI Collectivite",
+    });
+  });
 
   it("should throw NotFoundException when project doesn't exist", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";

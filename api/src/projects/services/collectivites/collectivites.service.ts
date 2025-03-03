@@ -1,36 +1,54 @@
 import { Injectable } from "@nestjs/common";
 import { Tx } from "@database/database.service";
 import { collectivites, projectsToCollectivites } from "@database/schema";
-import { eq, inArray, and, not } from "drizzle-orm";
 import { CollectiviteReference } from "@projects/dto/collectivite.dto";
+import { and, eq } from "drizzle-orm";
+import { CustomLogger } from "@logging/logger.service";
+import { GeoService } from "@/geo/geo-service";
 
 @Injectable()
 export class CollectivitesService {
-  async createOrUpdateRelations(tx: Tx, projectId: string, collectiviteRefs: CollectiviteReference[]): Promise<void> {
+  constructor(
+    private logger: CustomLogger,
+    private readonly geoService: GeoService,
+  ) {}
+
+  public async createOrUpdateRelations(
+    tx: Tx,
+    projectId: string,
+    collectiviteRefs: CollectiviteReference[],
+  ): Promise<void> {
     if (collectiviteRefs.length === 0) {
-      throw new Error("At least one collecitvite needs to be assiocated to the project");
+      throw new Error("At least one collectivite needs to be associated to the project");
     }
 
-    const collectiviteIds = await this.getCollectivitesIdsByRefs(tx, collectiviteRefs);
+    const { collectiviteIds, missingRefs } = await this.getCollectivitesIdsAndMissingRefs(tx, collectiviteRefs);
 
-    // check that allCollectivities are in base otherwise we are missing some collectivities
-    // and we need to create them
+    const allCollectiviteIds = [...collectiviteIds];
 
-    //delete old relations
-    await tx
-      .delete(projectsToCollectivites)
-      .where(
-        and(
-          eq(projectsToCollectivites.projectId, projectId),
-          not(inArray(projectsToCollectivites.collectiviteId, collectiviteIds)),
-        ),
-      );
+    if (missingRefs.length > 0) {
+      this.logger.log("collectivite missing in database", { missingRefs });
+
+      for (const missingRef of missingRefs) {
+        const validCollectivite = await this.geoService.validateAndGetCollectivite(missingRef);
+        const insertResults = await tx
+          .insert(collectivites)
+          .values(validCollectivite)
+          .onConflictDoNothing()
+          .returning();
+
+        allCollectiviteIds.push(...insertResults.map((result) => result.id));
+      }
+    }
+
+    // Delete old relations
+    await tx.delete(projectsToCollectivites).where(eq(projectsToCollectivites.projectId, projectId));
 
     // Create new relations
     await tx
       .insert(projectsToCollectivites)
       .values(
-        collectiviteIds.map((collectiviteId) => ({
+        allCollectiviteIds.map((collectiviteId) => ({
           projectId,
           collectiviteId,
         })),
@@ -38,21 +56,31 @@ export class CollectivitesService {
       .onConflictDoNothing();
   }
 
-  async getCollectivitesIdsByRefs(tx: Tx, collectiviteRefs: CollectiviteReference[]): Promise<string[]> {
+  async getCollectivitesIdsAndMissingRefs(
+    tx: Tx,
+    collectiviteRefs: CollectiviteReference[],
+  ): Promise<{ collectiviteIds: string[]; missingRefs: CollectiviteReference[] }> {
     const collectiviteIds: string[] = [];
+    const missingRefs: CollectiviteReference[] = [];
 
     for (const ref of collectiviteRefs) {
       const id = await this.getCollectiviteIdByRef(tx, ref.type, ref.code);
 
       if (id) {
         collectiviteIds.push(id);
+      } else {
+        missingRefs.push(ref);
       }
     }
 
-    return collectiviteIds;
+    return { collectiviteIds, missingRefs };
   }
 
-  async getCollectiviteIdByRef(tx: Tx, type: CollectiviteReference["type"], code: string): Promise<string | null> {
+  private async getCollectiviteIdByRef(
+    tx: Tx,
+    type: CollectiviteReference["type"],
+    code: string,
+  ): Promise<string | null> {
     let field: keyof typeof collectivites.$inferInsert;
 
     switch (type) {

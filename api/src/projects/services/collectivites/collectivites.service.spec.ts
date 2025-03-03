@@ -6,6 +6,8 @@ import { collectivites, projects, projectsToCollectivites } from "@database/sche
 import { CollectiviteReference } from "@projects/dto/collectivite.dto";
 import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
+import { GeoService } from "@/geo/geo-service";
+import { Collectivite } from "@/geo/geo-api.service";
 
 describe("CollectivitesService", () => {
   let collectivitesService: CollectivitesService;
@@ -17,8 +19,17 @@ describe("CollectivitesService", () => {
   const collectivite2Uuid = uuidv7();
   const collectivite3Uuid = uuidv7();
 
+  const geoServiceMock = {
+    validateAndGetCollectivite: jest.fn(),
+  };
+
   beforeAll(async () => {
-    const { module: internalModule, testDbService: tds } = await testModule();
+    const { module: internalModule, testDbService: tds } = await testModule([
+      {
+        provide: GeoService,
+        useValue: geoServiceMock,
+      },
+    ]);
     module = internalModule;
     testDbService = tds;
     collectivitesService = module.get<CollectivitesService>(CollectivitesService);
@@ -30,6 +41,7 @@ describe("CollectivitesService", () => {
 
   beforeEach(async () => {
     await testDbService.cleanDatabase();
+    jest.clearAllMocks();
 
     const [project] = await testDbService.database
       .insert(projects)
@@ -63,7 +75,7 @@ describe("CollectivitesService", () => {
     ]);
   });
 
-  describe("getCollectivitiesByRefs", () => {
+  describe("getCollectivitesIdsAndMissingRefs", () => {
     it("should return collectivite ids for valid references", async () => {
       await testDbService.database.transaction(async (tx) => {
         const refs: CollectiviteReference[] = [
@@ -71,38 +83,30 @@ describe("CollectivitesService", () => {
           { type: "EPCI", code: "EPCI12345" },
         ];
 
-        const result = await collectivitesService.getCollectivitesIdsByRefs(tx, refs);
+        const { collectiviteIds, missingRefs } = await collectivitesService.getCollectivitesIdsAndMissingRefs(tx, refs);
 
-        expect(result).toHaveLength(2);
-        expect(result).toContain(collectivite1Uuid);
-        expect(result).toContain(collectivite3Uuid);
+        expect(collectiviteIds).toHaveLength(2);
+        expect(collectiviteIds).toContain(collectivite1Uuid);
+        expect(collectiviteIds).toContain(collectivite3Uuid);
+        expect(missingRefs).toHaveLength(0);
       });
     });
 
-    it("should skip invalid references", async () => {
-      await testDbService.database.transaction(async (tx) => {
-        const refs: CollectiviteReference[] = [
-          { type: "Commune", code: "12345" },
-          { type: "Commune", code: "99999" }, // Non-existent
-        ];
-
-        const result = await collectivitesService.getCollectivitesIdsByRefs(tx, refs);
-
-        expect(result).toHaveLength(1);
-        expect(result).toContain(collectivite1Uuid);
-      });
-    });
-
-    it("should return empty array for all invalid references", async () => {
+    it("should return missingRefs for all collectivite references which are not in database", async () => {
       await testDbService.database.transaction(async (tx) => {
         const refs: CollectiviteReference[] = [
           { type: "Commune", code: "99999" },
           { type: "EPCI", code: "INVALID" },
         ];
 
-        const result = await collectivitesService.getCollectivitesIdsByRefs(tx, refs);
+        const { collectiviteIds, missingRefs } = await collectivitesService.getCollectivitesIdsAndMissingRefs(tx, refs);
 
-        expect(result).toHaveLength(0);
+        expect(collectiviteIds).toHaveLength(0);
+        expect(missingRefs).toHaveLength(2);
+        expect(missingRefs).toStrictEqual([
+          { type: "Commune", code: "99999" },
+          { type: "EPCI", code: "INVALID" },
+        ]);
       });
     });
   });
@@ -135,7 +139,6 @@ describe("CollectivitesService", () => {
           { type: "Commune", code: "12345" },
           { type: "Commune", code: "67890" },
         ];
-
         await collectivitesService.createOrUpdateRelations(tx, projectId, initialRefs);
 
         // Update relations
@@ -170,7 +173,7 @@ describe("CollectivitesService", () => {
 
         // Update with empty refs
         await expect(collectivitesService.createOrUpdateRelations(tx, projectId, [])).rejects.toThrow(
-          new Error("At least one collecitvite needs to be assiocated to the project"),
+          new Error("At least one collectivite needs to be associated to the project"),
         );
       });
     });
@@ -190,6 +193,50 @@ describe("CollectivitesService", () => {
 
         expect(relations).toHaveLength(1);
         expect(relations[0].collectiviteId).toBe(collectivite1Uuid);
+      });
+    });
+
+    it("should create new collectivite if missing a valid one", async () => {
+      await testDbService.database.transaction(async (tx) => {
+        const newValidRef: CollectiviteReference = { type: "Commune", code: "99999" };
+        const refs: CollectiviteReference[] = [
+          { type: "Commune", code: "12345" }, // existing one
+          newValidRef,
+        ];
+
+        geoServiceMock.validateAndGetCollectivite.mockImplementation((ref: CollectiviteReference): Collectivite => {
+          return {
+            nom: `Test ${ref.type}`,
+            type: ref.type,
+            codeInsee: ref.type === "Commune" ? ref.code : null,
+            codeEpci: ref.type === "EPCI" ? ref.code : null,
+            codeDepartements: ["01"],
+            codeRegions: ["84"],
+            siren: ref.code,
+          };
+        });
+
+        await collectivitesService.createOrUpdateRelations(tx, projectId, refs);
+
+        // Verify the relations were created
+        const relations = await tx
+          .select()
+          .from(projectsToCollectivites)
+          .where(eq(projectsToCollectivites.projectId, projectId));
+
+        expect(relations).toHaveLength(2);
+
+        // Verify the new collectivite was created in the database
+        const newCollectivite = await tx
+          .select()
+          .from(collectivites)
+          .where(eq(collectivites.codeInsee, "99999"))
+          .limit(1);
+
+        expect(newCollectivite).toHaveLength(1);
+        expect(newCollectivite[0].type).toBe("Commune");
+        expect(newCollectivite[0].codeInsee).toBe("99999");
+        expect(newCollectivite[0].nom).toBe("Test Commune");
       });
     });
   });
