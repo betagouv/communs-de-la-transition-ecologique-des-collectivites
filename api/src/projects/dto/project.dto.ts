@@ -5,11 +5,6 @@ import { leviers } from "@/shared/const/leviers";
 import { competences } from "@/shared/const/competences-list";
 import { Collectivite } from "@projects/dto/collectivite.dto";
 
-class Commune {
-  @ApiProperty()
-  inseeCode!: string;
-}
-
 export class ProjectResponse {
   @ApiProperty()
   id!: string;
@@ -46,9 +41,6 @@ export class ProjectResponse {
 
   @ApiProperty({ nullable: true, type: String })
   porteurReferentFonction!: string | null;
-
-  @ApiProperty({ type: [Commune], deprecated: true, description: "Deprecated: Use collectivites instead" })
-  communes!: Commune[];
 
   @ApiProperty({ type: [Collectivite] })
   collectivites!: Collectivite[];

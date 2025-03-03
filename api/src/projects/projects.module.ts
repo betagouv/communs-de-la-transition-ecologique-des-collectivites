@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 import { ProjectsController } from "./projects.controller";
-import { CommunesService } from "./services/communes/communes.service";
 import { CollectivitesService } from "./services/collectivites/collectivites.service";
 import { CreateProjectsService } from "@projects/services/create-projects/create-projects.service";
 import { UpdateProjectsService } from "@projects/services/update-projects/update-projects.service";
@@ -11,7 +10,6 @@ import { ExtraFieldsService } from "@projects/services/extra-fields/extra-fields
 @Module({
   controllers: [ProjectsController],
   providers: [
-    CommunesService,
     CollectivitesService,
     CreateProjectsService,
     GetProjectsService,

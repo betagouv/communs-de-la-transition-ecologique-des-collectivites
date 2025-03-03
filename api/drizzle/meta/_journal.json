@@ -71,6 +71,13 @@
       "when": 1740650511732,
       "tag": "0009_marvelous_zaran",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1740736349522,
+      "tag": "0010_nice_mephisto",
+      "breakpoints": true
     }
   ]
 }

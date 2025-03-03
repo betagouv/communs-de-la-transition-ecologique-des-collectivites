@@ -22,10 +22,6 @@ const collectiviteType = ["Commune", "EPCI"] as const;
 export const collectiviteTypeEnum = pgEnum("collectivite_type", collectiviteType);
 export type CollectiviteType = (typeof collectiviteTypeEnum.enumValues)[number];
 
-export const communes = pgTable("communes", {
-  inseeCode: text("insee_code").primaryKey(),
-});
-
 export const projects = pgTable("projects", {
   id: uuid("id")
     .primaryKey()
@@ -81,22 +77,6 @@ export const collectivites = pgTable(
   },
   //todo add unique constraint for epci code and type epci + codeInsee and type commune
   // (t) => [unique().on(t.id, t.description).nullsNotDistinct()],
-);
-
-export const projectsToCommunes = pgTable(
-  "projects_to_communes",
-  {
-    projectId: uuid("project_id")
-      .notNull()
-      .references(() => projects.id),
-    communeId: text("commune_id")
-      .notNull()
-      .references(() => communes.inseeCode),
-  },
-  (t) => [
-    primaryKey({ columns: [t.projectId, t.communeId] }),
-    index("commune_project_idx").on(t.communeId, t.projectId),
-  ],
 );
 
 export const projectsToCollectivites = pgTable(
@@ -170,28 +150,12 @@ export const serviceExtraFields = pgTable("service_extra_fields", {
 
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
 export const projectsRelations = relations(projects, ({ many }) => ({
-  communes: many(projectsToCommunes),
   collectivites: many(projectsToCollectivites),
   extraFields: many(serviceExtraFields),
 }));
 
-export const communesRelations = relations(communes, ({ many }) => ({
-  projects: many(projectsToCommunes),
-}));
-
 export const collectivitesRelations = relations(collectivites, ({ many }) => ({
   projects: many(projectsToCollectivites),
-}));
-
-export const projectsToCommunesRelations = relations(projectsToCommunes, ({ one }) => ({
-  project: one(projects, {
-    fields: [projectsToCommunes.projectId],
-    references: [projects.id],
-  }),
-  commune: one(communes, {
-    fields: [projectsToCommunes.communeId],
-    references: [communes.inseeCode],
-  }),
 }));
 
 export const projectsToCollectivitesRelations = relations(projectsToCollectivites, ({ one }) => ({

@@ -4,6 +4,8 @@ import { getFormattedDate } from "./helpers/get-formatted-date";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { createApiClient } from "@test/helpers/api-client";
 import { Competence, Levier } from "@/shared/types";
+import { mockedDefaultCollectivite, mockProjectPayload } from "@test/mocks/mockProjectPayload";
+import { collectivites } from "@database/schema";
 
 describe("Projects (e2e)", () => {
   const api = createApiClient(process.env.MEC_API_KEY!);
@@ -11,20 +13,15 @@ describe("Projects (e2e)", () => {
   afterEach(async () => {
     await global.testDbService.cleanDatabase();
   });
-  const validProject: CreateProjectRequest = {
-    nom: "Test Project",
-    description: "Test Description",
-    budget: 100000,
-    porteurReferentEmail: "test@email.com",
-    porteurCodeSiret: null,
-    forecastedStartDate: getFormattedDate(),
-    status: "IDEE",
-    communeInseeCodes: ["01001", "75056", "97A01"],
-    collectivitesRef: [{ type: "Commune", code: "01001" }],
-    competences: ["Santé", "Culture > Arts plastiques et photographie"],
-    leviers: ["Bio-carburants", "Covoiturage"],
-    externalId: "MEC-service-id",
-  };
+  const validProject = mockProjectPayload();
+
+  beforeEach(async () => {
+    await global.testDbService.database.insert(collectivites).values({
+      type: mockedDefaultCollectivite.type,
+      codeInsee: mockedDefaultCollectivite.code,
+      nom: "Commune 1",
+    });
+  });
 
   describe("POST /projects", () => {
     it("should reject when wrong api key", async () => {
@@ -117,10 +114,10 @@ describe("Projects (e2e)", () => {
       expect(error?.message).toStrictEqual(["forecastedStartDate must be a valid ISO 8601 date string"]);
     });
 
-    it("should reject when project has no commune insee code", async () => {
+    it("should reject when project has no collectivtes", async () => {
       const { error } = await api.projects.create({
         ...validProject,
-        communeInseeCodes: [],
+        collectivitesRef: [],
       });
 
       expect(error?.statusCode).toBe(400);
@@ -153,31 +150,11 @@ describe("Projects (e2e)", () => {
   });
 
   describe("POST /projects/bulk", () => {
-    const validProjects = {
+    const validProjects: { projects: CreateProjectRequest[] } = {
       projects: [
-        {
-          nom: "Bulk Project 1",
-          description: "Bulk Description 1",
-          budget: 100000,
-          porteurReferentEmail: "test1@email.com",
-          porteurCodeSiret: null,
-          forecastedStartDate: getFormattedDate(),
-          status: "IDEE",
-          communeInseeCodes: ["01001", "75056"],
-          externalId: "bulk-project-1",
-        },
-        {
-          nom: "Bulk Project 2",
-          description: "Bulk Description 2",
-          budget: 200000,
-          porteurReferentEmail: "test2@email.com",
-          porteurCodeSiret: null,
-          forecastedStartDate: getFormattedDate(),
-          status: "IDEE",
-          communeInseeCodes: ["97A01"],
-          externalId: "bulk-project-2",
-        },
-      ] as CreateProjectRequest[],
+        mockProjectPayload({ externalId: "bulk-project-1" }),
+        mockProjectPayload({ externalId: "bulk-project-2" }),
+      ],
     };
 
     it("should reject when wrong api key", async () => {
@@ -207,22 +184,12 @@ describe("Projects (e2e)", () => {
       const invalidProjects = {
         projects: [
           {
-            nom: "",
-            description: "Valid Description",
-            budget: 100000,
-            forecastedStartDate: getFormattedDate(),
-            status: "IDEE",
-            communeInseeCodes: ["01001"],
-            externalId: "invalid-project-1",
+            ...mockProjectPayload(),
+            nom: "", // Invalid: empty name
           },
           {
-            nom: "", // Invalid: empty name
-            description: "Invalid Project",
-            budget: 100000,
-            forecastedStartDate: getFormattedDate(),
-            status: "IDEE",
-            communeInseeCodes: ["01001"],
-            externalId: "invalid-project-2",
+            ...mockProjectPayload(),
+            nom: "",
           },
         ] as CreateProjectRequest[],
       };
@@ -252,7 +219,6 @@ describe("Projects (e2e)", () => {
             budget: 100000,
             forecastedStartDate: getFormattedDate(),
             status: "IDEE",
-            communeInseeCodes: ["01001"],
           },
           {
             nom: "Invalid Project",
@@ -260,7 +226,6 @@ describe("Projects (e2e)", () => {
             budget: "hello", // Invalid budget
             forecastedStartDate: getFormattedDate(),
             status: "IDEE",
-            communeInseeCodes: ["01001"],
           },
         ] as CreateProjectRequest[],
       };
@@ -310,7 +275,6 @@ describe("Projects (e2e)", () => {
         nom: "Updated Project Name",
         description: "Updated Description",
         budget: 200000,
-        communeInseeCodes: ["34567", "89012"],
         porteurReferentEmail: "new.referent@email.com",
         externalId: validProject.externalId,
       };
@@ -324,16 +288,11 @@ describe("Projects (e2e)", () => {
 
       const { data: updatedProject } = await api.projects.getOne(projectId);
 
-      const { communeInseeCodes, externalId, ...expectedFields } = updateData;
+      const { externalId, ...expectedFields } = updateData;
 
       expect(updatedProject).toMatchObject({
         ...expectedFields,
         id: projectId,
-        communes: expect.arrayContaining(
-          updateData.communeInseeCodes.map((code) => ({
-            inseeCode: code,
-          })),
-        ),
         mecId: validProject.externalId,
         recocoId: null,
         tetId: null,
@@ -359,7 +318,7 @@ describe("Projects (e2e)", () => {
 
       const { data, error } = await api.projects.getOne(projectId);
 
-      const { communeInseeCodes: communeCodesInProject1, externalId, ...expectedFields } = validProject;
+      const { externalId, collectivitesRef, ...expectedFields } = validProject;
 
       expect(error).toBeUndefined();
       expect(data).toEqual({
@@ -369,20 +328,30 @@ describe("Projects (e2e)", () => {
         ...expectedFields,
         porteurCodeSiret: null,
         porteurReferentFonction: null,
+        porteurReferentEmail: null, // Should be removed
         porteurReferentNom: null,
         porteurReferentPrenom: null,
         porteurReferentTelephone: null,
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
-        leviers: ["Bio-carburants", "Covoiturage"],
-        communes: expect.arrayContaining([
-          expect.objectContaining({
-            inseeCode: expect.any(String),
-          }),
-        ]),
+        leviers: ["Bio-carburants"],
         status: "IDEE",
-        mecId: "MEC-service-id",
+        mecId: "test-external-id",
         recocoId: null,
         tetId: null,
+        collectivites: [
+          {
+            codeInsee: mockedDefaultCollectivite.code,
+            codeEpci: null,
+            type: mockedDefaultCollectivite.type,
+            siren: null,
+            codeDepartements: null,
+            codeRegions: null,
+            nom: "Commune 1",
+            id: expect.any(String),
+            createdAt: expect.any(String),
+            updatedAt: expect.any(String),
+          },
+        ],
       });
     });
 
@@ -407,9 +376,10 @@ describe("Projects (e2e)", () => {
           expect.objectContaining({
             id: expect.any(String),
             nom: validProject.nom,
-            communes: expect.arrayContaining([
+            collectivites: expect.arrayContaining([
               expect.objectContaining({
-                inseeCode: expect.any(String),
+                inseeCode: mockedDefaultCollectivite.code,
+                type: mockedDefaultCollectivite.type,
               }),
             ]),
           }),

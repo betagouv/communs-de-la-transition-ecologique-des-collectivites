@@ -1,6 +1,5 @@
 import { DatabaseService } from "@database/database.service";
 import { ConflictException, Injectable } from "@nestjs/common";
-import { CommunesService } from "../communes/communes.service";
 import { CollectivitesService } from "../collectivites/collectivites.service";
 import { projects } from "@database/schema";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
@@ -12,7 +11,6 @@ import { eq } from "drizzle-orm";
 export class CreateProjectsService {
   constructor(
     private dbService: DatabaseService,
-    private readonly communesService: CommunesService,
     private readonly collectivitesService: CollectivitesService,
     private readonly serviceIdentifierService: ServiceIdentifierService,
   ) {}
@@ -43,9 +41,6 @@ export class CreateProjectsService {
         })
         .returning();
 
-      // Pour la rétrocompatibilité, on continue à utiliser le service des communes
-      await this.communesService.createOrUpdate(tx, createdProject.id, createProjectDto.communeInseeCodes);
-
       await this.collectivitesService.createOrUpdateRelations(tx, createdProject.id, createProjectDto.collectivitesRef);
 
       return { id: createdProject.id };
@@ -59,7 +54,7 @@ export class CreateProjectsService {
       const createdProjects = [];
 
       for (const projectDto of bulkCreateProjectsRequest.projects) {
-        const { competences, communeInseeCodes, collectivitesRef, externalId, ...projectFields } = projectDto;
+        const { competences, collectivitesRef, externalId, ...projectFields } = projectDto;
 
         const existingProject = await this.dbService.database
           .select()
@@ -79,8 +74,6 @@ export class CreateProjectsService {
             [serviceIdField]: externalId,
           })
           .returning({ id: projects.id });
-
-        await this.communesService.createOrUpdate(tx, newProject.id, communeInseeCodes);
 
         await this.collectivitesService.createOrUpdateRelations(tx, newProject.id, collectivitesRef);
 

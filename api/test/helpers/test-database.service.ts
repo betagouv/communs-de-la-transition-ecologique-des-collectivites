@@ -11,10 +11,8 @@ export class TestDatabaseService extends DatabaseService {
 
   async cleanDatabase() {
     await this.database.execute(sql`          
-          TRUNCATE TABLE projects_to_communes CASCADE;
           TRUNCATE TABLE projects_to_collectivites CASCADE;
           TRUNCATE TABLE projects CASCADE;
-          TRUNCATE TABLE communes CASCADE;
           TRUNCATE TABLE collectivites CASCADE;
           TRUNCATE TABLE services CASCADE;
          `);

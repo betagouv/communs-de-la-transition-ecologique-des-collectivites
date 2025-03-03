@@ -4,7 +4,7 @@ import { TestingModule } from "@nestjs/testing";
 import { CreateProjectsService } from "../create-projects/create-projects.service";
 import { ExtraFieldsService } from "@projects/services/extra-fields/extra-fields.service";
 import { collectivites } from "@database/schema";
-import { mockedDefaultCollectivites, mockProjectPayload } from "@test/mocks/mockProjectPayload";
+import { mockedDefaultCollectivite, mockProjectPayload } from "@test/mocks/mockProjectPayload";
 
 describe("ExtraFieldService", () => {
   let createService: CreateProjectsService;
@@ -29,8 +29,8 @@ describe("ExtraFieldService", () => {
     await testDbService.database.insert(collectivites).values([
       {
         nom: "Commune 1",
-        type: mockedDefaultCollectivites[0].type,
-        codeInsee: mockedDefaultCollectivites[0].code,
+        type: mockedDefaultCollectivite.type,
+        codeInsee: mockedDefaultCollectivite.code,
       },
     ]);
   });

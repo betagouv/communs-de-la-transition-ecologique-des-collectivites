@@ -78,16 +78,6 @@ export class CreateProjectRequest {
   status?: ProjectStatus | null;
 
   @ApiProperty({
-    type: [String],
-    required: true,
-    description: "Array of INSEE codes of communes",
-    deprecated: true,
-  })
-  @IsArray()
-  @IsString({ each: true })
-  communeInseeCodes!: string[];
-
-  @ApiProperty({
     description: "Array of collectivite references",
     example: [
       { type: "Commune", code: "12345" },
@@ -96,6 +86,7 @@ export class CreateProjectRequest {
     type: [CollectiviteReference],
   })
   @IsArray()
+  @IsNotEmpty()
   collectivitesRef!: { type: CollectiviteType; code: string }[];
 
   @ApiProperty({

@@ -23,7 +23,6 @@ describe("ProjectUpdateService", () => {
 
   const MEC_API_KEY = "MEC_test_api_key";
   const EXTERNAL_ID = "test-service-id";
-  const mockedCommunes = ["01001", "75056", "97A01"];
   const mockedCollectivites: CollectiviteReference = { type: "Commune", code: "01001" };
 
   beforeAll(async () => {
@@ -55,7 +54,6 @@ describe("ProjectUpdateService", () => {
       budget: 100000,
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
-      communeInseeCodes: mockedCommunes,
       collectivitesRef: [mockedCollectivites],
       externalId: EXTERNAL_ID,
     };
@@ -81,11 +79,7 @@ describe("ProjectUpdateService", () => {
       ...expectedfields,
       id: projectId,
       porteurReferentEmail: "initial@email.com",
-      communes: expect.arrayContaining(
-        mockedCommunes.map((code) => ({
-          inseeCode: code,
-        })),
-      ),
+
       collectivites: expect.arrayContaining([
         {
           codeInsee: mockedCollectivites.code,
@@ -124,25 +118,25 @@ describe("ProjectUpdateService", () => {
     });
   });
 
-  it("should only update communes when this is the only change", async () => {
-    const newCommunes = ["34567", "89012"];
-    const updateDto = {
-      communeInseeCodes: newCommunes,
-      externalId: EXTERNAL_ID,
-    };
-
-    await updateService.update(projectId, updateDto, MEC_API_KEY);
-    const updatedProject = await findService.findOne(projectId);
-
-    expect(updatedProject.communes).toHaveLength(newCommunes.length);
-    expect(updatedProject.communes).toEqual(
-      expect.arrayContaining(
-        newCommunes.map((code) => ({
-          inseeCode: code,
-        })),
-      ),
-    );
-  });
+  // it("should only update communes when this is the only change", async () => {
+  //   const newCommunes = ["34567", "89012"];
+  //   const updateDto = {
+  //     communeInseeCodes: newCommunes,
+  //     externalId: EXTERNAL_ID,
+  //   };
+  //
+  //   await updateService.update(projectId, updateDto, MEC_API_KEY);
+  //   const updatedProject = await findService.findOne(projectId);
+  //
+  //   expect(updatedProject.communes).toHaveLength(newCommunes.length);
+  //   expect(updatedProject.communes).toEqual(
+  //     expect.arrayContaining(
+  //       newCommunes.map((code) => ({
+  //         inseeCode: code,
+  //       })),
+  //     ),
+  //   );
+  // });
 
   it("should throw NotFoundException when project doesn't exist", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";

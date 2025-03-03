@@ -4,7 +4,6 @@ import { UpdateProjectDto } from "@projects/dto/update-project.dto";
 import { removeUndefined } from "@/shared/utils/remove-undefined";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
-import { CommunesService } from "../communes/communes.service";
 import { ServiceIdentifierService } from "@projects/services/service-identifier/service-identifier.service";
 import { CollectivitesService } from "../collectivites/collectivites.service";
 
@@ -12,7 +11,6 @@ import { CollectivitesService } from "../collectivites/collectivites.service";
 export class UpdateProjectsService {
   constructor(
     private dbService: DatabaseService,
-    private readonly communesService: CommunesService,
     private readonly serviceIdentifierService: ServiceIdentifierService,
     private readonly collectivitesService: CollectivitesService,
   ) {}
@@ -20,7 +18,7 @@ export class UpdateProjectsService {
   async update(id: string, updateProjectDto: UpdateProjectDto, apiKey: string): Promise<{ id: string }> {
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
-    const { externalId, communeInseeCodes, collectivitesRef, ...otherFields } = updateProjectDto;
+    const { externalId, collectivitesRef, ...otherFields } = updateProjectDto;
 
     return this.dbService.database.transaction(async (tx) => {
       const [existingProject] = await tx.select().from(projects).where(eq(projects.id, id)).limit(1);
@@ -40,10 +38,6 @@ export class UpdateProjectsService {
         ...otherFields,
         [serviceIdField]: externalId,
       });
-
-      if (communeInseeCodes) {
-        await this.communesService.createOrUpdate(tx, id, communeInseeCodes);
-      }
 
       if (collectivitesRef !== undefined && collectivitesRef.length > 0) {
         await this.collectivitesService.createOrUpdateRelations(tx, id, collectivitesRef);

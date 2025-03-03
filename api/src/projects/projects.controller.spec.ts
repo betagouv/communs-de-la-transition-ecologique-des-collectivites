@@ -35,11 +35,6 @@ describe("ProjectsController", () => {
     status: "IDEE",
     competences: null,
     leviers: null,
-    communes: [
-      {
-        inseeCode: "75056",
-      },
-    ],
     collectivites: mockedCollectivites.map(({ code }) => ({
       codeInsee: code,
       codeEpci: null,
@@ -80,7 +75,6 @@ describe("ProjectsController", () => {
       budget: 100000,
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
-      communeInseeCodes: ["75056"],
       collectivitesRef: mockedCollectivites,
       externalId: "test-service-id",
     };
