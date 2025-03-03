@@ -1,5 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsDateString, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsDateString,
+  IsIn,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from "class-validator";
 import { CollectiviteType, ProjectStatus, projectStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
@@ -83,10 +92,11 @@ export class CreateProjectRequest {
       { type: "Commune", code: "12345" },
       { type: "EPCI", code: "123456789" },
     ],
+    required: true,
     type: [CollectiviteReference],
   })
   @IsArray()
-  @IsNotEmpty()
+  @ArrayNotEmpty({ message: "At least one commune insee code must be provided" })
   collectivitesRef!: { type: CollectiviteType; code: string }[];
 
   @ApiProperty({

@@ -10,8 +10,9 @@ import {
   boolean,
   jsonb,
   unique,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { eq, relations, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 const projectStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
@@ -69,14 +70,21 @@ export const collectivites = pgTable(
     codeInsee: text("code_insee"),
     codeDepartements: text("code_departements").array(),
     codeRegions: text("code_regions").array(),
-    codeEpci: text("code_epci").unique(),
+    codeEpci: text("code_epci"),
     siren: text("siren").unique(),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  //todo add unique constraint for epci code and type epci + codeInsee and type commune
-  // (t) => [unique().on(t.id, t.description).nullsNotDistinct()],
+  (t) => [
+    //syntax as a workaround https://github.com/drizzle-team/drizzle-orm/issues/3349
+    uniqueIndex()
+      .on(t.codeEpci, t.type)
+      .where(eq(t.type, sql`'EPCI'`)),
+    uniqueIndex()
+      .on(t.codeInsee, t.type)
+      .where(eq(t.type, sql`'Commune'`)),
+  ],
 );
 
 export const projectsToCollectivites = pgTable(

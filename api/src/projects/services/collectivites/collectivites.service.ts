@@ -13,6 +13,9 @@ export class CollectivitesService {
 
     const collectiviteIds = await this.getCollectivitesIdsByRefs(tx, collectiviteRefs);
 
+    // check that allCollectivities are in base otherwise we are missing some collectivities
+    // and we need to create them
+
     //delete old relations
     await tx
       .delete(projectsToCollectivites)

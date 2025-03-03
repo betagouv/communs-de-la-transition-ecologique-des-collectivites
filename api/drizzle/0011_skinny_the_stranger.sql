@@ -1,0 +1,2 @@
+ALTER TABLE "collectivites" DROP CONSTRAINT "collectivites_code_epci_unique";--> statement-breakpoint
+CREATE UNIQUE INDEX "collectivites_code_epci_type_index" ON "collectivites" USING btree ("code_epci","type") WHERE "collectivites"."type" = 'EPCI';

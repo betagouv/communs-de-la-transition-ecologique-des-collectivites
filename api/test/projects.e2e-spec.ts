@@ -114,7 +114,7 @@ describe("Projects (e2e)", () => {
       expect(error?.message).toStrictEqual(["forecastedStartDate must be a valid ISO 8601 date string"]);
     });
 
-    it("should reject when project has no collectivtes", async () => {
+    it("should reject when project has no collectivites", async () => {
       const { error } = await api.projects.create({
         ...validProject,
         collectivitesRef: [],
@@ -378,7 +378,7 @@ describe("Projects (e2e)", () => {
             nom: validProject.nom,
             collectivites: expect.arrayContaining([
               expect.objectContaining({
-                inseeCode: mockedDefaultCollectivite.code,
+                codeInsee: mockedDefaultCollectivite.code,
                 type: mockedDefaultCollectivite.type,
               }),
             ]),

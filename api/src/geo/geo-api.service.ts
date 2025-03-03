@@ -9,7 +9,7 @@ type EpciFromApi = components["schemas"]["Epci"];
 
 export interface Collectivite {
   nom: string;
-  type: "Commune" | "EPCI" | "Departement" | "Region";
+  type: "Commune" | "EPCI";
   codeInsee?: string | null;
   // in case of EPCI, we have multiple departements and regions
   codeDepartements: string[] | null;
@@ -39,7 +39,6 @@ export class GeoApiService {
   public async getAllEpcis(): Promise<Collectivite[]> {
     const { data, error } = await this.client.GET("/epcis");
 
-    console.log("epci", data);
     if (error) {
       throw new Error(`Geo API Error ${error?.message}`);
     }

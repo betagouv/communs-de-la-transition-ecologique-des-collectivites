@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "collectivites_code_insee_type_index" ON "collectivites" USING btree ("code_insee","type") WHERE "collectivites"."type" = 'Commune';
