@@ -2,18 +2,17 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateProjectRequest } from "../../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
-import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { CreateProjectsService } from "./create-projects.service";
-import { projects, projectsToCommunes } from "@database/schema";
+import { collectivites, projects, projectsToCollectivites } from "@database/schema";
 import { and, inArray } from "drizzle-orm";
 import { ConflictException } from "@nestjs/common";
+import { BulkCreateProjectsRequest } from "@projects/dto/bulk-create-projects.dto";
+import { mockedDefaultCollectivite, mockProjectPayload } from "@test/mocks/mockProjectPayload";
 
 describe("ProjectCreateService", () => {
   let service: CreateProjectsService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
-
-  const mockedCommunes = ["01001", "75056", "97A01"];
 
   beforeAll(async () => {
     const { module: internalModule, testDbService: tds } = await testModule();
@@ -28,20 +27,16 @@ describe("ProjectCreateService", () => {
 
   beforeEach(async () => {
     await testDbService.cleanDatabase();
+    await testDbService.database.insert(collectivites).values({
+      type: mockedDefaultCollectivite.type,
+      codeInsee: mockedDefaultCollectivite.code,
+      nom: "Commune 1",
+    });
   });
 
   describe("create", () => {
     it("should create a new project", async () => {
-      const createDto: CreateProjectRequest = {
-        nom: "Test Project",
-        description: "Test Description",
-        budget: 100000,
-        forecastedStartDate: getFormattedDate(),
-        status: "IDEE",
-        communeInseeCodes: mockedCommunes,
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
-        externalId: "test-external-id",
-      };
+      const createDto = mockProjectPayload();
 
       const result = await service.create(createDto, "MEC_test_api_key");
 
@@ -51,16 +46,7 @@ describe("ProjectCreateService", () => {
     });
 
     it("should throw ConflictException when project with same externalId exists", async () => {
-      const createDto: CreateProjectRequest = {
-        nom: "Test Project",
-        description: "Test Description",
-        budget: 100000,
-        forecastedStartDate: getFormattedDate(),
-        status: "IDEE",
-        communeInseeCodes: mockedCommunes,
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
-        externalId: "duplicate-id",
-      };
+      const createDto = mockProjectPayload({ externalId: "duplicate-id" });
 
       await service.create(createDto, "MEC_test_api_key");
 
@@ -70,15 +56,7 @@ describe("ProjectCreateService", () => {
     });
 
     it("should allow same externalId for different services", async () => {
-      const createDto: CreateProjectRequest = {
-        nom: "Test Project",
-        description: "Test Description",
-        budget: 100000,
-        forecastedStartDate: getFormattedDate(),
-        status: "IDEE",
-        communeInseeCodes: mockedCommunes,
-        externalId: "same-external-id",
-      };
+      const createDto = mockProjectPayload();
 
       // Create project with MEC API key
       await service.create(createDto, "MEC_test_api_key");
@@ -92,25 +70,11 @@ describe("ProjectCreateService", () => {
 
   describe("createBulk", () => {
     it("should create multiple projects in a transaction", async () => {
-      const projectsToCreate = {
+      const projectsToCreate: BulkCreateProjectsRequest = {
         projects: [
-          {
-            nom: "Test Project 1",
-            description: "Test Description 1",
-            budget: 100000,
-            forecastedStartDate: getFormattedDate(),
-            status: "IDEE",
-            communeInseeCodes: ["75056"],
-          },
-          {
-            nom: "Test Project 2",
-            description: "Test Description 2",
-            budget: 200000,
-            forecastedStartDate: getFormattedDate(),
-            status: "IDEE",
-            communeInseeCodes: ["75057"],
-          },
-        ] as CreateProjectRequest[],
+          mockProjectPayload(),
+          mockProjectPayload({ nom: "Test Project 2", externalId: "test-external-id-2" }),
+        ],
       };
 
       const result = await service.createBulk(projectsToCreate, "MEC_test_api_key");
@@ -125,42 +89,25 @@ describe("ProjectCreateService", () => {
 
       expect(createdProjects).toHaveLength(2);
 
-      // Verify communes were created and linked
-      const projectCommunes = await testDbService.database
+      // Verify collectivites were created and linked
+      const projectCollectivites = await testDbService.database
         .select()
-        .from(projectsToCommunes)
+        .from(projectsToCollectivites)
         .where(
           and(
             inArray(
-              projectsToCommunes.projectId,
+              projectsToCollectivites.projectId,
               createdProjects.map((p) => p.id),
             ),
           ),
         );
 
-      expect(projectCommunes).toHaveLength(2);
+      expect(projectCollectivites).toHaveLength(2);
     });
 
     it("should rollback all changes if any project creation fails", async () => {
       const projectsToCreate = {
-        projects: [
-          {
-            nom: "Test Project 1",
-            description: "Test Description 1",
-            budget: 100000,
-            forecastedStartDate: getFormattedDate(),
-            status: "IDEE",
-            communeInseeCodes: ["75056"],
-          },
-          {
-            nom: "Test Project 2",
-            description: "Test Description 2",
-            budget: "budget", // Invalid budget to trigger failure
-            forecastedStartDate: getFormattedDate(),
-            status: "IDEE",
-            communeInseeCodes: ["75057"],
-          },
-        ] as CreateProjectRequest[],
+        projects: [mockProjectPayload(), mockProjectPayload({ nom: "Test Project 2" })] as CreateProjectRequest[],
       };
 
       await expect(service.createBulk(projectsToCreate, "MEC_test_api_key")).rejects.toThrow();
@@ -169,9 +116,9 @@ describe("ProjectCreateService", () => {
       const createdProjects = await testDbService.database.select().from(projects);
       expect(createdProjects).toHaveLength(0);
 
-      // Verify no commune relations were created
-      const projectCommunes = await testDbService.database.select().from(projectsToCommunes);
-      expect(projectCommunes).toHaveLength(0);
+      // Verify no collectivites relations were created
+      const projectCollectivites = await testDbService.database.select().from(projectsToCollectivites);
+      expect(projectCollectivites).toHaveLength(0);
     });
   });
 });

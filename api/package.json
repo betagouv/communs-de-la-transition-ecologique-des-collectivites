@@ -27,6 +27,8 @@
     "test:e2e": "pnpm generate-types && jest --config test/jest-e2e.config.ts --runInBand --detectOpenHandles",
     "test:scripts:watch": "jest --config test/jest.scripts.config.ts --watch",
     "generate-types": "bash scripts/generate-types.sh",
+    "convert-geo-api-to-openapi": "npx swagger2openapi https://geo.api.gouv.fr/definition.yml -o src/geo/openapi-definition.yml",
+    "generate-geo-types": "openapi-typescript src/geo/openapi-definition.yml -o src/geo/api.d.ts",
     "generate-competences-list": "ts-node scripts/generate-competences-list.ts",
     "release": "commit-and-tag-version",
     "db:start": "docker-compose up -d",

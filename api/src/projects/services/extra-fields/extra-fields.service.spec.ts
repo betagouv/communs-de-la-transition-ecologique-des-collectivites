@@ -1,18 +1,16 @@
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
-import { CreateProjectRequest } from "../../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
-import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { CreateProjectsService } from "../create-projects/create-projects.service";
 import { ExtraFieldsService } from "@projects/services/extra-fields/extra-fields.service";
+import { collectivites } from "@database/schema";
+import { mockedDefaultCollectivite, mockProjectPayload } from "@test/mocks/mockProjectPayload";
 
 describe("ExtraFieldService", () => {
   let createService: CreateProjectsService;
   let extraFieldsService: ExtraFieldsService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
-
-  const mockedCommunes = ["01001", "75056", "97A01"];
 
   beforeAll(async () => {
     const { module: internalModule, testDbService: tds } = await testModule();
@@ -28,22 +26,18 @@ describe("ExtraFieldService", () => {
 
   beforeEach(async () => {
     await testDbService.cleanDatabase();
+    await testDbService.database.insert(collectivites).values([
+      {
+        nom: "Commune 1",
+        type: mockedDefaultCollectivite.type,
+        codeInsee: mockedDefaultCollectivite.code,
+      },
+    ]);
   });
 
   describe("getExtraFieldsByProjectId", () => {
     it("should return default extrafields for a project", async () => {
-      const createDto: CreateProjectRequest = {
-        nom: "Test Project",
-        description: "Test Description",
-        porteurCodeSiret: "12345678901234",
-        budget: 100000,
-        forecastedStartDate: getFormattedDate(),
-        status: "IDEE",
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
-        leviers: ["Bio-carburants"],
-        communeInseeCodes: mockedCommunes,
-        externalId: "test-service-id",
-      };
+      const createDto = mockProjectPayload();
 
       const createdProject = await createService.create(createDto, "MEC_test_api_key");
       const result = await extraFieldsService.getExtraFieldsByProjectId(createdProject.id);
@@ -53,18 +47,7 @@ describe("ExtraFieldService", () => {
 
   describe("createExtraFields", () => {
     it("should return created extrafields for a project", async () => {
-      const createDto: CreateProjectRequest = {
-        nom: "Test Project",
-        description: "Test Description",
-        porteurCodeSiret: "12345678901234",
-        budget: 100000,
-        forecastedStartDate: getFormattedDate(),
-        status: "IDEE",
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
-        leviers: ["Bio-carburants"],
-        communeInseeCodes: mockedCommunes,
-        externalId: "test-service-id",
-      };
+      const createDto = mockProjectPayload();
 
       const createdProject = await createService.create(createDto, "MEC_test_api_key");
 

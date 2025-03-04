@@ -11,6 +11,7 @@ import { throttlerConfig } from "./security/throttler.config";
 import { ServicesModule } from "./services/services.module";
 import { SentryModule } from "@sentry/nestjs/setup";
 import { CorsMiddleware } from "./middleware/cors.middleware";
+import { GeoModule } from "@/geo/geo.module";
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CorsMiddleware } from "./middleware/cors.middleware";
     ProjectsModule,
     ServicesModule,
     LoggerModule,
+    GeoModule,
   ],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
 })

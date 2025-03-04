@@ -4,14 +4,17 @@ import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateServiceRequest } from "./dto/create-service.dto";
 import { TestingModule } from "@nestjs/testing";
 import { CreateProjectsService } from "@projects/services/create-projects/create-projects.service";
-import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { ConflictException, NotFoundException } from "@nestjs/common";
+import { collectivites } from "@database/schema";
+import { CollectiviteReference } from "@projects/dto/collectivite.dto";
+import { mockProjectPayload } from "@test/mocks/mockProjectPayload";
 
 describe("ServicesService", () => {
   let service: ServicesService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
   let createProjectService: CreateProjectsService;
+  const mockedCollectivites: CollectiviteReference = { type: "Commune", code: "01001" };
 
   beforeAll(async () => {
     const { module: internalModule, testDbService: tds } = await testModule();
@@ -27,6 +30,9 @@ describe("ServicesService", () => {
 
   beforeEach(async () => {
     await testDbService.cleanDatabase();
+    await testDbService.database
+      .insert(collectivites)
+      .values({ type: mockedCollectivites.type, codeInsee: mockedCollectivites.code, nom: "Commune 1" });
   });
 
   describe("create", () => {
@@ -65,12 +71,7 @@ describe("ServicesService", () => {
 
   describe("getServicesByProjectId", () => {
     it("should return no service for project without services", async () => {
-      const createDto: CreateProjectRequest = {
-        nom: "Test Project",
-        status: "IDEE",
-        communeInseeCodes: ["12345"],
-        externalId: "test-external-id",
-      };
+      const createDto = mockProjectPayload();
 
       const project = await createProjectService.create(createDto, "MEC_test_api_key");
 
