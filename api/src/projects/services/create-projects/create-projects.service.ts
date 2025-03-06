@@ -1,6 +1,6 @@
 import { DatabaseService } from "@database/database.service";
 import { ConflictException, Injectable } from "@nestjs/common";
-import { CommunesService } from "../communes/communes.service";
+import { CollectivitesService } from "../collectivites/collectivites.service";
 import { projects } from "@database/schema";
 import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { BulkCreateProjectsRequest } from "@projects/dto/bulk-create-projects.dto";
@@ -11,7 +11,7 @@ import { eq } from "drizzle-orm";
 export class CreateProjectsService {
   constructor(
     private dbService: DatabaseService,
-    private readonly communesService: CommunesService,
+    private readonly collectivitesService: CollectivitesService,
     private readonly serviceIdentifierService: ServiceIdentifierService,
   ) {}
 
@@ -41,7 +41,7 @@ export class CreateProjectsService {
         })
         .returning();
 
-      await this.communesService.createOrUpdate(tx, createdProject.id, createProjectDto.communeInseeCodes);
+      await this.collectivitesService.createOrUpdateRelations(tx, createdProject.id, createProjectDto.collectivites);
 
       return { id: createdProject.id };
     });
@@ -54,7 +54,7 @@ export class CreateProjectsService {
       const createdProjects = [];
 
       for (const projectDto of bulkCreateProjectsRequest.projects) {
-        const { competences, communeInseeCodes, externalId, ...projectFields } = projectDto;
+        const { competences, collectivites, externalId, ...projectFields } = projectDto;
 
         const existingProject = await this.dbService.database
           .select()
@@ -75,7 +75,7 @@ export class CreateProjectsService {
           })
           .returning({ id: projects.id });
 
-        await this.communesService.createOrUpdate(tx, newProject.id, communeInseeCodes);
+        await this.collectivitesService.createOrUpdateRelations(tx, newProject.id, collectivites);
 
         createdProjects.push(newProject);
       }

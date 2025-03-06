@@ -3,11 +3,7 @@ import { Competences, Leviers } from "@/shared/types";
 import { ApiProperty } from "@nestjs/swagger";
 import { leviers } from "@/shared/const/leviers";
 import { competences } from "@/shared/const/competences-list";
-
-class Commune {
-  @ApiProperty()
-  inseeCode!: string;
-}
+import { Collectivite } from "@projects/dto/collectivite.dto";
 
 export class ProjectResponse {
   @ApiProperty()
@@ -46,8 +42,8 @@ export class ProjectResponse {
   @ApiProperty({ nullable: true, type: String })
   porteurReferentFonction!: string | null;
 
-  @ApiProperty()
-  communes!: Commune[];
+  @ApiProperty({ type: [Collectivite] })
+  collectivites!: Collectivite[];
 
   @ApiProperty({ nullable: true, type: Number })
   budget!: number | null;

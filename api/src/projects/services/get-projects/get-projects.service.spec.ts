@@ -1,27 +1,38 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
-import { CreateProjectRequest } from "../../dto/create-project.dto";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
-import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { GetProjectsService } from "./get-projects.service";
 import { CreateProjectsService } from "../create-projects/create-projects.service";
+import { CollectiviteReference } from "@projects/dto/collectivite.dto";
+import { collectivites } from "@database/schema";
+import { mockProjectPayload } from "@test/mocks/mockProjectPayload";
 
 describe("ProjectFindService", () => {
-  let findService: GetProjectsService;
-  let createService: CreateProjectsService;
+  let getProjectsService: GetProjectsService;
+  let createProjectsService: CreateProjectsService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
 
-  const mockedCommunes = ["01001", "75056", "97A01"];
+  const mockedCollectivites: CollectiviteReference[] = [
+    { type: "Commune", code: "01001" },
+    { type: "EPCI", code: "123456789" },
+    { type: "Commune", code: "75056" },
+  ];
+
+  const mockedCollectivitesDb = [
+    { ...mockedCollectivites[0], nom: "Commune 1" },
+    { ...mockedCollectivites[1], nom: "EPCI 1" },
+    { ...mockedCollectivites[2], nom: "Commune 2" },
+  ];
 
   beforeAll(async () => {
     const { module: internalModule, testDbService: tds } = await testModule();
     module = internalModule;
     testDbService = tds;
-    findService = module.get<GetProjectsService>(GetProjectsService);
-    createService = module.get<CreateProjectsService>(CreateProjectsService);
+    getProjectsService = module.get<GetProjectsService>(GetProjectsService);
+    createProjectsService = module.get<CreateProjectsService>(CreateProjectsService);
   });
 
   afterAll(async () => {
@@ -30,76 +41,91 @@ describe("ProjectFindService", () => {
 
   beforeEach(async () => {
     await testDbService.cleanDatabase();
+    await testDbService.database.insert(collectivites).values([
+      {
+        nom: "Commune 1",
+        type: "Commune",
+        codeInsee: "01001",
+      },
+      {
+        nom: "EPCI 1",
+        type: "EPCI",
+        codeEpci: "123456789",
+      },
+      {
+        nom: "Commune 2",
+        type: "Commune",
+        codeInsee: "75056",
+      },
+    ]);
   });
 
-  describe("findAll", () => {
-    it("should return all projects", async () => {
-      const createDto1: CreateProjectRequest = {
-        nom: "Project 1",
-        description: "Description 1",
-        porteurReferentEmail: "porteurReferentEmail@email.com",
-        budget: 100000,
-        forecastedStartDate: getFormattedDate(),
-        status: "IDEE",
-        communeInseeCodes: mockedCommunes,
-        externalId: "test-service-id-1",
-      };
-      const createDto2: CreateProjectRequest = {
-        nom: "Project 2",
-        description: "Description 2",
-        budget: 100000,
-        forecastedStartDate: getFormattedDate(),
-        status: "IDEE",
-        communeInseeCodes: mockedCommunes,
-        externalId: "test-service-id-2",
-      };
-
-      await createService.create(createDto1, "MEC_test_api_key");
-      await createService.create(createDto2, "MEC_test_api_key");
-
-      const { communeInseeCodes: communeCodesInProject1, externalId, ...expectedFieldsProject1 } = createDto1;
-      const {
-        communeInseeCodes: communeCodesInProject2,
-        externalId: serviceIdInProject2,
-        ...expectedFieldsProject2
-      } = createDto2;
-
-      const result = await findService.findAll();
-
-      const expectedCommonFields = {
+  const expectedCommonFields = {
+    id: expect.any(String),
+    createdAt: expect.any(Date),
+    updatedAt: expect.any(Date),
+    porteurCodeSiret: null,
+    porteurReferentEmail: null,
+    porteurReferentFonction: null,
+    porteurReferentNom: null,
+    porteurReferentPrenom: null,
+    porteurReferentTelephone: null,
+    leviers: ["Bio-carburants"],
+    competences: ["Santé", "Culture > Arts plastiques et photographie"],
+    budget: 100000,
+    collectivites: expect.arrayContaining(
+      mockedCollectivites.map(({ code, type }, index) => ({
+        codeInsee: type === "Commune" ? code : null,
+        codeEpci: type === "EPCI" ? code : null,
+        type: type,
+        siren: null,
+        codeDepartements: null,
+        codeRegions: null,
+        nom: mockedCollectivitesDb[index].nom,
         id: expect.any(String),
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
-        porteurCodeSiret: null,
-        porteurReferentEmail: null,
-        porteurReferentFonction: null,
-        porteurReferentNom: null,
-        porteurReferentPrenom: null,
-        porteurReferentTelephone: null,
-        competences: null,
-        leviers: null,
-        communes: expect.arrayContaining(
-          mockedCommunes.map((code) => ({
-            inseeCode: code,
-          })),
-        ),
-        tetId: null,
-        recocoId: null,
-      };
+      })),
+    ),
+    tetId: null,
+    recocoId: null,
+  };
+
+  describe("findAll", () => {
+    it("should return all projects", async () => {
+      const createDto1 = mockProjectPayload({
+        collectivites: mockedCollectivites,
+        externalId: "test-service-id-1",
+      });
+
+      const createDto2 = mockProjectPayload({
+        collectivites: mockedCollectivites,
+        externalId: "test-service-id-2",
+      });
+
+      await createProjectsService.create(createDto1, "MEC_test_api_key");
+      await createProjectsService.create(createDto2, "MEC_test_api_key");
+
+      const { collectivites, externalId, ...expectedFieldsProject1 } = createDto1;
+
+      const {
+        externalId: serviceIdInProject2,
+        collectivites: collectivitesRefInProject2,
+        ...expectedFieldsProject2
+      } = createDto2;
+
+      const result = await getProjectsService.findAll();
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
         ...expectedFieldsProject1,
         ...expectedCommonFields,
-        porteurReferentEmail: "porteurReferentEmail@email.com",
-        status: "IDEE",
         mecId: "test-service-id-1",
       });
 
       expect(result[1]).toEqual({
         ...expectedFieldsProject2,
         ...expectedCommonFields,
-        status: "IDEE",
         mecId: "test-service-id-2",
       });
     });
@@ -107,86 +133,42 @@ describe("ProjectFindService", () => {
 
   describe("findOne", () => {
     it("should return a project by id", async () => {
-      const createDto: CreateProjectRequest = {
-        nom: "Test Project",
-        description: "Test Description",
-        porteurCodeSiret: "12345678901234",
-        budget: 100000,
-        forecastedStartDate: getFormattedDate(),
-        status: "IDEE",
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
-        leviers: ["Bio-carburants"],
-        communeInseeCodes: mockedCommunes,
+      const createDto = mockProjectPayload({
+        collectivites: mockedCollectivites,
         externalId: "test-service-id",
-      };
+      });
 
-      const createdProject = await createService.create(createDto, "MEC_test_api_key");
-      const result = await findService.findOne(createdProject.id);
-      const { communeInseeCodes, externalId, ...expectedFields } = createDto;
+      const createdProject = await createProjectsService.create(createDto, "MEC_test_api_key");
+      const result = await getProjectsService.findOne(createdProject.id);
+      const { externalId, collectivites, ...expectedFields } = createDto;
+
       expect(result).toEqual({
+        ...expectedCommonFields,
         ...expectedFields,
-        communes: expect.arrayContaining(
-          mockedCommunes.map((code) => ({
-            inseeCode: code,
-          })),
-        ),
-        porteurReferentEmail: null,
-        porteurReferentFonction: null,
-        porteurReferentNom: null,
-        porteurReferentPrenom: null,
-        porteurReferentTelephone: null,
-        id: expect.any(String),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-        status: "IDEE",
-        recocoId: null,
         mecId: "test-service-id",
-        tetId: null,
       });
     });
 
     it("should return extrafields for a project", async () => {
-      const createDto: CreateProjectRequest = {
-        nom: "Test Project",
-        description: "Test Description",
-        porteurCodeSiret: "12345678901234",
-        budget: 100000,
-        forecastedStartDate: getFormattedDate(),
-        status: "IDEE",
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
-        leviers: ["Bio-carburants"],
-        communeInseeCodes: mockedCommunes,
+      const createDto = mockProjectPayload({
+        collectivites: mockedCollectivites,
         externalId: "test-service-id",
-      };
+      });
 
-      const createdProject = await createService.create(createDto, "MEC_test_api_key");
-      const result = await findService.findOne(createdProject.id);
-      const { communeInseeCodes, externalId, ...expectedFields } = createDto;
+      const createdProject = await createProjectsService.create(createDto, "MEC_test_api_key");
+      const result = await getProjectsService.findOne(createdProject.id);
+      const { externalId, collectivites, ...expectedFields } = createDto;
+
       expect(result).toEqual({
+        ...expectedCommonFields,
         ...expectedFields,
-        communes: expect.arrayContaining(
-          mockedCommunes.map((code) => ({
-            inseeCode: code,
-          })),
-        ),
-        porteurReferentEmail: null,
-        porteurReferentFonction: null,
-        porteurReferentNom: null,
-        porteurReferentPrenom: null,
-        porteurReferentTelephone: null,
-        id: expect.any(String),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-        status: "IDEE",
-        recocoId: null,
         mecId: "test-service-id",
-        tetId: null,
       });
     });
 
     it("should throw NotFoundException when project not found", async () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      await expect(findService.findOne(nonExistentId)).rejects.toThrow(NotFoundException);
+      await expect(getProjectsService.findOne(nonExistentId)).rejects.toThrow(NotFoundException);
     });
   });
 });

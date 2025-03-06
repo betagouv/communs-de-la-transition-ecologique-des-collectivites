@@ -9,10 +9,11 @@ import {
   IsOptional,
   IsString,
 } from "class-validator";
-import { ProjectStatus, projectStatusEnum } from "@database/schema";
+import { CollectiviteType, ProjectStatus, projectStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
+import { CollectiviteReference } from "@projects/dto/collectivite.dto";
 
 export class CreateOrUpdateProjectResponse {
   @ApiProperty()
@@ -86,18 +87,17 @@ export class CreateProjectRequest {
   status?: ProjectStatus | null;
 
   @ApiProperty({
-    type: String,
-    description: "Array of INSEE codes for the communes",
-    example: ["01001", "75056", "97A01"],
-    isArray: true,
-    required: false,
+    description: "Array of collectivite references",
+    example: [
+      { type: "Commune", code: "12345" },
+      { type: "EPCI", code: "123456789" },
+    ],
+    required: true,
+    type: [CollectiviteReference],
   })
   @IsArray()
-  @IsString({ each: true })
-  @ArrayNotEmpty({
-    message: "At least one commune insee code must be provided",
-  })
-  communeInseeCodes!: string[];
+  @ArrayNotEmpty({ message: "At least one commune insee code must be provided" })
+  collectivites!: { type: CollectiviteType; code: string }[];
 
   @ApiProperty({
     type: String,

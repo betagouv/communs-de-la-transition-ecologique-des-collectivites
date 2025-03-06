@@ -18,9 +18,9 @@ export class GetProjectsService {
 
     const results = await this.dbService.database.query.projects.findMany({
       with: {
-        communes: {
+        collectivites: {
           with: {
-            commune: true,
+            collectivite: true,
           },
         },
       },
@@ -31,7 +31,7 @@ export class GetProjectsService {
         ...result,
         competences: result.competences ? (result.competences as Competences) : null,
         leviers: result.leviers ? (result.leviers as Leviers) : null,
-        communes: result.communes.map((c) => c.commune),
+        collectivites: result.collectivites.map((c) => c.collectivite),
       };
     });
   }
@@ -40,9 +40,9 @@ export class GetProjectsService {
     const result = await this.dbService.database.query.projects.findFirst({
       where: eq(projects.id, id),
       with: {
-        communes: {
+        collectivites: {
           with: {
-            commune: true,
+            collectivite: true,
           },
         },
       },
@@ -57,7 +57,7 @@ export class GetProjectsService {
       ...result,
       competences: result.competences ? (result.competences as Competences) : null,
       leviers: result.leviers ? (result.leviers as Leviers) : null,
-      communes: result.communes.map((c) => c.commune),
+      collectivites: result.collectivites.map((c) => c.collectivite),
     };
   }
 }

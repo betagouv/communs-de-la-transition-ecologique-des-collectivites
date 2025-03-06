@@ -127,6 +127,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Collectivite: {
+            id: string;
+            nom: string;
+            /** @enum {string} */
+            type: "Commune" | "EPCI";
+            codeInsee: string | null;
+            codeEpci: string | null;
+            codeDepartements: string | null;
+            codeRegions: string | null;
+            siren: string | null;
+        };
         ProjectResponse: {
             id: string;
             /** Format: date-time */
@@ -141,7 +152,7 @@ export interface components {
             porteurReferentPrenom: string | null;
             porteurReferentNom: string | null;
             porteurReferentFonction: string | null;
-            communes: string[];
+            collectivites: components["schemas"]["Collectivite"][];
             budget: number | null;
             forecastedStartDate: string | null;
             /** @enum {string|null} */
@@ -177,6 +188,16 @@ export interface components {
             /** @description Array of extra field names, values, and labels */
             extraFields: components["schemas"]["ExtraField"][];
         };
+        CollectiviteReference: {
+            /**
+             * @description Types of the collectivite
+             * @example Commune
+             * @enum {string}
+             */
+            type: "Commune" | "EPCI";
+            /** @description Code of the collectivite, codeInsee for communes and codeEpci/siren for EPCI */
+            code: string;
+        };
         CreateProjectRequest: {
             nom: string;
             description?: string | null;
@@ -198,14 +219,19 @@ export interface components {
              */
             status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
             /**
-             * @description Array of INSEE codes for the communes
+             * @description Array of collectivite references
              * @example [
-             *       "01001",
-             *       "75056",
-             *       "97A01"
+             *       {
+             *         "type": "Commune",
+             *         "code": "12345"
+             *       },
+             *       {
+             *         "type": "EPCI",
+             *         "code": "123456789"
+             *       }
              *     ]
              */
-            communeInseeCodes?: string[];
+            collectivites: components["schemas"]["CollectiviteReference"][];
             /**
              * @description Array of competences and sous-competences
              * @example [
@@ -248,14 +274,19 @@ export interface components {
              */
             status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
             /**
-             * @description Array of INSEE codes for the communes
+             * @description Array of collectivite references
              * @example [
-             *       "01001",
-             *       "75056",
-             *       "97A01"
+             *       {
+             *         "type": "Commune",
+             *         "code": "12345"
+             *       },
+             *       {
+             *         "type": "EPCI",
+             *         "code": "123456789"
+             *       }
              *     ]
              */
-            communeInseeCodes?: string[];
+            collectivites?: components["schemas"]["CollectiviteReference"][];
             /**
              * @description Array of competences and sous-competences
              * @example [

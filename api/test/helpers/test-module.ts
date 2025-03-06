@@ -5,13 +5,20 @@ import { AppModule } from "@/app.module";
 import { Provider } from "@nestjs/common";
 
 export async function testModule(additionalProviders: Provider[] = []) {
-  const module: TestingModule = await Test.createTestingModule({
+  let testingModule = Test.createTestingModule({
     imports: [AppModule],
     providers: [...additionalProviders],
   })
     .overrideProvider(DatabaseService)
-    .useClass(TestDatabaseService)
-    .compile();
+    .useClass(TestDatabaseService);
+
+  // Apply any additional provider overrides
+  for (const provider of additionalProviders) {
+    if ("provide" in provider && "useValue" in provider) {
+      testingModule = testingModule.overrideProvider(provider.provide).useValue(provider.useValue);
+    }
+  }
+  const module = await testingModule.compile();
 
   // Initialize module first
   await module.init();

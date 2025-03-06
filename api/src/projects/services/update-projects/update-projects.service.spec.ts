@@ -10,6 +10,8 @@ import { UpdateProjectsService } from "./update-projects.service";
 import { CreateProjectsService } from "../create-projects/create-projects.service";
 import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";
 import { UpdateProjectDto } from "@projects/dto/update-project.dto";
+import { CollectiviteReference } from "@projects/dto/collectivite.dto";
+import { collectivites } from "@database/schema";
 
 describe("ProjectUpdateService", () => {
   let updateService: UpdateProjectsService;
@@ -19,9 +21,9 @@ describe("ProjectUpdateService", () => {
   let module: TestingModule;
   let projectId: string;
 
-  const mockedCommunes = ["01001", "75056", "97A01"];
   const MEC_API_KEY = "MEC_test_api_key";
   const EXTERNAL_ID = "test-service-id";
+  const mockedCollectivites: CollectiviteReference = { type: "Commune", code: "01001" };
 
   beforeAll(async () => {
     const { module: internalModule, testDbService: tds } = await testModule();
@@ -38,6 +40,13 @@ describe("ProjectUpdateService", () => {
 
   beforeEach(async () => {
     await testDbService.cleanDatabase();
+
+    await testDbService.database.insert(collectivites).values({
+      type: mockedCollectivites.type,
+      codeInsee: mockedCollectivites.code,
+      nom: "Commune 1",
+    });
+
     const createDto: CreateProjectRequest = {
       nom: "Initial Project",
       description: "Initial Description",
@@ -45,11 +54,12 @@ describe("ProjectUpdateService", () => {
       budget: 100000,
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
-      communeInseeCodes: mockedCommunes,
+      collectivites: [mockedCollectivites],
       externalId: EXTERNAL_ID,
     };
 
     const result = await createService.create(createDto, MEC_API_KEY);
+
     projectId = result.id;
   });
 
@@ -64,15 +74,26 @@ describe("ProjectUpdateService", () => {
     await updateService.update(projectId, updateDto, MEC_API_KEY);
     const updatedProject = await findService.findOne(projectId);
     const { externalId, ...expectedfields } = updateDto;
+
     expect(updatedProject).toMatchObject({
       ...expectedfields,
       id: projectId,
       porteurReferentEmail: "initial@email.com",
-      communes: expect.arrayContaining(
-        mockedCommunes.map((code) => ({
-          inseeCode: code,
-        })),
-      ),
+
+      collectivites: expect.arrayContaining([
+        {
+          codeInsee: mockedCollectivites.code,
+          codeEpci: null,
+          type: "Commune",
+          siren: null,
+          codeDepartements: null,
+          codeRegions: null,
+          nom: "Commune 1",
+          id: expect.any(String),
+          createdAt: expect.any(Date),
+          updatedAt: expect.any(Date),
+        },
+      ]),
     });
   });
 
@@ -97,24 +118,29 @@ describe("ProjectUpdateService", () => {
     });
   });
 
-  it("should only update communes when this is the only change", async () => {
-    const newCommunes = ["34567", "89012"];
-    const updateDto = {
-      communeInseeCodes: newCommunes,
+  it("should only update collectivites when this is the only change", async () => {
+    const newCollectivite: CollectiviteReference = { code: "new_EPCI", type: "EPCI" };
+
+    await testDbService.database.insert(collectivites).values({
+      type: newCollectivite.type,
+      codeEpci: newCollectivite.code,
+      nom: "new EPCI Collectivite",
+    });
+
+    const updateDto: UpdateProjectDto = {
+      collectivites: [newCollectivite],
       externalId: EXTERNAL_ID,
     };
 
     await updateService.update(projectId, updateDto, MEC_API_KEY);
     const updatedProject = await findService.findOne(projectId);
 
-    expect(updatedProject.communes).toHaveLength(newCommunes.length);
-    expect(updatedProject.communes).toEqual(
-      expect.arrayContaining(
-        newCommunes.map((code) => ({
-          inseeCode: code,
-        })),
-      ),
-    );
+    expect(updatedProject.collectivites).toHaveLength(1);
+    expect(updatedProject.collectivites[0]).toMatchObject({
+      type: newCollectivite.type,
+      codeEpci: newCollectivite.code,
+      nom: "new EPCI Collectivite",
+    });
   });
 
   it("should throw NotFoundException when project doesn't exist", async () => {
