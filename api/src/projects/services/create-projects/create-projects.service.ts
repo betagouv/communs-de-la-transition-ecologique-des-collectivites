@@ -41,7 +41,7 @@ export class CreateProjectsService {
         })
         .returning();
 
-      await this.collectivitesService.createOrUpdateRelations(tx, createdProject.id, createProjectDto.collectivitesRef);
+      await this.collectivitesService.createOrUpdateRelations(tx, createdProject.id, createProjectDto.collectivites);
 
       return { id: createdProject.id };
     });
@@ -54,7 +54,7 @@ export class CreateProjectsService {
       const createdProjects = [];
 
       for (const projectDto of bulkCreateProjectsRequest.projects) {
-        const { competences, collectivitesRef, externalId, ...projectFields } = projectDto;
+        const { competences, collectivites, externalId, ...projectFields } = projectDto;
 
         const existingProject = await this.dbService.database
           .select()
@@ -75,7 +75,7 @@ export class CreateProjectsService {
           })
           .returning({ id: projects.id });
 
-        await this.collectivitesService.createOrUpdateRelations(tx, newProject.id, collectivitesRef);
+        await this.collectivitesService.createOrUpdateRelations(tx, newProject.id, collectivites);
 
         createdProjects.push(newProject);
       }

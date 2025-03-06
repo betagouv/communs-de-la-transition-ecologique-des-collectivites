@@ -18,7 +18,7 @@ export class UpdateProjectsService {
   async update(id: string, updateProjectDto: UpdateProjectDto, apiKey: string): Promise<{ id: string }> {
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
-    const { externalId, collectivitesRef, ...otherFields } = updateProjectDto;
+    const { externalId, collectivites, ...otherFields } = updateProjectDto;
 
     return this.dbService.database.transaction(async (tx) => {
       const [existingProject] = await tx.select().from(projects).where(eq(projects.id, id)).limit(1);
@@ -39,8 +39,8 @@ export class UpdateProjectsService {
         [serviceIdField]: externalId,
       });
 
-      if (collectivitesRef !== undefined && collectivitesRef.length > 0) {
-        await this.collectivitesService.createOrUpdateRelations(tx, id, collectivitesRef);
+      if (collectivites !== undefined && collectivites.length > 0) {
+        await this.collectivitesService.createOrUpdateRelations(tx, id, collectivites);
       }
 
       if (Object.keys(fieldsToUpdate).length > 0) {

@@ -28,17 +28,17 @@ export class Collectivite {
   type!: CollectiviteType;
 
   @ApiProperty({ nullable: true, type: String })
-  codeInsee?: string | null;
+  codeInsee!: string | null;
 
   @ApiProperty({ nullable: true, type: String })
-  codeEpci?: string | null;
+  codeEpci!: string | null;
 
   @ApiProperty({ nullable: true, type: String })
-  codeDepartements?: string[] | null;
+  codeDepartements!: string[] | null;
 
   @ApiProperty({ nullable: true, type: String })
-  codeRegions?: string[] | null;
+  codeRegions!: string[] | null;
 
   @ApiProperty({ nullable: true, type: String })
-  siren?: string | null;
+  siren!: string | null;
 }

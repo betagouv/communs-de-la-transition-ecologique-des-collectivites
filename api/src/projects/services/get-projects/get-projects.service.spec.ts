@@ -94,23 +94,23 @@ describe("ProjectFindService", () => {
   describe("findAll", () => {
     it("should return all projects", async () => {
       const createDto1 = mockProjectPayload({
-        collectivitesRef: mockedCollectivites,
+        collectivites: mockedCollectivites,
         externalId: "test-service-id-1",
       });
 
       const createDto2 = mockProjectPayload({
-        collectivitesRef: mockedCollectivites,
+        collectivites: mockedCollectivites,
         externalId: "test-service-id-2",
       });
 
       await createProjectsService.create(createDto1, "MEC_test_api_key");
       await createProjectsService.create(createDto2, "MEC_test_api_key");
 
-      const { collectivitesRef, externalId, ...expectedFieldsProject1 } = createDto1;
+      const { collectivites, externalId, ...expectedFieldsProject1 } = createDto1;
 
       const {
         externalId: serviceIdInProject2,
-        collectivitesRef: collectivitesRefInProject2,
+        collectivites: collectivitesRefInProject2,
         ...expectedFieldsProject2
       } = createDto2;
 
@@ -134,13 +134,13 @@ describe("ProjectFindService", () => {
   describe("findOne", () => {
     it("should return a project by id", async () => {
       const createDto = mockProjectPayload({
-        collectivitesRef: mockedCollectivites,
+        collectivites: mockedCollectivites,
         externalId: "test-service-id",
       });
 
       const createdProject = await createProjectsService.create(createDto, "MEC_test_api_key");
       const result = await getProjectsService.findOne(createdProject.id);
-      const { externalId, collectivitesRef, ...expectedFields } = createDto;
+      const { externalId, collectivites, ...expectedFields } = createDto;
 
       expect(result).toEqual({
         ...expectedCommonFields,
@@ -151,13 +151,13 @@ describe("ProjectFindService", () => {
 
     it("should return extrafields for a project", async () => {
       const createDto = mockProjectPayload({
-        collectivitesRef: mockedCollectivites,
+        collectivites: mockedCollectivites,
         externalId: "test-service-id",
       });
 
       const createdProject = await createProjectsService.create(createDto, "MEC_test_api_key");
       const result = await getProjectsService.findOne(createdProject.id);
-      const { externalId, collectivitesRef, ...expectedFields } = createDto;
+      const { externalId, collectivites, ...expectedFields } = createDto;
 
       expect(result).toEqual({
         ...expectedCommonFields,

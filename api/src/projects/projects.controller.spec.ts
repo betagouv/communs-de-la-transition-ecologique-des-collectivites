@@ -75,7 +75,7 @@ describe("ProjectsController", () => {
       budget: 100000,
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
-      collectivitesRef: mockedCollectivites,
+      collectivites: mockedCollectivites,
       externalId: "test-service-id",
     };
 

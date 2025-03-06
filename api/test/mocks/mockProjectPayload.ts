@@ -11,7 +11,7 @@ export const mockProjectPayload = (specificPayload: Partial<CreateProjectRequest
   budget: specificPayload.budget ?? 100000,
   forecastedStartDate: specificPayload.forecastedStartDate ?? getFormattedDate(),
   status: specificPayload.status ?? "IDEE",
-  collectivitesRef: specificPayload.collectivitesRef ?? [mockedDefaultCollectivite],
+  collectivites: specificPayload.collectivites ?? [mockedDefaultCollectivite],
   competences: specificPayload.competences ?? ["Santé", "Culture > Arts plastiques et photographie"],
   leviers: ["Bio-carburants"],
   externalId: specificPayload.externalId ?? "test-external-id",

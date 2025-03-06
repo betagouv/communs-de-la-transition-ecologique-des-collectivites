@@ -26,7 +26,6 @@ export class GetProjectsService {
       },
     });
 
-    //todo check why I need to remap collectivites
     return results.map((result) => {
       return {
         ...result,

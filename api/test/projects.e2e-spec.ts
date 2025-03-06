@@ -82,7 +82,7 @@ describe("Projects (e2e)", () => {
       const mecClient = createApiClient(process.env.MEC_API_KEY!);
       const { data, error } = await mecClient.projects.create({
         ...validProject,
-        collectivitesRef: [{ code: missingCodeInsee, type: "Commune" }],
+        collectivites: [{ code: missingCodeInsee, type: "Commune" }],
       });
       expect(error).toBeUndefined();
       expect(data).toHaveProperty("id");
@@ -114,7 +114,7 @@ describe("Projects (e2e)", () => {
       const mecClient = createApiClient(process.env.MEC_API_KEY!);
       const { error } = await mecClient.projects.create({
         ...validProject,
-        collectivitesRef: [{ code: missingCodeInsee, type: "Commune" }],
+        collectivites: [{ code: missingCodeInsee, type: "Commune" }],
       });
       expect(error?.statusCode).toBe(400);
       expect(error?.message).toContain("Cannot find a corresponding Commune for this code invalidCodeInsee");
@@ -161,7 +161,7 @@ describe("Projects (e2e)", () => {
     it("should reject when project has no collectivites", async () => {
       const { error } = await api.projects.create({
         ...validProject,
-        collectivitesRef: [],
+        collectivites: [],
       });
 
       expect(error?.statusCode).toBe(400);
@@ -362,7 +362,7 @@ describe("Projects (e2e)", () => {
 
       const { data, error } = await api.projects.getOne(projectId);
 
-      const { externalId, collectivitesRef, ...expectedFields } = validProject;
+      const { externalId, collectivites, ...expectedFields } = validProject;
 
       expect(error).toBeUndefined();
       expect(data).toEqual({

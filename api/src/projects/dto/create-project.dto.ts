@@ -97,7 +97,7 @@ export class CreateProjectRequest {
   })
   @IsArray()
   @ArrayNotEmpty({ message: "At least one commune insee code must be provided" })
-  collectivitesRef!: { type: CollectiviteType; code: string }[];
+  collectivites!: { type: CollectiviteType; code: string }[];
 
   @ApiProperty({
     type: String,

@@ -54,7 +54,7 @@ describe("ProjectUpdateService", () => {
       budget: 100000,
       forecastedStartDate: getFormattedDate(),
       status: "IDEE",
-      collectivitesRef: [mockedCollectivites],
+      collectivites: [mockedCollectivites],
       externalId: EXTERNAL_ID,
     };
 
@@ -128,7 +128,7 @@ describe("ProjectUpdateService", () => {
     });
 
     const updateDto: UpdateProjectDto = {
-      collectivitesRef: [newCollectivite],
+      collectivites: [newCollectivite],
       externalId: EXTERNAL_ID,
     };
 
