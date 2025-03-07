@@ -11,14 +11,14 @@ import { ServiceIdentifierService } from "@projets/services/service-identifier/s
 export class UpdateProjetsService {
   constructor(
     private dbService: DatabaseService,
-    private readonly serviceIdentifierService: ServiceIdentifierService,
     private readonly collectivitesService: CollectivitesService,
+    private readonly serviceIdentifierService: ServiceIdentifierService,
   ) {}
 
   async update(id: string, updateProjectDto: UpdateProjetDto, apiKey: string): Promise<{ id: string }> {
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
-    const { externalId, collectivites, ...otherFields } = updateProjectDto;
+    const { collectivites, externalId, porteur, ...otherFields } = updateProjectDto;
 
     return this.dbService.database.transaction(async (tx) => {
       const [existingProject] = await tx.select().from(projets).where(eq(projets.id, id)).limit(1);
@@ -27,16 +27,21 @@ export class UpdateProjetsService {
         throw new NotFoundException(`Projet with ID ${id} not found`);
       }
 
-      // Check if project belongs to the service making the update
       if (existingProject[serviceIdField] !== externalId) {
         throw new ConflictException(
-          `Projet with ID ${id} cannot be updated: externalId mismatch (current: ${existingProject[serviceIdField]}, requested: ${externalId})`,
+          `Projet with ID ${id} cannot be updated: externalId mismatch (current: ${existingProject[serviceIdField]}, requested: ${updateProjectDto.externalId})`,
         );
       }
 
       const fieldsToUpdate = removeUndefined({
         ...otherFields,
         [serviceIdField]: externalId,
+        porteurCodeSiret: porteur?.codeSiret ?? undefined,
+        porteurReferentEmail: porteur?.referentEmail ?? undefined,
+        porteurReferentTelephone: porteur?.referentTelephone ?? undefined,
+        porteurReferentPrenom: porteur?.referentPrenom ?? undefined,
+        porteurReferentNom: porteur?.referentNom ?? undefined,
+        porteurReferentFonction: porteur?.referentFonction ?? undefined,
       });
 
       if (collectivites !== undefined && collectivites.length > 0) {

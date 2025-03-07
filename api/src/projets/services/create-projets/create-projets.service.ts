@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 import { ServiceIdentifierService } from "@projets/services/service-identifier/service-identifier.service";
 import { BulkCreateProjetsRequest } from "@projets/dto/bulk-create-projets.dto";
+import { PorteurDto } from "@projets/dto/porteur.dto";
 
 @Injectable()
 export class CreateProjetsService {
@@ -18,7 +19,7 @@ export class CreateProjetsService {
   async create(createProjectDto: CreateProjetRequest, apiKey: string): Promise<{ id: string }> {
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
-    const { competences, externalId, ...otherFields } = createProjectDto;
+    const { externalId, porteur, ...otherFields } = createProjectDto;
 
     // Check if project already exists with this externalId
     const existingProject = await this.dbService.database
@@ -36,8 +37,8 @@ export class CreateProjetsService {
         .insert(projets)
         .values({
           ...otherFields,
-          competences,
           [serviceIdField]: externalId,
+          ...this.mapPorteurToDatabase(porteur),
         })
         .returning();
 
@@ -54,7 +55,7 @@ export class CreateProjetsService {
       const createdProjects = [];
 
       for (const projectDto of bulkCreateProjectsRequest.projects) {
-        const { competences, collectivites, externalId, ...projectFields } = projectDto;
+        const { collectivites, externalId, porteur, ...projectFields } = projectDto;
 
         const existingProject = await this.dbService.database
           .select()
@@ -70,8 +71,8 @@ export class CreateProjetsService {
           .insert(projets)
           .values({
             ...projectFields,
-            competences,
             [serviceIdField]: externalId,
+            ...this.mapPorteurToDatabase(porteur),
           })
           .returning({ id: projets.id });
 
@@ -82,5 +83,16 @@ export class CreateProjetsService {
 
       return { ids: createdProjects.map((p) => p.id) };
     });
+  }
+
+  private mapPorteurToDatabase(porteur: PorteurDto | null | undefined) {
+    return {
+      porteurCodeSiret: porteur?.codeSiret ?? null,
+      porteurReferentEmail: porteur?.referentEmail ?? null,
+      porteurReferentTelephone: porteur?.referentTelephone ?? null,
+      porteurReferentNom: porteur?.referentNom ?? null,
+      porteurReferentPrenom: porteur?.referentPrenom ?? null,
+      porteurReferentFonction: porteur?.referentFonction ?? null,
+    };
   }
 }

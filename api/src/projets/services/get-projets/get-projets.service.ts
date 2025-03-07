@@ -1,10 +1,16 @@
 import { DatabaseService } from "@database/database.service";
-import { projets } from "@database/schema";
+import { collectivites, projets } from "@database/schema";
 import { CustomLogger } from "@logging/logger.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { eq } from "drizzle-orm";
-import { Competences, Leviers } from "@/shared/types";
+import { eq, InferSelectModel } from "drizzle-orm";
 import { ProjetResponse } from "@projets/dto/projet.dto";
+import { Competences, Leviers } from "@/shared/types";
+
+type Collectivite = InferSelectModel<typeof collectivites>;
+
+type ProjetWithCollectivites = InferSelectModel<typeof projets> & {
+  collectivites: { collectivite: Collectivite }[];
+};
 
 @Injectable()
 export class GetProjetsService {
@@ -16,7 +22,7 @@ export class GetProjetsService {
   async findAll(): Promise<ProjetResponse[]> {
     this.logger.debug("Finding all projects");
 
-    const results = await this.dbService.database.query.projets.findMany({
+    const projets = await this.dbService.database.query.projets.findMany({
       with: {
         collectivites: {
           with: {
@@ -26,18 +32,13 @@ export class GetProjetsService {
       },
     });
 
-    return results.map((result) => {
-      return {
-        ...result,
-        competences: result.competences ? (result.competences as Competences) : null,
-        leviers: result.leviers ? (result.leviers as Leviers) : null,
-        collectivites: result.collectivites.map((c) => c.collectivite),
-      };
+    return projets.map((projet) => {
+      return this.mapFieldsToDTO(projet);
     });
   }
 
   async findOne(id: string): Promise<ProjetResponse> {
-    const result = await this.dbService.database.query.projets.findFirst({
+    const projet = await this.dbService.database.query.projets.findFirst({
       where: eq(projets.id, id),
       with: {
         collectivites: {
@@ -48,16 +49,38 @@ export class GetProjetsService {
       },
     });
 
-    if (!result) {
-      this.logger.warn("Project not found", { projectId: id });
+    if (!projet) {
+      this.logger.warn("Projet not found", { projetId: id });
       throw new NotFoundException(`Projet with ID ${id} not found`);
     }
 
+    return this.mapFieldsToDTO(projet);
+  }
+
+  private mapFieldsToDTO(projet: ProjetWithCollectivites): ProjetResponse {
+    const {
+      porteurReferentEmail,
+      porteurCodeSiret,
+      porteurReferentTelephone,
+      porteurReferentNom,
+      porteurReferentPrenom,
+      porteurReferentFonction,
+      ...rest
+    } = projet;
+
     return {
-      ...result,
-      competences: result.competences ? (result.competences as Competences) : null,
-      leviers: result.leviers ? (result.leviers as Leviers) : null,
-      collectivites: result.collectivites.map((c) => c.collectivite),
+      ...rest,
+      porteur: {
+        codeSiret: porteurCodeSiret,
+        referentEmail: porteurReferentEmail,
+        referentTelephone: porteurReferentTelephone,
+        referentNom: porteurReferentNom,
+        referentPrenom: porteurReferentPrenom,
+        referentFonction: porteurReferentFonction,
+      },
+      competences: projet.competences ? (projet.competences as Competences) : null,
+      leviers: projet.leviers ? (projet.leviers as Leviers) : null,
+      collectivites: projet.collectivites.map((c) => c.collectivite),
     };
   }
 }

@@ -8,12 +8,14 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from "class-validator";
 import { CollectiviteType, ProjetStatus, projetStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
+import { PorteurDto } from "@projets/dto/porteur.dto";
 
 export class CreateOrUpdateProjetResponse {
   @ApiProperty()
@@ -32,40 +34,15 @@ export class CreateProjetRequest {
   @IsOptional()
   description?: string | null;
 
-  @ApiProperty({ required: false, nullable: true, type: String })
-  @IsString()
+  @ApiProperty({ required: false, nullable: true, type: PorteurDto })
+  @ValidateNested()
   @IsOptional()
-  porteurCodeSiret?: string | null;
-
-  @ApiProperty({ required: false, nullable: true, type: String })
-  @IsString()
-  @IsOptional()
-  porteurReferentEmail?: string | null;
-
-  @ApiProperty({ required: false, nullable: true, type: String })
-  @IsString()
-  @IsOptional()
-  porteurReferentTelephone?: string | null;
-
-  @ApiProperty({ required: false, nullable: true, type: String })
-  @IsString()
-  @IsOptional()
-  porteurReferentPrenom?: string | null;
-
-  @ApiProperty({ required: false, nullable: true, type: String })
-  @IsString()
-  @IsOptional()
-  porteurReferentNom?: string | null;
-
-  @ApiProperty({ required: false, nullable: true, type: String })
-  @IsString()
-  @IsOptional()
-  porteurReferentFonction?: string | null;
+  porteur?: PorteurDto | null;
 
   @ApiProperty({ required: false, nullable: true, type: Number })
   @IsNumber()
   @IsOptional()
-  budgetPrevisionnel?: number;
+  budgetPrevisionnel?: number | null;
 
   @ApiProperty({
     required: false,
@@ -75,7 +52,7 @@ export class CreateProjetRequest {
     example: "2024-03-01",
   })
   @IsDateString()
-  dateDebutPrevisionnelle?: string;
+  dateDebutPrevisionnelle?: string | null;
 
   @ApiProperty({
     enum: projetStatusEnum.enumValues,
