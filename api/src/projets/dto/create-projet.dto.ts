@@ -86,6 +86,11 @@ export class CreateProjetRequest {
   @IsOptional()
   status?: ProjetStatus | null;
 
+  @ApiProperty({ required: false, nullable: true, type: String })
+  @IsString()
+  @IsOptional()
+  source?: string | null;
+
   @ApiProperty({
     description: "Array of collectivite references",
     example: [

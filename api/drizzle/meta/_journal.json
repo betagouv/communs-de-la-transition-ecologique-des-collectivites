@@ -99,6 +99,13 @@
       "when": 1741338615270,
       "tag": "0013_amazing_spectrum",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1741343814949,
+      "tag": "0014_stale_firebird",
+      "breakpoints": true
     }
   ]
 }
