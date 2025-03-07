@@ -35,8 +35,8 @@ export const projets = pgTable("projets", {
 
   nom: text("nom").notNull(),
   description: text("description"),
-  budget: integer("budget"),
-  forecastedStartDate: text("forecasted_start_date"),
+  budgetPrevisionnel: integer("budget_previsionnel"),
+  dateDebutPrevisionnelle: text("date_debut_previsionnelle"),
   status: projetStatusEnum(),
   source: text(),
 

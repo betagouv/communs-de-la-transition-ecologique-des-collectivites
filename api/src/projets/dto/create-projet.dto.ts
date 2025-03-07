@@ -65,7 +65,7 @@ export class CreateProjetRequest {
   @ApiProperty({ required: false, nullable: true, type: Number })
   @IsNumber()
   @IsOptional()
-  budget?: number;
+  budgetPrevisionnel?: number;
 
   @ApiProperty({
     required: false,
@@ -75,7 +75,7 @@ export class CreateProjetRequest {
     example: "2024-03-01",
   })
   @IsDateString()
-  forecastedStartDate?: string;
+  dateDebutPrevisionnelle?: string;
 
   @ApiProperty({
     enum: projetStatusEnum.enumValues,

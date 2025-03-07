@@ -151,11 +151,11 @@ describe("Projets (e2e)", () => {
     it("should reject when date is not an isoDate string", async () => {
       const { error } = await api.projects.create({
         ...validProjet,
-        forecastedStartDate: "hello",
+        dateDebutPrevisionnelle: "hello",
       });
 
       expect(error?.statusCode).toBe(400);
-      expect(error?.message).toStrictEqual(["forecastedStartDate must be a valid ISO 8601 date string"]);
+      expect(error?.message).toStrictEqual(["dateDebutPrevisionnelle must be a valid ISO 8601 date string"]);
     });
 
     it("should reject when project has no collectivites", async () => {
@@ -260,15 +260,15 @@ describe("Projets (e2e)", () => {
           {
             nom: "Valid Projet",
             description: "Valid Description",
-            budget: 100000,
-            forecastedStartDate: getFormattedDate(),
+            budgetPrevisionnel: 100000,
+            dateDebutPrevisionnelle: getFormattedDate(),
             status: "IDEE",
           },
           {
             nom: "Invalid Projet",
             description: "Invalid Description",
-            budget: "hello", // Invalid budget
-            forecastedStartDate: getFormattedDate(),
+            budgetPrevisionnel: "hello", // Invalid budget
+            dateDebutPrevisionnelle: getFormattedDate(),
             status: "IDEE",
           },
         ] as CreateProjetRequest[],
@@ -318,7 +318,7 @@ describe("Projets (e2e)", () => {
       const updateData = {
         nom: "Updated Projet Name",
         description: "Updated Description",
-        budget: 200000,
+        budgetPrevisionnel: 200000,
         porteurReferentEmail: "new.referent@email.com",
         externalId: validProjet.externalId,
       };
@@ -379,6 +379,7 @@ describe("Projets (e2e)", () => {
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         leviers: ["Bio-carburants"],
         status: "IDEE",
+        source: null,
         mecId: "test-external-id",
         recocoId: null,
         tetId: null,
