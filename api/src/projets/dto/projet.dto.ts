@@ -46,10 +46,10 @@ export class ProjetResponse {
   collectivites!: Collectivite[];
 
   @ApiProperty({ nullable: true, type: Number })
-  budget!: number | null;
+  budgetPrevisionnel!: number | null;
 
   @ApiProperty({ nullable: true, type: String })
-  forecastedStartDate!: string | null;
+  dateDebutPrevisionnelle!: string | null;
 
   @ApiProperty({ nullable: true, enum: projetStatusEnum.enumValues })
   status!: ProjetStatus | null;

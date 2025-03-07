@@ -106,6 +106,13 @@
       "when": 1741343814949,
       "tag": "0014_stale_firebird",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1741345027341,
+      "tag": "0015_abandoned_wolverine",
+      "breakpoints": true
     }
   ]
 }

@@ -51,8 +51,8 @@ describe("ProjetUpdateService", () => {
       nom: "Initial Projet",
       description: "Initial Description",
       porteurReferentEmail: "initial@email.com",
-      budget: 100000,
-      forecastedStartDate: getFormattedDate(),
+      budgetPrevisionnel: 100000,
+      dateDebutPrevisionnelle: getFormattedDate(),
       status: "IDEE",
       collectivites: [mockedCollectivites],
       externalId: EXTERNAL_ID,
@@ -67,7 +67,7 @@ describe("ProjetUpdateService", () => {
     const updateDto = {
       nom: "Updated Projet",
       description: "Updated Description",
-      budget: 200000,
+      budgetPrevisionnel: 200000,
       externalId: EXTERNAL_ID,
     };
 
@@ -102,7 +102,7 @@ describe("ProjetUpdateService", () => {
       nom: "Updated Projet",
       description: "Updated Description",
       competences: ["Santé", "Culture > Arts plastiques et photographie"],
-      budget: 200000,
+      budgetPrevisionnel: 200000,
       externalId: EXTERNAL_ID,
     };
 
@@ -157,7 +157,7 @@ describe("ProjetUpdateService", () => {
     const updateDto = {
       nom: "Updated Projet",
       description: "Updated Description",
-      budget: 200000,
+      budgetPrevisionnel: 200000,
       externalId: "different-external-id", // Different from the one used in creation
     };
 

@@ -7,8 +7,8 @@ export const mockedDefaultCollectivite: CollectiviteReference = { type: "Commune
 export const mockProjetPayload = (specificPayload: Partial<CreateProjetRequest> = {}): CreateProjetRequest => ({
   nom: specificPayload.nom ?? "Test Project",
   description: specificPayload.description ?? "Test Description",
-  budget: specificPayload.budget ?? 100000,
-  forecastedStartDate: specificPayload.forecastedStartDate ?? getFormattedDate(),
+  budgetPrevisionnel: specificPayload.budgetPrevisionnel ?? 100000,
+  dateDebutPrevisionnelle: specificPayload.dateDebutPrevisionnelle ?? getFormattedDate(),
   status: specificPayload.status ?? "IDEE",
   collectivites: specificPayload.collectivites ?? [mockedDefaultCollectivite],
   competences: specificPayload.competences ?? ["Santé", "Culture > Arts plastiques et photographie"],
