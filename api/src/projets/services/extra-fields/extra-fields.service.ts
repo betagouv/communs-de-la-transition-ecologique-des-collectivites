@@ -1,29 +1,29 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { projects, serviceExtraFields } from "@database/schema";
+import { projets, serviceExtraFields } from "@database/schema";
 import { eq } from "drizzle-orm";
-import { CreateProjectExtraFieldRequest, ProjectExtraFieldsResponse } from "@projects/dto/extra-fields.dto";
+import { CreateProjetExtraFieldRequest, ProjetExtraFieldsResponse } from "@projets/dto/extra-fields.dto";
 
 @Injectable()
 export class ExtraFieldsService {
   constructor(private readonly dbService: DatabaseService) {}
 
-  async getExtraFieldsByProjectId(projectId: string): Promise<ProjectExtraFieldsResponse> {
-    await this.throwIfProjectIsNotFound(projectId);
+  async getExtraFieldsByProjetId(projetId: string): Promise<ProjetExtraFieldsResponse> {
+    await this.throwIfProjectIsNotFound(projetId);
 
     const extraFields = await this.dbService.database
       .select({ name: serviceExtraFields.name, value: serviceExtraFields.value })
       .from(serviceExtraFields)
-      .where(eq(serviceExtraFields.projectId, projectId));
+      .where(eq(serviceExtraFields.projetId, projetId));
 
     return { extraFields };
   }
 
   async createExtraFields(
-    projectId: string,
-    extraFieldsDto: CreateProjectExtraFieldRequest,
-  ): Promise<ProjectExtraFieldsResponse> {
-    await this.throwIfProjectIsNotFound(projectId);
+    projetId: string,
+    extraFieldsDto: CreateProjetExtraFieldRequest,
+  ): Promise<ProjetExtraFieldsResponse> {
+    await this.throwIfProjectIsNotFound(projetId);
 
     return this.dbService.database.transaction(async (tx) => {
       // todo handle conflictual update / deletion
@@ -32,7 +32,7 @@ export class ExtraFieldsService {
         .insert(serviceExtraFields)
         .values(
           extraFieldsDto.extraFields.map((field) => ({
-            projectId,
+            projetId,
             name: field.name,
             value: field.value,
           })),
@@ -43,13 +43,13 @@ export class ExtraFieldsService {
     });
   }
 
-  private async throwIfProjectIsNotFound(projectId: string) {
-    const project = await this.dbService.database.query.projects.findFirst({
-      where: eq(projects.id, projectId),
+  private async throwIfProjectIsNotFound(projetId: string) {
+    const projet = await this.dbService.database.query.projets.findFirst({
+      where: eq(projets.id, projetId),
     });
 
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    if (!projet) {
+      throw new NotFoundException(`Projet with ID ${projetId} not found`);
     }
   }
 }

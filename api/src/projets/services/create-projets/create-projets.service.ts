@@ -1,21 +1,21 @@
 import { DatabaseService } from "@database/database.service";
 import { ConflictException, Injectable } from "@nestjs/common";
 import { CollectivitesService } from "../collectivites/collectivites.service";
-import { projects } from "@database/schema";
-import { CreateProjectRequest } from "@projects/dto/create-project.dto";
-import { BulkCreateProjectsRequest } from "@projects/dto/bulk-create-projects.dto";
-import { ServiceIdentifierService } from "../service-identifier/service-identifier.service";
+import { projets } from "@database/schema";
 import { eq } from "drizzle-orm";
+import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
+import { ServiceIdentifierService } from "@projets/services/service-identifier/service-identifier.service";
+import { BulkCreateProjetsRequest } from "@projets/dto/bulk-create-projets.dto";
 
 @Injectable()
-export class CreateProjectsService {
+export class CreateProjetsService {
   constructor(
     private dbService: DatabaseService,
     private readonly collectivitesService: CollectivitesService,
     private readonly serviceIdentifierService: ServiceIdentifierService,
   ) {}
 
-  async create(createProjectDto: CreateProjectRequest, apiKey: string): Promise<{ id: string }> {
+  async create(createProjectDto: CreateProjetRequest, apiKey: string): Promise<{ id: string }> {
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
     const { competences, externalId, ...otherFields } = createProjectDto;
@@ -23,17 +23,17 @@ export class CreateProjectsService {
     // Check if project already exists with this externalId
     const existingProject = await this.dbService.database
       .select()
-      .from(projects)
-      .where(eq(projects[serviceIdField], externalId))
+      .from(projets)
+      .where(eq(projets[serviceIdField], externalId))
       .limit(1);
 
     if (existingProject.length > 0) {
-      throw new ConflictException(`Project with ${serviceIdField} ${externalId} already exists`);
+      throw new ConflictException(`Projet with ${serviceIdField} ${externalId} already exists`);
     }
 
     return this.dbService.database.transaction(async (tx) => {
       const [createdProject] = await tx
-        .insert(projects)
+        .insert(projets)
         .values({
           ...otherFields,
           competences,
@@ -47,7 +47,7 @@ export class CreateProjectsService {
     });
   }
 
-  async createBulk(bulkCreateProjectsRequest: BulkCreateProjectsRequest, apiKey: string): Promise<{ ids: string[] }> {
+  async createBulk(bulkCreateProjectsRequest: BulkCreateProjetsRequest, apiKey: string): Promise<{ ids: string[] }> {
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
     return this.dbService.database.transaction(async (tx) => {
@@ -58,22 +58,22 @@ export class CreateProjectsService {
 
         const existingProject = await this.dbService.database
           .select()
-          .from(projects)
-          .where(eq(projects[serviceIdField], externalId))
+          .from(projets)
+          .where(eq(projets[serviceIdField], externalId))
           .limit(1);
 
         if (existingProject.length > 0) {
-          throw new ConflictException(`Project with ${serviceIdField} ${externalId} already exists`);
+          throw new ConflictException(`Projet with ${serviceIdField} ${externalId} already exists`);
         }
 
         const [newProject] = await tx
-          .insert(projects)
+          .insert(projets)
           .values({
             ...projectFields,
             competences,
             [serviceIdField]: externalId,
           })
-          .returning({ id: projects.id });
+          .returning({ id: projets.id });
 
         await this.collectivitesService.createOrUpdateRelations(tx, newProject.id, collectivites);
 

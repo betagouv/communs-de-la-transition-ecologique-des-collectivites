@@ -1,11 +1,11 @@
-import { ProjectStatus, projectStatusEnum } from "@database/schema";
+import { ProjetStatus, projetStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { ApiProperty } from "@nestjs/swagger";
 import { leviers } from "@/shared/const/leviers";
 import { competences } from "@/shared/const/competences-list";
-import { Collectivite } from "@projects/dto/collectivite.dto";
+import { Collectivite } from "@projets/dto/collectivite.dto";
 
-export class ProjectResponse {
+export class ProjetResponse {
   @ApiProperty()
   id!: string;
 
@@ -51,8 +51,8 @@ export class ProjectResponse {
   @ApiProperty({ nullable: true, type: String })
   forecastedStartDate!: string | null;
 
-  @ApiProperty({ nullable: true, enum: projectStatusEnum.enumValues })
-  status!: ProjectStatus | null;
+  @ApiProperty({ nullable: true, enum: projetStatusEnum.enumValues })
+  status!: ProjetStatus | null;
 
   @ApiProperty({ nullable: true, type: String, enum: competences })
   competences!: Competences | null;

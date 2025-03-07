@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { Tx } from "@database/database.service";
-import { collectivites, projectsToCollectivites } from "@database/schema";
-import { CollectiviteReference } from "@projects/dto/collectivite.dto";
+import { collectivites, projetsToCollectivites } from "@database/schema";
 import { and, eq } from "drizzle-orm";
 import { CustomLogger } from "@logging/logger.service";
 import { GeoService } from "@/geo/geo-service";
+import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 
 @Injectable()
 export class CollectivitesService {
@@ -15,7 +15,7 @@ export class CollectivitesService {
 
   public async createOrUpdateRelations(
     tx: Tx,
-    projectId: string,
+    projetId: string,
     collectiviteRefs: CollectiviteReference[],
   ): Promise<void> {
     if (collectiviteRefs.length === 0) {
@@ -42,14 +42,14 @@ export class CollectivitesService {
     }
 
     // Delete old relations
-    await tx.delete(projectsToCollectivites).where(eq(projectsToCollectivites.projectId, projectId));
+    await tx.delete(projetsToCollectivites).where(eq(projetsToCollectivites.projetId, projetId));
 
     // Create new relations
     await tx
-      .insert(projectsToCollectivites)
+      .insert(projetsToCollectivites)
       .values(
         allCollectiviteIds.map((collectiviteId) => ({
-          projectId,
+          projetId,
           collectiviteId,
         })),
       )

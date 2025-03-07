@@ -1,16 +1,16 @@
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
-import { CreateProjectRequest } from "../../dto/create-project.dto";
+import { CreateProjetRequest } from "../../dto/create-projet.dto";
 import { TestingModule } from "@nestjs/testing";
-import { CreateProjectsService } from "./create-projects.service";
-import { collectivites, projects, projectsToCollectivites } from "@database/schema";
+import { CreateProjetsService } from "./create-projets.service";
+import { collectivites, projets, projetsToCollectivites } from "@database/schema";
 import { and, inArray } from "drizzle-orm";
 import { ConflictException } from "@nestjs/common";
-import { BulkCreateProjectsRequest } from "@projects/dto/bulk-create-projects.dto";
-import { mockedDefaultCollectivite, mockProjectPayload } from "@test/mocks/mockProjectPayload";
+import { BulkCreateProjetsRequest } from "@projets/dto/bulk-create-projets.dto";
+import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
 
 describe("ProjectCreateService", () => {
-  let service: CreateProjectsService;
+  let service: CreateProjetsService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
 
@@ -18,7 +18,7 @@ describe("ProjectCreateService", () => {
     const { module: internalModule, testDbService: tds } = await testModule();
     module = internalModule;
     testDbService = tds;
-    service = module.get<CreateProjectsService>(CreateProjectsService);
+    service = module.get<CreateProjetsService>(CreateProjetsService);
   });
 
   afterAll(async () => {
@@ -36,7 +36,7 @@ describe("ProjectCreateService", () => {
 
   describe("create", () => {
     it("should create a new project", async () => {
-      const createDto = mockProjectPayload();
+      const createDto = mockProjetPayload();
 
       const result = await service.create(createDto, "MEC_test_api_key");
 
@@ -46,17 +46,17 @@ describe("ProjectCreateService", () => {
     });
 
     it("should throw ConflictException when project with same externalId exists", async () => {
-      const createDto = mockProjectPayload({ externalId: "duplicate-id" });
+      const createDto = mockProjetPayload({ externalId: "duplicate-id" });
 
       await service.create(createDto, "MEC_test_api_key");
 
       await expect(service.create(createDto, "MEC_test_api_key")).rejects.toThrow(
-        new ConflictException("Project with mecId duplicate-id already exists"),
+        new ConflictException("Projet with mecId duplicate-id already exists"),
       );
     });
 
     it("should allow same externalId for different services", async () => {
-      const createDto = mockProjectPayload();
+      const createDto = mockProjetPayload();
 
       // Create project with MEC API key
       await service.create(createDto, "MEC_test_api_key");
@@ -70,11 +70,8 @@ describe("ProjectCreateService", () => {
 
   describe("createBulk", () => {
     it("should create multiple projects in a transaction", async () => {
-      const projectsToCreate: BulkCreateProjectsRequest = {
-        projects: [
-          mockProjectPayload(),
-          mockProjectPayload({ nom: "Test Project 2", externalId: "test-external-id-2" }),
-        ],
+      const projectsToCreate: BulkCreateProjetsRequest = {
+        projects: [mockProjetPayload(), mockProjetPayload({ nom: "Test Project 2", externalId: "test-external-id-2" })],
       };
 
       const result = await service.createBulk(projectsToCreate, "MEC_test_api_key");
@@ -84,19 +81,19 @@ describe("ProjectCreateService", () => {
       // Verify projects were created
       const createdProjects = await testDbService.database
         .select()
-        .from(projects)
-        .where(inArray(projects.id, result.ids));
+        .from(projets)
+        .where(inArray(projets.id, result.ids));
 
       expect(createdProjects).toHaveLength(2);
 
       // Verify collectivites were created and linked
       const projectCollectivites = await testDbService.database
         .select()
-        .from(projectsToCollectivites)
+        .from(projetsToCollectivites)
         .where(
           and(
             inArray(
-              projectsToCollectivites.projectId,
+              projetsToCollectivites.projetId,
               createdProjects.map((p) => p.id),
             ),
           ),
@@ -107,17 +104,17 @@ describe("ProjectCreateService", () => {
 
     it("should rollback all changes if any project creation fails", async () => {
       const projectsToCreate = {
-        projects: [mockProjectPayload(), mockProjectPayload({ nom: "Test Project 2" })] as CreateProjectRequest[],
+        projects: [mockProjetPayload(), mockProjetPayload({ nom: "Test Project 2" })] as CreateProjetRequest[],
       };
 
       await expect(service.createBulk(projectsToCreate, "MEC_test_api_key")).rejects.toThrow();
 
       // Verify no projects were created
-      const createdProjects = await testDbService.database.select().from(projects);
+      const createdProjects = await testDbService.database.select().from(projets);
       expect(createdProjects).toHaveLength(0);
 
       // Verify no collectivites relations were created
-      const projectCollectivites = await testDbService.database.select().from(projectsToCollectivites);
+      const projectCollectivites = await testDbService.database.select().from(projetsToCollectivites);
       expect(projectCollectivites).toHaveLength(0);
     });
   });
