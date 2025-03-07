@@ -10,12 +10,13 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import { CollectiviteType, ProjetStatus, projetStatusEnum } from "@database/schema";
+import { ProjetStatus, projetStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 import { PorteurDto } from "@projets/dto/porteur.dto";
+import { Type } from "class-transformer";
 
 export class CreateOrUpdateProjetResponse {
   @ApiProperty()
@@ -36,6 +37,7 @@ export class CreateProjetRequest {
 
   @ApiProperty({ required: false, nullable: true, type: PorteurDto })
   @ValidateNested()
+  @Type(() => PorteurDto)
   @IsOptional()
   porteur?: PorteurDto | null;
 
@@ -78,8 +80,10 @@ export class CreateProjetRequest {
     type: [CollectiviteReference],
   })
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CollectiviteReference)
   @ArrayNotEmpty({ message: "At least one commune insee code must be provided" })
-  collectivites!: { type: CollectiviteType; code: string }[];
+  collectivites!: CollectiviteReference[];
 
   @ApiProperty({
     type: String,

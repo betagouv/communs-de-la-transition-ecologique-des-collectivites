@@ -127,6 +127,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        PorteurDto: {
+            codeSiret?: string | null;
+            referentEmail?: string | null;
+            referentTelephone?: string | null;
+            referentPrenom?: string | null;
+            referentNom?: string | null;
+            referentFonction?: string | null;
+        };
         Collectivite: {
             id: string;
             nom: string;
@@ -146,12 +154,7 @@ export interface components {
             updatedAt: string;
             nom: string;
             description: string | null;
-            porteurCodeSiret: string | null;
-            porteurReferentEmail: string | null;
-            porteurReferentTelephone: string | null;
-            porteurReferentPrenom: string | null;
-            porteurReferentNom: string | null;
-            porteurReferentFonction: string | null;
+            porteur: components["schemas"]["PorteurDto"] | null;
             collectivites: components["schemas"]["Collectivite"][];
             budgetPrevisionnel: number | null;
             dateDebutPrevisionnelle: string | null;
@@ -202,12 +205,7 @@ export interface components {
         CreateProjetRequest: {
             nom: string;
             description?: string | null;
-            porteurCodeSiret?: string | null;
-            porteurReferentEmail?: string | null;
-            porteurReferentTelephone?: string | null;
-            porteurReferentPrenom?: string | null;
-            porteurReferentNom?: string | null;
-            porteurReferentFonction?: string | null;
+            porteur?: components["schemas"]["PorteurDto"] | null;
             budgetPrevisionnel?: number | null;
             /**
              * @description Forecasted start date in YYYY-MM-DD format
@@ -258,12 +256,7 @@ export interface components {
         UpdateProjetDto: {
             nom?: string;
             description?: string | null;
-            porteurCodeSiret?: string | null;
-            porteurReferentEmail?: string | null;
-            porteurReferentTelephone?: string | null;
-            porteurReferentPrenom?: string | null;
-            porteurReferentNom?: string | null;
-            porteurReferentFonction?: string | null;
+            porteur?: components["schemas"]["PorteurDto"] | null;
             budgetPrevisionnel?: number | null;
             /**
              * @description Forecasted start date in YYYY-MM-DD format

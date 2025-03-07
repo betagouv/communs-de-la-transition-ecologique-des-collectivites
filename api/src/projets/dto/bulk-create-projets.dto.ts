@@ -9,7 +9,7 @@ export class BulkCreateProjetsResponse {
 }
 
 export class BulkCreateProjetsRequest {
-  @ApiProperty({ required: true, type: CreateProjetRequest, isArray: true })
+  @ApiProperty({ required: true, type: [CreateProjetRequest] })
   @IsArray()
   // Both @ValidateNested and @Type are required to validate nested objects properly
   @ValidateNested({ each: true })

@@ -19,7 +19,7 @@ const projetStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE",
 export const projetStatusEnum = pgEnum("projet_status", projetStatus);
 export type ProjetStatus = (typeof projetStatusEnum.enumValues)[number];
 
-const collectiviteType = ["Commune", "EPCI"] as const;
+export const collectiviteType = ["Commune", "EPCI"] as const;
 export const collectiviteTypeEnum = pgEnum("collectivite_type", collectiviteType);
 export type CollectiviteType = (typeof collectiviteTypeEnum.enumValues)[number];
 
