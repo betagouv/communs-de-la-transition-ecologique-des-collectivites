@@ -26,7 +26,13 @@ Copy the environment template. (No need of additional secrets)
   cp .env.template .env
 ```
 
-2.**Start Docker services:**
+2.**Install dependencies:**
+
+```bash
+pnpm install
+```
+
+3.**Start Docker services:**
 
 Ensure Docker is running on your machine, then start the PostgreSQL database:
 
@@ -37,7 +43,7 @@ pnpm db:start
 ## Running the API
 
 ```bash
-pnpm start:dev
+pnpm dev
 ```
 
 Once you have your API up, the swagger will be available on http://localhost:3000/api
