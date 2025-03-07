@@ -17,7 +17,7 @@ import { extractApiKey } from "@projets/extract-api-key";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 
 @ApiBearerAuth()
-@Controller("Projets")
+@Controller("projets")
 @UseGuards(ApiKeyGuard)
 export class ProjetsController {
   constructor(
