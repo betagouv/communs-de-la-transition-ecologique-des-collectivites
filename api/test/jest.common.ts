@@ -13,7 +13,7 @@ const commonConfig: Config = {
     "^@test/(.*)$": "<rootDir>/test/$1",
     "^@logging/(.*)$": "<rootDir>/src/logging/$1",
     "^@database/(.*)$": "<rootDir>/src/database/$1",
-    "^@projects/(.*)$": "<rootDir>/src/projects/$1",
+    "^@projets/(.*)$": "<rootDir>/src/projets/$1",
   },
 };
 

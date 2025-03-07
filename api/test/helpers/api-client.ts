@@ -14,22 +14,22 @@ export const createApiClient = (apiKey: string) => {
 
   return {
     projects: {
-      create: (data: components["schemas"]["CreateProjectRequest"]) => client.POST("/projects", { body: data }),
+      create: (data: components["schemas"]["CreateProjetRequest"]) => client.POST("/projets", { body: data }),
 
-      createBulk: (data: components["schemas"]["BulkCreateProjectsRequest"]) =>
-        client.POST("/projects/bulk", { body: data }),
+      createBulk: (data: components["schemas"]["BulkCreateProjetsRequest"]) =>
+        client.POST("/projets/bulk", { body: data }),
 
-      getAll: () => client.GET("/projects"),
+      getAll: () => client.GET("/projets"),
 
       getOne: (id: string) =>
-        client.GET("/projects/{id}", {
+        client.GET("/projets/{id}", {
           params: {
             path: { id },
           },
         }),
 
-      update: (id: string, data: components["schemas"]["UpdateProjectDto"]) =>
-        client.PATCH("/projects/{id}", {
+      update: (id: string, data: components["schemas"]["UpdateProjetDto"]) =>
+        client.PATCH("/projets/{id}", {
           params: {
             path: { id },
           },

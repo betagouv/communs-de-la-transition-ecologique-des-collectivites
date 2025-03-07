@@ -3,7 +3,7 @@ import { CreateServiceRequest, CreateServiceResponse } from "./dto/create-servic
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@logging/logger.service";
-import { projects, services } from "@database/schema";
+import { projets, services } from "@database/schema";
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { ServicesContextService } from "@/services/services-context.service";
 import { Competences, Leviers } from "@/shared/types";
@@ -53,12 +53,12 @@ export class ServicesService {
   }
 
   async getServicesByProjectId(projectId: string): Promise<ServicesByProjectIdResponse[]> {
-    const project = await this.dbService.database.query.projects.findFirst({
-      where: eq(projects.id, projectId),
+    const project = await this.dbService.database.query.projets.findFirst({
+      where: eq(projets.id, projectId),
     });
 
     if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
+      throw new NotFoundException(`Projet with ID ${projectId} not found`);
     }
 
     return this.serviceContextService.findMatchingServices(

@@ -3,17 +3,17 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateServiceRequest } from "./dto/create-service.dto";
 import { TestingModule } from "@nestjs/testing";
-import { CreateProjectsService } from "@projects/services/create-projects/create-projects.service";
 import { ConflictException, NotFoundException } from "@nestjs/common";
 import { collectivites } from "@database/schema";
-import { CollectiviteReference } from "@projects/dto/collectivite.dto";
-import { mockProjectPayload } from "@test/mocks/mockProjectPayload";
+import { mockProjetPayload } from "@test/mocks/mockProjetPayload";
+import { CollectiviteReference } from "@projets/dto/collectivite.dto";
+import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
 
 describe("ServicesService", () => {
   let service: ServicesService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
-  let createProjectService: CreateProjectsService;
+  let createProjectService: CreateProjetsService;
   const mockedCollectivites: CollectiviteReference = { type: "Commune", code: "01001" };
 
   beforeAll(async () => {
@@ -21,7 +21,7 @@ describe("ServicesService", () => {
     module = internalModule;
     testDbService = tds;
     service = module.get<ServicesService>(ServicesService);
-    createProjectService = module.get<CreateProjectsService>(CreateProjectsService);
+    createProjectService = module.get<CreateProjetsService>(CreateProjetsService);
   });
 
   afterAll(async () => {
@@ -71,7 +71,7 @@ describe("ServicesService", () => {
 
   describe("getServicesByProjectId", () => {
     it("should return no service for project without services", async () => {
-      const createDto = mockProjectPayload();
+      const createDto = mockProjetPayload();
 
       const project = await createProjectService.create(createDto, "MEC_test_api_key");
 
