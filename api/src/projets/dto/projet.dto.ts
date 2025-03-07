@@ -4,6 +4,8 @@ import { ApiProperty } from "@nestjs/swagger";
 import { leviers } from "@/shared/const/leviers";
 import { competences } from "@/shared/const/competences-list";
 import { Collectivite } from "@projets/dto/collectivite.dto";
+import { PorteurDto } from "@projets/dto/porteur.dto";
+import { ValidateNested } from "class-validator";
 
 export class ProjetResponse {
   @ApiProperty()
@@ -21,26 +23,9 @@ export class ProjetResponse {
   @ApiProperty({ nullable: true, type: String })
   description!: string | null;
 
-  @ApiProperty({ nullable: true, type: String })
-  porteurCodeSiret!: string | null;
-
-  @ApiProperty({
-    nullable: true,
-    type: String,
-  })
-  porteurReferentEmail!: string | null;
-
-  @ApiProperty({ nullable: true, type: String })
-  porteurReferentTelephone!: string | null;
-
-  @ApiProperty({ nullable: true, type: String })
-  porteurReferentPrenom!: string | null;
-
-  @ApiProperty({ nullable: true, type: String })
-  porteurReferentNom!: string | null;
-
-  @ApiProperty({ nullable: true, type: String })
-  porteurReferentFonction!: string | null;
+  @ApiProperty({ nullable: true, type: PorteurDto })
+  @ValidateNested()
+  porteur!: PorteurDto | null;
 
   @ApiProperty({ type: [Collectivite] })
   collectivites!: Collectivite[];

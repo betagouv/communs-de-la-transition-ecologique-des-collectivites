@@ -50,7 +50,9 @@ describe("ProjetUpdateService", () => {
     const createDto: CreateProjetRequest = {
       nom: "Initial Projet",
       description: "Initial Description",
-      porteurReferentEmail: "initial@email.com",
+      porteur: {
+        referentEmail: "initial@email.com",
+      },
       budgetPrevisionnel: 100000,
       dateDebutPrevisionnelle: getFormattedDate(),
       status: "IDEE",
@@ -78,8 +80,9 @@ describe("ProjetUpdateService", () => {
     expect(updatedProjet).toMatchObject({
       ...expectedfields,
       id: ProjetId,
-      porteurReferentEmail: "initial@email.com",
-
+      porteur: {
+        referentEmail: "initial@email.com",
+      },
       collectivites: expect.arrayContaining([
         {
           codeInsee: mockedCollectivites.code,
@@ -114,7 +117,9 @@ describe("ProjetUpdateService", () => {
     expect(updatedProjet).toMatchObject({
       ...expectedFields,
       id: ProjetId,
-      porteurReferentEmail: "initial@email.com",
+      porteur: {
+        referentEmail: "initial@email.com",
+      },
     });
   });
 

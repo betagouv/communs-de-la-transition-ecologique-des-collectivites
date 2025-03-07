@@ -295,7 +295,9 @@ describe("Projets (e2e)", () => {
     it("should update porteur referent email and handle collaborator permissions", async () => {
       const newEmail = "new.referent@email.com";
       const updateData = {
-        porteurReferentEmail: newEmail,
+        porteur: {
+          referentEmail: newEmail,
+        },
         externalId: validProjet.externalId,
       };
 
@@ -310,7 +312,9 @@ describe("Projets (e2e)", () => {
 
       expect(updatedProjet).toMatchObject({
         id: projectId,
-        porteurReferentEmail: newEmail,
+        porteur: {
+          referentEmail: newEmail,
+        },
       });
     });
 
@@ -319,7 +323,9 @@ describe("Projets (e2e)", () => {
         nom: "Updated Projet Name",
         description: "Updated Description",
         budgetPrevisionnel: 200000,
-        porteurReferentEmail: "new.referent@email.com",
+        porteur: {
+          referentEmail: "new.referent@email.com",
+        },
         externalId: validProjet.externalId,
       };
 
@@ -370,12 +376,14 @@ describe("Projets (e2e)", () => {
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         ...expectedFields,
-        porteurCodeSiret: null,
-        porteurReferentFonction: null,
-        porteurReferentEmail: null, // Should be removed
-        porteurReferentNom: null,
-        porteurReferentPrenom: null,
-        porteurReferentTelephone: null,
+        porteur: {
+          codeSiret: null,
+          referentFonction: null,
+          referentEmail: null,
+          referentNom: null,
+          referentPrenom: null,
+          referentTelephone: null,
+        },
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         leviers: ["Bio-carburants"],
         status: "IDEE",
