@@ -4,58 +4,58 @@
  */
 
 export interface paths {
-    "/projects": {
+    "/projets": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get all projects */
-        get: operations["ProjectsController_findAll"];
+        /** Get all Projets */
+        get: operations["ProjetsController_findAll"];
         put?: never;
-        post: operations["ProjectsController_create"];
+        post: operations["ProjetsController_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/projects/{id}": {
+    "/projets/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get specific project by id */
-        get: operations["ProjectsController_findOne"];
+        /** Get specific Projet by id */
+        get: operations["ProjetsController_findOne"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Update a specific project */
-        patch: operations["ProjectsController_update"];
+        /** Update a specific Projet */
+        patch: operations["ProjetsController_update"];
         trace?: never;
     };
-    "/projects/{id}/extra-fields": {
+    "/projets/{id}/extra-fields": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["ProjectsController_getExtraFields"];
+        get: operations["ProjetsController_getExtraFields"];
         put?: never;
-        post: operations["ProjectsController_updateExtraFields"];
+        post: operations["ProjetsController_updateExtraFields"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/projects/bulk": {
+    "/projets/bulk": {
         parameters: {
             query?: never;
             header?: never;
@@ -64,8 +64,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create new projects in bulk */
-        post: operations["ProjectsController_createBulk"];
+        /** Create new Projets in bulk */
+        post: operations["ProjetsController_createBulk"];
         delete?: never;
         options?: never;
         head?: never;
@@ -138,7 +138,7 @@ export interface components {
             codeRegions: string | null;
             siren: string | null;
         };
-        ProjectResponse: {
+        ProjetResponse: {
             id: string;
             /** Format: date-time */
             createdAt: string;
@@ -180,11 +180,11 @@ export interface components {
             /** @description Value of the extra field */
             value: string;
         };
-        ProjectExtraFieldsResponse: {
+        ProjetExtraFieldsResponse: {
             /** @description Array of extra field names, values, and labels */
             extraFields: components["schemas"]["ExtraField"][];
         };
-        CreateProjectExtraFieldRequest: {
+        CreateProjetExtraFieldRequest: {
             /** @description Array of extra field names, values, and labels */
             extraFields: components["schemas"]["ExtraField"][];
         };
@@ -198,7 +198,7 @@ export interface components {
             /** @description Code of the collectivite, codeInsee for communes and codeEpci/siren for EPCI */
             code: string;
         };
-        CreateProjectRequest: {
+        CreateProjetRequest: {
             nom: string;
             description?: string | null;
             porteurCodeSiret?: string | null;
@@ -244,16 +244,16 @@ export interface components {
             leviers?: ("Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Collecte et tri des déchets" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF")[] | null;
             externalId: string;
         };
-        CreateOrUpdateProjectResponse: {
+        CreateOrUpdateProjetResponse: {
             id: string;
         };
-        BulkCreateProjectsRequest: {
-            projects: components["schemas"]["CreateProjectRequest"][];
+        BulkCreateProjetsRequest: {
+            projects: components["schemas"]["CreateProjetRequest"][];
         };
-        BulkCreateProjectsResponse: {
+        BulkCreateProjetsResponse: {
             ids: string[];
         };
-        UpdateProjectDto: {
+        UpdateProjetDto: {
             nom?: string;
             description?: string | null;
             porteurCodeSiret?: string | null;
@@ -435,7 +435,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    ProjectsController_findAll: {
+    ProjetsController_findAll: {
         parameters: {
             query?: never;
             header?: never;
@@ -445,21 +445,25 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
-                    "application/json": components["schemas"]["ProjectResponse"][];
+                    "application/json": components["schemas"]["ProjetResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
     };
-    ProjectsController_create: {
+    ProjetsController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -468,86 +472,31 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateProjectRequest"];
+                "application/json": components["schemas"]["CreateProjetRequest"];
             };
         };
         responses: {
-            /** @description Project created successfully */
+            /** @description Projet created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
-                    "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
+                    "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
     };
-    ProjectsController_findOne: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description An Id in a UUID format */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: Record<string, unknown>;
-                content: {
-                    "application/json": components["schemas"]["ProjectResponse"];
-                };
-            };
-            /** @description Error response */
-            default: {
-                headers: Record<string, unknown>;
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    ProjectsController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description An Id in a UUID format */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateProjectDto"];
-            };
-        };
-        responses: {
-            /** @description Project updated successfully */
-            200: {
-                headers: Record<string, unknown>;
-                content: {
-                    "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
-                };
-            };
-            /** @description Error response */
-            default: {
-                headers: Record<string, unknown>;
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    ProjectsController_getExtraFields: {
+    ProjetsController_findOne: {
         parameters: {
             query?: never;
             header?: never;
@@ -560,21 +509,25 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
-                    "application/json": components["schemas"]["ProjectExtraFieldsResponse"];
+                    "application/json": components["schemas"]["ProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
     };
-    ProjectsController_updateExtraFields: {
+    ProjetsController_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -586,26 +539,97 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateProjectExtraFieldRequest"];
+                "application/json": components["schemas"]["UpdateProjetDto"];
             };
         };
         responses: {
-            201: {
-                headers: Record<string, unknown>;
+            /** @description Projet updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
-                    "application/json": components["schemas"]["ProjectExtraFieldsResponse"];
+                    "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
     };
-    ProjectsController_createBulk: {
+    ProjetsController_getExtraFields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description An Id in a UUID format */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjetExtraFieldsResponse"];
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ProjetsController_updateExtraFields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description An Id in a UUID format */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProjetExtraFieldRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjetExtraFieldsResponse"];
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ProjetsController_createBulk: {
         parameters: {
             query?: never;
             header?: never;
@@ -614,20 +638,24 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["BulkCreateProjectsRequest"];
+                "application/json": components["schemas"]["BulkCreateProjetsRequest"];
             };
         };
         responses: {
-            /** @description Bulk Projects created successfully */
+            /** @description Bulk Projets created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
-                    "application/json": components["schemas"]["BulkCreateProjectsResponse"];
+                    "application/json": components["schemas"]["BulkCreateProjetsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -649,14 +677,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ServicesByProjectIdResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -678,14 +710,18 @@ export interface operations {
         responses: {
             /** @description Service created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -710,14 +746,18 @@ export interface operations {
         responses: {
             /** @description Service context created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceContextResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
