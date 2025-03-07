@@ -32,6 +32,7 @@ describe("ProjetsController", () => {
     porteurReferentPrenom: null,
     budget: 100000,
     forecastedStartDate: getFormattedDate(),
+    source: null,
     status: "IDEE",
     competences: null,
     leviers: null,

@@ -54,6 +54,9 @@ export class ProjetResponse {
   @ApiProperty({ nullable: true, enum: projetStatusEnum.enumValues })
   status!: ProjetStatus | null;
 
+  @ApiProperty({ nullable: true, type: String })
+  source!: string | null;
+
   @ApiProperty({ nullable: true, type: String, enum: competences })
   competences!: Competences | null;
 
