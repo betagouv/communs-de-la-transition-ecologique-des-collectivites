@@ -168,6 +168,16 @@ describe("Projets (e2e)", () => {
       expect(error?.message[0]).toBe("At least one commune insee code must be provided");
     });
 
+    it("should reject when project a collectivite with incomplete information", async () => {
+      const { error } = await api.projects.create({
+        ...validProjet,
+        collectivites: [{ type: "Commune", code: undefined }],
+      } as unknown as CreateProjetRequest); //needed to fake invalid code
+
+      expect(error?.statusCode).toBe(400);
+      expect(error?.message[0]).toBe("collectivites.0.code must be a string");
+    });
+
     it("should reject when project has wrong competences", async () => {
       const { error } = await api.projects.create({
         ...validProjet,
@@ -292,7 +302,7 @@ describe("Projets (e2e)", () => {
       projectId = data!.id;
     });
 
-    it("should update porteur referent email and handle collaborator permissions", async () => {
+    it("should update porteur referent email", async () => {
       const newEmail = "new.referent@email.com";
       const updateData = {
         porteur: {

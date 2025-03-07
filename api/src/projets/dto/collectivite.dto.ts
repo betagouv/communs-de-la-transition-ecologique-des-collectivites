@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsString } from "class-validator";
-import { CollectiviteType, collectiviteTypeEnum } from "@database/schema";
+import { IsIn, IsString } from "class-validator";
+import { collectiviteType, CollectiviteType, collectiviteTypeEnum } from "@database/schema";
 
 export class CollectiviteReference {
   @ApiProperty({
@@ -9,7 +9,7 @@ export class CollectiviteReference {
     enum: collectiviteTypeEnum.enumValues,
     example: "Commune",
   })
-  @IsEnum(collectiviteTypeEnum)
+  @IsIn(collectiviteType)
   type!: CollectiviteType;
 
   @ApiProperty({ description: "Code of the collectivite, codeInsee for communes and codeEpci/siren for EPCI" })
