@@ -1,28 +1,28 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { ProjectsController } from "./projects.controller";
-import { CreateProjectRequest } from "./dto/create-project.dto";
-import { ProjectResponse } from "./dto/project.dto";
+import { ProjetsController } from "./projets.controller";
+import { CreateProjetRequest } from "./dto/create-projet.dto";
+import { ProjetResponse } from "./dto/projet.dto";
 import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { AppModule } from "@/app.module";
 import { NotFoundException } from "@nestjs/common";
 import { mockRequest } from "@test/mocks/mockRequest";
-import { CreateProjectsService } from "@projects/services/create-projects/create-projects.service";
-import { GetProjectsService } from "@projects/services/get-projects/get-projects.service";
-import { CollectiviteReference } from "@projects/dto/collectivite.dto";
+import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
+import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
+import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 
-describe("ProjectsController", () => {
-  let controller: ProjectsController;
-  let projectCreateService: CreateProjectsService;
-  let projectFindService: GetProjectsService;
+describe("ProjetsController", () => {
+  let controller: ProjetsController;
+  let ProjetCreateService: CreateProjetsService;
+  let ProjetFindService: GetProjetsService;
   let app: TestingModule;
 
   const mockedCollectivites: CollectiviteReference[] = [{ type: "Commune", code: "01001" }];
 
-  const expectedProject: ProjectResponse = {
+  const expectedProjet: ProjetResponse = {
     id: "test-id",
     createdAt: new Date(),
     updatedAt: new Date(),
-    nom: "Test Project",
+    nom: "Test Projet",
     description: "Test Description",
     porteurCodeSiret: "12345678901234",
     porteurReferentEmail: "test@example.com",
@@ -57,9 +57,9 @@ describe("ProjectsController", () => {
       imports: [AppModule],
     }).compile();
 
-    controller = app.get<ProjectsController>(ProjectsController);
-    projectCreateService = app.get<CreateProjectsService>(CreateProjectsService);
-    projectFindService = app.get<GetProjectsService>(GetProjectsService);
+    controller = app.get<ProjetsController>(ProjetsController);
+    ProjetCreateService = app.get<CreateProjetsService>(CreateProjetsService);
+    ProjetFindService = app.get<GetProjetsService>(GetProjetsService);
   });
 
   afterEach(async () => {
@@ -67,8 +67,8 @@ describe("ProjectsController", () => {
   });
 
   describe("create", () => {
-    const validProject: CreateProjectRequest = {
-      nom: "Test Project",
+    const validProjet: CreateProjetRequest = {
+      nom: "Test Projet",
       description: "Test Description",
       porteurCodeSiret: "12345678901234",
       porteurReferentEmail: "test@example.com",
@@ -79,40 +79,40 @@ describe("ProjectsController", () => {
       externalId: "test-service-id",
     };
 
-    it("should create a new project", async () => {
+    it("should create a new Projet", async () => {
       const expectedResponse = { id: "test-id" };
-      jest.spyOn(projectCreateService, "create").mockResolvedValue(expectedResponse);
+      jest.spyOn(ProjetCreateService, "create").mockResolvedValue(expectedResponse);
 
-      const result = await controller.create(mockRequest("MEC"), validProject);
+      const result = await controller.create(mockRequest("MEC"), validProjet);
 
       expect(result).toEqual(expectedResponse);
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(projectCreateService.create).toHaveBeenCalledWith(validProject, "MEC_test_api_key");
+      expect(ProjetCreateService.create).toHaveBeenCalledWith(validProjet, "MEC_test_api_key");
     });
   });
 
   describe("findAll", () => {
-    it("should return an array of projects", async () => {
-      const expectedProjects: ProjectResponse[] = [expectedProject];
+    it("should return an array of Projets", async () => {
+      const expectedProjets: ProjetResponse[] = [expectedProjet];
 
-      jest.spyOn(projectFindService, "findAll").mockResolvedValue(expectedProjects);
+      jest.spyOn(ProjetFindService, "findAll").mockResolvedValue(expectedProjets);
 
       const result = await controller.findAll();
-      expect(result).toEqual(expectedProjects);
+      expect(result).toEqual(expectedProjets);
     });
   });
 
   describe("findOne", () => {
-    it("should return a single project", async () => {
-      jest.spyOn(projectFindService, "findOne").mockResolvedValue(expectedProject);
+    it("should return a single Projet", async () => {
+      jest.spyOn(ProjetFindService, "findOne").mockResolvedValue(expectedProjet);
 
       const result = await controller.findOne({ id: crypto.randomUUID() });
-      expect(result).toEqual(expectedProject);
+      expect(result).toEqual(expectedProjet);
     });
 
-    it("should throw NotFoundException for non-existent project", async () => {
+    it("should throw NotFoundException for non-existent Projet", async () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      jest.spyOn(projectFindService, "findOne").mockRejectedValue(new NotFoundException());
+      jest.spyOn(ProjetFindService, "findOne").mockRejectedValue(new NotFoundException());
 
       await expect(controller.findOne({ id: nonExistentId })).rejects.toThrow(NotFoundException);
     });

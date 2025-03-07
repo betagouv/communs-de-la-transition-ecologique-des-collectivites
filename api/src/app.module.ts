@@ -1,6 +1,5 @@
 import { Module, NestModule, MiddlewareConsumer } from "@nestjs/common";
 import { AppService } from "./app.service";
-import { ProjectsModule } from "@projects/projects.module";
 import { ConfigModule } from "@nestjs/config";
 import { DatabaseModule } from "@database/database.module";
 import { LoggerModule } from "@/logging/logger.module";
@@ -12,6 +11,7 @@ import { ServicesModule } from "./services/services.module";
 import { SentryModule } from "@sentry/nestjs/setup";
 import { CorsMiddleware } from "./middleware/cors.middleware";
 import { GeoModule } from "@/geo/geo.module";
+import { ProjetsModule } from "@projets/projets.module";
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { GeoModule } from "@/geo/geo.module";
     SentryModule.forRoot(),
     ThrottlerModule.forRoot(throttlerConfig),
     DatabaseModule,
-    ProjectsModule,
+    ProjetsModule,
     ServicesModule,
     LoggerModule,
     GeoModule,

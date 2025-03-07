@@ -11,7 +11,7 @@ class ExtraField {
   value!: string;
 }
 
-export class ProjectExtraFieldsResponse {
+export class ProjetExtraFieldsResponse {
   @ApiProperty({
     description: "Array of extra field names, values, and labels",
     type: [ExtraField],
@@ -20,7 +20,7 @@ export class ProjectExtraFieldsResponse {
   extraFields!: ExtraField[];
 }
 
-export class CreateProjectExtraFieldRequest {
+export class CreateProjetExtraFieldRequest {
   @ApiProperty({
     description: "Array of extra field names, values, and labels",
     type: [ExtraField],

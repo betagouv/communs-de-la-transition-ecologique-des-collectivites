@@ -3,15 +3,15 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
-import { GetProjectsService } from "./get-projects.service";
-import { CreateProjectsService } from "../create-projects/create-projects.service";
-import { CollectiviteReference } from "@projects/dto/collectivite.dto";
+import { GetProjetsService } from "./get-projets.service";
 import { collectivites } from "@database/schema";
-import { mockProjectPayload } from "@test/mocks/mockProjectPayload";
+import { mockProjetPayload } from "@test/mocks/mockProjetPayload";
+import { CollectiviteReference } from "@projets/dto/collectivite.dto";
+import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
 
-describe("ProjectFindService", () => {
-  let getProjectsService: GetProjectsService;
-  let createProjectsService: CreateProjectsService;
+describe("ProjetFindService", () => {
+  let getProjetsService: GetProjetsService;
+  let createProjetsService: CreateProjetsService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
 
@@ -31,8 +31,8 @@ describe("ProjectFindService", () => {
     const { module: internalModule, testDbService: tds } = await testModule();
     module = internalModule;
     testDbService = tds;
-    getProjectsService = module.get<GetProjectsService>(GetProjectsService);
-    createProjectsService = module.get<CreateProjectsService>(CreateProjectsService);
+    getProjetsService = module.get<GetProjetsService>(GetProjetsService);
+    createProjetsService = module.get<CreateProjetsService>(CreateProjetsService);
   });
 
   afterAll(async () => {
@@ -92,39 +92,39 @@ describe("ProjectFindService", () => {
   };
 
   describe("findAll", () => {
-    it("should return all projects", async () => {
-      const createDto1 = mockProjectPayload({
+    it("should return all Projets", async () => {
+      const createDto1 = mockProjetPayload({
         collectivites: mockedCollectivites,
         externalId: "test-service-id-1",
       });
 
-      const createDto2 = mockProjectPayload({
+      const createDto2 = mockProjetPayload({
         collectivites: mockedCollectivites,
         externalId: "test-service-id-2",
       });
 
-      await createProjectsService.create(createDto1, "MEC_test_api_key");
-      await createProjectsService.create(createDto2, "MEC_test_api_key");
+      await createProjetsService.create(createDto1, "MEC_test_api_key");
+      await createProjetsService.create(createDto2, "MEC_test_api_key");
 
-      const { collectivites, externalId, ...expectedFieldsProject1 } = createDto1;
+      const { collectivites, externalId, ...expectedFieldsProjet1 } = createDto1;
 
       const {
-        externalId: serviceIdInProject2,
-        collectivites: collectivitesRefInProject2,
-        ...expectedFieldsProject2
+        externalId: serviceIdInProjet2,
+        collectivites: collectivitesRefInProjet2,
+        ...expectedFieldsProjet2
       } = createDto2;
 
-      const result = await getProjectsService.findAll();
+      const result = await getProjetsService.findAll();
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
-        ...expectedFieldsProject1,
+        ...expectedFieldsProjet1,
         ...expectedCommonFields,
         mecId: "test-service-id-1",
       });
 
       expect(result[1]).toEqual({
-        ...expectedFieldsProject2,
+        ...expectedFieldsProjet2,
         ...expectedCommonFields,
         mecId: "test-service-id-2",
       });
@@ -132,14 +132,14 @@ describe("ProjectFindService", () => {
   });
 
   describe("findOne", () => {
-    it("should return a project by id", async () => {
-      const createDto = mockProjectPayload({
+    it("should return a Projet by id", async () => {
+      const createDto = mockProjetPayload({
         collectivites: mockedCollectivites,
         externalId: "test-service-id",
       });
 
-      const createdProject = await createProjectsService.create(createDto, "MEC_test_api_key");
-      const result = await getProjectsService.findOne(createdProject.id);
+      const createdProjet = await createProjetsService.create(createDto, "MEC_test_api_key");
+      const result = await getProjetsService.findOne(createdProjet.id);
       const { externalId, collectivites, ...expectedFields } = createDto;
 
       expect(result).toEqual({
@@ -149,14 +149,14 @@ describe("ProjectFindService", () => {
       });
     });
 
-    it("should return extrafields for a project", async () => {
-      const createDto = mockProjectPayload({
+    it("should return extrafields for a Projet", async () => {
+      const createDto = mockProjetPayload({
         collectivites: mockedCollectivites,
         externalId: "test-service-id",
       });
 
-      const createdProject = await createProjectsService.create(createDto, "MEC_test_api_key");
-      const result = await getProjectsService.findOne(createdProject.id);
+      const createdProjet = await createProjetsService.create(createDto, "MEC_test_api_key");
+      const result = await getProjetsService.findOne(createdProjet.id);
       const { externalId, collectivites, ...expectedFields } = createDto;
 
       expect(result).toEqual({
@@ -166,9 +166,9 @@ describe("ProjectFindService", () => {
       });
     });
 
-    it("should throw NotFoundException when project not found", async () => {
+    it("should throw NotFoundException when Projet not found", async () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      await expect(getProjectsService.findOne(nonExistentId)).rejects.toThrow(NotFoundException);
+      await expect(getProjetsService.findOne(nonExistentId)).rejects.toThrow(NotFoundException);
     });
   });
 });

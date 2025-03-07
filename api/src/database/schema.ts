@@ -15,15 +15,15 @@ import {
 import { eq, relations, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
-const projectStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
-export const projectStatusEnum = pgEnum("project_status", projectStatus);
-export type ProjectStatus = (typeof projectStatusEnum.enumValues)[number];
+const projetStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
+export const projetStatusEnum = pgEnum("projet_status", projetStatus);
+export type ProjetStatus = (typeof projetStatusEnum.enumValues)[number];
 
 const collectiviteType = ["Commune", "EPCI"] as const;
 export const collectiviteTypeEnum = pgEnum("collectivite_type", collectiviteType);
 export type CollectiviteType = (typeof collectiviteTypeEnum.enumValues)[number];
 
-export const projects = pgTable("projects", {
+export const projets = pgTable("projets", {
   id: uuid("id")
     .primaryKey()
     .$defaultFn(() => uuidv7()),
@@ -37,7 +37,7 @@ export const projects = pgTable("projects", {
   description: text("description"),
   budget: integer("budget"),
   forecastedStartDate: text("forecasted_start_date"),
-  status: projectStatusEnum(),
+  status: projetStatusEnum(),
 
   // porteur info
   porteurCodeSiret: text("code_siret"),
@@ -87,19 +87,19 @@ export const collectivites = pgTable(
   ],
 );
 
-export const projectsToCollectivites = pgTable(
-  "projects_to_collectivites",
+export const projetsToCollectivites = pgTable(
+  "projets_to_collectivites",
   {
-    projectId: uuid("project_id")
+    projetId: uuid("projet_id")
       .notNull()
-      .references(() => projects.id),
+      .references(() => projets.id),
     collectiviteId: uuid("collectivite_id")
       .notNull()
       .references(() => collectivites.id),
   },
   (t) => [
-    primaryKey({ columns: [t.projectId, t.collectiviteId] }),
-    index("collectivite_project_idx").on(t.collectiviteId, t.projectId),
+    primaryKey({ columns: [t.projetId, t.collectiviteId] }),
+    index("collectivite_projet_idx").on(t.collectiviteId, t.projetId),
   ],
 );
 
@@ -130,7 +130,7 @@ export const serviceContext = pgTable(
       .references(() => services.id),
     competences: text("competences").array().notNull().default([]),
     leviers: text("leviers").array(),
-    status: projectStatusEnum("status").array().notNull().default([]),
+    status: projetStatusEnum("status").array().notNull().default([]),
 
     // Custom display options
     description: text("description"),
@@ -149,30 +149,30 @@ export const serviceExtraFields = pgTable("service_extra_fields", {
   id: uuid("id")
     .primaryKey()
     .$defaultFn(() => uuidv7()),
-  projectId: uuid("project_id")
+  projetId: uuid("projet_id")
     .notNull()
-    .references(() => projects.id),
+    .references(() => projets.id),
   name: text("name").notNull(),
   value: text("value").notNull(),
 });
 
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
-export const projectsRelations = relations(projects, ({ many }) => ({
-  collectivites: many(projectsToCollectivites),
+export const projetsRelations = relations(projets, ({ many }) => ({
+  collectivites: many(projetsToCollectivites),
   extraFields: many(serviceExtraFields),
 }));
 
 export const collectivitesRelations = relations(collectivites, ({ many }) => ({
-  projects: many(projectsToCollectivites),
+  projets: many(projetsToCollectivites),
 }));
 
-export const projectsToCollectivitesRelations = relations(projectsToCollectivites, ({ one }) => ({
-  project: one(projects, {
-    fields: [projectsToCollectivites.projectId],
-    references: [projects.id],
+export const projetsToCollectivitesRelations = relations(projetsToCollectivites, ({ one }) => ({
+  projet: one(projets, {
+    fields: [projetsToCollectivites.projetId],
+    references: [projets.id],
   }),
   collectivite: one(collectivites, {
-    fields: [projectsToCollectivites.collectiviteId],
+    fields: [projetsToCollectivites.collectiviteId],
     references: [collectivites.id],
   }),
 }));
@@ -189,8 +189,8 @@ export const serviceContextRelations = relations(serviceContext, ({ one }) => ({
 }));
 
 export const serviceExtraFieldsRelations = relations(serviceExtraFields, ({ one }) => ({
-  project: one(projects, {
-    fields: [serviceExtraFields.projectId],
-    references: [projects.id],
+  projet: one(projets, {
+    fields: [serviceExtraFields.projetId],
+    references: [projets.id],
   }),
 }));

@@ -9,19 +9,19 @@ import {
   IsOptional,
   IsString,
 } from "class-validator";
-import { CollectiviteType, ProjectStatus, projectStatusEnum } from "@database/schema";
+import { CollectiviteType, ProjetStatus, projetStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
-import { CollectiviteReference } from "@projects/dto/collectivite.dto";
+import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 
-export class CreateOrUpdateProjectResponse {
+export class CreateOrUpdateProjetResponse {
   @ApiProperty()
   @IsString()
   id!: string;
 }
 
-export class CreateProjectRequest {
+export class CreateProjetRequest {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -78,13 +78,13 @@ export class CreateProjectRequest {
   forecastedStartDate?: string;
 
   @ApiProperty({
-    enum: projectStatusEnum.enumValues,
+    enum: projetStatusEnum.enumValues,
     nullable: true,
     required: false,
     description: "Current Status for the project",
   })
   @IsOptional()
-  status?: ProjectStatus | null;
+  status?: ProjetStatus | null;
 
   @ApiProperty({
     description: "Array of collectivite references",

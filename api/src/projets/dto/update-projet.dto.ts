@@ -1,8 +1,8 @@
-import { CreateProjectRequest } from "./create-project.dto";
+import { CreateProjetRequest } from "./create-projet.dto";
 import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { IsNotEmpty, IsString } from "class-validator";
 
-export class UpdateProjectDto extends PartialType(CreateProjectRequest) {
+export class UpdateProjetDto extends PartialType(CreateProjetRequest) {
   @ApiProperty({ required: true })
   @IsString()
   @IsNotEmpty()

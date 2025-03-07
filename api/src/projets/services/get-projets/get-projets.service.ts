@@ -1,22 +1,22 @@
 import { DatabaseService } from "@database/database.service";
-import { projects } from "@database/schema";
+import { projets } from "@database/schema";
 import { CustomLogger } from "@logging/logger.service";
-import { ProjectResponse } from "@projects/dto/project.dto";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { Competences, Leviers } from "@/shared/types";
+import { ProjetResponse } from "@projets/dto/projet.dto";
 
 @Injectable()
-export class GetProjectsService {
+export class GetProjetsService {
   constructor(
     private readonly dbService: DatabaseService,
     private readonly logger: CustomLogger,
   ) {}
 
-  async findAll(): Promise<ProjectResponse[]> {
+  async findAll(): Promise<ProjetResponse[]> {
     this.logger.debug("Finding all projects");
 
-    const results = await this.dbService.database.query.projects.findMany({
+    const results = await this.dbService.database.query.projets.findMany({
       with: {
         collectivites: {
           with: {
@@ -36,9 +36,9 @@ export class GetProjectsService {
     });
   }
 
-  async findOne(id: string): Promise<ProjectResponse> {
-    const result = await this.dbService.database.query.projects.findFirst({
-      where: eq(projects.id, id),
+  async findOne(id: string): Promise<ProjetResponse> {
+    const result = await this.dbService.database.query.projets.findFirst({
+      where: eq(projets.id, id),
       with: {
         collectivites: {
           with: {
@@ -50,7 +50,7 @@ export class GetProjectsService {
 
     if (!result) {
       this.logger.warn("Project not found", { projectId: id });
-      throw new NotFoundException(`Project with ID ${id} not found`);
+      throw new NotFoundException(`Projet with ID ${id} not found`);
     }
 
     return {

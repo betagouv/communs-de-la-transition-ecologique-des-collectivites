@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { getFormattedDate } from "./helpers/get-formatted-date";
-import { CreateProjectRequest } from "@projects/dto/create-project.dto";
 import { createApiClient } from "@test/helpers/api-client";
 import { Competence, Levier } from "@/shared/types";
-import { mockedDefaultCollectivite, mockProjectPayload } from "@test/mocks/mockProjectPayload";
+import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
 import { collectivites } from "@database/schema";
+import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 
-describe("Projects (e2e)", () => {
+describe("Projets (e2e)", () => {
   const api = createApiClient(process.env.MEC_API_KEY!);
 
   afterEach(async () => {
     await global.testDbService.cleanDatabase();
   });
-  const validProject = mockProjectPayload();
+  const validProjet = mockProjetPayload();
 
   beforeEach(async () => {
     await global.testDbService.database.insert(collectivites).values({
@@ -26,7 +26,7 @@ describe("Projects (e2e)", () => {
   describe("POST /projects", () => {
     it("should reject when wrong api key", async () => {
       const wrongApiClient = createApiClient("wrong-api-key");
-      const { error } = await wrongApiClient.projects.create(validProject);
+      const { error } = await wrongApiClient.projects.create(validProjet);
 
       expect(error?.statusCode).toBe(401);
       expect(error?.message).toContain("Invalid API key");
@@ -34,7 +34,7 @@ describe("Projects (e2e)", () => {
 
     it("should create a valid project with MEC api key", async () => {
       const mecClient = createApiClient(process.env.MEC_API_KEY!);
-      const { data, error } = await mecClient.projects.create(validProject);
+      const { data, error } = await mecClient.projects.create(validProjet);
 
       expect(error).toBeUndefined();
       expect(data).toHaveProperty("id");
@@ -43,7 +43,7 @@ describe("Projects (e2e)", () => {
     it("should create a valid project with TeT api key", async () => {
       const tetClient = createApiClient(process.env.TET_API_KEY!);
       const { data, error } = await tetClient.projects.create({
-        ...validProject,
+        ...validProjet,
         status: "IDEE",
         externalId: "TeT-service-id",
       });
@@ -51,9 +51,9 @@ describe("Projects (e2e)", () => {
       expect(error).toBeUndefined();
       expect(data).toHaveProperty("id");
 
-      const { data: updatedProject } = await api.projects.getOne(data!.id);
+      const { data: updatedProjet } = await api.projects.getOne(data!.id);
 
-      expect(updatedProject).toMatchObject({
+      expect(updatedProjet).toMatchObject({
         tetId: "TeT-service-id",
       });
     });
@@ -62,15 +62,15 @@ describe("Projects (e2e)", () => {
       const recocoClient = createApiClient(process.env.RECOCO_API_KEY!);
 
       const { data, error } = await recocoClient.projects.create({
-        ...validProject,
+        ...validProjet,
         externalId: "Recoco-service-id",
       });
       expect(error).toBeUndefined();
       expect(data).toHaveProperty("id");
 
-      const { data: updatedProject } = await api.projects.getOne(data!.id);
+      const { data: updatedProjet } = await api.projects.getOne(data!.id);
 
-      expect(updatedProject).toMatchObject({
+      expect(updatedProjet).toMatchObject({
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         recocoId: "Recoco-service-id",
       });
@@ -81,15 +81,15 @@ describe("Projects (e2e)", () => {
 
       const mecClient = createApiClient(process.env.MEC_API_KEY!);
       const { data, error } = await mecClient.projects.create({
-        ...validProject,
+        ...validProjet,
         collectivites: [{ code: missingCodeInsee, type: "Commune" }],
       });
       expect(error).toBeUndefined();
       expect(data).toHaveProperty("id");
 
-      const { data: updatedProject } = await api.projects.getOne(data!.id);
+      const { data: updatedProjet } = await api.projects.getOne(data!.id);
 
-      expect(updatedProject).toMatchObject({
+      expect(updatedProjet).toMatchObject({
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         collectivites: [
           {
@@ -113,7 +113,7 @@ describe("Projects (e2e)", () => {
 
       const mecClient = createApiClient(process.env.MEC_API_KEY!);
       const { error } = await mecClient.projects.create({
-        ...validProject,
+        ...validProjet,
         collectivites: [{ code: missingCodeInsee, type: "Commune" }],
       });
       expect(error?.statusCode).toBe(400);
@@ -122,7 +122,7 @@ describe("Projects (e2e)", () => {
 
     it("should reject when nom is empty", async () => {
       const { error } = await api.projects.create({
-        ...validProject,
+        ...validProjet,
         nom: "",
       });
 
@@ -132,7 +132,7 @@ describe("Projects (e2e)", () => {
 
     it("should reject when externalId is empty", async () => {
       const { error } = await api.projects.create({
-        ...validProject,
+        ...validProjet,
         externalId: "",
       });
 
@@ -142,15 +142,15 @@ describe("Projects (e2e)", () => {
 
     it("should reject when required fields are missing", async () => {
       const { error } = await api.projects.create({
-        nom: "Test Project",
-      } as CreateProjectRequest);
+        nom: "Test Projet",
+      } as CreateProjetRequest);
 
       expect(error?.statusCode).toBe(400);
     });
 
     it("should reject when date is not an isoDate string", async () => {
       const { error } = await api.projects.create({
-        ...validProject,
+        ...validProjet,
         forecastedStartDate: "hello",
       });
 
@@ -160,7 +160,7 @@ describe("Projects (e2e)", () => {
 
     it("should reject when project has no collectivites", async () => {
       const { error } = await api.projects.create({
-        ...validProject,
+        ...validProjet,
         collectivites: [],
       });
 
@@ -170,7 +170,7 @@ describe("Projects (e2e)", () => {
 
     it("should reject when project has wrong competences", async () => {
       const { error } = await api.projects.create({
-        ...validProject,
+        ...validProjet,
         competences: ["Wrong_Competence" as Competence],
       });
 
@@ -182,7 +182,7 @@ describe("Projects (e2e)", () => {
 
     it("should reject when project has wrong leviers", async () => {
       const { error } = await api.projects.create({
-        ...validProject,
+        ...validProjet,
         leviers: ["WrongLevier" as Levier],
       });
 
@@ -194,16 +194,16 @@ describe("Projects (e2e)", () => {
   });
 
   describe("POST /projects/bulk", () => {
-    const validProjects: { projects: CreateProjectRequest[] } = {
+    const validProjets: { projects: CreateProjetRequest[] } = {
       projects: [
-        mockProjectPayload({ externalId: "bulk-project-1" }),
-        mockProjectPayload({ externalId: "bulk-project-2" }),
+        mockProjetPayload({ externalId: "bulk-project-1" }),
+        mockProjetPayload({ externalId: "bulk-project-2" }),
       ],
     };
 
     it("should reject when wrong api key", async () => {
       const wrongApiClient = createApiClient("wrong-api-key");
-      const { error } = await wrongApiClient.projects.createBulk(validProjects);
+      const { error } = await wrongApiClient.projects.createBulk(validProjets);
 
       expect(error?.statusCode).toBe(401);
       expect(error?.message).toContain("Invalid API key");
@@ -211,7 +211,7 @@ describe("Projects (e2e)", () => {
 
     it("should create multiple valid projects with MEC api key", async () => {
       const mecClient = createApiClient(process.env.MEC_API_KEY!);
-      const { data, error } = await mecClient.projects.createBulk(validProjects);
+      const { data, error } = await mecClient.projects.createBulk(validProjets);
 
       expect(error).toBeUndefined();
       expect(data?.ids).toHaveLength(2);
@@ -225,20 +225,20 @@ describe("Projects (e2e)", () => {
     });
 
     it("should reject when any project in bulk request is invalid", async () => {
-      const invalidProjects = {
+      const invalidProjets = {
         projects: [
           {
-            ...mockProjectPayload(),
+            ...mockProjetPayload(),
             nom: "", // Invalid: empty name
           },
           {
-            ...mockProjectPayload(),
+            ...mockProjetPayload(),
             nom: "",
           },
-        ] as CreateProjectRequest[],
+        ] as CreateProjetRequest[],
       };
 
-      const { error } = await api.projects.createBulk(invalidProjects);
+      const { error } = await api.projects.createBulk(invalidProjets);
 
       expect(error?.statusCode).toBe(400);
       expect(error?.message).toStrictEqual([
@@ -258,29 +258,29 @@ describe("Projects (e2e)", () => {
       const projectsWithInvalidBudget = {
         projects: [
           {
-            nom: "Valid Project",
+            nom: "Valid Projet",
             description: "Valid Description",
             budget: 100000,
             forecastedStartDate: getFormattedDate(),
             status: "IDEE",
           },
           {
-            nom: "Invalid Project",
+            nom: "Invalid Projet",
             description: "Invalid Description",
             budget: "hello", // Invalid budget
             forecastedStartDate: getFormattedDate(),
             status: "IDEE",
           },
-        ] as CreateProjectRequest[],
+        ] as CreateProjetRequest[],
       };
 
       const { error } = await api.projects.createBulk(projectsWithInvalidBudget);
       expect(error?.statusCode).toBe(400);
 
       // Verify no projects were created
-      const { data: allProjects } = await api.projects.getAll();
-      const matchingProjects = allProjects?.filter((p) => p.nom === "Valid Project" || p.nom === "Invalid Project");
-      expect(matchingProjects).toHaveLength(0);
+      const { data: allProjets } = await api.projects.getAll();
+      const matchingProjets = allProjets?.filter((p) => p.nom === "Valid Projet" || p.nom === "Invalid Projet");
+      expect(matchingProjets).toHaveLength(0);
     });
   });
 
@@ -288,7 +288,7 @@ describe("Projects (e2e)", () => {
     let projectId: string;
 
     beforeEach(async () => {
-      const { data } = await api.projects.create(validProject);
+      const { data } = await api.projects.create(validProjet);
       projectId = data!.id;
     });
 
@@ -296,7 +296,7 @@ describe("Projects (e2e)", () => {
       const newEmail = "new.referent@email.com";
       const updateData = {
         porteurReferentEmail: newEmail,
-        externalId: validProject.externalId,
+        externalId: validProjet.externalId,
       };
 
       const { data, error } = await api.projects.update(projectId, updateData);
@@ -306,9 +306,9 @@ describe("Projects (e2e)", () => {
         id: projectId,
       });
 
-      const { data: updatedProject } = await api.projects.getOne(projectId);
+      const { data: updatedProjet } = await api.projects.getOne(projectId);
 
-      expect(updatedProject).toMatchObject({
+      expect(updatedProjet).toMatchObject({
         id: projectId,
         porteurReferentEmail: newEmail,
       });
@@ -316,11 +316,11 @@ describe("Projects (e2e)", () => {
 
     it("should update multiple fields at once", async () => {
       const updateData = {
-        nom: "Updated Project Name",
+        nom: "Updated Projet Name",
         description: "Updated Description",
         budget: 200000,
         porteurReferentEmail: "new.referent@email.com",
-        externalId: validProject.externalId,
+        externalId: validProjet.externalId,
       };
 
       const { data, error } = await api.projects.update(projectId, updateData);
@@ -330,14 +330,14 @@ describe("Projects (e2e)", () => {
         id: projectId,
       });
 
-      const { data: updatedProject } = await api.projects.getOne(projectId);
+      const { data: updatedProjet } = await api.projects.getOne(projectId);
 
       const { externalId, ...expectedFields } = updateData;
 
-      expect(updatedProject).toMatchObject({
+      expect(updatedProjet).toMatchObject({
         ...expectedFields,
         id: projectId,
-        mecId: validProject.externalId,
+        mecId: validProjet.externalId,
         recocoId: null,
         tetId: null,
       });
@@ -345,7 +345,7 @@ describe("Projects (e2e)", () => {
 
     it("should reject update when nom is empty", async () => {
       const { error } = await api.projects.update(projectId, {
-        ...validProject,
+        ...validProjet,
         nom: "",
       });
 
@@ -356,13 +356,13 @@ describe("Projects (e2e)", () => {
 
   describe("GET /projects/:id", () => {
     it("should return a specific project", async () => {
-      const { data: createdProject, error: _createError } = await api.projects.create(validProject);
+      const { data: createdProjet, error: _createError } = await api.projects.create(validProjet);
 
-      const projectId = createdProject!.id;
+      const projectId = createdProjet!.id;
 
       const { data, error } = await api.projects.getOne(projectId);
 
-      const { externalId, collectivites, ...expectedFields } = validProject;
+      const { externalId, collectivites, ...expectedFields } = validProjet;
 
       expect(error).toBeUndefined();
       expect(data).toEqual({
@@ -409,7 +409,7 @@ describe("Projects (e2e)", () => {
 
   describe("GET /projects", () => {
     it("should return all projects", async () => {
-      await api.projects.create(validProject);
+      await api.projects.create(validProjet);
 
       const { data, error } = await api.projects.getAll();
 
@@ -419,7 +419,7 @@ describe("Projects (e2e)", () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: expect.any(String),
-            nom: validProject.nom,
+            nom: validProjet.nom,
             collectivites: expect.arrayContaining([
               expect.objectContaining({
                 codeInsee: mockedDefaultCollectivite.code,

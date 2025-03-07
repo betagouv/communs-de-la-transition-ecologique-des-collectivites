@@ -2,12 +2,12 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { TestingModule } from "@nestjs/testing";
 import { CollectivitesService } from "./collectivites.service";
-import { collectivites, projects, projectsToCollectivites } from "@database/schema";
-import { CollectiviteReference } from "@projects/dto/collectivite.dto";
+import { collectivites, projets, projetsToCollectivites } from "@database/schema";
 import { eq } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 import { GeoService } from "@/geo/geo-service";
 import { Collectivite } from "@/geo/geo-api.service";
+import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 
 describe("CollectivitesService", () => {
   let collectivitesService: CollectivitesService;
@@ -44,7 +44,7 @@ describe("CollectivitesService", () => {
     jest.clearAllMocks();
 
     const [project] = await testDbService.database
-      .insert(projects)
+      .insert(projets)
       .values({
         nom: "Test Project",
         description: "Test Description",
@@ -123,8 +123,8 @@ describe("CollectivitesService", () => {
 
         const relations = await tx
           .select()
-          .from(projectsToCollectivites)
-          .where(eq(projectsToCollectivites.projectId, projectId));
+          .from(projetsToCollectivites)
+          .where(eq(projetsToCollectivites.projetId, projectId));
 
         expect(relations).toHaveLength(2);
         expect(relations.map((r) => r.collectiviteId)).toContain(collectivite1Uuid);
@@ -151,8 +151,8 @@ describe("CollectivitesService", () => {
 
         const relations = await tx
           .select()
-          .from(projectsToCollectivites)
-          .where(eq(projectsToCollectivites.projectId, projectId));
+          .from(projetsToCollectivites)
+          .where(eq(projetsToCollectivites.projetId, projectId));
 
         expect(relations).toHaveLength(2);
         expect(relations.map((r) => r.collectiviteId)).not.toContain(collectivite1Uuid); // Should be removed
@@ -188,8 +188,8 @@ describe("CollectivitesService", () => {
 
         const relations = await tx
           .select()
-          .from(projectsToCollectivites)
-          .where(eq(projectsToCollectivites.projectId, projectId));
+          .from(projetsToCollectivites)
+          .where(eq(projetsToCollectivites.projetId, projectId));
 
         expect(relations).toHaveLength(1);
         expect(relations[0].collectiviteId).toBe(collectivite1Uuid);
@@ -221,8 +221,8 @@ describe("CollectivitesService", () => {
         // Verify the relations were created
         const relations = await tx
           .select()
-          .from(projectsToCollectivites)
-          .where(eq(projectsToCollectivites.projectId, projectId));
+          .from(projetsToCollectivites)
+          .where(eq(projetsToCollectivites.projetId, projectId));
 
         expect(relations).toHaveLength(2);
 

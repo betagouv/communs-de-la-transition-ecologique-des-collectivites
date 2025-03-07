@@ -1,13 +1,13 @@
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { TestingModule } from "@nestjs/testing";
-import { CreateProjectsService } from "../create-projects/create-projects.service";
-import { ExtraFieldsService } from "@projects/services/extra-fields/extra-fields.service";
 import { collectivites } from "@database/schema";
-import { mockedDefaultCollectivite, mockProjectPayload } from "@test/mocks/mockProjectPayload";
+import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
+import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
+import { ExtraFieldsService } from "@projets/services/extra-fields/extra-fields.service";
 
 describe("ExtraFieldService", () => {
-  let createService: CreateProjectsService;
+  let createService: CreateProjetsService;
   let extraFieldsService: ExtraFieldsService;
   let testDbService: TestDatabaseService;
   let module: TestingModule;
@@ -16,7 +16,7 @@ describe("ExtraFieldService", () => {
     const { module: internalModule, testDbService: tds } = await testModule();
     module = internalModule;
     testDbService = tds;
-    createService = module.get<CreateProjectsService>(CreateProjectsService);
+    createService = module.get<CreateProjetsService>(CreateProjetsService);
     extraFieldsService = module.get<ExtraFieldsService>(ExtraFieldsService);
   });
 
@@ -35,26 +35,26 @@ describe("ExtraFieldService", () => {
     ]);
   });
 
-  describe("getExtraFieldsByProjectId", () => {
-    it("should return default extrafields for a project", async () => {
-      const createDto = mockProjectPayload();
+  describe("getExtraFieldsByProjetId", () => {
+    it("should return default extrafields for a Projet", async () => {
+      const createDto = mockProjetPayload();
 
-      const createdProject = await createService.create(createDto, "MEC_test_api_key");
-      const result = await extraFieldsService.getExtraFieldsByProjectId(createdProject.id);
+      const createdProjet = await createService.create(createDto, "MEC_test_api_key");
+      const result = await extraFieldsService.getExtraFieldsByProjetId(createdProjet.id);
       expect(result).toEqual({ extraFields: [] });
     });
   });
 
   describe("createExtraFields", () => {
-    it("should return created extrafields for a project", async () => {
-      const createDto = mockProjectPayload();
+    it("should return created extrafields for a Projet", async () => {
+      const createDto = mockProjetPayload();
 
-      const createdProject = await createService.create(createDto, "MEC_test_api_key");
+      const createdProjet = await createService.create(createDto, "MEC_test_api_key");
 
-      await extraFieldsService.createExtraFields(createdProject.id, {
+      await extraFieldsService.createExtraFields(createdProjet.id, {
         extraFields: [{ name: "surface", value: "100" }],
       });
-      const result = await extraFieldsService.getExtraFieldsByProjectId(createdProject.id);
+      const result = await extraFieldsService.getExtraFieldsByProjetId(createdProjet.id);
       expect(result).toEqual({ extraFields: [{ name: "surface", value: "100" }] });
     });
   });
