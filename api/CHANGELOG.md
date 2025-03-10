@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.8](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.7...v0.0.8) (2025-03-10)
+
+
+### Features
+
+* add competences and sous competences ([#31](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/31)) ([ad02056](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ad02056063c56fa932472bec4451015edf7bf004))
+* add isListed flag in service ([#44](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/44)) ([589de85](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/589de850a387fe24fd69e2ab99877ba016a45c07))
+* add proper nested validation error message ([#36](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/36)) ([ba29868](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ba29868adbfc1af63438f2e12fccfd59175a683d))
+* add props to setup api url ([#30](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/30)) ([8f7078c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/8f7078c37fd01d73842a25f6613aa27cfc165167))
+* add script to import service ([#46](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/46)) ([7417743](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/74177432db049e54d60a9a8c82b799086188ceea))
+
 ## [0.0.7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.6...v0.0.7) (2024-12-31)
 
 
