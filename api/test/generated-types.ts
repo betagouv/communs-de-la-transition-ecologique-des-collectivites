@@ -4,58 +4,58 @@
  */
 
 export interface paths {
-    "/projects": {
+    "/projets": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get all projects */
-        get: operations["ProjectsController_findAll"];
+        /** Get all Projets */
+        get: operations["ProjetsController_findAll"];
         put?: never;
-        post: operations["ProjectsController_create"];
+        post: operations["ProjetsController_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/projects/{id}": {
+    "/projets/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get specific project by id */
-        get: operations["ProjectsController_findOne"];
+        /** Get specific Projet by id */
+        get: operations["ProjetsController_findOne"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Update a specific project */
-        patch: operations["ProjectsController_update"];
+        /** Update a specific Projet */
+        patch: operations["ProjetsController_update"];
         trace?: never;
     };
-    "/projects/{id}/extra-fields": {
+    "/projets/{id}/extra-fields": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["ProjectsController_getExtraFields"];
+        get: operations["ProjetsController_getExtraFields"];
         put?: never;
-        post: operations["ProjectsController_updateExtraFields"];
+        post: operations["ProjetsController_updateExtraFields"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/projects/bulk": {
+    "/projets/bulk": {
         parameters: {
             query?: never;
             header?: never;
@@ -64,8 +64,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create new projects in bulk */
-        post: operations["ProjectsController_createBulk"];
+        /** Create new Projets in bulk */
+        post: operations["ProjetsController_createBulk"];
         delete?: never;
         options?: never;
         head?: never;
@@ -127,6 +127,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        PorteurDto: {
+            codeSiret?: string | null;
+            referentEmail?: string | null;
+            referentTelephone?: string | null;
+            referentPrenom?: string | null;
+            referentNom?: string | null;
+            referentFonction?: string | null;
+        };
         Collectivite: {
             id: string;
             nom: string;
@@ -138,7 +146,7 @@ export interface components {
             codeRegions: string | null;
             siren: string | null;
         };
-        ProjectResponse: {
+        ProjetResponse: {
             id: string;
             /** Format: date-time */
             createdAt: string;
@@ -146,17 +154,13 @@ export interface components {
             updatedAt: string;
             nom: string;
             description: string | null;
-            porteurCodeSiret: string | null;
-            porteurReferentEmail: string | null;
-            porteurReferentTelephone: string | null;
-            porteurReferentPrenom: string | null;
-            porteurReferentNom: string | null;
-            porteurReferentFonction: string | null;
+            porteur: components["schemas"]["PorteurDto"] | null;
             collectivites: components["schemas"]["Collectivite"][];
-            budget: number | null;
-            forecastedStartDate: string | null;
+            budgetPrevisionnel: number | null;
+            dateDebutPrevisionnelle: string | null;
             /** @enum {string|null} */
             status: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
+            programme: string | null;
             /** @enum {string|null} */
             competences: "Autres interventions de protection civile" | "Autres services annexes de l'enseignement" | "Collecte et traitement des déchets" | "Développement touristique" | "Enseignement du premier degré" | "Enseignement du second degré" | "Enseignement supérieur, professionnel et continu" | "Foires et marchés" | "Hébergement et restauration scolaires" | "Hygiène et salubrité publique" | "Incendie et secours" | "Infrastructures de transport" | "Jeunesse et loisirs" | "Police, sécurité, justice" | "Propreté urbaine" | "Routes et voiries" | "Santé" | "Sports" | "Transports publics (hors scolaire)" | "Transports scolaires" | "Action sociale (hors APA et RSA) > Citoyenneté" | "Action sociale (hors APA et RSA) > Cohésion sociale et inclusion" | "Action sociale (hors APA et RSA) > Egalité des chances" | "Action sociale (hors APA et RSA) > Famille et enfance" | "Action sociale (hors APA et RSA) > Handicap" | "Action sociale (hors APA et RSA) > Inclusion numérique" | "Action sociale (hors APA et RSA) > Jeunesse" | "Action sociale (hors APA et RSA) > Lutte contre la précarité" | "Action sociale (hors APA et RSA) > Personnes âgées" | "Action sociale (hors APA et RSA) > Protection animale" | "Actions en matière de gestion des eaux > Assainissement des eaux" | "Actions en matière de gestion des eaux > Cours d'eau / canaux / plans d'eau" | "Actions en matière de gestion des eaux > Eau pluviale" | "Actions en matière de gestion des eaux > Eau potable" | "Actions en matière de gestion des eaux > Eau souterraine" | "Actions en matière de gestion des eaux > Mers et océans" | "Agriculture, pêche et agro-alimentaire > Consommation alimentaire" | "Agriculture, pêche et agro-alimentaire > Déchets alimentaires et/ou agricoles" | "Agriculture, pêche et agro-alimentaire > Distribution" | "Agriculture, pêche et agro-alimentaire > Précarité et aide alimentaire" | "Agriculture, pêche et agro-alimentaire > Production agricole et foncier" | "Agriculture, pêche et agro-alimentaire > Transformation des produits agricoles" | "Aménagement des territoires > Foncier" | "Aménagement des territoires > Friche" | "Aménagement des territoires > Paysage" | "Aménagement des territoires > Réseaux" | "Culture > Arts plastiques et photographie" | "Culture > Bibliothèques et livres" | "Culture > Médias et communication" | "Culture > Musée" | "Culture > Patrimoine et monuments historiques" | "Culture > Spectacle vivant" | "Habitat > Accessibilité" | "Habitat > Architecture" | "Habitat > Bâtiments et construction" | "Habitat > Cimetières et funéraire" | "Habitat > Equipement public" | "Habitat > Espace public" | "Habitat > Espaces verts" | "Habitat > Logement et habitat" | "Industrie, commerce et artisanat > Artisanat" | "Industrie, commerce et artisanat > Commerces et Services" | "Industrie, commerce et artisanat > Economie locale et circuits courts" | "Industrie, commerce et artisanat > Economie sociale et solidaire" | "Industrie, commerce et artisanat > Fiscalité des entreprises" | "Industrie, commerce et artisanat > Industrie" | "Industrie, commerce et artisanat > Innovation, créativité et recherche" | "Industrie, commerce et artisanat > Technologies numériques et numérisation" | "Industrie, commerce et artisanat > Tiers-lieux" | null;
             /**
@@ -180,11 +184,11 @@ export interface components {
             /** @description Value of the extra field */
             value: string;
         };
-        ProjectExtraFieldsResponse: {
+        ProjetExtraFieldsResponse: {
             /** @description Array of extra field names, values, and labels */
             extraFields: components["schemas"]["ExtraField"][];
         };
-        CreateProjectExtraFieldRequest: {
+        CreateProjetExtraFieldRequest: {
             /** @description Array of extra field names, values, and labels */
             extraFields: components["schemas"]["ExtraField"][];
         };
@@ -198,26 +202,22 @@ export interface components {
             /** @description Code of the collectivite, codeInsee for communes and codeEpci/siren for EPCI */
             code: string;
         };
-        CreateProjectRequest: {
+        CreateProjetRequest: {
             nom: string;
             description?: string | null;
-            porteurCodeSiret?: string | null;
-            porteurReferentEmail?: string | null;
-            porteurReferentTelephone?: string | null;
-            porteurReferentPrenom?: string | null;
-            porteurReferentNom?: string | null;
-            porteurReferentFonction?: string | null;
-            budget?: number | null;
+            porteur?: components["schemas"]["PorteurDto"] | null;
+            budgetPrevisionnel?: number | null;
             /**
              * @description Forecasted start date in YYYY-MM-DD format
              * @example 2024-03-01
              */
-            forecastedStartDate?: string | null;
+            dateDebutPrevisionnelle?: string | null;
             /**
              * @description Current Status for the project
              * @enum {string|null}
              */
             status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
+            programme?: string | null;
             /**
              * @description Array of collectivite references
              * @example [
@@ -244,35 +244,31 @@ export interface components {
             leviers?: ("Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Collecte et tri des déchets" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF")[] | null;
             externalId: string;
         };
-        CreateOrUpdateProjectResponse: {
+        CreateOrUpdateProjetResponse: {
             id: string;
         };
-        BulkCreateProjectsRequest: {
-            projects: components["schemas"]["CreateProjectRequest"][];
+        BulkCreateProjetsRequest: {
+            projects: components["schemas"]["CreateProjetRequest"][];
         };
-        BulkCreateProjectsResponse: {
+        BulkCreateProjetsResponse: {
             ids: string[];
         };
-        UpdateProjectDto: {
+        UpdateProjetDto: {
             nom?: string;
             description?: string | null;
-            porteurCodeSiret?: string | null;
-            porteurReferentEmail?: string | null;
-            porteurReferentTelephone?: string | null;
-            porteurReferentPrenom?: string | null;
-            porteurReferentNom?: string | null;
-            porteurReferentFonction?: string | null;
-            budget?: number | null;
+            porteur?: components["schemas"]["PorteurDto"] | null;
+            budgetPrevisionnel?: number | null;
             /**
              * @description Forecasted start date in YYYY-MM-DD format
              * @example 2024-03-01
              */
-            forecastedStartDate?: string | null;
+            dateDebutPrevisionnelle?: string | null;
             /**
              * @description Current Status for the project
              * @enum {string|null}
              */
             status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
+            programme?: string | null;
             /**
              * @description Array of collectivite references
              * @example [
@@ -435,7 +431,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    ProjectsController_findAll: {
+    ProjetsController_findAll: {
         parameters: {
             query?: never;
             header?: never;
@@ -447,7 +443,7 @@ export interface operations {
             200: {
                 headers: Record<string, unknown>;
                 content: {
-                    "application/json": components["schemas"]["ProjectResponse"][];
+                    "application/json": components["schemas"]["ProjetResponse"][];
                 };
             };
             /** @description Error response */
@@ -459,7 +455,7 @@ export interface operations {
             };
         };
     };
-    ProjectsController_create: {
+    ProjetsController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -468,15 +464,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateProjectRequest"];
+                "application/json": components["schemas"]["CreateProjetRequest"];
             };
         };
         responses: {
-            /** @description Project created successfully */
+            /** @description Projet created successfully */
             201: {
                 headers: Record<string, unknown>;
                 content: {
-                    "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
+                    "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
@@ -488,66 +484,7 @@ export interface operations {
             };
         };
     };
-    ProjectsController_findOne: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description An Id in a UUID format */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: Record<string, unknown>;
-                content: {
-                    "application/json": components["schemas"]["ProjectResponse"];
-                };
-            };
-            /** @description Error response */
-            default: {
-                headers: Record<string, unknown>;
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    ProjectsController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description An Id in a UUID format */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateProjectDto"];
-            };
-        };
-        responses: {
-            /** @description Project updated successfully */
-            200: {
-                headers: Record<string, unknown>;
-                content: {
-                    "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
-                };
-            };
-            /** @description Error response */
-            default: {
-                headers: Record<string, unknown>;
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    ProjectsController_getExtraFields: {
+    ProjetsController_findOne: {
         parameters: {
             query?: never;
             header?: never;
@@ -562,7 +499,7 @@ export interface operations {
             200: {
                 headers: Record<string, unknown>;
                 content: {
-                    "application/json": components["schemas"]["ProjectExtraFieldsResponse"];
+                    "application/json": components["schemas"]["ProjetResponse"];
                 };
             };
             /** @description Error response */
@@ -574,7 +511,7 @@ export interface operations {
             };
         };
     };
-    ProjectsController_updateExtraFields: {
+    ProjetsController_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -586,14 +523,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateProjectExtraFieldRequest"];
+                "application/json": components["schemas"]["UpdateProjetDto"];
             };
         };
         responses: {
-            201: {
+            /** @description Projet updated successfully */
+            200: {
                 headers: Record<string, unknown>;
                 content: {
-                    "application/json": components["schemas"]["ProjectExtraFieldsResponse"];
+                    "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
@@ -605,7 +543,65 @@ export interface operations {
             };
         };
     };
-    ProjectsController_createBulk: {
+    ProjetsController_getExtraFields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description An Id in a UUID format */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ProjetExtraFieldsResponse"];
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ProjetsController_updateExtraFields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description An Id in a UUID format */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProjetExtraFieldRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ProjetExtraFieldsResponse"];
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ProjetsController_createBulk: {
         parameters: {
             query?: never;
             header?: never;
@@ -614,15 +610,15 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["BulkCreateProjectsRequest"];
+                "application/json": components["schemas"]["BulkCreateProjetsRequest"];
             };
         };
         responses: {
-            /** @description Bulk Projects created successfully */
+            /** @description Bulk Projets created successfully */
             201: {
                 headers: Record<string, unknown>;
                 content: {
-                    "application/json": components["schemas"]["BulkCreateProjectsResponse"];
+                    "application/json": components["schemas"]["BulkCreateProjetsResponse"];
                 };
             };
             /** @description Error response */

@@ -4,7 +4,7 @@ import { DatabaseService } from "@database/database.service";
 import { collectivites } from "@database/schema";
 import { CustomLogger } from "@logging/logger.service";
 import { formatError } from "@/exceptions/utils";
-import { CollectiviteReference } from "@projects/dto/collectivite.dto";
+import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 
 @Injectable()
 export class GeoService {
