@@ -10,7 +10,7 @@ import { competences } from "@/shared/const/competences-list";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 import { ProjetStatus, projetStatusEnum } from "@database/schema";
 
-config({ path: path.resolve(__dirname, "../.env") });
+config({ path: path.resolve(__dirname, "../../.env") });
 
 interface CsvRecord {
   tet_id: string;
@@ -21,6 +21,7 @@ interface CsvRecord {
   project_status: string;
   commune: string;
   insee_code: string;
+  siren_epci: string;
   leviers: string;
   competences: string;
 }
@@ -62,10 +63,9 @@ async function importProjectsTet(csvFilePath: string) {
       externalId: record.tet_id,
       nom: record.nom,
       description: record.description,
-      dateDebutPrevisionnelle: new Date().toISOString(),
       budgetPrevisionnel: parseFloat(record.budget),
       status,
-      collectivites: [{ code: record.insee_code, type: "Commune" }],
+      collectivites: [mapCollectivites(record.insee_code, record.siren_epci)],
       leviers: parsedLeviers as Leviers,
       competences: parsedCompetences as Competences,
     });
@@ -74,7 +74,7 @@ async function importProjectsTet(csvFilePath: string) {
   // Close the write stream when done
   invalidItemsFile.end();
 
-  const batchSize = 100;
+  const batchSize = 500;
   for (let i = 0; i < projects.length; i += batchSize) {
     const batch = projects.slice(i, i + batchSize);
 
@@ -117,6 +117,16 @@ function parseFieldToArray(
       return true;
     });
 }
+
+const mapCollectivites = (inseeCode: string, epciCode: string): { code: string; type: "Commune" | "EPCI" } => {
+  if (inseeCode) {
+    return { code: inseeCode, type: "Commune" };
+  }
+  if (epciCode) {
+    return { code: epciCode, type: "EPCI" };
+  }
+  throw new Error("At least one commune or EPCI needs to be provided");
+};
 
 const printBatchWeight = (batch: CreateProjetRequest[]) => {
   const jsonString = JSON.stringify(batch);

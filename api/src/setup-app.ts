@@ -11,7 +11,7 @@ export function setupApp(app: INestApplication) {
   app.useLogger(logger);
 
   // could not find a satisfying way to handle this through middleware
-  app.use("/projects/bulk", json({ limit: "2mb" }));
+  app.use("/projets/bulk", json({ limit: "2mb" }));
   app.use(json({ limit: "100kb" }));
 
   app.useGlobalFilters(new GlobalExceptionFilter(logger));
