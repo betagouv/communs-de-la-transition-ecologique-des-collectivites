@@ -1,0 +1,1 @@
+ALTER TABLE "projets" RENAME COLUMN "source" TO "programme";

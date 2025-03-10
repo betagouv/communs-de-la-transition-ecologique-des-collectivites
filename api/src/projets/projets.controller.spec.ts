@@ -34,7 +34,7 @@ describe("ProjetsController", () => {
     },
     budgetPrevisionnel: 100000,
     dateDebutPrevisionnelle: getFormattedDate(),
-    source: null,
+    programme: null,
     status: "IDEE",
     competences: null,
     leviers: null,

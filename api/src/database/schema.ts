@@ -38,7 +38,7 @@ export const projets = pgTable("projets", {
   budgetPrevisionnel: integer("budget_previsionnel"),
   dateDebutPrevisionnelle: text("date_debut_previsionnelle"),
   status: projetStatusEnum(),
-  source: text(),
+  programme: text(),
 
   // porteur info
   porteurCodeSiret: text("code_siret"),

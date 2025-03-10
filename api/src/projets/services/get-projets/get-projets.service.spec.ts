@@ -72,7 +72,7 @@ describe("ProjetFindService", () => {
       referentPrenom: null,
       referentTelephone: null,
     },
-    source: null,
+    programme: null,
     leviers: ["Bio-carburants"],
     competences: ["Santé", "Culture > Arts plastiques et photographie"],
     budgetPrevisionnel: 100000,

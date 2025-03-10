@@ -397,7 +397,7 @@ describe("Projets (e2e)", () => {
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         leviers: ["Bio-carburants"],
         status: "IDEE",
-        source: null,
+        programme: null,
         mecId: "test-external-id",
         recocoId: null,
         tetId: null,

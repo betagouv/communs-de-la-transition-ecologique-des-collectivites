@@ -68,7 +68,7 @@ export class CreateProjetRequest {
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
   @IsOptional()
-  source?: string | null;
+  programme?: string | null;
 
   @ApiProperty({
     description: "Array of collectivite references",
