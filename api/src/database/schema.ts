@@ -15,7 +15,7 @@ import {
 import { eq, relations, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
-const projetStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
+export const projetStatus = ["IDEE", "FAISABILITE", "EN_COURS", "IMPACTE", "ABANDONNE", "TERMINE"] as const;
 export const projetStatusEnum = pgEnum("projet_status", projetStatus);
 export type ProjetStatus = (typeof projetStatusEnum.enumValues)[number];
 
