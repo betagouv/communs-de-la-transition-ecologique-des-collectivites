@@ -21,16 +21,7 @@ export class CreateProjetsService {
 
     const { externalId, porteur, ...otherFields } = createProjectDto;
 
-    // Check if project already exists with this externalId
-    const existingProject = await this.dbService.database
-      .select()
-      .from(projets)
-      .where(eq(projets[serviceIdField], externalId))
-      .limit(1);
-
-    if (existingProject.length > 0) {
-      throw new ConflictException(`Projet with ${serviceIdField} ${externalId} already exists`);
-    }
+    await this.assertProjectDoesNotAlreadyExists(serviceIdField, externalId);
 
     return this.dbService.database.transaction(async (tx) => {
       const [createdProject] = await tx
@@ -57,15 +48,7 @@ export class CreateProjetsService {
       for (const projectDto of bulkCreateProjectsRequest.projects) {
         const { collectivites, externalId, porteur, ...projectFields } = projectDto;
 
-        const existingProject = await this.dbService.database
-          .select()
-          .from(projets)
-          .where(eq(projets[serviceIdField], externalId))
-          .limit(1);
-
-        if (existingProject.length > 0) {
-          throw new ConflictException(`Projet with ${serviceIdField} ${externalId} already exists`);
-        }
+        await this.assertProjectDoesNotAlreadyExists(serviceIdField, externalId);
 
         const [newProject] = await tx
           .insert(projets)
@@ -83,6 +66,18 @@ export class CreateProjetsService {
 
       return { ids: createdProjects.map((p) => p.id) };
     });
+  }
+
+  private async assertProjectDoesNotAlreadyExists(serviceIdField: "mecId" | "tetId" | "recocoId", externalId: string) {
+    const existingProject = await this.dbService.database
+      .select()
+      .from(projets)
+      .where(eq(projets[serviceIdField], externalId))
+      .limit(1);
+
+    if (existingProject.length > 0) {
+      throw new ConflictException(`Projet with ${serviceIdField} ${externalId} already exists`);
+    }
   }
 
   private mapPorteurToDatabase(porteur: PorteurDto | null | undefined) {

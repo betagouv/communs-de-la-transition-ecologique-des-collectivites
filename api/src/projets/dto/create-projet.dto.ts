@@ -10,7 +10,7 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import { ProjetStatus, projetStatusEnum } from "@database/schema";
+import { projetStatus, ProjetStatus, projetStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
@@ -54,6 +54,7 @@ export class CreateProjetRequest {
     example: "2024-03-01",
   })
   @IsDateString()
+  @IsOptional()
   dateDebutPrevisionnelle?: string | null;
 
   @ApiProperty({
@@ -62,6 +63,7 @@ export class CreateProjetRequest {
     required: false,
     description: "Current Status for the project",
   })
+  @IsIn(projetStatus, { each: true })
   @IsOptional()
   status?: ProjetStatus | null;
 
@@ -73,8 +75,8 @@ export class CreateProjetRequest {
   @ApiProperty({
     description: "Array of collectivite references",
     example: [
-      { type: "Commune", code: "12345" },
-      { type: "EPCI", code: "123456789" },
+      { type: "Commune", code: "78646" },
+      { type: "EPCI", code: "247800584" },
     ],
     required: true,
     type: [CollectiviteReference],
