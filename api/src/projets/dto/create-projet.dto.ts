@@ -58,6 +58,7 @@ export class CreateProjetRequest {
     example: "2024-03-01",
   })
   @IsDateString()
+  @IsOptional()
   dateDebutPrevisionnelle?: string | null;
 
   @ApiProperty({
@@ -66,6 +67,7 @@ export class CreateProjetRequest {
     required: false,
     description: "Current status for the phase",
   })
+  @IsIn(phaseStatutEnum.enumValues, { each: true })
   @IsOptional()
   @PhaseStatutRequiresPhase({ message: "Cannot specify phaseStatut without a phase" })
   @SetEnCoursIfPhaseIsProvidedButNoPhaseStatut()
@@ -77,6 +79,7 @@ export class CreateProjetRequest {
     required: false,
     description: "Current Phase for the project",
   })
+  @IsIn(projetPhasesEnum.enumValues, { each: true })
   @IsOptional()
   phase?: ProjetPhases | null;
 

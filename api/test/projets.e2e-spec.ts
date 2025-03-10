@@ -4,7 +4,7 @@ import { getFormattedDate } from "./helpers/get-formatted-date";
 import { createApiClient } from "@test/helpers/api-client";
 import { Competence, Levier } from "@/shared/types";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
-import { collectivites, PhaseStatut, ProjetPhases } from "@database/schema";
+import { collectivites, ProjetPhases } from "@database/schema";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 
 describe("Projets (e2e)", () => {
@@ -44,7 +44,7 @@ describe("Projets (e2e)", () => {
       const tetClient = createApiClient(process.env.TET_API_KEY!);
       const { data, error } = await tetClient.projects.create({
         ...validProjet,
-        phase: "Idée",
+        status: "IDEE",
         externalId: "TeT-service-id",
       });
 
@@ -106,6 +106,24 @@ describe("Projets (e2e)", () => {
           },
         ],
       });
+    });
+
+    it("should create a valid project with minium required fields", async () => {
+      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+
+      const { data, error } = await mecClient.projects.create({
+        nom: "Minimal required fields project",
+        collectivites: [
+          {
+            type: "Commune",
+            code: "78646",
+          },
+        ],
+        externalId: "test-external-id",
+      });
+
+      expect(error).toBeUndefined();
+      expect(data).toHaveProperty("id");
     });
 
     it("should reject a project when collectivites are not valid", async () => {
@@ -226,6 +244,18 @@ describe("Projets (e2e)", () => {
       expect(error?.statusCode).toBe(400);
       expect(error?.message[0]).toContain(
         "each value in leviers must be one of the following values: Gestion des forêts et produits bois, Changements de pratiques de fertilisation azotée,",
+      );
+    });
+
+    it("should reject when project has wrong phase", async () => {
+      const { error } = await api.projects.create({
+        ...validProjet,
+        phase: "INVALID_PHASE" as ProjetPhases,
+      });
+
+      expect(error?.statusCode).toBe(400);
+      expect(error?.message[0]).toContain(
+        "each value in status must be one of the following values: IDEE, FAISABILITE, EN_COURS, IMPACTE, ABANDONNE, TERMINE",
       );
     });
   });
@@ -444,6 +474,7 @@ describe("Projets (e2e)", () => {
         },
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         leviers: ["Bio-carburants"],
+        status: "IDEE",
         programme: null,
         mecId: "test-external-id",
         recocoId: null,
