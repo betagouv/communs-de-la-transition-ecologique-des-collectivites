@@ -4,11 +4,11 @@ import createClient from "openapi-fetch";
 import type { paths } from "@test/generated-types";
 import { config } from "dotenv";
 import * as path from "path";
-import { CreateProjectRequest } from "@projects/dto/create-project.dto";
-import { ProjectStatus, projectStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { leviers } from "@/shared/const/leviers";
 import { competences } from "@/shared/const/competences-list";
+import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
+import { ProjetStatus, projetStatusEnum } from "@database/schema";
 
 config({ path: path.resolve(__dirname, "../.env") });
 
@@ -45,7 +45,7 @@ async function importProjectsTet(csvFilePath: string) {
 
   fs.createReadStream(csvFilePath).pipe(parser);
 
-  const projects: CreateProjectRequest[] = [];
+  const projects: CreateProjetRequest[] = [];
   const invalidItemsFile = fs.createWriteStream("invalid_items.txt", { flags: "a" });
 
   for await (const record of parser as AsyncIterable<CsvRecord>) {
@@ -53,19 +53,19 @@ async function importProjectsTet(csvFilePath: string) {
     const parsedCompetences = parseFieldToArray(record.competences, competences, "competence", invalidItemsFile);
 
     // Validate and handle project status
-    const validStatuses = projectStatusEnum.enumValues;
-    const status = validStatuses.includes(record.project_status as ProjectStatus)
-      ? (record.project_status as ProjectStatus)
+    const validStatuses = projetStatusEnum.enumValues;
+    const status = validStatuses.includes(record.project_status as ProjetStatus)
+      ? (record.project_status as ProjetStatus)
       : null;
 
     projects.push({
       externalId: record.tet_id,
       nom: record.nom,
       description: record.description,
-      forecastedStartDate: new Date().toISOString(),
-      budget: parseFloat(record.budget),
+      dateDebutPrevisionnelle: new Date().toISOString(),
+      budgetPrevisionnel: parseFloat(record.budget),
       status,
-      communeInseeCodes: [record.insee_code],
+      collectivites: [{ code: record.insee_code, type: "Commune" }],
       leviers: parsedLeviers as Leviers,
       competences: parsedCompetences as Competences,
     });
@@ -80,7 +80,7 @@ async function importProjectsTet(csvFilePath: string) {
 
     printBatchWeight(batch);
 
-    const { data, error } = await apiClient.POST("/projects/bulk", {
+    const { data, error } = await apiClient.POST("/projets/bulk", {
       body: { projects: batch },
     });
 
@@ -118,7 +118,7 @@ function parseFieldToArray(
     });
 }
 
-const printBatchWeight = (batch: CreateProjectRequest[]) => {
+const printBatchWeight = (batch: CreateProjetRequest[]) => {
   const jsonString = JSON.stringify(batch);
   // Calculate the size in bytes
   const sizeInBytes = Buffer.byteLength(jsonString, "utf8");
