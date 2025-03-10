@@ -46,6 +46,7 @@ export class ApiKeyGuard implements CanActivate {
     const apiKey = authHeader.split(" ")[1];
     const serviceType = this.apiKeys[apiKey];
 
+    console.log("serviceType", serviceType);
     if (!serviceType) {
       throw new UnauthorizedException("Invalid API key");
     }
