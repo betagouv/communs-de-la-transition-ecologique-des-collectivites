@@ -120,6 +120,13 @@
       "when": 1741604127566,
       "tag": "0016_absurd_mordo",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1741877410243,
+      "tag": "0017_clear_sabretooth",
+      "breakpoints": true
     }
   ]
 }

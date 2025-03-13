@@ -4,58 +4,58 @@
  */
 
 export interface paths {
-  "/projets": {
+  "/projects": {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    /** Get all Projets */
-    get: operations["ProjetsController_findAll"];
+    /** Get all projects */
+    get: operations["ProjectsController_findAll"];
     put?: never;
-    post: operations["ProjetsController_create"];
+    post: operations["ProjectsController_create"];
     delete?: never;
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  "/projets/{id}": {
+  "/projects/{id}": {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    /** Get specific Projet by id */
-    get: operations["ProjetsController_findOne"];
+    /** Get specific project by id */
+    get: operations["ProjectsController_findOne"];
     put?: never;
     post?: never;
     delete?: never;
     options?: never;
     head?: never;
-    /** Update a specific Projet */
-    patch: operations["ProjetsController_update"];
+    /** Update a specific project */
+    patch: operations["ProjectsController_update"];
     trace?: never;
   };
-  "/projets/{id}/extra-fields": {
+  "/projects/{id}/extra-fields": {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get: operations["ProjetsController_getExtraFields"];
+    get: operations["ProjectsController_getExtraFields"];
     put?: never;
-    post: operations["ProjetsController_updateExtraFields"];
+    post: operations["ProjectsController_updateExtraFields"];
     delete?: never;
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  "/projets/bulk": {
+  "/projects/bulk": {
     parameters: {
       query?: never;
       header?: never;
@@ -64,15 +64,15 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Create new Projets in bulk */
-    post: operations["ProjetsController_createBulk"];
+    /** Create new projects in bulk */
+    post: operations["ProjectsController_createBulk"];
     delete?: never;
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  "/services/project/{id}": {
+  "/services/project/{projectId}": {
     parameters: {
       query?: never;
       header?: never;
@@ -106,7 +106,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/services/contexts/{id}": {
+  "/services/contexts/{serviceId}": {
     parameters: {
       query?: never;
       header?: never;
@@ -127,26 +127,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    PorteurDto: {
-      codeSiret?: string | null;
-      referentEmail?: string | null;
-      referentTelephone?: string | null;
-      referentPrenom?: string | null;
-      referentNom?: string | null;
-      referentFonction?: string | null;
-    };
-    Collectivite: {
-      id: string;
-      nom: string;
-      /** @enum {string} */
-      type: "Commune" | "EPCI";
-      codeInsee: string | null;
-      codeEpci: string | null;
-      codeDepartements: string | null;
-      codeRegions: string | null;
-      siren: string | null;
-    };
-    ProjetResponse: {
+    ProjectResponse: {
       id: string;
       /** Format: date-time */
       createdAt: string;
@@ -154,13 +135,19 @@ export interface components {
       updatedAt: string;
       nom: string;
       description: string | null;
-      porteur: components["schemas"]["PorteurDto"] | null;
-      collectivites: components["schemas"]["Collectivite"][];
-      budgetPrevisionnel: number | null;
-      dateDebutPrevisionnelle: string | null;
+      porteurCodeSiret: string | null;
+      porteurReferentEmail: string | null;
+      porteurReferentTelephone: string | null;
+      porteurReferentPrenom: string | null;
+      porteurReferentNom: string | null;
+      porteurReferentFonction: string | null;
+      communes: string[];
+      budget: number | null;
+      forecastedStartDate: string | null;
       /** @enum {string|null} */
       status: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
-      programme: string | null;
+      /** @enum {string|null} */
+      etapes: "Idée" | "Etudes" | "Opération" | null;
       /** @enum {string|null} */
       competences:
         | "Autres interventions de protection civile"
@@ -305,54 +292,48 @@ export interface components {
       /** @description Value of the extra field */
       value: string;
     };
-    ProjetExtraFieldsResponse: {
+    ProjectExtraFieldsResponse: {
       /** @description Array of extra field names, values, and labels */
       extraFields: components["schemas"]["ExtraField"][];
     };
-    CreateProjetExtraFieldRequest: {
+    CreateProjectExtraFieldRequest: {
       /** @description Array of extra field names, values, and labels */
       extraFields: components["schemas"]["ExtraField"][];
     };
-    CollectiviteReference: {
-      /**
-       * @description Types of the collectivite
-       * @example Commune
-       * @enum {string}
-       */
-      type: "Commune" | "EPCI";
-      /** @description Code of the collectivite, codeInsee for communes and codeEpci/siren for EPCI */
-      code: string;
-    };
-    CreateProjetRequest: {
+    CreateProjectRequest: {
       nom: string;
       description?: string | null;
-      porteur?: components["schemas"]["PorteurDto"] | null;
-      budgetPrevisionnel?: number | null;
+      porteurCodeSiret?: string | null;
+      porteurReferentEmail?: string | null;
+      porteurReferentTelephone?: string | null;
+      porteurReferentPrenom?: string | null;
+      porteurReferentNom?: string | null;
+      porteurReferentFonction?: string | null;
+      budget?: number | null;
       /**
        * @description Forecasted start date in YYYY-MM-DD format
        * @example 2024-03-01
        */
-      dateDebutPrevisionnelle?: string | null;
+      forecastedStartDate?: string | null;
       /**
-       * @description Current Status for the project
+       * @description Current Status for the project (deprecated)
        * @enum {string|null}
        */
       status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
-      programme?: string | null;
       /**
-       * @description Array of collectivite references
+       * @description Current Etape for the project
+       * @enum {string|null}
+       */
+      etapes?: "Idée" | "Etudes" | "Opération" | null;
+      /**
+       * @description Array of INSEE codes for the communes
        * @example [
-       *       {
-       *         "type": "Commune",
-       *         "code": "12345"
-       *       },
-       *       {
-       *         "type": "EPCI",
-       *         "code": "123456789"
-       *       }
+       *       "01001",
+       *       "75056",
+       *       "97A01"
        *     ]
        */
-      collectivites: components["schemas"]["CollectiviteReference"][];
+      communeInseeCodes?: string[];
       /**
        * @description Array of competences and sous-competences
        * @example [
@@ -490,45 +471,44 @@ export interface components {
         | null;
       externalId: string;
     };
-    CreateOrUpdateProjetResponse: {
+    CreateOrUpdateProjectResponse: {
       id: string;
     };
-    BulkCreateProjetsRequest: {
-      projects: components["schemas"]["CreateProjetRequest"][];
+    BulkCreateProjectsRequest: {
+      projects: components["schemas"]["CreateProjectRequest"][];
     };
-    BulkCreateProjetsResponse: {
+    BulkCreateProjectsResponse: {
       ids: string[];
     };
-    UpdateProjetDto: {
+    UpdateProjectDto: {
       nom?: string;
       description?: string | null;
-      porteur?: components["schemas"]["PorteurDto"] | null;
-      budgetPrevisionnel?: number | null;
+      porteurCodeSiret?: string | null;
+      porteurReferentEmail?: string | null;
+      porteurReferentTelephone?: string | null;
+      porteurReferentPrenom?: string | null;
+      porteurReferentNom?: string | null;
+      porteurReferentFonction?: string | null;
+      budget?: number | null;
       /**
        * @description Forecasted start date in YYYY-MM-DD format
        * @example 2024-03-01
        */
-      dateDebutPrevisionnelle?: string | null;
+      forecastedStartDate?: string | null;
       /**
        * @description Current Status for the project
        * @enum {string|null}
        */
       status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
-      programme?: string | null;
       /**
-       * @description Array of collectivite references
+       * @description Array of INSEE codes for the communes
        * @example [
-       *       {
-       *         "type": "Commune",
-       *         "code": "12345"
-       *       },
-       *       {
-       *         "type": "EPCI",
-       *         "code": "123456789"
-       *       }
+       *       "01001",
+       *       "75056",
+       *       "97A01"
        *     ]
        */
-      collectivites?: components["schemas"]["CollectiviteReference"][];
+      communeInseeCodes?: string[];
       /**
        * @description Array of competences and sous-competences
        * @example [
@@ -689,7 +669,6 @@ export interface components {
        *     ]
        */
       extraFields: components["schemas"]["ExtraFieldConfig"][];
-      isListed: boolean;
       redirectionLabel: string | null;
       iframeUrl: string | null;
       extendLabel: string | null;
@@ -725,7 +704,7 @@ export interface components {
       iframeUrl?: string | null;
       extendLabel?: string | null;
       /** @description Whether the service will be associated with projects */
-      isListed?: boolean;
+      isListed?: boolean | null;
     };
     CreateServiceResponse: {
       id: string;
@@ -924,7 +903,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  ProjetsController_findAll: {
+  ProjectsController_findAll: {
     parameters: {
       query?: never;
       header?: never;
@@ -938,7 +917,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ProjetResponse"][];
+          "application/json": components["schemas"]["ProjectResponse"][];
         };
       };
       /** @description Error response */
@@ -952,7 +931,7 @@ export interface operations {
       };
     };
   };
-  ProjetsController_create: {
+  ProjectsController_create: {
     parameters: {
       query?: never;
       header?: never;
@@ -961,17 +940,17 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateProjetRequest"];
+        "application/json": components["schemas"]["CreateProjectRequest"];
       };
     };
     responses: {
-      /** @description Projet created successfully */
+      /** @description Project created successfully */
       201: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
+          "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
         };
       };
       /** @description Error response */
@@ -985,74 +964,7 @@ export interface operations {
       };
     };
   };
-  ProjetsController_findOne: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description An Id in a UUID format */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ProjetResponse"];
-        };
-      };
-      /** @description Error response */
-      default: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  ProjetsController_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description An Id in a UUID format */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateProjetDto"];
-      };
-    };
-    responses: {
-      /** @description Projet updated successfully */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
-        };
-      };
-      /** @description Error response */
-      default: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  ProjetsController_getExtraFields: {
+  ProjectsController_findOne: {
     parameters: {
       query?: never;
       header?: never;
@@ -1069,7 +981,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ProjetExtraFieldsResponse"];
+          "application/json": components["schemas"]["ProjectResponse"];
         };
       };
       /** @description Error response */
@@ -1083,7 +995,42 @@ export interface operations {
       };
     };
   };
-  ProjetsController_updateExtraFields: {
+  ProjectsController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateProjectDto"];
+      };
+    };
+    responses: {
+      /** @description Project updated successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CreateOrUpdateProjectResponse"];
+        };
+      };
+      /** @description Error response */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  ProjectsController_getExtraFields: {
     parameters: {
       query?: never;
       header?: never;
@@ -1093,18 +1040,14 @@ export interface operations {
       };
       cookie?: never;
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateProjetExtraFieldRequest"];
-      };
-    };
+    requestBody?: never;
     responses: {
-      201: {
+      200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ProjetExtraFieldsResponse"];
+          "application/json": components["schemas"]["ProjectExtraFieldsResponse"];
         };
       };
       /** @description Error response */
@@ -1118,7 +1061,41 @@ export interface operations {
       };
     };
   };
-  ProjetsController_createBulk: {
+  ProjectsController_updateExtraFields: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateProjectExtraFieldRequest"];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProjectExtraFieldsResponse"];
+        };
+      };
+      /** @description Error response */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  ProjectsController_createBulk: {
     parameters: {
       query?: never;
       header?: never;
@@ -1127,17 +1104,17 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["BulkCreateProjetsRequest"];
+        "application/json": components["schemas"]["BulkCreateProjectsRequest"];
       };
     };
     responses: {
-      /** @description Bulk Projets created successfully */
+      /** @description Bulk Projects created successfully */
       201: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["BulkCreateProjetsResponse"];
+          "application/json": components["schemas"]["BulkCreateProjectsResponse"];
         };
       };
       /** @description Error response */
@@ -1158,8 +1135,7 @@ export interface operations {
       };
       header?: never;
       path: {
-        /** @description An Id in a UUID format */
-        id: string;
+        projectId: string;
       };
       cookie?: never;
     };
@@ -1222,8 +1198,8 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description An Id in a UUID format */
-        id: string;
+        /** @description ID of the service */
+        serviceId: string;
       };
       cookie?: never;
     };

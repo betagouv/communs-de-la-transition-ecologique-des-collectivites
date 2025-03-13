@@ -10,7 +10,7 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import { ProjetStatus, projetStatusEnum } from "@database/schema";
+import { ProjetEtapes, projetEtapesEnum, EtapeStatus, etapeStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
@@ -57,13 +57,22 @@ export class CreateProjetRequest {
   dateDebutPrevisionnelle?: string | null;
 
   @ApiProperty({
-    enum: projetStatusEnum.enumValues,
+    enum: etapeStatusEnum.enumValues,
     nullable: true,
     required: false,
-    description: "Current Status for the project",
+    description: "Current status for the etape",
   })
   @IsOptional()
-  status?: ProjetStatus | null;
+  etapeStatus?: EtapeStatus | null;
+
+  @ApiProperty({
+    enum: projetEtapesEnum.enumValues,
+    nullable: true,
+    required: false,
+    description: "Current Etape for the project",
+  })
+  @IsOptional()
+  etapes?: ProjetEtapes | null;
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()

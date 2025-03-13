@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { ProjetStatus, serviceContext, services } from "@database/schema";
+import { ProjetEtapes, serviceContext, services } from "@database/schema";
 import { and, arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
 import { Competences, Leviers } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
@@ -23,7 +23,7 @@ export class ServicesContextService {
   async findMatchingServicesContext(
     competences: Competences | null,
     leviers: Leviers | null,
-    projectStatus: ProjetStatus | null,
+    projectEtape: ProjetEtapes | null,
   ): Promise<ServicesByProjectIdResponse[]> {
     let matchingContexts: JoinResult[] = [];
     const conditions = [];
@@ -35,6 +35,7 @@ export class ServicesContextService {
         or(arrayOverlaps(serviceContext.competences, competences), eq(serviceContext.competences, [])),
       );
     }
+
     if (leviers?.length) {
       categorizationConditions.push(or(arrayOverlaps(serviceContext.leviers, leviers), eq(serviceContext.leviers, [])));
     }
@@ -44,13 +45,13 @@ export class ServicesContextService {
       conditions.push(or(...categorizationConditions));
     }
 
-    // Add status condition if status is provided
-    if (projectStatus) {
-      const statusCondition = or(arrayOverlaps(serviceContext.status, [projectStatus]), eq(serviceContext.status, []));
-      conditions.push(statusCondition);
+    // Add etapes condition if etape is provided
+    if (projectEtape) {
+      const etapesCondition = or(arrayOverlaps(serviceContext.etapes, [projectEtape]), eq(serviceContext.etapes, []));
+      conditions.push(etapesCondition);
     }
 
-    // If no conditions (no categorization and no status), return empty array
+    // If no conditions (no categorization, no status, and no etape), return empty array
     if (conditions.length === 0) {
       return [];
     }
