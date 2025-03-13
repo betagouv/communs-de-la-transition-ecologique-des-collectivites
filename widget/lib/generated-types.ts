@@ -147,7 +147,7 @@ export interface components {
       /** @enum {string|null} */
       status: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
       /** @enum {string|null} */
-      etapes: "Idée" | "Etudes" | "Opération" | null;
+      etape: "Idée" | "Etudes" | "Opération" | null;
       /** @enum {string|null} */
       competences:
         | "Autres interventions de protection civile"
@@ -324,7 +324,7 @@ export interface components {
        * @description Current Etape for the project
        * @enum {string|null}
        */
-      etapes?: "Idée" | "Etudes" | "Opération" | null;
+      etape?: "Idée" | "Etudes" | "Opération" | null;
       /**
        * @description Array of INSEE codes for the communes
        * @example [
@@ -684,7 +684,7 @@ export interface components {
        * @example Docurba centralise les ressources nécessaires à chaque étape de vos procédures d'urbanisme
        */
       sousTitre: string;
-      /** @example Docurba est l’outil de transformation de la planification territoriale. Il facilite la collaboration entre services de l’Etat, collectivités et bureaux d’études pour faciliter l’élaboration et le suivi d’un document d’urbanisme afin que les enjeux et les politiques publiques soient plus rapidement et mieux pris en compte au niveau local. */
+      /** @example Docurba est l'outil de transformation de la planification territoriale. Il facilite la collaboration entre services de l'Etat, collectivités et bureaux d'études pour faciliter l'élaboration et le suivi d'un document d'urbanisme afin que les enjeux et les politiques publiques soient plus rapidement et mieux pris en compte au niveau local. */
       description: string;
       /**
        * @description The URL of the service logo

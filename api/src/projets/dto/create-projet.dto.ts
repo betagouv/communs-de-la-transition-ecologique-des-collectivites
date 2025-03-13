@@ -72,7 +72,7 @@ export class CreateProjetRequest {
     description: "Current Etape for the project",
   })
   @IsOptional()
-  etapes?: ProjetEtapes | null;
+  etape?: ProjetEtapes | null;
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()

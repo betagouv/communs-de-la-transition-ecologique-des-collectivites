@@ -40,7 +40,7 @@ export class ProjetResponse {
   etapeStatus!: EtapeStatus | null;
 
   @ApiProperty({ nullable: true, enum: projetEtapesEnum.enumValues })
-  etapes!: ProjetEtapes | null;
+  etape!: ProjetEtapes | null;
 
   @ApiProperty({ nullable: true, type: String })
   programme!: string | null;

@@ -44,7 +44,7 @@ describe("Projets (e2e)", () => {
       const tetClient = createApiClient(process.env.TET_API_KEY!);
       const { data, error } = await tetClient.projects.create({
         ...validProjet,
-        etapes: "Idée",
+        etape: "Idée",
         externalId: "TeT-service-id",
       });
 
@@ -272,14 +272,14 @@ describe("Projets (e2e)", () => {
             description: "Valid Description",
             budgetPrevisionnel: 100000,
             dateDebutPrevisionnelle: getFormattedDate(),
-            etapes: "Idée",
+            etape: "Idée",
           },
           {
             nom: "Invalid Projet",
             description: "Invalid Description",
             budgetPrevisionnel: "hello", // Invalid budget
             dateDebutPrevisionnelle: getFormattedDate(),
-            etapes: "Idée",
+            etape: "Idée",
           },
         ] as CreateProjetRequest[],
       };
