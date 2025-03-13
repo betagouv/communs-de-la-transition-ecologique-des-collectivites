@@ -17,6 +17,7 @@ import { leviers } from "@/shared/const/leviers";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 import { PorteurDto } from "@projets/dto/porteur.dto";
 import { Type } from "class-transformer";
+import { EtapeStatusRequiresEtape, SetEtapeStatusEnCours } from "@projets/decorators/etape-decorators";
 
 export class CreateOrUpdateProjetResponse {
   @ApiProperty()
@@ -63,6 +64,8 @@ export class CreateProjetRequest {
     description: "Current status for the etape",
   })
   @IsOptional()
+  @EtapeStatusRequiresEtape({ message: "Cannot specify etapeStatus without an etape" })
+  @SetEtapeStatusEnCours()
   etapeStatus?: EtapeStatus | null;
 
   @ApiProperty({
