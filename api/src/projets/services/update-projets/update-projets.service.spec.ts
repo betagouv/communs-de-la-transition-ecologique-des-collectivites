@@ -55,7 +55,7 @@ describe("ProjetUpdateService", () => {
       },
       budgetPrevisionnel: 100000,
       dateDebutPrevisionnelle: getFormattedDate(),
-      status: "IDEE",
+      etapes: "Idée",
       collectivites: [mockedCollectivites],
       externalId: EXTERNAL_ID,
     };

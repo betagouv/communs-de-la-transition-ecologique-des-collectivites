@@ -1,4 +1,4 @@
-import { ProjetStatus, projetStatusEnum } from "@database/schema";
+import { ProjetEtapes, projetEtapesEnum, EtapeStatus, etapeStatusEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { ApiProperty } from "@nestjs/swagger";
 import { leviers } from "@/shared/const/leviers";
@@ -36,8 +36,11 @@ export class ProjetResponse {
   @ApiProperty({ nullable: true, type: String })
   dateDebutPrevisionnelle!: string | null;
 
-  @ApiProperty({ nullable: true, enum: projetStatusEnum.enumValues })
-  status!: ProjetStatus | null;
+  @ApiProperty({ nullable: true, enum: etapeStatusEnum.enumValues })
+  etapeStatus!: EtapeStatus | null;
+
+  @ApiProperty({ nullable: true, enum: projetEtapesEnum.enumValues })
+  etapes!: ProjetEtapes | null;
 
   @ApiProperty({ nullable: true, type: String })
   programme!: string | null;

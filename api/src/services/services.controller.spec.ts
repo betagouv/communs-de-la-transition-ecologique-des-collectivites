@@ -64,7 +64,7 @@ describe("ServiceController", () => {
         redirectionUrl: "https://test.com",
         redirectionLabel: "Go to test service",
         extendLabel: "Extend Label",
-        status: [],
+        etapes: [],
         leviers: ["Covoiturage", "Bio-carburants"],
       };
       const expectedResponse = { ...validService, id: "service-context-id" };

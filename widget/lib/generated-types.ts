@@ -147,6 +147,8 @@ export interface components {
       /** @enum {string|null} */
       status: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
       /** @enum {string|null} */
+      etapes: "Idée" | "Etudes" | "Opération" | null;
+      /** @enum {string|null} */
       competences:
         | "Autres interventions de protection civile"
         | "Autres services annexes de l'enseignement"
@@ -314,10 +316,15 @@ export interface components {
        */
       forecastedStartDate?: string | null;
       /**
-       * @description Current Status for the project
+       * @description Current Status for the project (deprecated)
        * @enum {string|null}
        */
       status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
+      /**
+       * @description Current Etape for the project
+       * @enum {string|null}
+       */
+      etapes?: "Idée" | "Etudes" | "Opération" | null;
       /**
        * @description Array of INSEE codes for the communes
        * @example [
