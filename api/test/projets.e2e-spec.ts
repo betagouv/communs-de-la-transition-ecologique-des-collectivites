@@ -4,7 +4,7 @@ import { getFormattedDate } from "./helpers/get-formatted-date";
 import { createApiClient } from "@test/helpers/api-client";
 import { Competence, Levier } from "@/shared/types";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
-import { collectivites } from "@database/schema";
+import { collectivites, EtapeStatus, ProjetEtapes } from "@database/schema";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 
 describe("Projets (e2e)", () => {
@@ -128,6 +128,33 @@ describe("Projets (e2e)", () => {
 
       expect(error?.statusCode).toBe(400);
       expect(error?.message).toContain("nom should not be empty");
+    });
+
+    it("should reject when etapeStatus is provided without etape", async () => {
+      const { error } = await api.projects.create({
+        ...validProjet,
+        etape: null,
+        etapeStatus: "En cours" as EtapeStatus,
+      });
+
+      expect(error?.statusCode).toBe(400);
+      expect(error?.message).toContain("Cannot specify etapeStatus without an etape");
+    });
+
+    it("should automatically set etapeStatus to 'En cours' when etape is provided without etapeStatus", async () => {
+      const { data, error } = await api.projects.create({
+        ...validProjet,
+        etape: "Idée" as ProjetEtapes,
+      });
+
+      expect(error).toBeUndefined();
+      expect(data).toHaveProperty("id");
+
+      const { data: createdProject } = await api.projects.getOne(data!.id);
+      expect(createdProject).toMatchObject({
+        etape: "Idée",
+        etapeStatus: "En cours",
+      });
     });
 
     it("should reject when externalId is empty", async () => {
@@ -359,6 +386,48 @@ describe("Projets (e2e)", () => {
       });
     });
 
+    it("should allow updating etapeStatus without etape", async () => {
+      const updateData = {
+        etapeStatus: "En retard" as EtapeStatus,
+        externalId: validProjet.externalId,
+      };
+
+      const { data, error } = await api.projects.update(projectId, updateData);
+
+      expect(error).toBeUndefined();
+      expect(data).toMatchObject({
+        id: projectId,
+      });
+
+      const { data: updatedProjet } = await api.projects.getOne(projectId);
+
+      expect(updatedProjet).toMatchObject({
+        etapeStatus: "En retard",
+        etape: validProjet.etape,
+      });
+    });
+
+    it("should automatically set etapeStatus to 'En cours' when updating etape without etapeStatus", async () => {
+      const updateData = {
+        etape: "Opération" as ProjetEtapes,
+        externalId: validProjet.externalId,
+      };
+
+      const { data, error } = await api.projects.update(projectId, updateData);
+
+      expect(error).toBeUndefined();
+      expect(data).toMatchObject({
+        id: projectId,
+      });
+
+      const { data: updatedProjet } = await api.projects.getOne(projectId);
+
+      expect(updatedProjet).toMatchObject({
+        etape: "Opération",
+        etapeStatus: "En cours",
+      });
+    });
+
     it("should reject update when nom is empty", async () => {
       const { error } = await api.projects.update(projectId, {
         ...validProjet,
@@ -396,7 +465,6 @@ describe("Projets (e2e)", () => {
         },
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         leviers: ["Bio-carburants"],
-        status: "IDEE",
         programme: null,
         mecId: "test-external-id",
         recocoId: null,
