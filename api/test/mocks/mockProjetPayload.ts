@@ -10,7 +10,7 @@ export const mockProjetPayload = (specificPayload: Partial<CreateProjetRequest> 
   budgetPrevisionnel: specificPayload.budgetPrevisionnel ?? 100000,
   dateDebutPrevisionnelle: specificPayload.dateDebutPrevisionnelle ?? getFormattedDate(),
   etape: specificPayload.etape ?? "Idée",
-  etapeStatus: specificPayload.etapeStatus ?? "En cours",
+  etapeStatut: specificPayload.etapeStatut ?? "En cours",
   collectivites: specificPayload.collectivites ?? [mockedDefaultCollectivite],
   competences: specificPayload.competences ?? ["Santé", "Culture > Arts plastiques et photographie"],
   leviers: ["Bio-carburants"],

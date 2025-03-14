@@ -124,15 +124,8 @@
     {
       "idx": 17,
       "version": "7",
-      "when": 1741877410243,
-      "tag": "0017_clear_sabretooth",
-      "breakpoints": true
-    },
-    {
-      "idx": 18,
-      "version": "7",
-      "when": 1741878956532,
-      "tag": "0018_yellow_madripoor",
+      "when": 1741940573215,
+      "tag": "0017_nasty_gwen_stacy",
       "breakpoints": true
     }
   ]

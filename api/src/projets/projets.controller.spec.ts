@@ -36,7 +36,7 @@ describe("ProjetsController", () => {
     dateDebutPrevisionnelle: getFormattedDate(),
     programme: null,
     etape: "Idée",
-    etapeStatus: "En cours",
+    etapeStatut: "En cours",
     competences: null,
     leviers: null,
     collectivites: mockedCollectivites.map(({ code }) => ({

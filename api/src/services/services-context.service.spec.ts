@@ -55,7 +55,7 @@ describe("ServiceContextService", () => {
         redirectionUrl: "https://test.com/context",
         redirectionLabel: "Context Label",
         extendLabel: "Extend Label",
-        status: [],
+        etapes: [],
         leviers: ["Bio-carburants"],
       };
       await serviceContextService.create(service.id, createContextDto);
@@ -225,7 +225,7 @@ describe("ServiceContextService", () => {
       expect(serviceContexts).toHaveLength(0);
     });
 
-    it("should not match when status match but not the levier while being provided", async () => {
+    it("should not match when etapeStatus match but not the levier while being provided", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
@@ -253,7 +253,6 @@ describe("ServiceContextService", () => {
         etapes: ["Etudes"],
         leviers: [],
       };
-
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
@@ -591,7 +590,7 @@ describe("ServiceContextService", () => {
         leviers: ["Bio-carburants", "Covoiturage"],
         redirectionLabel: "Context Label",
         extendLabel: "Extend Label",
-        status: [],
+        etapes: [],
         extraFields: [
           { name: "field1", label: "field1 label" },
           { name: "field2", label: "field2 label" },

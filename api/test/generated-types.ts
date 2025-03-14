@@ -159,9 +159,9 @@ export interface components {
             budgetPrevisionnel: number | null;
             dateDebutPrevisionnelle: string | null;
             /** @enum {string|null} */
-            etapeStatus: "En cours" | "En retard" | "En pause" | "Bloquée" | "Abandonnée" | "Terminée" | null;
+            etapeStatut: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
             /** @enum {string|null} */
-            etape: "Idée" | "Etudes" | "Opération" | null;
+            etape: "Idée" | "Etude" | "Opération" | null;
             programme: string | null;
             /** @enum {string|null} */
             competences: "Autres interventions de protection civile" | "Autres services annexes de l'enseignement" | "Collecte et traitement des déchets" | "Développement touristique" | "Enseignement du premier degré" | "Enseignement du second degré" | "Enseignement supérieur, professionnel et continu" | "Foires et marchés" | "Hébergement et restauration scolaires" | "Hygiène et salubrité publique" | "Incendie et secours" | "Infrastructures de transport" | "Jeunesse et loisirs" | "Police, sécurité, justice" | "Propreté urbaine" | "Routes et voiries" | "Santé" | "Sports" | "Transports publics (hors scolaire)" | "Transports scolaires" | "Action sociale (hors APA et RSA) > Citoyenneté" | "Action sociale (hors APA et RSA) > Cohésion sociale et inclusion" | "Action sociale (hors APA et RSA) > Egalité des chances" | "Action sociale (hors APA et RSA) > Famille et enfance" | "Action sociale (hors APA et RSA) > Handicap" | "Action sociale (hors APA et RSA) > Inclusion numérique" | "Action sociale (hors APA et RSA) > Jeunesse" | "Action sociale (hors APA et RSA) > Lutte contre la précarité" | "Action sociale (hors APA et RSA) > Personnes âgées" | "Action sociale (hors APA et RSA) > Protection animale" | "Actions en matière de gestion des eaux > Assainissement des eaux" | "Actions en matière de gestion des eaux > Cours d'eau / canaux / plans d'eau" | "Actions en matière de gestion des eaux > Eau pluviale" | "Actions en matière de gestion des eaux > Eau potable" | "Actions en matière de gestion des eaux > Eau souterraine" | "Actions en matière de gestion des eaux > Mers et océans" | "Agriculture, pêche et agro-alimentaire > Consommation alimentaire" | "Agriculture, pêche et agro-alimentaire > Déchets alimentaires et/ou agricoles" | "Agriculture, pêche et agro-alimentaire > Distribution" | "Agriculture, pêche et agro-alimentaire > Précarité et aide alimentaire" | "Agriculture, pêche et agro-alimentaire > Production agricole et foncier" | "Agriculture, pêche et agro-alimentaire > Transformation des produits agricoles" | "Aménagement des territoires > Foncier" | "Aménagement des territoires > Friche" | "Aménagement des territoires > Paysage" | "Aménagement des territoires > Réseaux" | "Culture > Arts plastiques et photographie" | "Culture > Bibliothèques et livres" | "Culture > Médias et communication" | "Culture > Musée" | "Culture > Patrimoine et monuments historiques" | "Culture > Spectacle vivant" | "Habitat > Accessibilité" | "Habitat > Architecture" | "Habitat > Bâtiments et construction" | "Habitat > Cimetières et funéraire" | "Habitat > Equipement public" | "Habitat > Espace public" | "Habitat > Espaces verts" | "Habitat > Logement et habitat" | "Industrie, commerce et artisanat > Artisanat" | "Industrie, commerce et artisanat > Commerces et Services" | "Industrie, commerce et artisanat > Economie locale et circuits courts" | "Industrie, commerce et artisanat > Economie sociale et solidaire" | "Industrie, commerce et artisanat > Fiscalité des entreprises" | "Industrie, commerce et artisanat > Industrie" | "Industrie, commerce et artisanat > Innovation, créativité et recherche" | "Industrie, commerce et artisanat > Technologies numériques et numérisation" | "Industrie, commerce et artisanat > Tiers-lieux" | null;
@@ -218,12 +218,12 @@ export interface components {
              * @description Current status for the etape
              * @enum {string|null}
              */
-            etapeStatus?: "En cours" | "En retard" | "En pause" | "Bloquée" | "Abandonnée" | "Terminée" | null;
+            etapeStatut?: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
             /**
              * @description Current Etape for the project
              * @enum {string|null}
              */
-            etape?: "Idée" | "Etudes" | "Opération" | null;
+            etape?: "Idée" | "Etude" | "Opération" | null;
             programme?: string | null;
             /**
              * @description Array of collectivite references
@@ -274,7 +274,7 @@ export interface components {
              * @description Current Etape for the project
              * @enum {string|null}
              */
-            etape?: "Idée" | "Etudes" | "Opération" | null;
+            etape?: "Idée" | "Etude" | "Opération" | null;
             programme?: string | null;
             /**
              * @description Array of collectivite references
@@ -302,7 +302,7 @@ export interface components {
             leviers?: ("Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Collecte et tri des déchets" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF")[] | null;
             externalId: string;
             /** @enum {string|null} */
-            etapeStatus?: "En cours" | "En retard" | "En pause" | "Bloquée" | "Abandonnée" | "Terminée" | null;
+            etapeStatut?: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
         };
         ExtraFieldConfig: {
             /** @description Name of the extra field */
@@ -416,7 +416,7 @@ export interface components {
             extendLabel?: string | null;
             iframeUrl?: string | null;
             /** @description Project etapes for which the serviceContext applies, empty array means all etapes */
-            etapes: ("Idée" | "Etudes" | "Opération")[];
+            etapes: ("Idée" | "Etude" | "Opération")[];
             /**
              * @description Array of extra field definitions required for this service context
              * @example [

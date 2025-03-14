@@ -4,7 +4,7 @@ import { getFormattedDate } from "./helpers/get-formatted-date";
 import { createApiClient } from "@test/helpers/api-client";
 import { Competence, Levier } from "@/shared/types";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
-import { collectivites, EtapeStatus, ProjetEtapes } from "@database/schema";
+import { collectivites, EtapeStatut, ProjetEtapes } from "@database/schema";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 
 describe("Projets (e2e)", () => {
@@ -130,18 +130,18 @@ describe("Projets (e2e)", () => {
       expect(error?.message).toContain("nom should not be empty");
     });
 
-    it("should reject when etapeStatus is provided without etape", async () => {
+    it("should reject when etapeStatut is provided without etape", async () => {
       const { error } = await api.projects.create({
         ...validProjet,
         etape: null,
-        etapeStatus: "En cours" as EtapeStatus,
+        etapeStatut: "En cours" as EtapeStatut,
       });
 
       expect(error?.statusCode).toBe(400);
-      expect(error?.message).toContain("Cannot specify etapeStatus without an etape");
+      expect(error?.message).toContain("Cannot specify etapeStatut without an etape");
     });
 
-    it("should automatically set etapeStatus to 'En cours' when etape is provided without etapeStatus", async () => {
+    it("should automatically set etapeStatut to 'En cours' when etape is provided without etapeStatut", async () => {
       const { data, error } = await api.projects.create({
         ...validProjet,
         etape: "Idée" as ProjetEtapes,
@@ -153,7 +153,7 @@ describe("Projets (e2e)", () => {
       const { data: createdProject } = await api.projects.getOne(data!.id);
       expect(createdProject).toMatchObject({
         etape: "Idée",
-        etapeStatus: "En cours",
+        etapeStatut: "En cours",
       });
     });
 
@@ -386,9 +386,9 @@ describe("Projets (e2e)", () => {
       });
     });
 
-    it("should allow updating etapeStatus without etape", async () => {
+    it("should allow updating etapeStatut without etape", async () => {
       const updateData = {
-        etapeStatus: "En retard" as EtapeStatus,
+        etapeStatut: "En retard" as EtapeStatut,
         externalId: validProjet.externalId,
       };
 
@@ -402,12 +402,12 @@ describe("Projets (e2e)", () => {
       const { data: updatedProjet } = await api.projects.getOne(projectId);
 
       expect(updatedProjet).toMatchObject({
-        etapeStatus: "En retard",
+        etapeStatut: "En retard",
         etape: validProjet.etape,
       });
     });
 
-    it("should automatically set etapeStatus to 'En cours' when updating etape without etapeStatus", async () => {
+    it("should automatically set etapeStatut to 'En cours' when updating etape without etapeStatut", async () => {
       const updateData = {
         etape: "Opération" as ProjetEtapes,
         externalId: validProjet.externalId,
@@ -424,7 +424,7 @@ describe("Projets (e2e)", () => {
 
       expect(updatedProjet).toMatchObject({
         etape: "Opération",
-        etapeStatus: "En cours",
+        etapeStatut: "En cours",
       });
     });
 
