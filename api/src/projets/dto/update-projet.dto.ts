@@ -1,10 +1,10 @@
 import { CreateProjetRequest } from "./create-projet.dto";
 import { ApiProperty, OmitType, PartialType } from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { EtapeStatus, etapeStatusEnum } from "@database/schema";
-import { SetEtapeStatusEnCours } from "@projets/decorators/etape-decorators";
+import { EtapeStatut, etapeStatutEnum } from "@database/schema";
+import { SetEnCoursIfEtapeIsProvidedButNoEtapeStatut } from "@projets/decorators/etape-decorators";
 
-class CreateProjetRequestBase extends OmitType(CreateProjetRequest, ["etapeStatus"] as const) {}
+class CreateProjetRequestBase extends OmitType(CreateProjetRequest, ["etapeStatut"] as const) {}
 
 export class UpdateProjetDto extends PartialType(CreateProjetRequestBase) {
   @ApiProperty({ required: true })
@@ -12,10 +12,10 @@ export class UpdateProjetDto extends PartialType(CreateProjetRequestBase) {
   @IsNotEmpty()
   externalId!: string;
 
-  // Redefine etapeStatus without the EtapeStatusRequiresEtape validator
-  // This allows updating etapeStatus independently of etape
-  @ApiProperty({ required: false, nullable: true, enum: etapeStatusEnum.enumValues })
+  // Redefine etapeStatut without the etapeStatutRequiresEtape validator
+  // This allows updating etapeStatut independently of etape
+  @ApiProperty({ required: false, nullable: true, enum: etapeStatutEnum.enumValues })
   @IsOptional()
-  @SetEtapeStatusEnCours()
-  etapeStatus?: EtapeStatus | null;
+  @SetEnCoursIfEtapeIsProvidedButNoEtapeStatut()
+  etapeStatut?: EtapeStatut | null;
 }

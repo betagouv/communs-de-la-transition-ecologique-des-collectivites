@@ -15,13 +15,13 @@ import {
 import { eq, relations, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
-const projetEtapes = ["Idée", "Etudes", "Opération"] as const;
+const projetEtapes = ["Idée", "Etude", "Opération"] as const;
 export const projetEtapesEnum = pgEnum("projet_etapes", projetEtapes);
 export type ProjetEtapes = (typeof projetEtapesEnum.enumValues)[number];
 
-const etapeStatus = ["En cours", "En retard", "En pause", "Bloquée", "Abandonnée", "Terminée"] as const;
-export const etapeStatusEnum = pgEnum("etape_status", etapeStatus);
-export type EtapeStatus = (typeof etapeStatusEnum.enumValues)[number];
+const etapeStatut = ["En cours", "En retard", "En pause", "Bloqué", "Abandonné", "Terminé"] as const;
+export const etapeStatutEnum = pgEnum("etape_statut", etapeStatut);
+export type EtapeStatut = (typeof etapeStatutEnum.enumValues)[number];
 
 export const collectiviteType = ["Commune", "EPCI"] as const;
 export const collectiviteTypeEnum = pgEnum("collectivite_type", collectiviteType);
@@ -42,7 +42,7 @@ export const projets = pgTable("projets", {
   budgetPrevisionnel: integer("budget_previsionnel"),
   dateDebutPrevisionnelle: text("date_debut_previsionnelle"),
   etape: projetEtapesEnum(),
-  etapeStatus: etapeStatusEnum(),
+  etapeStatut: etapeStatutEnum(),
   programme: text(),
 
   // porteur info

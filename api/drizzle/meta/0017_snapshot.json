@@ -1,5 +1,5 @@
 {
-  "id": "1cb5976d-abcc-4865-b20f-fb8e0ee03b5a",
+  "id": "97109806-989f-4bfd-8f79-960091f2aa33",
   "prevId": "e8e7df4e-3281-4311-8570-32cdbdaa93a1",
   "version": "7",
   "dialect": "postgresql",
@@ -181,16 +181,16 @@
           "primaryKey": false,
           "notNull": false
         },
-        "etapes": {
-          "name": "etapes",
+        "etape": {
+          "name": "etape",
           "type": "projet_etapes",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
-        "etapeStatus": {
-          "name": "etapeStatus",
-          "type": "etape_status",
+        "etapeStatut": {
+          "name": "etapeStatut",
+          "type": "etape_statut",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
@@ -647,16 +647,16 @@
         "EPCI"
       ]
     },
-    "public.etape_status": {
-      "name": "etape_status",
+    "public.etape_statut": {
+      "name": "etape_statut",
       "schema": "public",
       "values": [
         "En cours",
         "En retard",
         "En pause",
-        "Bloquée",
-        "Abandonnée",
-        "Terminée"
+        "Bloqué",
+        "Abandonné",
+        "Terminé"
       ]
     },
     "public.projet_etapes": {
@@ -664,7 +664,7 @@
       "schema": "public",
       "values": [
         "Idée",
-        "Etudes",
+        "Etude",
         "Opération"
       ]
     }

@@ -160,7 +160,7 @@ describe("ServiceContextService", () => {
       });
     });
 
-    it("should match competence and etapeStatus when both are provided", async () => {
+    it("should match competence and etapeStatut when both are provided", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
@@ -199,7 +199,7 @@ describe("ServiceContextService", () => {
       expect(otherServiceContexts).toHaveLength(1);
     });
 
-    it("should not match when etapeStatus match but not the competences while being provided", async () => {
+    it("should not match when etapeStatut match but not the competences while being provided", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
@@ -221,7 +221,7 @@ describe("ServiceContextService", () => {
       expect(serviceContexts).toHaveLength(0);
     });
 
-    it("should not match when etapeStatus match but not the levier while being provided", async () => {
+    it("should not match when etapeStatut match but not the levier while being provided", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
@@ -246,7 +246,7 @@ describe("ServiceContextService", () => {
         description: "Context Description",
         // Empty array should match all
         competences: [],
-        etapes: ["Etudes"],
+        etapes: ["Etude"],
         leviers: [],
       };
       await serviceContextService.create(service.id, createContextDto);
@@ -378,7 +378,7 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      // Should match any etapeStatus
+      // Should match any etapeStatut
       const serviceContexts = await serviceContextService.findMatchingServices(null, null, "Idée");
 
       expect(serviceContexts).toHaveLength(1);
