@@ -29,7 +29,6 @@ export class ServicesContextService {
     const conditions = [];
     const categorizationConditions = [];
 
-    // Build categorization condition (competences OR leviers)
     if (competences?.length) {
       categorizationConditions.push(
         or(arrayOverlaps(serviceContext.competences, competences), eq(serviceContext.competences, [])),
@@ -40,18 +39,15 @@ export class ServicesContextService {
       categorizationConditions.push(or(arrayOverlaps(serviceContext.leviers, leviers), eq(serviceContext.leviers, [])));
     }
 
-    // Add categorization condition if any exists
     if (categorizationConditions.length > 0) {
       conditions.push(or(...categorizationConditions));
     }
 
-    // Add etapes condition if etape is provided
     if (projectEtape) {
       const etapesCondition = or(arrayOverlaps(serviceContext.etapes, [projectEtape]), eq(serviceContext.etapes, []));
       conditions.push(etapesCondition);
     }
 
-    // If no conditions (no categorization, no status, and no etape), return empty array
     if (conditions.length === 0) {
       return [];
     }
@@ -112,7 +108,6 @@ export class ServicesContextService {
 
     const { competences, description, ...otherFields } = createServiceContextDto;
 
-    // Check if a service context with the same description already exists for this service
     if (description) {
       const existingServiceContext = await this.dbService.database
         .select()
