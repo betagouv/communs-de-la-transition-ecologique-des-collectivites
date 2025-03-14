@@ -13,8 +13,8 @@ export function EtapeStatutRequiresEtape(validationOptions?: ValidationOptions) 
         validate(value: unknown, args: ValidationArguments) {
           const obj = args.object as Record<string, unknown>;
           const isEtapeProvided = obj.etape !== undefined && obj.etape !== null;
-          const isetapeStatutNotProvided = value === undefined || value === null;
-          return isEtapeProvided || isetapeStatutNotProvided;
+          const isEtapeStatutNotProvided = value === undefined || value === null;
+          return isEtapeProvided || isEtapeStatutNotProvided;
         },
         defaultMessage() {
           return "etapeStatut cannot be specified without an etape";
