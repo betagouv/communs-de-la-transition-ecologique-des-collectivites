@@ -43,7 +43,7 @@ describe("Services (e2e)", () => {
       extendLabel: "Extend Label",
       leviers: [],
       extraFields: [{ name: "surface", label: "Surface en m2" }],
-      status: [],
+      etapes: [],
     };
 
     it("should reject when using regular API key", async () => {

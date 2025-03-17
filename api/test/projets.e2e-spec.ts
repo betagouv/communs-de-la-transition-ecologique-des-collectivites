@@ -4,7 +4,7 @@ import { getFormattedDate } from "./helpers/get-formatted-date";
 import { createApiClient } from "@test/helpers/api-client";
 import { Competence, Levier } from "@/shared/types";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
-import { collectivites } from "@database/schema";
+import { collectivites, EtapeStatut, ProjetEtapes } from "@database/schema";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 
 describe("Projets (e2e)", () => {
@@ -44,7 +44,7 @@ describe("Projets (e2e)", () => {
       const tetClient = createApiClient(process.env.TET_API_KEY!);
       const { data, error } = await tetClient.projects.create({
         ...validProjet,
-        status: "IDEE",
+        etape: "Idée",
         externalId: "TeT-service-id",
       });
 
@@ -128,6 +128,33 @@ describe("Projets (e2e)", () => {
 
       expect(error?.statusCode).toBe(400);
       expect(error?.message).toContain("nom should not be empty");
+    });
+
+    it("should reject when etapeStatut is provided without etape", async () => {
+      const { error } = await api.projects.create({
+        ...validProjet,
+        etape: null,
+        etapeStatut: "En cours" as EtapeStatut,
+      });
+
+      expect(error?.statusCode).toBe(400);
+      expect(error?.message).toContain("Cannot specify etapeStatut without an etape");
+    });
+
+    it("should automatically set etapeStatut to 'En cours' when etape is provided without etapeStatut", async () => {
+      const { data, error } = await api.projects.create({
+        ...validProjet,
+        etape: "Idée" as ProjetEtapes,
+      });
+
+      expect(error).toBeUndefined();
+      expect(data).toHaveProperty("id");
+
+      const { data: createdProject } = await api.projects.getOne(data!.id);
+      expect(createdProject).toMatchObject({
+        etape: "Idée",
+        etapeStatut: "En cours",
+      });
     });
 
     it("should reject when externalId is empty", async () => {
@@ -272,14 +299,14 @@ describe("Projets (e2e)", () => {
             description: "Valid Description",
             budgetPrevisionnel: 100000,
             dateDebutPrevisionnelle: getFormattedDate(),
-            status: "IDEE",
+            etape: "Idée",
           },
           {
             nom: "Invalid Projet",
             description: "Invalid Description",
             budgetPrevisionnel: "hello", // Invalid budget
             dateDebutPrevisionnelle: getFormattedDate(),
-            status: "IDEE",
+            etape: "Idée",
           },
         ] as CreateProjetRequest[],
       };
@@ -359,6 +386,48 @@ describe("Projets (e2e)", () => {
       });
     });
 
+    it("should allow updating etapeStatut without etape", async () => {
+      const updateData = {
+        etapeStatut: "En retard" as EtapeStatut,
+        externalId: validProjet.externalId,
+      };
+
+      const { data, error } = await api.projects.update(projectId, updateData);
+
+      expect(error).toBeUndefined();
+      expect(data).toMatchObject({
+        id: projectId,
+      });
+
+      const { data: updatedProjet } = await api.projects.getOne(projectId);
+
+      expect(updatedProjet).toMatchObject({
+        etapeStatut: "En retard",
+        etape: validProjet.etape,
+      });
+    });
+
+    it("should automatically set etapeStatut to 'En cours' when updating etape without etapeStatut", async () => {
+      const updateData = {
+        etape: "Opération" as ProjetEtapes,
+        externalId: validProjet.externalId,
+      };
+
+      const { data, error } = await api.projects.update(projectId, updateData);
+
+      expect(error).toBeUndefined();
+      expect(data).toMatchObject({
+        id: projectId,
+      });
+
+      const { data: updatedProjet } = await api.projects.getOne(projectId);
+
+      expect(updatedProjet).toMatchObject({
+        etape: "Opération",
+        etapeStatut: "En cours",
+      });
+    });
+
     it("should reject update when nom is empty", async () => {
       const { error } = await api.projects.update(projectId, {
         ...validProjet,
@@ -396,7 +465,6 @@ describe("Projets (e2e)", () => {
         },
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         leviers: ["Bio-carburants"],
-        status: "IDEE",
         programme: null,
         mecId: "test-external-id",
         recocoId: null,

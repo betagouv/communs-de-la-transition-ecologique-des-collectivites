@@ -10,13 +10,17 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import { ProjetStatus, projetStatusEnum } from "@database/schema";
+import { ProjetEtapes, projetEtapesEnum, EtapeStatut, etapeStatutEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 import { PorteurDto } from "@projets/dto/porteur.dto";
 import { Type } from "class-transformer";
+import {
+  EtapeStatutRequiresEtape,
+  SetEnCoursIfEtapeIsProvidedButNoEtapeStatut,
+} from "@projets/decorators/etape-decorators";
 
 export class CreateOrUpdateProjetResponse {
   @ApiProperty()
@@ -57,13 +61,24 @@ export class CreateProjetRequest {
   dateDebutPrevisionnelle?: string | null;
 
   @ApiProperty({
-    enum: projetStatusEnum.enumValues,
+    enum: etapeStatutEnum.enumValues,
     nullable: true,
     required: false,
-    description: "Current Status for the project",
+    description: "Current status for the etape",
   })
   @IsOptional()
-  status?: ProjetStatus | null;
+  @EtapeStatutRequiresEtape({ message: "Cannot specify etapeStatut without an etape" })
+  @SetEnCoursIfEtapeIsProvidedButNoEtapeStatut()
+  etapeStatut?: EtapeStatut | null;
+
+  @ApiProperty({
+    enum: projetEtapesEnum.enumValues,
+    nullable: true,
+    required: false,
+    description: "Current Etape for the project",
+  })
+  @IsOptional()
+  etape?: ProjetEtapes | null;
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
