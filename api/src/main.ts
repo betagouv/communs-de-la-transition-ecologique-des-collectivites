@@ -2,7 +2,6 @@ import * as Sentry from "@sentry/nestjs";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { setupApp } from "./setup-app";
-import { NestExpressApplication } from "@nestjs/platform-express";
 import { serveDemoWidget } from "@/serve-demo-widget";
 
 async function bootstrap() {
@@ -14,7 +13,7 @@ async function bootstrap() {
     environment: process.env.SCALINGO_ENV,
   });
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create(AppModule);
 
   setupApp(app);
   serveDemoWidget(app);
