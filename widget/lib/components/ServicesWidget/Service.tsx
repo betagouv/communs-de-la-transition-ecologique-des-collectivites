@@ -53,7 +53,6 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
   };
 
   useEffect(() => {
-    console.log("tracking service name display", name);
     trackEvent({ category: "Services", action: "Affichage", name, isStagingEnv });
   }, [isStagingEnv, name]);
 
