@@ -53,8 +53,9 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
   };
 
   useEffect(() => {
-    trackEvent({ category: "Services", action: "Affichage", name });
-  }, [name]);
+    console.log("tracking service name display", name);
+    trackEvent({ category: "Services", action: "Affichage", name, isStagingEnv });
+  }, [isStagingEnv, name]);
 
   return (
     <div className={classNames(styles.container)} key={name}>
