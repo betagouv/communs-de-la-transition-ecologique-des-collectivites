@@ -2,7 +2,7 @@ import styles from "./Service.module.css";
 import Button from "@codegouvfr/react-dsfr/Button";
 import classNames from "classnames";
 import { fr } from "@codegouvfr/react-dsfr";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import IFrameResized from "./IFrameResized.tsx";
 import LevierDetails, { LevierData } from "./LevierDetails.tsx";
@@ -10,6 +10,7 @@ import voiture_electrique from "../../leviers_data/voiture_electrique.json";
 import Input from "@codegouvfr/react-dsfr/Input";
 import { ExtraFields, ServiceType } from "./types.ts";
 import { usePostExtraFields } from "./queries.ts";
+import { trackEvent } from "../../matomo/trackEvent.ts";
 
 interface ServiceProps {
   service: ServiceType;
@@ -50,6 +51,10 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
 
     setExpanded(true);
   };
+
+  useEffect(() => {
+    trackEvent({ category: "Services", action: "Affichage", name });
+  }, [name]);
 
   return (
     <div className={classNames(styles.container)} key={name}>
