@@ -86,6 +86,7 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
     description: "label of the redirection",
     required: false,
     nullable: true,
+    type: String,
   })
   @IsString()
   @IsOptional()
@@ -94,6 +95,7 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
   @ApiProperty({
     required: false,
     nullable: true,
+    type: String,
   })
   @IsString()
   @IsOptional()
@@ -102,6 +104,7 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
   @ApiProperty({
     required: false,
     nullable: true,
+    type: String,
   })
   @IsString()
   @IsOptional()
