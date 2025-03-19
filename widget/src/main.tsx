@@ -5,10 +5,10 @@ import { ServicesWidget } from "../lib";
 
 startReactDsfr({ defaultColorScheme: "system" });
 
-const PROJECT_ID_WITHOUT_EXTRAFIELD = "01950465-1384-7332-88ff-b535cb868ed8";
+const PROJECT_ID_WITHOUT_EXTRAFIELD = "0195af3a-6b26-7a5c-a091-712901a4498d";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ServicesWidget projectId={PROJECT_ID_WITHOUT_EXTRAFIELD} debug />
+    <ServicesWidget projectId={PROJECT_ID_WITHOUT_EXTRAFIELD} />
   </StrictMode>,
 );

@@ -17,6 +17,7 @@ interface CsvRecord {
   redirectionLabel?: string;
   iframeUrl?: string;
   extendLabel?: string;
+  isListed?: boolean;
 }
 
 interface CsvContextRecord {
@@ -58,7 +59,12 @@ export async function parseServiceAndServiceContextsCSVFiles(
 
   const serviceCSVData = fs.createReadStream(servicesFilePath).pipe(servicesParser);
   for await (const serviceRecord of serviceCSVData as AsyncIterable<CsvRecord>) {
-    services.push(serviceRecord);
+    services.push({
+      ...serviceRecord,
+      redirectionLabel: makeNullIfEmptyString(serviceRecord.redirectionLabel),
+      iframeUrl: makeNullIfEmptyString(serviceRecord.iframeUrl),
+      isListed: Boolean(serviceRecord.isListed),
+    });
   }
 
   // Parse contexts

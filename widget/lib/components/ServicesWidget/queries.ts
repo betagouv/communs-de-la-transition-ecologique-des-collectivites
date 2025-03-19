@@ -25,11 +25,10 @@ export const useGetServicesByProjectId = (projectId: string, isStagingEnv = fals
 
 const fetchServicesByProjectId = async (projectId: string, isStagingEnv: boolean, debug: boolean) => {
   const apiClient = makeApiClient(isStagingEnv);
-
-  const { data, error } = await apiClient.GET(`/services/project/{projectId}`, {
+  const { data, error } = await apiClient.GET(`/services/project/{id}`, {
     params: {
       query: { debug },
-      path: { projectId: projectId },
+      path: { id: projectId },
     },
   });
 
@@ -54,7 +53,7 @@ export const useGetProjectExtraFields = (projectId: string, isStagingEnv = false
 const fetchProject = async (projectId: string, isStagingEnv: boolean) => {
   const apiClient = makeApiClient(isStagingEnv);
 
-  const { data, error } = await apiClient.GET("/projects/{id}/extra-fields", {
+  const { data, error } = await apiClient.GET("/projets/{id}/extra-fields", {
     params: {
       path: { id: projectId },
     },
@@ -98,7 +97,7 @@ interface PostExtraFields {
 const postExtraFields = async ({ projectId, fieldName, fieldValue }: PostExtraFields, isStagingEnv = false) => {
   const apiClient = makeApiClient(isStagingEnv);
 
-  const { data, error } = await apiClient.POST("/projects/{id}/extra-fields", {
+  const { data, error } = await apiClient.POST("/projets/{id}/extra-fields", {
     body: { extraFields: [{ name: fieldName, value: fieldValue }] },
     params: {
       path: { id: projectId },

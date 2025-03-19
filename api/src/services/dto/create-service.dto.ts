@@ -89,7 +89,7 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
   })
   @IsString()
   @IsOptional()
-  redirectionLabel?: string;
+  redirectionLabel?: string | null;
 
   @ApiProperty({
     required: false,
@@ -97,7 +97,7 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
   })
   @IsString()
   @IsOptional()
-  iframeUrl?: string;
+  iframeUrl?: string | null;
 
   @ApiProperty({
     required: false,
@@ -105,12 +105,11 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
   })
   @IsString()
   @IsOptional()
-  extendLabel?: string;
+  extendLabel?: string | null;
 
   @ApiProperty({
     description: "Whether the service will be associated with projects",
     required: false,
-    nullable: true,
   })
   @IsBoolean()
   @IsOptional()
