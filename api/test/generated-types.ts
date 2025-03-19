@@ -353,7 +353,7 @@ export interface components {
             iframeUrl?: string | null;
             extendLabel?: string | null;
             /** @description Whether the service will be associated with projects */
-            isListed?: boolean | null;
+            isListed?: boolean;
         };
         CreateServiceResponse: {
             id: string;

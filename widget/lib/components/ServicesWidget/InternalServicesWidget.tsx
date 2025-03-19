@@ -26,7 +26,7 @@ export const InternalServicesWidget = ({ projectId, isStagingEnv, debug }: Servi
       <div className={classNames(fr.cx("fr-mt-3w"), styles.services)}>
         {servicesData.map((service) => (
           <Service
-            key={service.id}
+            key={`${service.id}-${service.description}`}
             service={service}
             projectExtraFields={data?.extraFields ?? []}
             isStagingEnv={isStagingEnv}

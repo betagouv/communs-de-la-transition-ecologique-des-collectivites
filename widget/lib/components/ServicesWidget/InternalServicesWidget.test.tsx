@@ -37,7 +37,7 @@ const handlers = [
   http.get("http://localhost:3000/services/project/:projectId", () => {
     return HttpResponse.json(getMockedServices("prod"));
   }),
-  http.get("http://localhost:3000/projects/:projectId/extra-fields", () => {
+  http.get("http://localhost:3000/projets/:projectId/extra-fields", () => {
     return HttpResponse.json({ extraFields: [] });
   }),
 ];
@@ -68,7 +68,7 @@ describe("LesCommuns", () => {
 
   it("should display 'voir le détail' button when corresponding extrafield is present", async () => {
     server.use(
-      http.get("http://localhost:3000/projects/:projectId/extra-fields", () => {
+      http.get("http://localhost:3000/projets/:projectId/extra-fields", () => {
         return HttpResponse.json({
           extraFields: [{ name: "surface", value: "1000" }],
         });

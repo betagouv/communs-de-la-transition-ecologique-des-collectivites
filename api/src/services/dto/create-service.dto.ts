@@ -86,31 +86,33 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
     description: "label of the redirection",
     required: false,
     nullable: true,
+    type: String,
   })
   @IsString()
   @IsOptional()
-  redirectionLabel?: string;
+  redirectionLabel?: string | null;
 
   @ApiProperty({
     required: false,
     nullable: true,
+    type: String,
   })
   @IsString()
   @IsOptional()
-  iframeUrl?: string;
+  iframeUrl?: string | null;
 
   @ApiProperty({
     required: false,
     nullable: true,
+    type: String,
   })
   @IsString()
   @IsOptional()
-  extendLabel?: string;
+  extendLabel?: string | null;
 
   @ApiProperty({
     description: "Whether the service will be associated with projects",
     required: false,
-    nullable: true,
   })
   @IsBoolean()
   @IsOptional()
