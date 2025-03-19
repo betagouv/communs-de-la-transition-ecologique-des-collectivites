@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.1.3
+
+### Breaking Changes
+
+- change project endpoint
+
 ## 0.1.2
 
 ### Minor Changes
