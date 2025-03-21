@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="fr-container">
       <h1>Widget Test Sandbox</h1>
-      <ServicesWidget projectId={PROJECT_ID_WITHOUT_EXTRAFIELD} isStagingEnv />
+      <ServicesWidget projectId={PROJECT_ID_WITHOUT_EXTRAFIELD} isStagingEnv debug />
     </div>
   );
 }

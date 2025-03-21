@@ -61,7 +61,7 @@ export class ServicesService {
       throw new NotFoundException(`Projet with ID ${projectId} not found`);
     }
 
-    return this.serviceContextService.findMatchingServices(
+    return this.serviceContextService.findMatchingServicesContext(
       project.competences as Competences,
       project.leviers as Leviers,
       project.status,

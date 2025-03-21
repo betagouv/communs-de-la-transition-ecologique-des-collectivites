@@ -37,6 +37,9 @@ export class ServicesByProjectIdResponse implements ServiceBaseFields, ServiceCo
   @IsArray()
   extraFields!: ExtraFieldConfig[];
 
+  @ApiProperty({ type: Boolean })
+  isListed!: boolean;
+
   @ApiProperty({ nullable: true, type: String })
   redirectionLabel?: string | null;
 
