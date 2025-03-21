@@ -53,7 +53,7 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
   };
 
   useEffect(() => {
-    trackEvent({ category: "Services", action: "Affichage", name, isStagingEnv });
+    trackEvent({ action: "Affichage du service", name, isStagingEnv });
   }, [isStagingEnv, name]);
 
   return (
@@ -75,6 +75,7 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
                 href: redirectionUrl,
                 target: "_blank",
                 rel: "noopener noreferrer",
+                onClick: () => trackEvent({ action: "Clic sur le l'url de redirection", name, isStagingEnv }),
               }}
               priority="tertiary no outline"
             >
@@ -108,7 +109,8 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
         <Accordion
           label={extendLabel ?? "Voir le détail"}
           onExpandedChange={(value) => {
-            setExpanded(!value);
+            trackEvent({ action: value ? "Clic sur le collapse" : "Clic sur le expand", name, isStagingEnv });
+            setExpanded((prevValue) => !prevValue);
           }}
           expanded={expanded}
         >
