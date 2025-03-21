@@ -8,7 +8,6 @@ import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator"
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
-import { fakeServiceData } from "@/services/fake-service-data";
 import { UUIDDto } from "@/shared/dto/uuid";
 
 @ApiBearerAuth()
@@ -40,10 +39,8 @@ export class ServicesController {
     @Param() { id }: UUIDDto,
     @Query("debug") debug: boolean,
   ): Promise<ServicesByProjectIdResponse[]> {
-    // todo this should be changed to send back all service context
-    // when we'll have them properly defined
     if (debug) {
-      return Promise.resolve(fakeServiceData);
+      return this.serviceContextService.getAllServicesContexts();
     }
     return this.servicesService.getServicesByProjectId(id);
   }

@@ -1,4 +1,7 @@
 export const initMatomo = () => {
+  if (window._paq) {
+    return;
+  }
   // Create the _paq array if it doesn't exist
   window._paq = window._paq || [];
 

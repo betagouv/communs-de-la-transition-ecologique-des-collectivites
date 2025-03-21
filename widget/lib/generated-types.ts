@@ -689,6 +689,7 @@ export interface components {
        *     ]
        */
       extraFields: components["schemas"]["ExtraFieldConfig"][];
+      isListed: boolean;
       redirectionLabel: string | null;
       iframeUrl: string | null;
       extendLabel: string | null;
@@ -724,7 +725,7 @@ export interface components {
       iframeUrl?: string | null;
       extendLabel?: string | null;
       /** @description Whether the service will be associated with projects */
-      isListed?: boolean | null;
+      isListed?: boolean;
     };
     CreateServiceResponse: {
       id: string;

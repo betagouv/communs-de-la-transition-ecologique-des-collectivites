@@ -13,6 +13,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     iframeUrl: null,
     extendLabel: null,
     extraFields: [],
+    isListed: true,
   },
   {
     id: "2",
@@ -26,6 +27,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     iframeUrl: null,
     extendLabel: null,
     extraFields: [],
+    isListed: true,
   },
   {
     id: "4",
@@ -40,6 +42,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     iframeUrl: null,
     extendLabel: null,
     extraFields: [],
+    isListed: true,
   },
   {
     id: "5",
@@ -54,6 +57,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     iframeUrl: null,
     extendLabel: null,
     extraFields: [],
+    isListed: true,
   },
   {
     id: "10",
@@ -68,6 +72,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     iframeUrl: null,
     extendLabel: null,
     extraFields: [],
+    isListed: true,
   },
   {
     id: "1",
@@ -82,6 +87,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     redirectionLabel: null,
     extendLabel: null,
     extraFields: [],
+    isListed: true,
   },
   {
     id: "8",
@@ -95,6 +101,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     redirectionLabel: null,
     extendLabel: null,
     extraFields: [],
+    isListed: true,
   },
   {
     id: "12",
@@ -109,6 +116,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     sousTitre: "",
     redirectionLabel: null,
     extraFields: [],
+    isListed: true,
   },
   {
     id: "7",
@@ -123,6 +131,7 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     redirectionLabel: null,
     extendLabel: null,
     extraFields: [{ name: "surface", label: "surface de la friche en m2" }],
+    isListed: true,
   },
   {
     id: "6",
@@ -135,5 +144,6 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
     iframeUrl: null,
     extendLabel: "Afficher le levier Voiture électrique",
     extraFields: [],
+    isListed: true,
   },
 ];

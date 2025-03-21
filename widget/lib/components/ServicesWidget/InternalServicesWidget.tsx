@@ -44,6 +44,7 @@ export const InternalServicesWidget = ({ projectId, isStagingEnv, debug }: Servi
             projectExtraFields={data?.extraFields ?? []}
             isStagingEnv={isStagingEnv}
             projectId={projectId}
+            debug={debug}
           />
         ))}
       </div>

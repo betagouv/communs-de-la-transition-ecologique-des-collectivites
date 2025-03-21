@@ -3,11 +3,18 @@
   border: 1px solid var(--border-default-grey);
 }
 
-.header {
+.card {
   display: flex;
   gap: 1.5rem;
   padding-right: 1rem;
   align-items: center;
+}
+
+.debugBadge {
+  display: flex;
+  justify-content: right;
+  width: 90%;
+  position: absolute;
 }
 
 .logoContainer {
@@ -27,13 +34,27 @@
   width: 3rem;
 }
 
-.mainHeader {
-  flex: 1;
+.mainContent {
+  flex-grow: 1;
+}
+
+.redirection {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.description {
+  display: flex;
+  margin-bottom: 0.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  align-content: center;
 }
 
 .title {
-  margin-bottom: 0.5rem;
   display: block;
+  margin-bottom: 0;
   color: var(--text-default-grey);
   font-weight: 500;
 }

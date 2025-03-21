@@ -11,20 +11,32 @@ import Input from "@codegouvfr/react-dsfr/Input";
 import { ExtraFields, ServiceType } from "./types.ts";
 import { usePostExtraFields } from "./queries.ts";
 import { trackEvent } from "../../matomo/trackEvent.ts";
+import Badge from "@codegouvfr/react-dsfr/Badge";
 
 interface ServiceProps {
   service: ServiceType;
   projectExtraFields: ExtraFields;
   isStagingEnv?: boolean;
   projectId: string;
+  debug?: boolean;
 }
 
-export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }: ServiceProps) => {
+export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, debug }: ServiceProps) => {
   const [expanded, setExpanded] = useState(false);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const { mutate: postExtraFields } = usePostExtraFields();
 
-  const { name, description, iframeUrl, redirectionUrl, redirectionLabel, extendLabel, extraFields, logoUrl } = service;
+  const {
+    name,
+    description,
+    iframeUrl,
+    redirectionUrl,
+    redirectionLabel,
+    extendLabel,
+    extraFields,
+    logoUrl,
+    isListed,
+  } = service;
   const isLevier = name === "Levier_SGPE";
 
   const missingExtraFields = (extraFields || []).filter(
@@ -58,30 +70,38 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
 
   return (
     <div className={classNames(styles.container)} key={name}>
-      <div className={classNames(fr.cx("fr-m-2w"), styles.header)}>
-        <div className={styles.header}>
+      <div className={classNames(fr.cx("fr-m-2w"))}>
+        <div className={styles.card}>
           <div className={styles.logoContainer}>
             <img className={styles.logo} src={logoUrl} alt=""></img>
           </div>
-          <div className={styles.mainHeader}>
-            <span className={classNames(fr.cx("fr-text--md"), styles.title)}>{name}</span>
+          <div className={styles.mainContent}>
+            <div className={styles.description}>
+              <span className={classNames(fr.cx("fr-text--md"), styles.title)}>{name}</span>
+              {debug && (
+                <Badge small severity={`${isListed ? "success" : "warning"}`}>
+                  {isListed ? "Publié" : "Non publié"}
+                </Badge>
+              )}
+            </div>
             <span className={classNames(fr.cx("fr-text--sm"), styles.description)}>{description}</span>
           </div>
-
-          {redirectionUrl && (
-            <Button
-              className={styles.button}
-              linkProps={{
-                href: redirectionUrl,
-                target: "_blank",
-                rel: "noopener noreferrer",
-                onClick: () => trackEvent({ action: "Clic sur le l'url de redirection", name, isStagingEnv }),
-              }}
-              priority="tertiary no outline"
-            >
-              {redirectionLabel ?? "Etre accompagné"}
-            </Button>
-          )}
+          <div className={styles.redirection}>
+            {redirectionUrl && (
+              <Button
+                className={styles.button}
+                linkProps={{
+                  href: redirectionUrl,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  onClick: () => trackEvent({ action: "Clic sur le l'url de redirection", name, isStagingEnv }),
+                }}
+                priority="tertiary no outline"
+              >
+                {redirectionLabel ?? "Etre accompagné"}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       {missingExtraFields.length > 0 && (

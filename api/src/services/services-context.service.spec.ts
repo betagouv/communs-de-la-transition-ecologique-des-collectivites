@@ -40,7 +40,7 @@ describe("ServiceContextService", () => {
       isListed: true,
     };
     it("should return empty array when no competences , leviers and project status provided", async () => {
-      const result = await serviceContextService.findMatchingServices(null, null, null);
+      const result = await serviceContextService.findMatchingServicesContext(null, null, null);
       expect(result).toEqual([]);
     });
 
@@ -60,7 +60,11 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], ["Bio-carburants"], "IDEE");
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
+        ["Santé"],
+        ["Bio-carburants"],
+        "IDEE",
+      );
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -90,7 +94,11 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], ["Bio-carburants"], "IDEE");
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
+        ["Santé"],
+        ["Bio-carburants"],
+        "IDEE",
+      );
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -113,7 +121,11 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], ["Bio-carburants"], "IDEE");
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
+        ["Santé"],
+        ["Bio-carburants"],
+        "IDEE",
+      );
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -141,7 +153,7 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["Santé"], null, null);
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -173,7 +185,7 @@ describe("ServiceContextService", () => {
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServices(
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Santé", "Culture > Arts plastiques et photographie"],
         null,
         "IDEE",
@@ -195,7 +207,7 @@ describe("ServiceContextService", () => {
         extraFields: [],
       });
 
-      const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
+      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(["Santé"], null, null);
       expect(otherServiceContexts).toHaveLength(1);
     });
 
@@ -212,7 +224,7 @@ describe("ServiceContextService", () => {
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServices(
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Culture > Arts plastiques et photographie"],
         null,
         "IDEE",
@@ -234,7 +246,7 @@ describe("ServiceContextService", () => {
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServices(null, ["Bio-carburants"], "IDEE");
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, ["Bio-carburants"], "IDEE");
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -251,7 +263,11 @@ describe("ServiceContextService", () => {
 
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServices(["Santé"], ["Covoiturage"], "IDEE");
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
+        ["Santé"],
+        ["Covoiturage"],
+        "IDEE",
+      );
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -269,7 +285,7 @@ describe("ServiceContextService", () => {
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServices(null, ["Bio-carburants"], "IDEE");
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, ["Bio-carburants"], "IDEE");
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -287,7 +303,7 @@ describe("ServiceContextService", () => {
         extraFields: [],
       });
 
-      const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
+      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(["Santé"], null, null);
       expect(otherServiceContexts).toHaveLength(1);
     });
 
@@ -304,7 +320,7 @@ describe("ServiceContextService", () => {
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServices(
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Culture > Arts plastiques et photographie"],
         null,
         null,
@@ -326,7 +342,7 @@ describe("ServiceContextService", () => {
         extraFields: [],
       });
 
-      const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
+      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(["Santé"], null, null);
       expect(otherServiceContexts).toHaveLength(1);
     });
 
@@ -342,7 +358,7 @@ describe("ServiceContextService", () => {
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServices(null, ["Bio-carburants"], null);
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, ["Bio-carburants"], null);
 
       expect(serviceContexts).toHaveLength(1);
 
@@ -361,7 +377,7 @@ describe("ServiceContextService", () => {
         extraFields: [],
       });
 
-      const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
+      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(["Santé"], null, null);
       expect(otherServiceContexts).toHaveLength(1);
     });
 
@@ -378,7 +394,7 @@ describe("ServiceContextService", () => {
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServices(null, null, "IDEE");
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, null, "IDEE");
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -396,7 +412,7 @@ describe("ServiceContextService", () => {
         extraFields: [],
       });
 
-      const otherServiceContexts = await serviceContextService.findMatchingServices(["Santé"], null, null);
+      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(["Santé"], null, null);
       expect(otherServiceContexts).toHaveLength(1);
     });
 
@@ -411,7 +427,7 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServices(
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Culture > Arts plastiques et photographie"],
         null,
         null,
@@ -434,7 +450,7 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServices(
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Culture > Arts plastiques et photographie"],
         ["Bio-carburants"],
         "IDEE",
