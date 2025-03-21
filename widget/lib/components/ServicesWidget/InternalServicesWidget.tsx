@@ -4,12 +4,25 @@ import { Service } from "./Service.tsx";
 import styles from "./InternalServicesWidget.module.css";
 import { useGetProjectExtraFields, useGetServicesByProjectId } from "./queries.ts";
 import { ServicesWidgetProps } from "./types.ts";
+import { useEffect } from "react";
+import { trackEvent } from "../../matomo/trackEvent.ts";
 
 export const InternalServicesWidget = ({ projectId, isStagingEnv, debug }: ServicesWidgetProps) => {
   // todo add proper error handling through error boundaries with retry
 
   const { data: servicesData, error, isLoading } = useGetServicesByProjectId(projectId, isStagingEnv, debug);
   const { data } = useGetProjectExtraFields(projectId, isStagingEnv);
+
+  useEffect(() => {
+    if (servicesData) {
+      trackEvent({
+        action: "Nombre de services affichés",
+        name: "Nombre de services affichés",
+        value: servicesData.length,
+        isStagingEnv,
+      });
+    }
+  }, [isStagingEnv, servicesData]);
 
   // do not display anything while we don't know if there are any services or there are no services
   if (isLoading || !servicesData?.length) return null;

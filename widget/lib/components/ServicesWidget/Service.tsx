@@ -2,7 +2,7 @@ import styles from "./Service.module.css";
 import Button from "@codegouvfr/react-dsfr/Button";
 import classNames from "classnames";
 import { fr } from "@codegouvfr/react-dsfr";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import IFrameResized from "./IFrameResized.tsx";
 import LevierDetails, { LevierData } from "./LevierDetails.tsx";
@@ -10,6 +10,7 @@ import voiture_electrique from "../../leviers_data/voiture_electrique.json";
 import Input from "@codegouvfr/react-dsfr/Input";
 import { ExtraFields, ServiceType } from "./types.ts";
 import { usePostExtraFields } from "./queries.ts";
+import { trackEvent } from "../../matomo/trackEvent.ts";
 
 interface ServiceProps {
   service: ServiceType;
@@ -51,6 +52,10 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
     setExpanded(true);
   };
 
+  useEffect(() => {
+    trackEvent({ action: "Affichage du service", name, isStagingEnv });
+  }, [isStagingEnv, name]);
+
   return (
     <div className={classNames(styles.container)} key={name}>
       <div className={classNames(fr.cx("fr-m-2w"), styles.header)}>
@@ -70,6 +75,7 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
                 href: redirectionUrl,
                 target: "_blank",
                 rel: "noopener noreferrer",
+                onClick: () => trackEvent({ action: "Clic sur le l'url de redirection", name, isStagingEnv }),
               }}
               priority="tertiary no outline"
             >
@@ -103,7 +109,8 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId }
         <Accordion
           label={extendLabel ?? "Voir le détail"}
           onExpandedChange={(value) => {
-            setExpanded(!value);
+            trackEvent({ action: value ? "Clic sur le collapse" : "Clic sur le expand", name, isStagingEnv });
+            setExpanded((prevValue) => !prevValue);
           }}
           expanded={expanded}
         >

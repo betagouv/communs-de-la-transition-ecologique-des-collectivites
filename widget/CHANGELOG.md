@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.1.4
+
+### Minor Changes
+
+- add analytics
+
 ## 0.1.3
 
 ### Breaking Changes
