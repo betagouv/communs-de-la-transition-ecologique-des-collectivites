@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.1.5
+
+### Minor Changes
+
+- add badge to know if a service is published or not in debug mode
+
 ## 0.1.4
 
 ### Minor Changes
