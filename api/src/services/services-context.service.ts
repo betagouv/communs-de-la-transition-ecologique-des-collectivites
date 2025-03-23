@@ -20,7 +20,7 @@ export class ServicesContextService {
     private readonly logger: CustomLogger,
   ) {}
 
-  async findMatchingServices(
+  async findMatchingServicesContext(
     competences: Competences | null,
     leviers: Leviers | null,
     projectStatus: ProjetStatus | null,
@@ -62,6 +62,26 @@ export class ServicesContextService {
       .where(and(eq(services.isListed, true), ...conditions));
 
     return matchingContexts.map(({ services, service_context }) => ({
+      ...services,
+      description: service_context.description ?? services.description,
+      sousTitre: service_context.sousTitre ?? services.sousTitre,
+      logoUrl: service_context.logoUrl ?? services.logoUrl,
+      redirectionUrl: service_context.redirectionUrl ?? services.redirectionUrl,
+      redirectionLabel: service_context.redirectionLabel ?? services.redirectionLabel,
+      extendLabel: service_context.extendLabel ?? services.extendLabel,
+      iframeUrl: service_context.iframeUrl ?? services.iframeUrl,
+      // workaround to a specific jsonb array bug in drizzle https://github.com/drizzle-team/drizzle-orm/issues/2913
+      extraFields: (service_context.extraFields ?? []) as ExtraFieldConfig[],
+    }));
+  }
+
+  async getAllServicesContexts(): Promise<ServicesByProjectIdResponse[]> {
+    const allServicesContexts = await this.dbService.database
+      .select()
+      .from(serviceContext)
+      .innerJoin(services, eq(services.id, serviceContext.serviceId));
+
+    return allServicesContexts.map(({ services, service_context }) => ({
       ...services,
       description: service_context.description ?? services.description,
       sousTitre: service_context.sousTitre ?? services.sousTitre,

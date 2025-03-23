@@ -9,6 +9,6 @@ const PROJECT_ID_WITHOUT_EXTRAFIELD = "0195af3a-6b26-7a5c-a091-712901a4498d";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ServicesWidget projectId={PROJECT_ID_WITHOUT_EXTRAFIELD} />
+    <ServicesWidget projectId={PROJECT_ID_WITHOUT_EXTRAFIELD} debug />
   </StrictMode>,
 );

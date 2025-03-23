@@ -113,7 +113,7 @@ export const services = pgTable("services", {
   description: text("description").notNull(),
   sousTitre: text("sous_titre").notNull(),
   logoUrl: text("logo_url").notNull(),
-  isListed: boolean("is_listed").default(false),
+  isListed: boolean("is_listed").notNull().default(false),
   redirectionUrl: text("redirection_url").notNull(),
   redirectionLabel: text("redirection_label"),
   iframeUrl: text("iframe_url"),
