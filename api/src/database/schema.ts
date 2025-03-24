@@ -15,13 +15,13 @@ import {
 import { eq, relations, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
-const projetEtapes = ["Idée", "Etude", "Opération"] as const;
-export const projetEtapesEnum = pgEnum("projet_etapes", projetEtapes);
-export type ProjetEtapes = (typeof projetEtapesEnum.enumValues)[number];
+const projetPhases = ["Idée", "Etude", "Opération"] as const;
+export const projetPhasesEnum = pgEnum("projet_phases", projetPhases);
+export type ProjetPhases = (typeof projetPhasesEnum.enumValues)[number];
 
-const etapeStatut = ["En cours", "En retard", "En pause", "Bloqué", "Abandonné", "Terminé"] as const;
-export const etapeStatutEnum = pgEnum("etape_statut", etapeStatut);
-export type EtapeStatut = (typeof etapeStatutEnum.enumValues)[number];
+const phaseStatut = ["En cours", "En retard", "En pause", "Bloqué", "Abandonné", "Terminé"] as const;
+export const phaseStatutEnum = pgEnum("phase_statut", phaseStatut);
+export type PhaseStatut = (typeof phaseStatutEnum.enumValues)[number];
 
 export const collectiviteType = ["Commune", "EPCI"] as const;
 export const collectiviteTypeEnum = pgEnum("collectivite_type", collectiviteType);
@@ -41,8 +41,8 @@ export const projets = pgTable("projets", {
   description: text("description"),
   budgetPrevisionnel: integer("budget_previsionnel"),
   dateDebutPrevisionnelle: text("date_debut_previsionnelle"),
-  etape: projetEtapesEnum(),
-  etapeStatut: etapeStatutEnum(),
+  phase: projetPhasesEnum(),
+  phaseStatut: phaseStatutEnum(),
   programme: text(),
 
   // porteur info
@@ -136,7 +136,7 @@ export const serviceContext = pgTable(
       .references(() => services.id),
     competences: text("competences").array().notNull().default([]),
     leviers: text("leviers").array(),
-    etapes: projetEtapesEnum("etapes").array().notNull().default([]),
+    phases: projetPhasesEnum("phases").array().notNull().default([]),
 
     // Custom display options
     description: text("description"),

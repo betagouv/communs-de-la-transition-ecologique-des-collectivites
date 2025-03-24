@@ -10,7 +10,7 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import { ProjetEtapes, projetEtapesEnum, EtapeStatut, etapeStatutEnum } from "@database/schema";
+import { ProjetPhases, projetPhasesEnum, PhaseStatut, phaseStatutEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
@@ -18,9 +18,9 @@ import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 import { PorteurDto } from "@projets/dto/porteur.dto";
 import { Type } from "class-transformer";
 import {
-  EtapeStatutRequiresEtape,
-  SetEnCoursIfEtapeIsProvidedButNoEtapeStatut,
-} from "@projets/decorators/etape-decorators";
+  PhaseStatutRequiresPhase,
+  SetEnCoursIfPhaseIsProvidedButNoPhaseStatut,
+} from "@projets/decorators/phase-decorators";
 
 export class CreateOrUpdateProjetResponse {
   @ApiProperty()
@@ -61,24 +61,24 @@ export class CreateProjetRequest {
   dateDebutPrevisionnelle?: string | null;
 
   @ApiProperty({
-    enum: etapeStatutEnum.enumValues,
+    enum: phaseStatutEnum.enumValues,
     nullable: true,
     required: false,
-    description: "Current status for the etape",
+    description: "Current status for the phase",
   })
   @IsOptional()
-  @EtapeStatutRequiresEtape({ message: "Cannot specify etapeStatut without an etape" })
-  @SetEnCoursIfEtapeIsProvidedButNoEtapeStatut()
-  etapeStatut?: EtapeStatut | null;
+  @PhaseStatutRequiresPhase({ message: "Cannot specify phaseStatut without a phase" })
+  @SetEnCoursIfPhaseIsProvidedButNoPhaseStatut()
+  phaseStatut?: PhaseStatut | null;
 
   @ApiProperty({
-    enum: projetEtapesEnum.enumValues,
+    enum: projetPhasesEnum.enumValues,
     nullable: true,
     required: false,
-    description: "Current Etape for the project",
+    description: "Current Phase for the project",
   })
   @IsOptional()
-  etape?: ProjetEtapes | null;
+  phase?: ProjetPhases | null;
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()

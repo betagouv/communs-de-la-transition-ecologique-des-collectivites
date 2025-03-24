@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { ProjetEtapes, serviceContext, services } from "@database/schema";
+import { ProjetPhases, serviceContext, services } from "@database/schema";
 import { and, arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
 import { Competences, Leviers } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
@@ -23,7 +23,7 @@ export class ServicesContextService {
   async findMatchingServicesContext(
     competences: Competences | null,
     leviers: Leviers | null,
-    projectEtape: ProjetEtapes | null,
+    projetPhases: ProjetPhases | null,
   ): Promise<ServicesByProjectIdResponse[]> {
     let matchingContexts: JoinResult[] = [];
     const conditions = [];
@@ -43,9 +43,9 @@ export class ServicesContextService {
       conditions.push(or(...categorizationConditions));
     }
 
-    if (projectEtape) {
-      const etapesCondition = or(arrayOverlaps(serviceContext.etapes, [projectEtape]), eq(serviceContext.etapes, []));
-      conditions.push(etapesCondition);
+    if (projetPhases) {
+      const phasesCondition = or(arrayOverlaps(serviceContext.phases, [projetPhases]), eq(serviceContext.phases, []));
+      conditions.push(phasesCondition);
     }
 
     if (conditions.length === 0) {

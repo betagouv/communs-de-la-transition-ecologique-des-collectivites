@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { CreateOrUpdateProjetResponse, CreateProjetRequest } from "./dto/create-projet.dto";
-import { UpdateProjetDto } from "./dto/update-projet.dto";
+import { UpdateProjetRequest } from "./dto/update-projet.dto";
 import { ProjetResponse } from "./dto/projet.dto";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
@@ -96,7 +96,7 @@ export class ProjetsController {
   update(
     @Req() request: Request,
     @Param() { id }: UUIDDto,
-    @Body() updateProjetDto: UpdateProjetDto,
+    @Body() updateProjetDto: UpdateProjetRequest,
   ): Promise<CreateOrUpdateProjetResponse> {
     return this.projetUpdateService.update(id, updateProjetDto, extractApiKey(request));
   }

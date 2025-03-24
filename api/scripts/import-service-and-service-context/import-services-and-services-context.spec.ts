@@ -30,16 +30,16 @@ describe("parseCSVFiles", () => {
 
   it("should generate an invalid items file when there are invalid service context entries", async () => {
     fs.writeFileSync(serviceCSVPath, serviceData);
-    const invalidServiceContextData = contextValidData.replace(/Etude/g, "Invalid_etape");
+    const invalidServiceContextData = contextValidData.replace(/Etude/g, "Invalid_phase");
     fs.writeFileSync(serviceContextPath, invalidServiceContextData.replace(/Aménagement/g, "Améenagement"));
 
     const { errors } = await parseServiceAndServiceContextsCSVFiles(serviceCSVPath, serviceContextPath);
 
     expect(errors).toStrictEqual([
       "Invalid competence: Améenagement des territoires > Friche",
-      "Invalid etapes: Invalid_etape",
+      "Invalid phases: Invalid_phase",
       "Invalid competence: Améenagement des territoires > Friche",
-      "Invalid etapes: Invalid_etape",
+      "Invalid phases: Invalid_phase",
     ]);
   });
 

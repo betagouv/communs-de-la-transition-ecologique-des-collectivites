@@ -35,8 +35,8 @@ describe("ProjetsController", () => {
     budgetPrevisionnel: 100000,
     dateDebutPrevisionnelle: getFormattedDate(),
     programme: null,
-    etape: "Idée",
-    etapeStatut: "En cours",
+    phase: "Idée",
+    phaseStatut: "En cours",
     competences: null,
     leviers: null,
     collectivites: mockedCollectivites.map(({ code }) => ({
@@ -80,7 +80,7 @@ describe("ProjetsController", () => {
       },
       budgetPrevisionnel: 100000,
       dateDebutPrevisionnelle: getFormattedDate(),
-      etape: "Idée",
+      phase: "Idée",
       collectivites: mockedCollectivites,
       externalId: "test-service-id",
     };
