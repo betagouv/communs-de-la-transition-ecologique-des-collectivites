@@ -378,7 +378,7 @@ describe("ServiceContextService", () => {
       expect(otherServiceContexts).toHaveLength(1);
     });
 
-    it("should match all status when service context has empty status array", async () => {
+    it("should match all status when service context has empty phase array", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
@@ -513,6 +513,74 @@ describe("ServiceContextService", () => {
         isListed: true,
         extraFields: [],
       });
+    });
+
+    it("should not take into account competence when there is no associated competence to the service", async () => {
+      const service = await servicesService.create(servicePayload);
+
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        competences: null,
+        phases: [],
+        leviers: [],
+      };
+
+      await serviceContextService.create(service.id, createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["Santé"], null, null);
+
+      expect(serviceContexts).toHaveLength(0);
+    });
+
+    it("should not take into account phase when there is no associated phase to the service", async () => {
+      const service = await servicesService.create(servicePayload);
+
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        competences: [],
+        phases: null,
+        leviers: [],
+      };
+
+      await serviceContextService.create(service.id, createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, null, "Idée");
+
+      expect(serviceContexts).toHaveLength(0);
+    });
+
+    it("should not take into account levier when there is no associated levier to the service", async () => {
+      const service = await servicesService.create(servicePayload);
+
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        competences: [],
+        phases: [],
+        leviers: null,
+      };
+
+      await serviceContextService.create(service.id, createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, ["Bio-carburants"], null);
+
+      expect(serviceContexts).toHaveLength(0);
+    });
+
+    it("should not match null value", async () => {
+      const service = await servicesService.create(servicePayload);
+
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        competences: null,
+        phases: null,
+        leviers: null,
+      };
+
+      await serviceContextService.create(service.id, createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, null, null);
+
+      expect(serviceContexts).toHaveLength(0);
     });
   });
 
