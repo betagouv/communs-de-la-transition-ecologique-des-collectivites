@@ -64,7 +64,7 @@ export class ServicesService {
     return this.serviceContextService.findMatchingServicesContext(
       project.competences as Competences,
       project.leviers as Leviers,
-      project.status,
+      project.phase,
     );
   }
 }

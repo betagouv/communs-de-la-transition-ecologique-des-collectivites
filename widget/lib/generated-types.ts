@@ -159,7 +159,9 @@ export interface components {
       budgetPrevisionnel: number | null;
       dateDebutPrevisionnelle: string | null;
       /** @enum {string|null} */
-      status: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
+      phaseStatut: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
+      /** @enum {string|null} */
+      phase: "Idée" | "Etude" | "Opération" | null;
       programme: string | null;
       /** @enum {string|null} */
       competences:
@@ -334,10 +336,15 @@ export interface components {
        */
       dateDebutPrevisionnelle?: string | null;
       /**
-       * @description Current Status for the project
+       * @description Current status for the phase
        * @enum {string|null}
        */
-      status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
+      phaseStatut?: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
+      /**
+       * @description Current Phase for the project
+       * @enum {string|null}
+       */
+      phase?: "Idée" | "Etude" | "Opération" | null;
       programme?: string | null;
       /**
        * @description Array of collectivite references
@@ -499,7 +506,7 @@ export interface components {
     BulkCreateProjetsResponse: {
       ids: string[];
     };
-    UpdateProjetDto: {
+    UpdateProjetRequest: {
       nom?: string;
       description?: string | null;
       porteur?: components["schemas"]["PorteurDto"] | null;
@@ -510,10 +517,15 @@ export interface components {
        */
       dateDebutPrevisionnelle?: string | null;
       /**
-       * @description Current Status for the project
+       * @description Current status for the phase
        * @enum {string|null}
        */
-      status?: "IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE" | null;
+      phaseStatut?: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
+      /**
+       * @description Current Phase for the project
+       * @enum {string|null}
+       */
+      phase?: "Idée" | "Etude" | "Opération" | null;
       programme?: string | null;
       /**
        * @description Array of collectivite references
@@ -899,8 +911,8 @@ export interface components {
        */
       extendLabel?: string | null;
       iframeUrl?: string | null;
-      /** @description Project status for which the serviceContext applies, empty array means all statuses */
-      status: ("IDEE" | "FAISABILITE" | "EN_COURS" | "IMPACTE" | "ABANDONNE" | "TERMINE")[];
+      /** @description Project phases for which the serviceContext applies, empty array means all phases */
+      phases: ("Idée" | "Etude" | "Opération")[];
       /**
        * @description Array of extra field definitions required for this service context
        * @example [
@@ -1028,7 +1040,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UpdateProjetDto"];
+        "application/json": components["schemas"]["UpdateProjetRequest"];
       };
     };
     responses: {

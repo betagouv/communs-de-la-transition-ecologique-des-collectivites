@@ -11,7 +11,7 @@ import { collectivites } from "@database/schema";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
-import { UpdateProjetDto } from "@projets/dto/update-projet.dto";
+import { UpdateProjetRequest } from "@projets/dto/update-projet.dto";
 
 describe("ProjetUpdateService", () => {
   let updateService: UpdateProjetsService;
@@ -55,7 +55,7 @@ describe("ProjetUpdateService", () => {
       },
       budgetPrevisionnel: 100000,
       dateDebutPrevisionnelle: getFormattedDate(),
-      status: "IDEE",
+      phase: "Idée",
       collectivites: [mockedCollectivites],
       externalId: EXTERNAL_ID,
     };
@@ -101,7 +101,7 @@ describe("ProjetUpdateService", () => {
   });
 
   it("should update competences properly", async () => {
-    const updateDto: UpdateProjetDto = {
+    const updateDto: UpdateProjetRequest = {
       nom: "Updated Projet",
       description: "Updated Description",
       competences: ["Santé", "Culture > Arts plastiques et photographie"],
@@ -132,7 +132,7 @@ describe("ProjetUpdateService", () => {
       nom: "new EPCI Collectivite",
     });
 
-    const updateDto: UpdateProjetDto = {
+    const updateDto: UpdateProjetRequest = {
       collectivites: [newCollectivite],
       externalId: EXTERNAL_ID,
     };

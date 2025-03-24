@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { ProjetStatus, serviceContext, services } from "@database/schema";
+import { ProjetPhases, serviceContext, services } from "@database/schema";
 import { and, arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
 import { Competences, Leviers } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
@@ -23,34 +23,31 @@ export class ServicesContextService {
   async findMatchingServicesContext(
     competences: Competences | null,
     leviers: Leviers | null,
-    projectStatus: ProjetStatus | null,
+    projetPhases: ProjetPhases | null,
   ): Promise<ServicesByProjectIdResponse[]> {
     let matchingContexts: JoinResult[] = [];
     const conditions = [];
     const categorizationConditions = [];
 
-    // Build categorization condition (competences OR leviers)
     if (competences?.length) {
       categorizationConditions.push(
         or(arrayOverlaps(serviceContext.competences, competences), eq(serviceContext.competences, [])),
       );
     }
+
     if (leviers?.length) {
       categorizationConditions.push(or(arrayOverlaps(serviceContext.leviers, leviers), eq(serviceContext.leviers, [])));
     }
 
-    // Add categorization condition if any exists
     if (categorizationConditions.length > 0) {
       conditions.push(or(...categorizationConditions));
     }
 
-    // Add status condition if status is provided
-    if (projectStatus) {
-      const statusCondition = or(arrayOverlaps(serviceContext.status, [projectStatus]), eq(serviceContext.status, []));
-      conditions.push(statusCondition);
+    if (projetPhases) {
+      const phasesCondition = or(arrayOverlaps(serviceContext.phases, [projetPhases]), eq(serviceContext.phases, []));
+      conditions.push(phasesCondition);
     }
 
-    // If no conditions (no categorization and no status), return empty array
     if (conditions.length === 0) {
       return [];
     }
@@ -111,7 +108,6 @@ export class ServicesContextService {
 
     const { competences, description, ...otherFields } = createServiceContextDto;
 
-    // Check if a service context with the same description already exists for this service
     if (description) {
       const existingServiceContext = await this.dbService.database
         .select()

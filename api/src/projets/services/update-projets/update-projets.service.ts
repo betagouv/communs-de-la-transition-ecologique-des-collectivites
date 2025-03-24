@@ -4,7 +4,7 @@ import { removeUndefined } from "@/shared/utils/remove-undefined";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { CollectivitesService } from "../collectivites/collectivites.service";
-import { UpdateProjetDto } from "@projets/dto/update-projet.dto";
+import { UpdateProjetRequest } from "@projets/dto/update-projet.dto";
 import { ServiceIdentifierService } from "@projets/services/service-identifier/service-identifier.service";
 
 @Injectable()
@@ -15,7 +15,7 @@ export class UpdateProjetsService {
     private readonly serviceIdentifierService: ServiceIdentifierService,
   ) {}
 
-  async update(id: string, updateProjectDto: UpdateProjetDto, apiKey: string): Promise<{ id: string }> {
+  async update(id: string, updateProjectDto: UpdateProjetRequest, apiKey: string): Promise<{ id: string }> {
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
     const { collectivites, externalId, porteur, ...otherFields } = updateProjectDto;

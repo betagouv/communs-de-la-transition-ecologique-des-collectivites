@@ -55,7 +55,7 @@ describe("ServiceContextService", () => {
         redirectionUrl: "https://test.com/context",
         redirectionLabel: "Context Label",
         extendLabel: "Extend Label",
-        status: [],
+        phases: [],
         leviers: ["Bio-carburants"],
       };
       await serviceContextService.create(service.id, createContextDto);
@@ -63,7 +63,7 @@ describe("ServiceContextService", () => {
       const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Santé"],
         ["Bio-carburants"],
-        "IDEE",
+        "Idée",
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -83,21 +83,21 @@ describe("ServiceContextService", () => {
       });
     });
 
-    it("should match services by project status", async () => {
+    it("should match services by etape status", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
         competences: ["Santé"],
         leviers: [],
-        status: ["IDEE"],
+        phases: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Santé"],
         ["Bio-carburants"],
-        "IDEE",
+        "Idée",
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -117,14 +117,14 @@ describe("ServiceContextService", () => {
         competences: [],
         description: "Context Description",
         leviers: ["Bio-carburants"],
-        status: [],
+        phases: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Santé"],
         ["Bio-carburants"],
-        "IDEE",
+        "Idée",
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -149,7 +149,7 @@ describe("ServiceContextService", () => {
       const createContextDto: CreateServiceContextRequest = {
         competences: ["Santé"],
         leviers: [],
-        status: [],
+        phases: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -172,14 +172,14 @@ describe("ServiceContextService", () => {
       });
     });
 
-    it("should match competence and status when both are provided", async () => {
+    it("should match competence and etapeStatus when both are provided", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
         sousTitre: "Context Sous Titre",
         competences: ["Santé"],
-        status: ["IDEE", "FAISABILITE"],
+        phases: [],
         leviers: [],
       };
       await serviceContextService.create(service.id, createContextDto);
@@ -188,7 +188,7 @@ describe("ServiceContextService", () => {
       const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Santé", "Culture > Arts plastiques et photographie"],
         null,
-        "IDEE",
+        "Idée",
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -211,14 +211,14 @@ describe("ServiceContextService", () => {
       expect(otherServiceContexts).toHaveLength(1);
     });
 
-    it("should not match when status match but not the competences while being provided", async () => {
+    it("should not match when etapeStatus match but not the competences while being provided", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
         // Empty array should match all
         competences: ["Santé"],
-        status: ["IDEE", "FAISABILITE"],
+        phases: ["Idée"],
         leviers: [],
       };
       await serviceContextService.create(service.id, createContextDto);
@@ -227,47 +227,44 @@ describe("ServiceContextService", () => {
       const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Culture > Arts plastiques et photographie"],
         null,
-        "IDEE",
+        "Idée",
       );
 
       expect(serviceContexts).toHaveLength(0);
     });
 
-    it("should not match when status match but not the levier while being provided", async () => {
+    it("should not match when etapeStatus match but not the levier while being provided", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
         // Empty array should match all
         competences: [],
-        status: ["IDEE", "FAISABILITE"],
+        phases: ["Idée"],
         leviers: ["Covoiturage"],
       };
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, ["Bio-carburants"], "IDEE");
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, ["Bio-carburants"], "Idée");
 
       expect(serviceContexts).toHaveLength(0);
     });
 
-    it("should not match when levier/comp match but not the status", async () => {
+    it("should not match when levier/comp match but not the etapes", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
-        competences: ["Santé"],
-        status: ["FAISABILITE"],
-        leviers: ["Covoiturage"],
+        // Empty array should match all
+        competences: [],
+        phases: ["Etude"],
+        leviers: [],
       };
-
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["Santé"],
-        ["Covoiturage"],
-        "IDEE",
-      );
+      // Should match any competence
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, null, "Idée");
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -279,13 +276,13 @@ describe("ServiceContextService", () => {
         description: "Context Description",
         // Empty array should match all
         competences: [],
-        status: ["IDEE", "FAISABILITE"],
+        phases: ["Idée"],
         leviers: ["Bio-carburants"],
       };
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, ["Bio-carburants"], "IDEE");
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, ["Bio-carburants"], "Idée");
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -314,7 +311,7 @@ describe("ServiceContextService", () => {
         description: "Context Description",
         // Empty array should match all
         competences: [],
-        status: [],
+        phases: ["Idée"],
         leviers: [],
       };
       await serviceContextService.create(service.id, createContextDto);
@@ -352,7 +349,7 @@ describe("ServiceContextService", () => {
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
         competences: [],
-        status: [],
+        phases: ["Idée"],
         leviers: [],
       };
       await serviceContextService.create(service.id, createContextDto);
@@ -388,13 +385,13 @@ describe("ServiceContextService", () => {
         description: "Context Description",
         // Empty array should match all
         competences: [],
-        status: [],
+        phases: ["Idée"],
         leviers: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, null, "IDEE");
+      // Should match any etapeStatus
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, null, "Idée");
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -422,8 +419,8 @@ describe("ServiceContextService", () => {
       const createContextDto: CreateServiceContextRequest = {
         competences: ["Action sociale (hors APA et RSA) > Citoyenneté"],
         description: "Context Description",
+        phases: ["Idée"],
         leviers: [],
-        status: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -445,18 +442,77 @@ describe("ServiceContextService", () => {
       const createContextDto: CreateServiceContextRequest = {
         competences: ["Culture > Arts plastiques et photographie"],
         description: "Context Description",
+        phases: ["Idée"],
         leviers: ["Bio-carburants"],
-        status: [],
       };
       await serviceContextService.create(service.id, createContextDto);
 
       const serviceContexts = await serviceContextService.findMatchingServicesContext(
         ["Culture > Arts plastiques et photographie"],
         ["Bio-carburants"],
-        "IDEE",
+        "Idée",
       );
 
       expect(serviceContexts).toHaveLength(0);
+    });
+
+    it("should match services by project etapes", async () => {
+      const service = await servicesService.create(servicePayload);
+
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        competences: ["Santé"],
+        phases: ["Idée"],
+        leviers: [],
+      };
+      await serviceContextService.create(service.id, createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
+        ["Santé"],
+        ["Bio-carburants"],
+        "Idée",
+      );
+
+      expect(serviceContexts).toHaveLength(1);
+      expect(serviceContexts[0]).toEqual({
+        ...service,
+        createdAt: expect.any(Date),
+        description: createContextDto.description,
+        isListed: true,
+        extraFields: [],
+      });
+    });
+
+    it("should match all etapes when service context has empty etapes array", async () => {
+      const service = await servicesService.create(servicePayload);
+
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        // Empty array should match all
+        competences: [],
+        phases: [],
+        leviers: [],
+      };
+      await serviceContextService.create(service.id, createContextDto);
+
+      // Should match any etape
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, null, "Idée");
+
+      expect(serviceContexts).toHaveLength(1);
+      expect(serviceContexts[0]).toEqual({
+        id: service.id,
+        createdAt: expect.any(Date),
+        name: service.name,
+        description: "Context Description",
+        sousTitre: service.sousTitre,
+        logoUrl: service.logoUrl,
+        redirectionUrl: service.redirectionUrl,
+        redirectionLabel: service.redirectionLabel,
+        extendLabel: null,
+        iframeUrl: null,
+        isListed: true,
+        extraFields: [],
+      });
     });
   });
 
@@ -479,7 +535,7 @@ describe("ServiceContextService", () => {
       leviers: ["Bio-carburants", "Covoiturage"],
       redirectionLabel: "Context Label",
       extendLabel: "Extend Label",
-      status: [],
+      phases: [],
     };
 
     it("should create a new service context", async () => {
@@ -546,7 +602,7 @@ describe("ServiceContextService", () => {
         leviers: ["Bio-carburants", "Covoiturage"],
         redirectionLabel: "Context Label",
         extendLabel: "Extend Label",
-        status: [],
+        phases: [],
         extraFields: [
           { name: "field1", label: "field1 label" },
           { name: "field2", label: "field2 label" },

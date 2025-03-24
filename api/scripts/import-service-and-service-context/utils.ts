@@ -29,7 +29,7 @@ export const makeNullIfEmptyString = (value: string | undefined): string | null 
 export function parseFieldToArray(
   field: string,
   validList: readonly string[],
-  mode: "competence" | "levier" | "status",
+  mode: "competence" | "levier" | "phases",
   invalidItemsFile: string[],
 ): string[] {
   // Remove curly braces and quotes

@@ -28,7 +28,7 @@ export const createApiClient = (apiKey: string) => {
           },
         }),
 
-      update: (id: string, data: components["schemas"]["UpdateProjetDto"]) =>
+      update: (id: string, data: components["schemas"]["UpdateProjetRequest"]) =>
         client.PATCH("/projets/{id}", {
           params: {
             path: { id },
