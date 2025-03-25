@@ -35,12 +35,12 @@ describe("Services (e2e)", () => {
 
   describe("POST /services/contexts", () => {
     const validServiceContext: CreateServiceContextRequest = {
-      competences: ["Santé"],
       description: "Context Description",
       logoUrl: "https://test.com/logo.png",
       redirectionUrl: "https://test.com",
       redirectionLabel: "Go to test service",
       extendLabel: "Extend Label",
+      competences: ["Santé"],
       leviers: [],
       extraFields: [{ name: "surface", label: "Surface en m2" }],
       phases: [],
@@ -49,7 +49,7 @@ describe("Services (e2e)", () => {
     it("should reject when using regular API key", async () => {
       const { data } = await serviceManagementApi.services.create({
         ...validService,
-        name: "Test 2 name",
+        name: "regular api key service",
       });
       const { error } = await regularApi.services.createContext(data!.id, validServiceContext);
 
@@ -71,6 +71,28 @@ describe("Services (e2e)", () => {
         description: "Context Description",
         competences: ["Santé"],
         extraFields: [{ name: "surface", label: "Surface en m2" }],
+      });
+    });
+
+    it("should create service context with null values for matching criteria", async () => {
+      const { data: serviceData } = await serviceManagementApi.services.create({
+        ...validService,
+        name: "null value matching criteria service",
+      });
+
+      const { data, error } = await serviceManagementApi.services.createContext(serviceData!.id, {
+        description: "Context Description",
+        competences: null,
+        leviers: null,
+        phases: null,
+      });
+
+      expect(error).toBeUndefined();
+      expect(data).toMatchObject({
+        id: expect.any(String),
+        competences: null,
+        leviers: null,
+        phases: null,
       });
     });
   });

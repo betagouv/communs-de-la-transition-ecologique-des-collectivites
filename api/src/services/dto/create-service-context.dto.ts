@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsIn, IsOptional, IsString, IsUrl } from "class-validator";
+import { IsArray, IsEnum, IsIn, IsOptional, IsString, IsUrl, ValidateIf } from "class-validator";
 import { ProjetPhases, projetPhasesEnum, serviceContext } from "@database/schema";
 import { InferInsertModel } from "drizzle-orm";
 import { Competences, Leviers } from "@/shared/types";
@@ -18,25 +18,41 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
     type: String,
     enum: competences,
     isArray: true,
+    nullable: true,
     required: true,
     description: "Array of competences and sous-competences, empty array means all competences/sous-competences",
     example: ["Santé", "Culture > Arts plastiques et photographie"],
   })
   @IsArray()
+  @ValidateIf((_object: CreateServiceContextRequest, value: Competences | null) => value !== null)
   @IsIn(competences, { each: true })
-  competences!: Competences;
+  competences!: Competences | null;
 
   @ApiProperty({
     type: String,
     enum: leviers,
     isArray: true,
-    required: false,
+    nullable: true,
+    required: true,
     description: "Array of leviers, empty array means all leviers",
     example: ["Bio-carburants", "Covoiturage"],
   })
   @IsArray()
+  @ValidateIf((_object: CreateServiceContextRequest, value: Leviers | null) => value !== null)
   @IsIn(leviers, { each: true })
-  leviers!: Leviers;
+  leviers!: Leviers | null;
+
+  @ApiProperty({
+    enum: projetPhasesEnum.enumValues,
+    isArray: true,
+    nullable: true,
+    required: true,
+    description: "Project phases for which the serviceContext applies, empty array means all phases",
+  })
+  @IsArray()
+  @ValidateIf((_object: CreateServiceContextRequest, value: ProjetPhases[] | null) => value !== null)
+  @IsEnum(projetPhasesEnum.enumValues, { each: true })
+  phases!: ProjetPhases[] | null;
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
@@ -100,15 +116,6 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @IsString()
   @IsOptional()
   iframeUrl?: string | null;
-
-  @ApiProperty({
-    enum: projetPhasesEnum.enumValues,
-    isArray: true,
-    required: true,
-    description: "Project phases for which the serviceContext applies, empty array means all phases",
-  })
-  @IsArray()
-  phases!: ProjetPhases[];
 
   @ApiProperty({
     description: "Array of extra field definitions required for this service context",

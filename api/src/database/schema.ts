@@ -134,9 +134,9 @@ export const serviceContext = pgTable(
     serviceId: uuid("service_id")
       .notNull()
       .references(() => services.id),
-    competences: text("competences").array().notNull().default([]),
-    leviers: text("leviers").array(),
-    phases: projetPhasesEnum("phases").array().notNull().default([]),
+    competences: text("competences").array().default([]),
+    leviers: text("leviers").array().default([]),
+    phases: projetPhasesEnum("phases").array().default([]),
 
     // Custom display options
     description: text("description"),

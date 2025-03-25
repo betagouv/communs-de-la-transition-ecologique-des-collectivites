@@ -31,12 +31,12 @@ export class ServicesContextService {
 
     if (competences?.length) {
       categorizationConditions.push(
-        or(arrayOverlaps(serviceContext.competences, competences), eq(serviceContext.competences, [])),
+        or(eq(serviceContext.competences, []), arrayOverlaps(serviceContext.competences, competences)),
       );
     }
 
     if (leviers?.length) {
-      categorizationConditions.push(or(arrayOverlaps(serviceContext.leviers, leviers), eq(serviceContext.leviers, [])));
+      categorizationConditions.push(or(eq(serviceContext.leviers, []), arrayOverlaps(serviceContext.leviers, leviers)));
     }
 
     if (categorizationConditions.length > 0) {
@@ -44,8 +44,7 @@ export class ServicesContextService {
     }
 
     if (projetPhases) {
-      const phasesCondition = or(arrayOverlaps(serviceContext.phases, [projetPhases]), eq(serviceContext.phases, []));
-      conditions.push(phasesCondition);
+      conditions.push(or(eq(serviceContext.phases, []), arrayOverlaps(serviceContext.phases, [projetPhases])));
     }
 
     if (conditions.length === 0) {
@@ -106,7 +105,7 @@ export class ServicesContextService {
       throw new NotFoundException(`Service with ID ${serviceId} not found`);
     }
 
-    const { competences, description, ...otherFields } = createServiceContextDto;
+    const { competences, leviers, phases, description, ...otherFields } = createServiceContextDto;
 
     if (description) {
       const existingServiceContext = await this.dbService.database
@@ -128,7 +127,9 @@ export class ServicesContextService {
         serviceId,
         ...otherFields,
         description,
-        competences: competences ?? [],
+        competences,
+        leviers,
+        phases,
       })
       .returning();
 

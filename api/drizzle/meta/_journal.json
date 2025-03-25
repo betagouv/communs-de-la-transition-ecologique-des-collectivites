@@ -134,6 +134,13 @@
       "when": 1742813031210,
       "tag": "0018_steep_daimon_hellstrom",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1742834007266,
+      "tag": "0019_lying_warbound",
+      "breakpoints": true
     }
   ]
 }
