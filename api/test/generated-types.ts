@@ -230,11 +230,11 @@ export interface components {
              * @example [
              *       {
              *         "type": "Commune",
-             *         "code": "78646"
+             *         "code": "12345"
              *       },
              *       {
              *         "type": "EPCI",
-             *         "code": "247800584"
+             *         "code": "123456789"
              *       }
              *     ]
              */
@@ -286,11 +286,11 @@ export interface components {
              * @example [
              *       {
              *         "type": "Commune",
-             *         "code": "78646"
+             *         "code": "12345"
              *       },
              *       {
              *         "type": "EPCI",
-             *         "code": "247800584"
+             *         "code": "123456789"
              *       }
              *     ]
              */
