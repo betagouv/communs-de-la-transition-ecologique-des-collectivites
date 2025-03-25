@@ -39,9 +39,6 @@ async function importServicesAndServiceContexts(csvServiceFilePath: string, csvC
   }
 }
 
-// Run the import
-void importServicesAndServiceContexts("./services-import.csv", "./services-context-import.csv");
-
 async function importParsedDataToDatabase(parsedData: ParsedData["data"]) {
   const serviceIdMap: Record<string, string> = {};
 
@@ -89,3 +86,6 @@ async function importParsedDataToDatabase(parsedData: ParsedData["data"]) {
     }
   }
 }
+
+// Run the import
+void importServicesAndServiceContexts("./services-import-new.csv", "./services-context-import-new.csv");

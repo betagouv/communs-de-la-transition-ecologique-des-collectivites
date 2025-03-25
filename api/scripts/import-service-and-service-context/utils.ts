@@ -31,7 +31,11 @@ export function parseFieldToArray(
   validList: readonly string[],
   mode: "competence" | "levier" | "phases",
   invalidItemsFile: string[],
-): string[] {
+): string[] | null {
+  if (field === "NULL") {
+    return null;
+  }
+
   // Remove curly braces and quotes
   const cleanedField = field.replace(/[{}"]/g, "");
 
