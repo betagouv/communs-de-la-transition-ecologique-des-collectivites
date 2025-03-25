@@ -8,7 +8,7 @@ import { Competences, Leviers } from "@/shared/types";
 import { leviers } from "@/shared/const/leviers";
 import { competences } from "@/shared/const/competences-list";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
-import { ProjetStatus, projetStatusEnum } from "@database/schema";
+import { ProjetPhase, projetPhasesEnum } from "@database/schema";
 
 config({ path: path.resolve(__dirname, "../../.env") });
 
@@ -54,9 +54,9 @@ async function importProjectsTet(csvFilePath: string) {
     const parsedCompetences = parseFieldToArray(record.competences, competences, "competence", invalidItemsFile);
 
     // Validate and handle project status
-    const validStatuses = projetStatusEnum.enumValues;
-    const status = validStatuses.includes(record.project_status as ProjetStatus)
-      ? (record.project_status as ProjetStatus)
+    const validPhases = projetPhasesEnum.enumValues;
+    const phase = validPhases.includes(record.project_status as ProjetPhase)
+      ? (record.project_status as ProjetPhase)
       : null;
 
     projects.push({
@@ -64,7 +64,7 @@ async function importProjectsTet(csvFilePath: string) {
       nom: record.nom,
       description: record.description,
       budgetPrevisionnel: parseFloat(record.budget),
-      status,
+      phase,
       collectivites: [mapCollectivites(record.insee_code, record.siren_epci)],
       leviers: parsedLeviers as Leviers,
       competences: parsedCompetences as Competences,
