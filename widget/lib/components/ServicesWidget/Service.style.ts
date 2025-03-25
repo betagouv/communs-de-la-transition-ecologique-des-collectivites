@@ -1,19 +1,7 @@
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
 
-export const useStyles = tss.withParams().create(() => ({
-  // container: {
-  //   display: "flex",
-  //   flexDirection: "column",
-  //   alignItems: "center",
-  //   overflow: "auto",
-  //   width: "calc(100% - 260px)",
-  //   ...spacing("padding", { rightLeft: "3w" }),
-  //   [fr.breakpoints.down("lg")]: {
-  //     width: "100%",
-  //   },
-  // },
-
+export const useStyles = tss.create(() => ({
   container: {
     borderRadius: "0.5rem",
     border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
@@ -28,19 +16,6 @@ export const useStyles = tss.withParams().create(() => ({
     [fr.breakpoints.down("md")]: {
       flexDirection: "column",
     },
-  },
-
-  title: {
-    marginBottom: 0,
-    color: fr.colors.decisions.text.default.grey.default,
-    fontWeight: 500,
-  },
-
-  debugBadge: {
-    display: "flex",
-    justifyContent: "right",
-    width: "90%",
-    position: "absolute",
   },
 
   logoContainer: {
@@ -60,14 +35,28 @@ export const useStyles = tss.withParams().create(() => ({
     width: "3rem",
   },
 
-  mainContent: {
-    flexGrow: 1,
+  titleContainer: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    marginBottom: "0.5rem",
+    alignContent: "center",
+    "> span": {
+      marginBottom: 0,
+      color: fr.colors.decisions.text.default.grey.default,
+      fontWeight: 500,
+    },
   },
 
-  redirection: {
+  debugBadge: {
     display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-start",
+    justifyContent: "right",
+    width: "90%",
+    position: "absolute",
+  },
+
+  mainContent: {
+    flexGrow: 1,
   },
 
   description: {
@@ -89,17 +78,11 @@ export const useStyles = tss.withParams().create(() => ({
     width: "50%",
   },
 
-  button: {
+  toggleDescriptionBtn: {
+    marginLeft: "-0.5rem",
+  },
+
+  redirectionBtn: {
     width: "max-content",
-  },
-
-  content: {
-    borderTop: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-    padding: "1.5rem 1rem",
-  },
-
-  iframe: {
-    width: "100%",
-    border: "none",
   },
 }));

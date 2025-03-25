@@ -24,7 +24,10 @@ interface ServiceProps {
 export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, debug }: ServiceProps) => {
   const { classes } = useStyles();
   const [expanded, setExpanded] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const [descriptionTruncated, setDescriptionTruncated] = useState(truncateDescription(service.description));
+
   const { mutate: postExtraFields } = usePostExtraFields();
 
   const {
@@ -69,6 +72,13 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
     trackEvent({ action: "Affichage du service", name, isStagingEnv });
   }, [isStagingEnv, name]);
 
+  const toggleDescription = () => {
+    setDescriptionExpanded(!descriptionExpanded);
+    setDescriptionTruncated(
+      descriptionTruncated.length <= 400 ? service.description : truncateDescription(service.description),
+    );
+  };
+
   return (
     <div className={classNames(classes.container)} key={name}>
       <div className={classNames(fr.cx("fr-m-2w"))}>
@@ -77,20 +87,40 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
             <img className={classes.logo} src={logoUrl} alt=""></img>
           </div>
           <div className={classes.mainContent}>
-            <div className={classes.description}>
-              <span className={classNames(fr.cx("fr-text--md"), classes.title)}>{name}</span>
+            <div className={classes.titleContainer}>
+              <span className={classNames(fr.cx("fr-text--md"))}>{name}</span>
               {debug && (
                 <Badge small severity={`${isListed ? "success" : "warning"}`}>
                   {isListed ? "Publié" : "Non publié"}
                 </Badge>
               )}
             </div>
-            <span className={classNames(fr.cx("fr-text--sm"), classes.description)}>{description}</span>
+            <div>
+              <span className={fr.cx("fr-text--sm")}>{descriptionTruncated}</span>
+            </div>
+
+            {
+              //todo change this value on mobile
+              description.length > 400 && (
+                <Button
+                  className={classes.toggleDescriptionBtn}
+                  priority="tertiary no outline"
+                  onClick={toggleDescription}
+                  size={"small"}
+                >
+                  <span className={fr.cx("fr-text--xs")}>{descriptionExpanded ? "Voir moins" : "Voir plus"}</span>
+                  <span
+                    className={fr.cx(descriptionExpanded ? "fr-icon-arrow-up-s-line" : "fr-icon-arrow-down-s-line")}
+                  />
+                </Button>
+              )
+            }
           </div>
-          <div className={classes.redirection}>
+
+          <div>
             {redirectionUrl && (
               <Button
-                className={classes.button}
+                className={classes.redirectionBtn}
                 linkProps={{
                   href: redirectionUrl,
                   target: "_blank",
@@ -143,9 +173,12 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
   );
 };
 
-function replaceUrlParamsDirect(url: string, projectExtraField: ExtraFields): string {
+const truncateDescription = (description: string) =>
+  `${description.slice(0, 397)}${description.length > 400 ? "..." : ""}`;
+
+const replaceUrlParamsDirect = (url: string, projectExtraField: ExtraFields): string => {
   return url.replace(/{(\w+)}/g, (_, key) => {
     const matchingExtraField = projectExtraField.find((field) => field.name === key);
     return matchingExtraField?.value ?? `{${key}}`;
   });
-}
+};
