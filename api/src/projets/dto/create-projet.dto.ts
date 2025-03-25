@@ -10,7 +10,7 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import { ProjetPhases, projetPhasesEnum, PhaseStatut, phaseStatutEnum } from "@database/schema";
+import { ProjetPhase, projetPhasesEnum, PhaseStatut, phaseStatutEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
@@ -58,6 +58,7 @@ export class CreateProjetRequest {
     example: "2024-03-01",
   })
   @IsDateString()
+  @IsOptional()
   dateDebutPrevisionnelle?: string | null;
 
   @ApiProperty({
@@ -66,6 +67,7 @@ export class CreateProjetRequest {
     required: false,
     description: "Current status for the phase",
   })
+  @IsIn(phaseStatutEnum.enumValues, { each: true })
   @IsOptional()
   @PhaseStatutRequiresPhase({ message: "Cannot specify phaseStatut without a phase" })
   @SetEnCoursIfPhaseIsProvidedButNoPhaseStatut()
@@ -77,8 +79,9 @@ export class CreateProjetRequest {
     required: false,
     description: "Current Phase for the project",
   })
+  @IsIn(projetPhasesEnum.enumValues, { each: true })
   @IsOptional()
-  phase?: ProjetPhases | null;
+  phase?: ProjetPhase | null;
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()

@@ -4,7 +4,7 @@ import { getFormattedDate } from "./helpers/get-formatted-date";
 import { createApiClient } from "@test/helpers/api-client";
 import { Competence, Levier } from "@/shared/types";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
-import { collectivites, PhaseStatut, ProjetPhases } from "@database/schema";
+import { collectivites, PhaseStatut, ProjetPhase } from "@database/schema";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 
 describe("Projets (e2e)", () => {
@@ -108,6 +108,24 @@ describe("Projets (e2e)", () => {
       });
     });
 
+    it("should create a valid project with minium required fields", async () => {
+      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+
+      const { data, error } = await mecClient.projects.create({
+        nom: "Minimal required fields project",
+        collectivites: [
+          {
+            type: "Commune",
+            code: "78646",
+          },
+        ],
+        externalId: "test-external-id",
+      });
+
+      expect(error).toBeUndefined();
+      expect(data).toHaveProperty("id");
+    });
+
     it("should reject a project when collectivites are not valid", async () => {
       const missingCodeInsee = "invalidCodeInsee";
 
@@ -144,7 +162,7 @@ describe("Projets (e2e)", () => {
     it("should automatically set phaseStatut to 'En cours' when phase is provided without phaseStatut", async () => {
       const { data, error } = await api.projects.create({
         ...validProjet,
-        phase: "Idée" as ProjetPhases,
+        phase: "Idée" as ProjetPhase,
       });
 
       expect(error).toBeUndefined();
@@ -226,6 +244,18 @@ describe("Projets (e2e)", () => {
       expect(error?.statusCode).toBe(400);
       expect(error?.message[0]).toContain(
         "each value in leviers must be one of the following values: Gestion des forêts et produits bois, Changements de pratiques de fertilisation azotée,",
+      );
+    });
+
+    it("should reject when project has wrong phase", async () => {
+      const { error } = await api.projects.create({
+        ...validProjet,
+        phase: "INVALID_PHASE" as ProjetPhase,
+      });
+
+      expect(error?.statusCode).toBe(400);
+      expect(error?.message[0]).toContain(
+        "each value in phase must be one of the following values: Idée, Etude, Opération",
       );
     });
   });
@@ -388,7 +418,7 @@ describe("Projets (e2e)", () => {
 
     it("should automatically set phaseStatut to 'En cours' when updating phase without phaseStatut", async () => {
       const updateData = {
-        phase: "Opération" as ProjetPhases,
+        phase: "Opération" as ProjetPhase,
         externalId: validProjet.externalId,
       };
 
@@ -444,6 +474,7 @@ describe("Projets (e2e)", () => {
         },
         competences: ["Santé", "Culture > Arts plastiques et photographie"],
         leviers: ["Bio-carburants"],
+        phase: "Idée",
         programme: null,
         mecId: "test-external-id",
         recocoId: null,
