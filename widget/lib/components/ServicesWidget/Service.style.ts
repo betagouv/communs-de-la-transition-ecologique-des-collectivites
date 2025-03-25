@@ -44,11 +44,11 @@ export const useStyles = tss.withParams().create(() => ({
   },
 
   logoContainer: {
-    backgroundColor: "#fbf6ed",
+    backgroundColor: "#FBF5F2",
     borderRadius: "3px",
     border: `1px solid ${fr.colors.decisions.border.open.blueFrance.default}`,
     height: "4rem",
-    width: "4rem",
+    minWidth: "4rem",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
