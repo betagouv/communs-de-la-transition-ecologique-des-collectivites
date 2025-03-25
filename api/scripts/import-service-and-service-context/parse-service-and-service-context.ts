@@ -17,7 +17,7 @@ interface CsvRecord {
   redirectionLabel?: string;
   iframeUrl?: string;
   extendLabel?: string;
-  isListed?: boolean;
+  isListed?: string;
 }
 
 interface CsvContextRecord {
@@ -63,7 +63,7 @@ export async function parseServiceAndServiceContextsCSVFiles(
       ...serviceRecord,
       redirectionLabel: makeNullIfEmptyString(serviceRecord.redirectionLabel),
       iframeUrl: makeNullIfEmptyString(serviceRecord.iframeUrl),
-      isListed: Boolean(serviceRecord.isListed),
+      isListed: serviceRecord.isListed === "FALSE" ? false : Boolean(serviceRecord.isListed),
     });
   }
 
@@ -84,9 +84,11 @@ export async function parseServiceAndServiceContextsCSVFiles(
 
 function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItemsFile: string[]): ParsedServiceContext {
   const parsedLeviers = record.leviers ? parseFieldToArray(record.leviers, leviers, "levier", invalidItemsFile) : [];
+
   const parsedCompetences = record.competences
     ? parseFieldToArray(record.competences, competences, "competence", invalidItemsFile)
     : [];
+
   const parsedStatus = record.status
     ? parseFieldToArray(record.status, projetPhasesEnum.enumValues, "phases", invalidItemsFile)
     : [];
@@ -96,8 +98,8 @@ function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItems
     leviers: parsedLeviers as Leviers,
     competences: parsedCompetences as Competences,
     phases: parsedStatus as ProjetPhases[],
-    description: record.description,
-    sousTitre: record.sousTitre,
+    description: makeNullIfEmptyString(record.description),
+    sousTitre: makeNullIfEmptyString(record.sousTitre),
     logoUrl: makeNullIfEmptyString(record.logoUrl),
     redirectionUrl: makeNullIfEmptyString(record.redirectionUrl),
     redirectionLabel: makeNullIfEmptyString(record.redirectionLabel),
