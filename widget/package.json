@@ -1,6 +1,6 @@
 {
   "name": "@betagouv/les-communs-widget",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "publishConfig": {
     "access": "public"
   },
@@ -54,6 +54,7 @@
     "@changesets/cli": "^2.27.11",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.6.1",
     "jsdom": "^25.0.1",
     "msw": "^2.6.8",
     "openapi-typescript": "^7.6.1",
