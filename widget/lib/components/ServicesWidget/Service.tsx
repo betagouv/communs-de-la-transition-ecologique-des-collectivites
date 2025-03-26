@@ -1,98 +1,182 @@
+import Button from "@codegouvfr/react-dsfr/Button";
+import classNames from "classnames";
 import { fr } from "@codegouvfr/react-dsfr";
-import { tss } from "tss-react";
+import { useEffect, useState } from "react";
+import Accordion from "@codegouvfr/react-dsfr/Accordion";
+import IFrameResized from "./IFrameResized.tsx";
+import LevierDetails, { LevierData } from "./LevierDetails.tsx";
+import voiture_electrique from "../../leviers_data/voiture_electrique.json";
+import Input from "@codegouvfr/react-dsfr/Input";
+import { ExtraFields, ServiceType } from "./types.ts";
+import { usePostExtraFields } from "./queries.ts";
+import { trackEvent } from "../../matomo/trackEvent.ts";
+import Badge from "@codegouvfr/react-dsfr/Badge";
+import { useStyles } from "./Service.style.ts";
+import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
 
-export const useStyles = tss.create(() => ({
-  container: {
-    borderRadius: "0.5rem",
-    border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-  },
+interface ServiceProps {
+  service: ServiceType;
+  projectExtraFields: ExtraFields;
+  isStagingEnv?: boolean;
+  projectId: string;
+  debug?: boolean;
+}
 
-  card: {
-    display: "flex",
-    gap: "1.5rem",
-    paddingRight: "1rem",
-    alignItems: "center",
+export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, debug }: ServiceProps) => {
+  const { classes } = useStyles();
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const maxDescriptionLength = isMobile ? 200 : 400;
+  const [expanded, setExpanded] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const { mutate: postExtraFields } = usePostExtraFields();
 
-    [fr.breakpoints.down("md")]: {
-      flexDirection: "column",
-    },
-  },
+  const descriptionTruncated = descriptionExpanded
+    ? service.description
+    : truncateDescription(service.description, maxDescriptionLength);
 
-  logoContainer: {
-    backgroundColor: "#FBF5F2",
-    borderRadius: "3px",
-    border: `1px solid ${fr.colors.decisions.border.open.blueFrance.default}`,
-    height: "4rem",
-    minWidth: "4rem",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+  const {
+    name,
+    description,
+    iframeUrl,
+    redirectionUrl,
+    redirectionLabel,
+    extendLabel,
+    extraFields,
+    logoUrl,
+    isListed,
+  } = service;
+  const isLevier = name === "Levier_SGPE";
 
-    [fr.breakpoints.down("md")]: {
-      alignSelf: "start",
-    },
-  },
+  const missingExtraFields = (extraFields || []).filter(
+    (field) => !projectExtraFields.some((projectExtraField) => projectExtraField.name === field.name),
+  );
+  const needsAccordion = (isLevier || iframeUrl) && missingExtraFields.length === 0;
 
-  logo: {
-    borderRadius: "calc(0.5rem - 1px)",
-    height: "3rem",
-    width: "3rem",
-  },
+  const handleInputChange = (fieldName: string, value: string) => {
+    setFieldValues((prev) => ({ ...prev, [fieldName]: value }));
+  };
 
-  titleContainer: {
-    display: "flex",
-    alignItems: "center",
-    gap: "0.5rem",
-    marginBottom: "0.5rem",
-    alignContent: "center",
-    "> span": {
-      marginBottom: 0,
-      color: fr.colors.decisions.text.default.grey.default,
-      fontWeight: 500,
-    },
-  },
+  const handleSubmit = (field: { name: string; label: string }) => {
+    const fieldValue = fieldValues[field.name];
+    if (!fieldValue) return;
 
-  sousTitre: {
-    color: fr.colors.decisions.text.title.grey.default,
-    fontWeight: 500,
-    display: "block",
-  },
+    postExtraFields({
+      postExtraFielsPayload: {
+        fieldName: field.name,
+        fieldValue,
+        projectId,
+      },
+      isStagingEnv: Boolean(isStagingEnv),
+    });
 
-  debugBadge: {
-    display: "flex",
-    justifyContent: "right",
-    width: "90%",
-    position: "absolute",
-  },
+    setExpanded(true);
+  };
 
-  mainContent: {
-    flexGrow: 1,
-  },
+  useEffect(() => {
+    trackEvent({ action: "Affichage du service", name, isStagingEnv });
+  }, [isStagingEnv, name]);
 
-  description: {
-    display: "flex",
-    marginBottom: "0.5rem",
-    alignItems: "center",
-    gap: "0.5rem",
-    alignContent: "center",
-    color: fr.colors.decisions.text.mention.grey.default,
-  },
+  const toggleDescription = () => {
+    setDescriptionExpanded(!descriptionExpanded);
+  };
 
-  extraFields: {
-    marginBottom: "0.5rem",
-    display: "flex",
-    flexDirection: "column",
-  },
+  return (
+    <div className={classNames(classes.container)} key={name}>
+      <div className={classNames(fr.cx("fr-m-2w"))}>
+        <div className={classes.card}>
+          <div className={classes.logoContainer}>
+            <img className={classes.logo} src={logoUrl} alt=""></img>
+          </div>
+          <div className={classes.mainContent}>
+            <div className={classes.titleContainer}>
+              <span className={classNames(fr.cx("fr-text--md"))}>{name}</span>
+              {debug && (
+                <Badge small severity={`${isListed ? "success" : "warning"}`}>
+                  {isListed ? "Publié" : "Non publié"}
+                </Badge>
+              )}
+            </div>
+            {/*<span className={classNames(classes.sousTitre, fr.cx("fr-text--sm"))}>{sousTitre}</span>*/}
+            <span className={fr.cx("fr-text--sm")}>{descriptionTruncated}</span>
 
-  extraFieldsForm: {
-    width: "50%",
-  },
+            {description.length > maxDescriptionLength && (
+              <Button
+                className={classes.toggleDescriptionBtn}
+                priority="tertiary no outline"
+                onClick={toggleDescription}
+                size={"small"}
+              >
+                <span className={fr.cx("fr-text--xs")}>{descriptionExpanded ? "Voir moins" : "Voir plus"}</span>
+                <span
+                  className={fr.cx(descriptionExpanded ? "fr-icon-arrow-up-s-line" : "fr-icon-arrow-down-s-line")}
+                />
+              </Button>
+            )}
+          </div>
 
-  toggleDescriptionBtn: {
-    marginLeft: "-0.5rem",
-  },
+          <div>
+            {redirectionUrl && (
+              <Button
+                className={classes.redirectionBtn}
+                linkProps={{
+                  href: redirectionUrl,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  onClick: () => trackEvent({ action: "Clic sur le l'url de redirection", name, isStagingEnv }),
+                }}
+                priority="tertiary no outline"
+              >
+                {redirectionLabel ?? "Etre accompagné"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+      {missingExtraFields.length > 0 && (
+        <div className={classNames(fr.cx("fr-m-2w"), classes.extraFields)}>
+          <span className={fr.cx("fr-text--sm")}>
+            Les champs suivants sont manquants pour afficher les données liées au projet
+          </span>
+          <div className={classes.extraFieldsForm}>
+            {missingExtraFields.map((field) => (
+              <div key={field.name} className={classes.extraFields}>
+                <Input
+                  label={field.label}
+                  nativeInputProps={{
+                    value: fieldValues[field.name] || "",
+                    onChange: (e) => handleInputChange(field.name, e.target.value),
+                  }}
+                />
+                <Button onClick={() => handleSubmit(field)}>Valider</Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {needsAccordion && (
+        <Accordion
+          label={extendLabel ?? "Voir le détail"}
+          onExpandedChange={(value) => {
+            trackEvent({ action: value ? "Clic sur le collapse" : "Clic sur le expand", name, isStagingEnv });
+            setExpanded((prevValue) => !prevValue);
+          }}
+          expanded={expanded}
+        >
+          {isLevier ? <LevierDetails {...(voiture_electrique as LevierData)} /> : null}
+          {iframeUrl && <IFrameResized src={replaceUrlParamsDirect(iframeUrl, projectExtraFields)} />}
+        </Accordion>
+      )}
+    </div>
+  );
+};
 
-  redirectionBtn: {
-    width: "max-content",
-  },
-}));
+const truncateDescription = (description: string, maxDescriptionLength: number) =>
+  `${description.slice(0, maxDescriptionLength - 3)}${description.length > maxDescriptionLength ? "..." : ""}`;
+
+const replaceUrlParamsDirect = (url: string, projectExtraField: ExtraFields): string => {
+  return url.replace(/{(\w+)}/g, (_, key) => {
+    const matchingExtraField = projectExtraField.find((field) => field.name === key);
+    return matchingExtraField?.value ?? `{${key}}`;
+  });
+};
