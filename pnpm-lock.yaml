@@ -263,8 +263,8 @@ importers:
   widget-sandbox:
     dependencies:
       '@betagouv/les-communs-widget':
-        specifier: 0.1.5
-        version: 0.1.5(@codegouvfr/react-dsfr@1.19.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.1.6
+        version: 0.1.6(@codegouvfr/react-dsfr@1.19.0)(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@codegouvfr/react-dsfr':
         specifier: ^1.14.6
         version: 1.19.0
@@ -540,8 +540,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@betagouv/les-communs-widget@0.1.5':
-    resolution: {integrity: sha512-mAv1vpviGbVb4gnkcowcXUoBx5Cu0PSTbEO0vIe6JhaXcXxVAkvmzSQPUvoEOS+BJ/AbASrhWyT92SyDD5SCwA==}
+  '@betagouv/les-communs-widget@0.1.6':
+    resolution: {integrity: sha512-Y3f80xr980iaMIl9PbO5HtdDkTCRAGXWeDJSPlYhtyZAd6XnJtioOwaB9j7EUgHCrkhbyXs08/lIm5jNtSthGQ==}
     peerDependencies:
       '@codegouvfr/react-dsfr': ^1.14.6
       react: ^18.0.0 || ^19.0.0
@@ -6612,15 +6612,22 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@betagouv/les-communs-widget@0.1.5(@codegouvfr/react-dsfr@1.19.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@betagouv/les-communs-widget@0.1.6(@codegouvfr/react-dsfr@1.19.0)(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@codegouvfr/react-dsfr': 1.19.0
+      '@emotion/react': 11.14.0(@types/react@18.3.18)(react@18.3.1)
       '@iframe-resizer/react': 5.3.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query': 5.66.0(react@18.3.1)
       classnames: 2.5.1
       openapi-fetch: 0.13.4
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
+      tss-react: 4.9.15(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react@18.3.1)
+    transitivePeerDependencies:
+      - '@emotion/server'
+      - '@mui/material'
+      - '@types/react'
+      - supports-color
 
   '@bundled-es-modules/cookie@2.0.1':
     dependencies:
