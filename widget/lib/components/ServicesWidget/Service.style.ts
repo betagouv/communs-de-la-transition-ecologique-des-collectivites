@@ -27,6 +27,10 @@ export const useStyles = tss.create(() => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+
+    [fr.breakpoints.down("md")]: {
+      alignSelf: "start",
+    },
   },
 
   logo: {
@@ -46,6 +50,12 @@ export const useStyles = tss.create(() => ({
       color: fr.colors.decisions.text.default.grey.default,
       fontWeight: 500,
     },
+  },
+
+  sousTitre: {
+    color: fr.colors.decisions.text.title.grey.default,
+    fontWeight: 500,
+    display: "block",
   },
 
   debugBadge: {

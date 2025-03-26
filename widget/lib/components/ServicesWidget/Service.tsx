@@ -12,6 +12,7 @@ import { usePostExtraFields } from "./queries.ts";
 import { trackEvent } from "../../matomo/trackEvent.ts";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import { useStyles } from "./Service.style.ts";
+import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
 
 interface ServiceProps {
   service: ServiceType;
@@ -23,12 +24,16 @@ interface ServiceProps {
 
 export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, debug }: ServiceProps) => {
   const { classes } = useStyles();
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const maxDescriptionLength = isMobile ? 200 : 400;
   const [expanded, setExpanded] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
-  const [descriptionTruncated, setDescriptionTruncated] = useState(truncateDescription(service.description));
-
   const { mutate: postExtraFields } = usePostExtraFields();
+
+  const descriptionTruncated = descriptionExpanded
+    ? service.description
+    : truncateDescription(service.description, maxDescriptionLength);
 
   const {
     name,
@@ -74,9 +79,6 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
 
   const toggleDescription = () => {
     setDescriptionExpanded(!descriptionExpanded);
-    setDescriptionTruncated(
-      descriptionTruncated.length <= 400 ? service.description : truncateDescription(service.description),
-    );
   };
 
   return (
@@ -95,26 +97,22 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
                 </Badge>
               )}
             </div>
-            <div>
-              <span className={fr.cx("fr-text--sm")}>{descriptionTruncated}</span>
-            </div>
+            {/*<span className={classNames(classes.sousTitre, fr.cx("fr-text--sm"))}>{sousTitre}</span>*/}
+            <span className={fr.cx("fr-text--sm")}>{descriptionTruncated}</span>
 
-            {
-              //todo change this value on mobile
-              description.length > 400 && (
-                <Button
-                  className={classes.toggleDescriptionBtn}
-                  priority="tertiary no outline"
-                  onClick={toggleDescription}
-                  size={"small"}
-                >
-                  <span className={fr.cx("fr-text--xs")}>{descriptionExpanded ? "Voir moins" : "Voir plus"}</span>
-                  <span
-                    className={fr.cx(descriptionExpanded ? "fr-icon-arrow-up-s-line" : "fr-icon-arrow-down-s-line")}
-                  />
-                </Button>
-              )
-            }
+            {description.length > maxDescriptionLength && (
+              <Button
+                className={classes.toggleDescriptionBtn}
+                priority="tertiary no outline"
+                onClick={toggleDescription}
+                size={"small"}
+              >
+                <span className={fr.cx("fr-text--xs")}>{descriptionExpanded ? "Voir moins" : "Voir plus"}</span>
+                <span
+                  className={fr.cx(descriptionExpanded ? "fr-icon-arrow-up-s-line" : "fr-icon-arrow-down-s-line")}
+                />
+              </Button>
+            )}
           </div>
 
           <div>
@@ -173,8 +171,8 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
   );
 };
 
-const truncateDescription = (description: string) =>
-  `${description.slice(0, 397)}${description.length > 400 ? "..." : ""}`;
+const truncateDescription = (description: string, maxDescriptionLength: number) =>
+  `${description.slice(0, maxDescriptionLength - 3)}${description.length > maxDescriptionLength ? "..." : ""}`;
 
 const replaceUrlParamsDirect = (url: string, projectExtraField: ExtraFields): string => {
   return url.replace(/{(\w+)}/g, (_, key) => {
