@@ -1,4 +1,3 @@
-import styles from "./Service.module.css";
 import Button from "@codegouvfr/react-dsfr/Button";
 import classNames from "classnames";
 import { fr } from "@codegouvfr/react-dsfr";
@@ -12,6 +11,8 @@ import { ExtraFields, ServiceType } from "./types.ts";
 import { usePostExtraFields } from "./queries.ts";
 import { trackEvent } from "../../matomo/trackEvent.ts";
 import Badge from "@codegouvfr/react-dsfr/Badge";
+import { useStyles } from "./Service.style.ts";
+import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
 
 interface ServiceProps {
   service: ServiceType;
@@ -22,9 +23,17 @@ interface ServiceProps {
 }
 
 export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, debug }: ServiceProps) => {
+  const { classes } = useStyles();
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const maxDescriptionLength = isMobile ? 200 : 400;
   const [expanded, setExpanded] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const { mutate: postExtraFields } = usePostExtraFields();
+
+  const descriptionTruncated = descriptionExpanded
+    ? service.description
+    : truncateDescription(service.description, maxDescriptionLength);
 
   const {
     name,
@@ -68,28 +77,48 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
     trackEvent({ action: "Affichage du service", name, isStagingEnv });
   }, [isStagingEnv, name]);
 
+  const toggleDescription = () => {
+    setDescriptionExpanded(!descriptionExpanded);
+  };
+
   return (
-    <div className={classNames(styles.container)} key={name}>
+    <div className={classNames(classes.container)} key={name}>
       <div className={classNames(fr.cx("fr-m-2w"))}>
-        <div className={styles.card}>
-          <div className={styles.logoContainer}>
-            <img className={styles.logo} src={logoUrl} alt=""></img>
+        <div className={classes.card}>
+          <div className={classes.logoContainer}>
+            <img className={classes.logo} src={logoUrl} alt=""></img>
           </div>
-          <div className={styles.mainContent}>
-            <div className={styles.description}>
-              <span className={classNames(fr.cx("fr-text--md"), styles.title)}>{name}</span>
+          <div className={classes.mainContent}>
+            <div className={classes.titleContainer}>
+              <span className={classNames(fr.cx("fr-text--md"))}>{name}</span>
               {debug && (
                 <Badge small severity={`${isListed ? "success" : "warning"}`}>
                   {isListed ? "Publié" : "Non publié"}
                 </Badge>
               )}
             </div>
-            <span className={classNames(fr.cx("fr-text--sm"), styles.description)}>{description}</span>
+            {/*<span className={classNames(classes.sousTitre, fr.cx("fr-text--sm"))}>{sousTitre}</span>*/}
+            <span className={fr.cx("fr-text--sm")}>{descriptionTruncated}</span>
+
+            {description.length > maxDescriptionLength && (
+              <Button
+                className={classes.toggleDescriptionBtn}
+                priority="tertiary no outline"
+                onClick={toggleDescription}
+                size={"small"}
+              >
+                <span className={fr.cx("fr-text--xs")}>{descriptionExpanded ? "Voir moins" : "Voir plus"}</span>
+                <span
+                  className={fr.cx(descriptionExpanded ? "fr-icon-arrow-up-s-line" : "fr-icon-arrow-down-s-line")}
+                />
+              </Button>
+            )}
           </div>
-          <div className={styles.redirection}>
+
+          <div>
             {redirectionUrl && (
               <Button
-                className={styles.button}
+                className={classes.redirectionBtn}
                 linkProps={{
                   href: redirectionUrl,
                   target: "_blank",
@@ -105,13 +134,13 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
         </div>
       </div>
       {missingExtraFields.length > 0 && (
-        <div className={classNames(fr.cx("fr-m-2w"), styles.extraFields)}>
+        <div className={classNames(fr.cx("fr-m-2w"), classes.extraFields)}>
           <span className={fr.cx("fr-text--sm")}>
             Les champs suivants sont manquants pour afficher les données liées au projet
           </span>
-          <div className={styles.extraFieldsForm}>
+          <div className={classes.extraFieldsForm}>
             {missingExtraFields.map((field) => (
-              <div key={field.name} className={styles.extraField}>
+              <div key={field.name} className={classes.extraFields}>
                 <Input
                   label={field.label}
                   nativeInputProps={{
@@ -142,9 +171,12 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
   );
 };
 
-function replaceUrlParamsDirect(url: string, projectExtraField: ExtraFields): string {
+const truncateDescription = (description: string, maxDescriptionLength: number) =>
+  `${description.slice(0, maxDescriptionLength - 3)}${description.length > maxDescriptionLength ? "..." : ""}`;
+
+const replaceUrlParamsDirect = (url: string, projectExtraField: ExtraFields): string => {
   return url.replace(/{(\w+)}/g, (_, key) => {
     const matchingExtraField = projectExtraField.find((field) => field.name === key);
     return matchingExtraField?.value ?? `{${key}}`;
   });
-}
+};

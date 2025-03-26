@@ -61,6 +61,7 @@ export async function parseServiceAndServiceContextsCSVFiles(
   for await (const serviceRecord of serviceCSVData as AsyncIterable<CsvRecord>) {
     services.push({
       ...serviceRecord,
+      extendLabel: makeNullIfEmptyString(serviceRecord.extendLabel),
       redirectionLabel: makeNullIfEmptyString(serviceRecord.redirectionLabel),
       iframeUrl: makeNullIfEmptyString(serviceRecord.iframeUrl),
       isListed: serviceRecord.isListed === "FALSE" ? false : Boolean(serviceRecord.isListed),
