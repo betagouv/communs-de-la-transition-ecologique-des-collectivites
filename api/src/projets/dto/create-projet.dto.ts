@@ -10,7 +10,7 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import { ProjetPhases, projetPhasesEnum, PhaseStatut, phaseStatutEnum } from "@database/schema";
+import { PhaseStatut, phaseStatutEnum, ProjetPhases, projetPhasesEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { competences } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
@@ -57,19 +57,9 @@ export class CreateProjetRequest {
     description: "Forecasted start date in YYYY-MM-DD format",
     example: "2024-03-01",
   })
+  @IsOptional()
   @IsDateString()
   dateDebutPrevisionnelle?: string | null;
-
-  @ApiProperty({
-    enum: phaseStatutEnum.enumValues,
-    nullable: true,
-    required: false,
-    description: "Current status for the phase",
-  })
-  @IsOptional()
-  @PhaseStatutRequiresPhase({ message: "Cannot specify phaseStatut without a phase" })
-  @SetEnCoursIfPhaseIsProvidedButNoPhaseStatut()
-  phaseStatut?: PhaseStatut | null;
 
   @ApiProperty({
     enum: projetPhasesEnum.enumValues,
@@ -77,8 +67,21 @@ export class CreateProjetRequest {
     required: false,
     description: "Current Phase for the project",
   })
+  @IsIn(projetPhasesEnum.enumValues)
   @IsOptional()
   phase?: ProjetPhases | null;
+
+  @ApiProperty({
+    enum: phaseStatutEnum.enumValues,
+    nullable: true,
+    required: false,
+    description: "Current phase status for the phase",
+  })
+  @IsOptional()
+  @IsIn(phaseStatutEnum.enumValues)
+  @PhaseStatutRequiresPhase({ message: "Cannot specify phaseStatut without a phase" })
+  @SetEnCoursIfPhaseIsProvidedButNoPhaseStatut()
+  phaseStatut?: PhaseStatut | null;
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()

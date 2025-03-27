@@ -215,15 +215,15 @@ export interface components {
              */
             dateDebutPrevisionnelle?: string | null;
             /**
-             * @description Current status for the phase
-             * @enum {string|null}
-             */
-            phaseStatut?: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
-            /**
              * @description Current Phase for the project
              * @enum {string|null}
              */
             phase?: "Idée" | "Etude" | "Opération" | null;
+            /**
+             * @description Current status for the phase
+             * @enum {string|null}
+             */
+            phaseStatut?: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
             programme?: string | null;
             /**
              * @description Array of collectivite references
@@ -271,15 +271,15 @@ export interface components {
              */
             dateDebutPrevisionnelle?: string | null;
             /**
-             * @description Current status for the phase
-             * @enum {string|null}
-             */
-            phaseStatut?: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
-            /**
              * @description Current Phase for the project
              * @enum {string|null}
              */
             phase?: "Idée" | "Etude" | "Opération" | null;
+            /**
+             * @description Current status for the phase
+             * @enum {string|null}
+             */
+            phaseStatut?: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
             programme?: string | null;
             /**
              * @description Array of collectivite references
