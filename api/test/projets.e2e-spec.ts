@@ -32,6 +32,21 @@ describe("Projets (e2e)", () => {
       expect(error?.message).toContain("Invalid API key");
     });
 
+    it("should create a project with minimal fields", async () => {
+      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+
+      const minimalProjet: CreateProjetRequest = {
+        nom: "minimalProjet",
+        description: "minimalProjet Description",
+        externalId: "minimalProjet-externalId",
+        collectivites: [{ type: mockedDefaultCollectivite.type, code: mockedDefaultCollectivite.code }],
+      };
+      const { data, error } = await mecClient.projects.create(minimalProjet);
+
+      expect(error).toBeUndefined();
+      expect(data).toHaveProperty("id");
+    });
+
     it("should create a valid project with MEC api key", async () => {
       const mecClient = createApiClient(process.env.MEC_API_KEY!);
       const { data, error } = await mecClient.projects.create(validProjet);
@@ -226,6 +241,28 @@ describe("Projets (e2e)", () => {
       expect(error?.statusCode).toBe(400);
       expect(error?.message[0]).toContain(
         "each value in leviers must be one of the following values: Gestion des forêts et produits bois, Changements de pratiques de fertilisation azotée,",
+      );
+    });
+
+    it("should reject when project has wrong phase", async () => {
+      const { error } = await api.projects.create({
+        ...validProjet,
+        phase: "Wrong_Phase" as ProjetPhases,
+      });
+
+      expect(error?.statusCode).toBe(400);
+      expect(error?.message[0]).toContain("phase must be one of the following values: Idée, Etude, Opération");
+    });
+
+    it("should reject when project has wrong phaseStatut", async () => {
+      const { error } = await api.projects.create({
+        ...validProjet,
+        phaseStatut: "Wrong_phaseStatut" as PhaseStatut,
+      });
+
+      expect(error?.statusCode).toBe(400);
+      expect(error?.message[0]).toContain(
+        "phaseStatut must be one of the following values: En cours, En retard, En pause, Bloqué, Abandonné, Terminé",
       );
     });
   });
