@@ -77,14 +77,20 @@ Les Communs utilisent un système de statuts génériques pour permettre la sync
 
 Les status génériques sont encore en cours de définition avec les différents services
 
-**Statuts génériques des Communs (WIP) :**
+**Les phases**
 
-- IDEE
-- FAISABILITE
-- EN_COURS
-- IMPACTE (pour les états de retard/pause/blocage)
-- ABANDONNE
-- TERMINE
+- Idée,
+- Etude,
+- Opération
+
+**Les statuts de phase**
+
+- En cours,
+- En retard,
+- En pause,
+- Bloqué,
+- Abandonné,
+- Terminé
 
 Chaque service connecté maintient son propre système de statuts détaillé, qui est mappé vers ces statuts génériques. Les changements de statut suivent le workflow suivant :
 
@@ -98,32 +104,3 @@ Cette approche permet de :
 - Préserver l'autonomie des services dans leur gestion détaillée des statuts
 - Assurer une synchronisation cohérente entre les services
 - Faciliter l'intégration de nouveaux services avec des systèmes de statuts différents
-
-⚠️⚠️⚠️ Pour la lecture des catégories ci-dessous, il n’y a pas de lien direct entre les status MEC et Tet (par exemple etudes pré-opérationnelles ne correspond pas à A venir). Les colonnes sont indépendantes, vous fiez uniquement au code couleur de chaque status pour trouver sa correspondance générique.
-
-Recap du mapping potentiel :
-
-| MEC / Recoco                            | Generic Status (MEC) | TeT        | Generic Status (TeT) | Status Aide territoire       | Generic Status (AT) |
-| --------------------------------------- | -------------------- | ---------- | -------------------- | ---------------------------- | ------------------- |
-| Non démarré, intention                  | IDEE                 | A venir    | IDEE                 | Réflexion / conception       | IDEE                |
-| Etudes pré-opérationnelles non initiées | IDEE                 | A discuter | FAISABILITE          | Mise en oeuvre / réalisation | EN_COURS            |
-| Etudes pré-opérationnelles en cours     | FAISABILITE          | En cours   | EN_COURS             | Usage / valorisation         | TERMINE             |
-| Etudes pré-opérationnelles terminées    | FAISABILITE          | En retard  | IMPACTE              |                              |                     |
-| Etudes opérationnelles non initiées     | FAISABILITE          | En pause   | IMPACTE              |                              |                     |
-| Etudes opérationnelles en cours         | EN_COURS             | Bloqué     | IMPACTE              |                              |                     |
-| Etudes opérationnelles terminées        | EN_COURS             | Réalisé    | TERMINE              |                              |                     |
-| Opération démarrée                      | EN_COURS             | Abandonné  | ABANDONNE            |                              |                     |
-| Opération terminée, livrée              | TERMINE              |            |                      |                              |                     |
-| Opération abandonnée, annulée           | ABANDONNE            |            |                      |                              |                     |
-| Opération en pause, reportée            | IMPACTE              |            |                      |                              |                     |
-
-### exemple de flow utilisateur
-
-- Un projet crée sur MEC démarre initialement avec un status Non démarré, intention (aucune étude initiée)
-- Sur Les communs le projet est enregistré avec le status IDEE , ce projet + status est propagé à Tet et Recoco via webhook.
-- Quand un utilisateur visionne ce projet sur Tet ou sur Recoco, il voit le premier status équivalent à la catégorie générique sur les Communs : A venir
-- L’utilisateur le change dans MEC pour le faire passer au status Etudes pré-opérationnelles non initiées
-- Sur les communs le projet reste en IDEE pas de changement de status est propagé à Tet et Recoco via webhook.
-- Sur Tet l’utilisateur change le status à En cours, Tet contacte les communs
-- Sur les communs le status est changé en EN_COURS Ce changement de status est propagé à MEC et Recoco via webhook.
-- MEC change le status à Etudes opérationnelles en cours et Recoco aussi
