@@ -91,8 +91,8 @@ export class CreateProjetRequest {
   @ApiProperty({
     description: "Array of collectivite references",
     example: [
-      { type: "Commune", code: "12345" },
-      { type: "EPCI", code: "123456789" },
+      { type: "Commune", code: "44104" },
+      { type: "EPCI", code: "200000438" },
     ],
     required: true,
     type: [CollectiviteReference],
