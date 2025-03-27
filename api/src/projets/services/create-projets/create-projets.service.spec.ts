@@ -4,8 +4,7 @@ import { CreateProjetRequest } from "../../dto/create-projet.dto";
 import { TestingModule } from "@nestjs/testing";
 import { CreateProjetsService } from "./create-projets.service";
 import { collectivites, projets, projetsToCollectivites } from "@database/schema";
-import { and, inArray } from "drizzle-orm";
-import { ConflictException } from "@nestjs/common";
+import { and, eq, inArray } from "drizzle-orm";
 import { BulkCreateProjetsRequest } from "@projets/dto/bulk-create-projets.dto";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
 
@@ -45,14 +44,25 @@ describe("ProjectCreateService", () => {
       });
     });
 
-    it("should throw ConflictException when project with same externalId exists", async () => {
-      const createDto = mockProjetPayload({ externalId: "duplicate-id" });
+    it("should update a project if it is an existing one", async () => {
+      const createDto = mockProjetPayload();
 
-      await service.create(createDto, "MEC_test_api_key");
+      const createdProject = await service.create(createDto, "MEC_test_api_key");
+      await service.create({ ...createDto, nom: "Updated Project" }, "MEC_test_api_key");
 
-      await expect(service.create(createDto, "MEC_test_api_key")).rejects.toThrow(
-        new ConflictException("Projet with mecId duplicate-id already exists"),
-      );
+      expect(createdProject).toEqual({
+        id: expect.any(String),
+      });
+
+      const [updatedProject] = await testDbService.database
+        .select()
+        .from(projets)
+        .where(eq(projets.id, createdProject.id));
+
+      expect(updatedProject).toMatchObject({
+        nom: "Updated Project",
+        id: createdProject.id,
+      });
     });
 
     it("should allow same externalId for different services", async () => {
