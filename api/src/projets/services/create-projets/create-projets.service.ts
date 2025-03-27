@@ -21,30 +21,27 @@ export class CreateProjetsService {
 
     const { externalId, porteur, ...otherFields } = createProjectDto;
 
-    // Check if project already exists with this externalId
-    const existingProject = await this.dbService.database
-      .select()
-      .from(projets)
-      .where(eq(projets[serviceIdField], externalId))
-      .limit(1);
-
-    if (existingProject.length > 0) {
-      throw new ConflictException(`Projet with ${serviceIdField} ${externalId} already exists`);
-    }
-
     return this.dbService.database.transaction(async (tx) => {
-      const [createdProject] = await tx
+      const [upsertedProject] = await tx
         .insert(projets)
         .values({
           ...otherFields,
           [serviceIdField]: externalId,
           ...this.mapPorteurToDatabase(porteur),
         })
+        .onConflictDoUpdate({
+          target: projets[serviceIdField],
+          set: {
+            ...otherFields,
+            ...this.mapPorteurToDatabase(porteur),
+            updatedAt: new Date(),
+          },
+        })
         .returning();
 
-      await this.collectivitesService.createOrUpdateRelations(tx, createdProject.id, createProjectDto.collectivites);
+      await this.collectivitesService.createOrUpdateRelations(tx, upsertedProject.id, createProjectDto.collectivites);
 
-      return { id: createdProject.id };
+      return { id: upsertedProject.id };
     });
   }
 
