@@ -146,6 +146,12 @@ describe("CorsMiddleware", () => {
       expect(isOriginAllowed(origin)).toBe(true);
     });
 
+    it("should allow full URLs", () => {
+      process.env.CORS_ALLOWED_DOMAINS = "https://mon-espace-collectivite-staging.osc-fr1.scalingo.io";
+      const origin = "https://mon-espace-collectivite-staging.osc-fr1.scalingo.io";
+      expect(isOriginAllowed(origin)).toBe(true);
+    });
+
     it("should throw an error when CORS_ALLOWED_DOMAINS is not set", () => {
       delete process.env.CORS_ALLOWED_DOMAINS;
       expect(() => isOriginAllowed("http://localhost:3000")).toThrow("CORS_ALLOWED_DOMAINS is not set");
