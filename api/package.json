@@ -32,6 +32,7 @@
     "generate-competences-list": "ts-node scripts/generate-competences-list.ts",
     "seed:communes-and-epci:dev": "npx ts-node -r tsconfig-paths/register scripts/seed-communes-and-epci/seed-communes-and-epci.ts",
     "seed:communes-and-epci": "node dist/scripts/seed-communes-and-epci/seed-communes-and-epci.js",
+    "seed:services:dev": "cd scripts/import-service-and-service-context && npx ts-node -r tsconfig-paths/register import-services-and-services-contexts.ts",
     "release": "commit-and-tag-version",
     "db:start": "docker-compose up -d",
     "db:clean": "docker-compose down -v",

@@ -3,9 +3,33 @@ import { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { match } from "path-to-regexp";
 
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",")
-  : ["http://localhost:5173", "http://localhost:5174"];
+const extractDomain = (origin: string): string => {
+  try {
+    const url = new URL(origin);
+    return url.hostname;
+  } catch {
+    return origin;
+  }
+};
+
+export function isOriginAllowed(origin: string): boolean {
+  if (!process.env.CORS_ALLOWED_DOMAINS) {
+    throw new Error("CORS_ALLOWED_DOMAINS is not set");
+  }
+
+  const allowedDomains = process.env.CORS_ALLOWED_DOMAINS.split(",").map((domain) => domain.trim());
+  const requestDomain = extractDomain(origin);
+
+  // in case of specific URLs, we allow them
+  if (allowedDomains.includes(origin)) return true;
+
+  // Convert allowed domains patterns to regex patterns
+  const allowedDomainPatterns = allowedDomains.map((pattern) => {
+    return pattern.replace(/\./g, "\\.").replace(/\*/g, ".*");
+  });
+
+  return allowedDomainPatterns.some((pattern) => new RegExp(`^${pattern}$`).test(requestDomain));
+}
 
 @Injectable()
 export class CorsMiddleware implements NestMiddleware {
@@ -15,10 +39,19 @@ export class CorsMiddleware implements NestMiddleware {
     // /services/project/:projectId through a GET request to get the services for current project in the widget
     const corsEnabledRoutes = ["/projets/:projectId/extra-fields", "/services/project/:projectId"];
     const isAllowedRoute = corsEnabledRoutes.some((route) => match(route)(req.originalUrl));
-
     if (isAllowedRoute) {
       cors({
-        origin: allowedOrigins,
+        origin: (origin: string | undefined, callback) => {
+          if (!origin) {
+            callback(new Error("Origin is not set"));
+            return;
+          }
+          if (isOriginAllowed(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error(`${origin} not allowed by CORS`));
+          }
+        },
         methods: ["GET", "POST"],
       })(req, res, next);
     } else {
