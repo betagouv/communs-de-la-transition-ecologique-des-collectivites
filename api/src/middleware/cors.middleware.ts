@@ -3,9 +3,30 @@ import { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { match } from "path-to-regexp";
 
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",")
-  : ["http://localhost:5173", "http://localhost:5174"];
+const extractDomain = (origin: string): string => {
+  try {
+    const url = new URL(origin);
+    return url.hostname;
+  } catch {
+    return origin;
+  }
+};
+
+export const isOriginAllowed = (origin: string | undefined) => {
+  if (!origin) return false;
+
+  console.log(process.env.CORS_ALLOWED_DOMAINS, process.env.CORS_ALLOWED_DOMAINS);
+  if (!process.env.CORS_ALLOWED_DOMAINS) {
+    throw new Error("CORS_ALLOWED_DOMAINS is not set");
+    return;
+  }
+
+  const allowedDomains = process.env.CORS_ALLOWED_DOMAINS.split(",");
+  const requestDomain = extractDomain(origin);
+  // Convert allowed domains patterns to regex patterns
+  const allowedDomainPatterns = allowedDomains.map((pattern) => pattern.replace(/\./g, "\\.").replace(/\*/g, ".*"));
+  return allowedDomainPatterns.some((pattern) => new RegExp(`^${pattern}$`).test(requestDomain));
+};
 
 @Injectable()
 export class CorsMiddleware implements NestMiddleware {
@@ -15,10 +36,15 @@ export class CorsMiddleware implements NestMiddleware {
     // /services/project/:projectId through a GET request to get the services for current project in the widget
     const corsEnabledRoutes = ["/projets/:projectId/extra-fields", "/services/project/:projectId"];
     const isAllowedRoute = corsEnabledRoutes.some((route) => match(route)(req.originalUrl));
-
     if (isAllowedRoute) {
       cors({
-        origin: allowedOrigins,
+        origin: (origin, callback) => {
+          if (isOriginAllowed(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error(`${origin} not allowed by CORS`));
+          }
+        },
         methods: ["GET", "POST"],
       })(req, res, next);
     } else {
