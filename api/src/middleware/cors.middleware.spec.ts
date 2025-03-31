@@ -101,6 +101,30 @@ describe("CorsMiddleware", () => {
 
       expect(nextFunction).toHaveBeenCalledWith(new Error(`invalid-url not allowed by CORS`));
     });
+
+    it("should allow specific full URLs", () => {
+      process.env.CORS_ALLOWED_DOMAINS = "https://mon-espace-collectivite-staging.osc-fr1.scalingo.io,example.com";
+
+      const testCases = ["https://mon-espace-collectivite-staging.osc-fr1.scalingo.io", "https://example.com"];
+
+      testCases.forEach((origin) => {
+        mockRequest.headers = { origin };
+        middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+        expect(nextFunction).toHaveBeenCalledWith();
+      });
+    });
+
+    it("should block other same domains urls when specific URL is allowed", () => {
+      process.env.CORS_ALLOWED_DOMAINS = "https://mon-espace-collectivite-staging.osc-fr1.scalingo.io";
+
+      const testCases = ["https://other-app.osc-fr1.scalingo.io", "https://malicious-app.osc-fr1.scalingo.io"];
+
+      testCases.forEach((origin, index) => {
+        mockRequest.headers = { origin };
+        middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+        expect(nextFunction).toHaveBeenNthCalledWith(index + 1, new Error(`${origin} not allowed by CORS`));
+      });
+    });
   });
 
   describe("isOriginAllowed", () => {
@@ -123,8 +147,8 @@ describe("CorsMiddleware", () => {
     });
 
     it("should throw an error when CORS_ALLOWED_DOMAINS is not set", () => {
-      process.env.CORS_ALLOWED_DOMAINS = "";
-      expect(isOriginAllowed("http://localhost:3000")).toThrow("CORS_ALLOWED_DOMAINS is not set");
+      delete process.env.CORS_ALLOWED_DOMAINS;
+      expect(() => isOriginAllowed("http://localhost:3000")).toThrow("CORS_ALLOWED_DOMAINS is not set");
     });
   });
 });

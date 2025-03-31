@@ -12,21 +12,24 @@ const extractDomain = (origin: string): string => {
   }
 };
 
-export const isOriginAllowed = (origin: string | undefined) => {
-  if (!origin) return false;
-
-  console.log(process.env.CORS_ALLOWED_DOMAINS, process.env.CORS_ALLOWED_DOMAINS);
+export function isOriginAllowed(origin: string): boolean {
   if (!process.env.CORS_ALLOWED_DOMAINS) {
     throw new Error("CORS_ALLOWED_DOMAINS is not set");
-    return;
   }
 
-  const allowedDomains = process.env.CORS_ALLOWED_DOMAINS.split(",");
+  const allowedDomains = process.env.CORS_ALLOWED_DOMAINS.split(",").map((domain) => domain.trim());
   const requestDomain = extractDomain(origin);
+
+  // in case of specific URLs, we allow them
+  if (allowedDomains.includes(origin)) return true;
+
   // Convert allowed domains patterns to regex patterns
-  const allowedDomainPatterns = allowedDomains.map((pattern) => pattern.replace(/\./g, "\\.").replace(/\*/g, ".*"));
+  const allowedDomainPatterns = allowedDomains.map((pattern) => {
+    return pattern.replace(/\./g, "\\.").replace(/\*/g, ".*");
+  });
+
   return allowedDomainPatterns.some((pattern) => new RegExp(`^${pattern}$`).test(requestDomain));
-};
+}
 
 @Injectable()
 export class CorsMiddleware implements NestMiddleware {
@@ -38,7 +41,11 @@ export class CorsMiddleware implements NestMiddleware {
     const isAllowedRoute = corsEnabledRoutes.some((route) => match(route)(req.originalUrl));
     if (isAllowedRoute) {
       cors({
-        origin: (origin, callback) => {
+        origin: (origin: string | undefined, callback) => {
+          if (!origin) {
+            callback(new Error("Origin is not set"));
+            return;
+          }
           if (isOriginAllowed(origin)) {
             callback(null, true);
           } else {
