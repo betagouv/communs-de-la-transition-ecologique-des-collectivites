@@ -2,7 +2,7 @@ import { ProjetPhases, projetPhasesEnum, PhaseStatut, phaseStatutEnum } from "@d
 import { Competences, Leviers } from "@/shared/types";
 import { ApiProperty } from "@nestjs/swagger";
 import { leviers } from "@/shared/const/leviers";
-import { competences } from "@/shared/const/competences-list";
+import { competenceCodes } from "@/shared/const/competences-list-v2";
 import { Collectivite } from "@projets/dto/collectivite.dto";
 import { PorteurDto } from "@projets/dto/porteur.dto";
 import { ValidateNested } from "class-validator";
@@ -45,7 +45,7 @@ export class ProjetResponse {
   @ApiProperty({ nullable: true, type: String })
   programme!: string | null;
 
-  @ApiProperty({ nullable: true, type: String, enum: competences })
+  @ApiProperty({ nullable: true, type: String, enum: competenceCodes })
   competences!: Competences | null;
 
   @ApiProperty({

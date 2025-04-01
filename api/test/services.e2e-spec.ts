@@ -40,7 +40,7 @@ describe("Services (e2e)", () => {
       redirectionUrl: "https://test.com",
       redirectionLabel: "Go to test service",
       extendLabel: "Extend Label",
-      competences: ["Santé"],
+      competences: ["90-11"],
       leviers: [],
       extraFields: [{ name: "surface", label: "Surface en m2" }],
       phases: [],
@@ -69,7 +69,7 @@ describe("Services (e2e)", () => {
         id: expect.any(String),
         serviceId: serviceData!.id,
         description: "Context Description",
-        competences: ["Santé"],
+        competences: ["90-11"],
         extraFields: [{ name: "surface", label: "Surface en m2" }],
       });
     });

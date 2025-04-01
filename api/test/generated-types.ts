@@ -164,7 +164,7 @@ export interface components {
             phase: "Idée" | "Etude" | "Opération" | null;
             programme: string | null;
             /** @enum {string|null} */
-            competences: "Autres interventions de protection civile" | "Autres services annexes de l'enseignement" | "Collecte et traitement des déchets" | "Développement touristique" | "Enseignement du premier degré" | "Enseignement du second degré" | "Enseignement supérieur, professionnel et continu" | "Foires et marchés" | "Hébergement et restauration scolaires" | "Hygiène et salubrité publique" | "Incendie et secours" | "Infrastructures de transport" | "Jeunesse et loisirs" | "Police, sécurité, justice" | "Propreté urbaine" | "Routes et voiries" | "Santé" | "Sports" | "Transports publics (hors scolaire)" | "Transports scolaires" | "Action sociale (hors APA et RSA) > Citoyenneté" | "Action sociale (hors APA et RSA) > Cohésion sociale et inclusion" | "Action sociale (hors APA et RSA) > Egalité des chances" | "Action sociale (hors APA et RSA) > Famille et enfance" | "Action sociale (hors APA et RSA) > Handicap" | "Action sociale (hors APA et RSA) > Inclusion numérique" | "Action sociale (hors APA et RSA) > Jeunesse" | "Action sociale (hors APA et RSA) > Lutte contre la précarité" | "Action sociale (hors APA et RSA) > Personnes âgées" | "Action sociale (hors APA et RSA) > Protection animale" | "Actions en matière de gestion des eaux > Assainissement des eaux" | "Actions en matière de gestion des eaux > Cours d'eau / canaux / plans d'eau" | "Actions en matière de gestion des eaux > Eau pluviale" | "Actions en matière de gestion des eaux > Eau potable" | "Actions en matière de gestion des eaux > Eau souterraine" | "Actions en matière de gestion des eaux > Mers et océans" | "Agriculture, pêche et agro-alimentaire > Consommation alimentaire" | "Agriculture, pêche et agro-alimentaire > Déchets alimentaires et/ou agricoles" | "Agriculture, pêche et agro-alimentaire > Distribution" | "Agriculture, pêche et agro-alimentaire > Précarité et aide alimentaire" | "Agriculture, pêche et agro-alimentaire > Production agricole et foncier" | "Agriculture, pêche et agro-alimentaire > Transformation des produits agricoles" | "Aménagement des territoires > Foncier" | "Aménagement des territoires > Friche" | "Aménagement des territoires > Paysage" | "Aménagement des territoires > Réseaux" | "Culture > Arts plastiques et photographie" | "Culture > Bibliothèques et livres" | "Culture > Médias et communication" | "Culture > Musée" | "Culture > Patrimoine et monuments historiques" | "Culture > Spectacle vivant" | "Habitat > Accessibilité" | "Habitat > Architecture" | "Habitat > Bâtiments et construction" | "Habitat > Cimetières et funéraire" | "Habitat > Equipement public" | "Habitat > Espace public" | "Habitat > Espaces verts" | "Habitat > Logement et habitat" | "Industrie, commerce et artisanat > Artisanat" | "Industrie, commerce et artisanat > Commerces et Services" | "Industrie, commerce et artisanat > Economie locale et circuits courts" | "Industrie, commerce et artisanat > Economie sociale et solidaire" | "Industrie, commerce et artisanat > Fiscalité des entreprises" | "Industrie, commerce et artisanat > Industrie" | "Industrie, commerce et artisanat > Innovation, créativité et recherche" | "Industrie, commerce et artisanat > Technologies numériques et numérisation" | "Industrie, commerce et artisanat > Tiers-lieux" | null;
+            competences: "90-025" | "90-11" | "90-12" | "90-13" | "90-18" | "90-20" | "90-21" | "90-211" | "90-212" | "90-213" | "90-22" | "90-221" | "90-222" | "90-223" | "90-23" | "90-24" | "90-25" | "90-251" | "90-252" | "90-253" | "90-254" | "90-255" | "90-256" | "90-26" | "90-27" | "90-28" | "90-281" | "90-282" | "90-283" | "90-284" | "90-288" | "90-29" | "90-31" | "90-311" | "90-312" | "90-313" | "90-314" | "90-315" | "90-316" | "90-317" | "90-318" | "90-32" | "90-321" | "90-322" | "90-323" | "90-324" | "90-325" | "90-326" | "90-327" | "90-33" | "90-331" | "90-332" | "90-338" | "90-34" | "90-341" | "90-348" | "90-39" | "90-41" | "90-411" | "90-412" | "90-413" | "90-414" | "90-418" | "90-421" | "90-422" | "90-423" | "90-424" | "90-425" | "90-428" | "90-51" | "90-511" | "90-512" | "90-513" | "90-514" | "90-515" | "90-518" | "90-52" | "90-53" | "90-54" | "90-55" | "90-551" | "90-552" | "90-553" | "90-554" | "90-555" | "90-56" | "90-57" | "90-58" | "90-581" | "90-588" | "90-59" | "90-61" | "90-62" | "90-63" | "90-631" | "90-632" | "90-633" | "90-64" | "90-65" | "90-66" | "90-67" | "90-68" | "90-71" | "90-72" | "90-720" | "90-721" | "90-722" | "90-73" | "90-731" | "90-732" | "90-733" | "90-734" | "90-735" | "90-74" | "90-75" | "90-751" | "90-752" | "90-753" | "90-754" | "90-758" | "90-76" | "90-77" | "90-78" | "90-81" | "90-82" | "90-821" | "90-822" | "90-823" | "90-824" | "90-825" | "90-828" | "90-83" | "90-831" | "90-832" | "90-833" | "90-834" | "90-835" | "90-838" | "90-84" | "90-841" | "90-842" | "90-843" | "90-844" | "90-845" | "90-846" | "90-847" | "90-848" | "90-849" | "90-85" | "90-851" | "90-852" | "90-853" | "90-854" | "90-855" | "90-86" | "90-87" | "90-89" | null;
             /**
              * @description Array of leviers
              * @enum {string|null}
@@ -220,7 +220,7 @@ export interface components {
              */
             phase?: "Idée" | "Etude" | "Opération" | null;
             /**
-             * @description Current status for the phase
+             * @description Current phase status for the phase
              * @enum {string|null}
              */
             phaseStatut?: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
@@ -230,23 +230,17 @@ export interface components {
              * @example [
              *       {
              *         "type": "Commune",
-             *         "code": "12345"
+             *         "code": "44104"
              *       },
              *       {
              *         "type": "EPCI",
-             *         "code": "123456789"
+             *         "code": "200000438"
              *       }
              *     ]
              */
             collectivites: components["schemas"]["CollectiviteReference"][];
-            /**
-             * @description Array of competences and sous-competences
-             * @example [
-             *       "Santé",
-             *       "Culture > Arts plastiques et photographie"
-             *     ]
-             */
-            competences?: ("Autres interventions de protection civile" | "Autres services annexes de l'enseignement" | "Collecte et traitement des déchets" | "Développement touristique" | "Enseignement du premier degré" | "Enseignement du second degré" | "Enseignement supérieur, professionnel et continu" | "Foires et marchés" | "Hébergement et restauration scolaires" | "Hygiène et salubrité publique" | "Incendie et secours" | "Infrastructures de transport" | "Jeunesse et loisirs" | "Police, sécurité, justice" | "Propreté urbaine" | "Routes et voiries" | "Santé" | "Sports" | "Transports publics (hors scolaire)" | "Transports scolaires" | "Action sociale (hors APA et RSA) > Citoyenneté" | "Action sociale (hors APA et RSA) > Cohésion sociale et inclusion" | "Action sociale (hors APA et RSA) > Egalité des chances" | "Action sociale (hors APA et RSA) > Famille et enfance" | "Action sociale (hors APA et RSA) > Handicap" | "Action sociale (hors APA et RSA) > Inclusion numérique" | "Action sociale (hors APA et RSA) > Jeunesse" | "Action sociale (hors APA et RSA) > Lutte contre la précarité" | "Action sociale (hors APA et RSA) > Personnes âgées" | "Action sociale (hors APA et RSA) > Protection animale" | "Actions en matière de gestion des eaux > Assainissement des eaux" | "Actions en matière de gestion des eaux > Cours d'eau / canaux / plans d'eau" | "Actions en matière de gestion des eaux > Eau pluviale" | "Actions en matière de gestion des eaux > Eau potable" | "Actions en matière de gestion des eaux > Eau souterraine" | "Actions en matière de gestion des eaux > Mers et océans" | "Agriculture, pêche et agro-alimentaire > Consommation alimentaire" | "Agriculture, pêche et agro-alimentaire > Déchets alimentaires et/ou agricoles" | "Agriculture, pêche et agro-alimentaire > Distribution" | "Agriculture, pêche et agro-alimentaire > Précarité et aide alimentaire" | "Agriculture, pêche et agro-alimentaire > Production agricole et foncier" | "Agriculture, pêche et agro-alimentaire > Transformation des produits agricoles" | "Aménagement des territoires > Foncier" | "Aménagement des territoires > Friche" | "Aménagement des territoires > Paysage" | "Aménagement des territoires > Réseaux" | "Culture > Arts plastiques et photographie" | "Culture > Bibliothèques et livres" | "Culture > Médias et communication" | "Culture > Musée" | "Culture > Patrimoine et monuments historiques" | "Culture > Spectacle vivant" | "Habitat > Accessibilité" | "Habitat > Architecture" | "Habitat > Bâtiments et construction" | "Habitat > Cimetières et funéraire" | "Habitat > Equipement public" | "Habitat > Espace public" | "Habitat > Espaces verts" | "Habitat > Logement et habitat" | "Industrie, commerce et artisanat > Artisanat" | "Industrie, commerce et artisanat > Commerces et Services" | "Industrie, commerce et artisanat > Economie locale et circuits courts" | "Industrie, commerce et artisanat > Economie sociale et solidaire" | "Industrie, commerce et artisanat > Fiscalité des entreprises" | "Industrie, commerce et artisanat > Industrie" | "Industrie, commerce et artisanat > Innovation, créativité et recherche" | "Industrie, commerce et artisanat > Technologies numériques et numérisation" | "Industrie, commerce et artisanat > Tiers-lieux")[] | null;
+            /** @description Array of competences and sous-competences */
+            competences?: ("90-025" | "90-11" | "90-12" | "90-13" | "90-18" | "90-20" | "90-21" | "90-211" | "90-212" | "90-213" | "90-22" | "90-221" | "90-222" | "90-223" | "90-23" | "90-24" | "90-25" | "90-251" | "90-252" | "90-253" | "90-254" | "90-255" | "90-256" | "90-26" | "90-27" | "90-28" | "90-281" | "90-282" | "90-283" | "90-284" | "90-288" | "90-29" | "90-31" | "90-311" | "90-312" | "90-313" | "90-314" | "90-315" | "90-316" | "90-317" | "90-318" | "90-32" | "90-321" | "90-322" | "90-323" | "90-324" | "90-325" | "90-326" | "90-327" | "90-33" | "90-331" | "90-332" | "90-338" | "90-34" | "90-341" | "90-348" | "90-39" | "90-41" | "90-411" | "90-412" | "90-413" | "90-414" | "90-418" | "90-421" | "90-422" | "90-423" | "90-424" | "90-425" | "90-428" | "90-51" | "90-511" | "90-512" | "90-513" | "90-514" | "90-515" | "90-518" | "90-52" | "90-53" | "90-54" | "90-55" | "90-551" | "90-552" | "90-553" | "90-554" | "90-555" | "90-56" | "90-57" | "90-58" | "90-581" | "90-588" | "90-59" | "90-61" | "90-62" | "90-63" | "90-631" | "90-632" | "90-633" | "90-64" | "90-65" | "90-66" | "90-67" | "90-68" | "90-71" | "90-72" | "90-720" | "90-721" | "90-722" | "90-73" | "90-731" | "90-732" | "90-733" | "90-734" | "90-735" | "90-74" | "90-75" | "90-751" | "90-752" | "90-753" | "90-754" | "90-758" | "90-76" | "90-77" | "90-78" | "90-81" | "90-82" | "90-821" | "90-822" | "90-823" | "90-824" | "90-825" | "90-828" | "90-83" | "90-831" | "90-832" | "90-833" | "90-834" | "90-835" | "90-838" | "90-84" | "90-841" | "90-842" | "90-843" | "90-844" | "90-845" | "90-846" | "90-847" | "90-848" | "90-849" | "90-85" | "90-851" | "90-852" | "90-853" | "90-854" | "90-855" | "90-86" | "90-87" | "90-89")[] | null;
             /** @description Array of leviers de la transition écologique */
             leviers?: ("Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Collecte et tri des déchets" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF")[] | null;
             externalId: string;
@@ -276,7 +270,7 @@ export interface components {
              */
             phase?: "Idée" | "Etude" | "Opération" | null;
             /**
-             * @description Current status for the phase
+             * @description Current phase status for the phase
              * @enum {string|null}
              */
             phaseStatut?: "En cours" | "En retard" | "En pause" | "Bloqué" | "Abandonné" | "Terminé" | null;
@@ -286,23 +280,17 @@ export interface components {
              * @example [
              *       {
              *         "type": "Commune",
-             *         "code": "12345"
+             *         "code": "44104"
              *       },
              *       {
              *         "type": "EPCI",
-             *         "code": "123456789"
+             *         "code": "200000438"
              *       }
              *     ]
              */
             collectivites?: components["schemas"]["CollectiviteReference"][];
-            /**
-             * @description Array of competences and sous-competences
-             * @example [
-             *       "Santé",
-             *       "Culture > Arts plastiques et photographie"
-             *     ]
-             */
-            competences?: ("Autres interventions de protection civile" | "Autres services annexes de l'enseignement" | "Collecte et traitement des déchets" | "Développement touristique" | "Enseignement du premier degré" | "Enseignement du second degré" | "Enseignement supérieur, professionnel et continu" | "Foires et marchés" | "Hébergement et restauration scolaires" | "Hygiène et salubrité publique" | "Incendie et secours" | "Infrastructures de transport" | "Jeunesse et loisirs" | "Police, sécurité, justice" | "Propreté urbaine" | "Routes et voiries" | "Santé" | "Sports" | "Transports publics (hors scolaire)" | "Transports scolaires" | "Action sociale (hors APA et RSA) > Citoyenneté" | "Action sociale (hors APA et RSA) > Cohésion sociale et inclusion" | "Action sociale (hors APA et RSA) > Egalité des chances" | "Action sociale (hors APA et RSA) > Famille et enfance" | "Action sociale (hors APA et RSA) > Handicap" | "Action sociale (hors APA et RSA) > Inclusion numérique" | "Action sociale (hors APA et RSA) > Jeunesse" | "Action sociale (hors APA et RSA) > Lutte contre la précarité" | "Action sociale (hors APA et RSA) > Personnes âgées" | "Action sociale (hors APA et RSA) > Protection animale" | "Actions en matière de gestion des eaux > Assainissement des eaux" | "Actions en matière de gestion des eaux > Cours d'eau / canaux / plans d'eau" | "Actions en matière de gestion des eaux > Eau pluviale" | "Actions en matière de gestion des eaux > Eau potable" | "Actions en matière de gestion des eaux > Eau souterraine" | "Actions en matière de gestion des eaux > Mers et océans" | "Agriculture, pêche et agro-alimentaire > Consommation alimentaire" | "Agriculture, pêche et agro-alimentaire > Déchets alimentaires et/ou agricoles" | "Agriculture, pêche et agro-alimentaire > Distribution" | "Agriculture, pêche et agro-alimentaire > Précarité et aide alimentaire" | "Agriculture, pêche et agro-alimentaire > Production agricole et foncier" | "Agriculture, pêche et agro-alimentaire > Transformation des produits agricoles" | "Aménagement des territoires > Foncier" | "Aménagement des territoires > Friche" | "Aménagement des territoires > Paysage" | "Aménagement des territoires > Réseaux" | "Culture > Arts plastiques et photographie" | "Culture > Bibliothèques et livres" | "Culture > Médias et communication" | "Culture > Musée" | "Culture > Patrimoine et monuments historiques" | "Culture > Spectacle vivant" | "Habitat > Accessibilité" | "Habitat > Architecture" | "Habitat > Bâtiments et construction" | "Habitat > Cimetières et funéraire" | "Habitat > Equipement public" | "Habitat > Espace public" | "Habitat > Espaces verts" | "Habitat > Logement et habitat" | "Industrie, commerce et artisanat > Artisanat" | "Industrie, commerce et artisanat > Commerces et Services" | "Industrie, commerce et artisanat > Economie locale et circuits courts" | "Industrie, commerce et artisanat > Economie sociale et solidaire" | "Industrie, commerce et artisanat > Fiscalité des entreprises" | "Industrie, commerce et artisanat > Industrie" | "Industrie, commerce et artisanat > Innovation, créativité et recherche" | "Industrie, commerce et artisanat > Technologies numériques et numérisation" | "Industrie, commerce et artisanat > Tiers-lieux")[] | null;
+            /** @description Array of competences and sous-competences */
+            competences?: ("90-025" | "90-11" | "90-12" | "90-13" | "90-18" | "90-20" | "90-21" | "90-211" | "90-212" | "90-213" | "90-22" | "90-221" | "90-222" | "90-223" | "90-23" | "90-24" | "90-25" | "90-251" | "90-252" | "90-253" | "90-254" | "90-255" | "90-256" | "90-26" | "90-27" | "90-28" | "90-281" | "90-282" | "90-283" | "90-284" | "90-288" | "90-29" | "90-31" | "90-311" | "90-312" | "90-313" | "90-314" | "90-315" | "90-316" | "90-317" | "90-318" | "90-32" | "90-321" | "90-322" | "90-323" | "90-324" | "90-325" | "90-326" | "90-327" | "90-33" | "90-331" | "90-332" | "90-338" | "90-34" | "90-341" | "90-348" | "90-39" | "90-41" | "90-411" | "90-412" | "90-413" | "90-414" | "90-418" | "90-421" | "90-422" | "90-423" | "90-424" | "90-425" | "90-428" | "90-51" | "90-511" | "90-512" | "90-513" | "90-514" | "90-515" | "90-518" | "90-52" | "90-53" | "90-54" | "90-55" | "90-551" | "90-552" | "90-553" | "90-554" | "90-555" | "90-56" | "90-57" | "90-58" | "90-581" | "90-588" | "90-59" | "90-61" | "90-62" | "90-63" | "90-631" | "90-632" | "90-633" | "90-64" | "90-65" | "90-66" | "90-67" | "90-68" | "90-71" | "90-72" | "90-720" | "90-721" | "90-722" | "90-73" | "90-731" | "90-732" | "90-733" | "90-734" | "90-735" | "90-74" | "90-75" | "90-751" | "90-752" | "90-753" | "90-754" | "90-758" | "90-76" | "90-77" | "90-78" | "90-81" | "90-82" | "90-821" | "90-822" | "90-823" | "90-824" | "90-825" | "90-828" | "90-83" | "90-831" | "90-832" | "90-833" | "90-834" | "90-835" | "90-838" | "90-84" | "90-841" | "90-842" | "90-843" | "90-844" | "90-845" | "90-846" | "90-847" | "90-848" | "90-849" | "90-85" | "90-851" | "90-852" | "90-853" | "90-854" | "90-855" | "90-86" | "90-87" | "90-89")[] | null;
             /** @description Array of leviers de la transition écologique */
             leviers?: ("Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Collecte et tri des déchets" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF")[] | null;
             externalId: string;
@@ -380,14 +368,8 @@ export interface components {
             extendLabel: Record<string, never> | null;
         };
         CreateServiceContextRequest: {
-            /**
-             * @description Array of competences and sous-competences, empty array means all competences/sous-competences
-             * @example [
-             *       "Santé",
-             *       "Culture > Arts plastiques et photographie"
-             *     ]
-             */
-            competences: ("Autres interventions de protection civile" | "Autres services annexes de l'enseignement" | "Collecte et traitement des déchets" | "Développement touristique" | "Enseignement du premier degré" | "Enseignement du second degré" | "Enseignement supérieur, professionnel et continu" | "Foires et marchés" | "Hébergement et restauration scolaires" | "Hygiène et salubrité publique" | "Incendie et secours" | "Infrastructures de transport" | "Jeunesse et loisirs" | "Police, sécurité, justice" | "Propreté urbaine" | "Routes et voiries" | "Santé" | "Sports" | "Transports publics (hors scolaire)" | "Transports scolaires" | "Action sociale (hors APA et RSA) > Citoyenneté" | "Action sociale (hors APA et RSA) > Cohésion sociale et inclusion" | "Action sociale (hors APA et RSA) > Egalité des chances" | "Action sociale (hors APA et RSA) > Famille et enfance" | "Action sociale (hors APA et RSA) > Handicap" | "Action sociale (hors APA et RSA) > Inclusion numérique" | "Action sociale (hors APA et RSA) > Jeunesse" | "Action sociale (hors APA et RSA) > Lutte contre la précarité" | "Action sociale (hors APA et RSA) > Personnes âgées" | "Action sociale (hors APA et RSA) > Protection animale" | "Actions en matière de gestion des eaux > Assainissement des eaux" | "Actions en matière de gestion des eaux > Cours d'eau / canaux / plans d'eau" | "Actions en matière de gestion des eaux > Eau pluviale" | "Actions en matière de gestion des eaux > Eau potable" | "Actions en matière de gestion des eaux > Eau souterraine" | "Actions en matière de gestion des eaux > Mers et océans" | "Agriculture, pêche et agro-alimentaire > Consommation alimentaire" | "Agriculture, pêche et agro-alimentaire > Déchets alimentaires et/ou agricoles" | "Agriculture, pêche et agro-alimentaire > Distribution" | "Agriculture, pêche et agro-alimentaire > Précarité et aide alimentaire" | "Agriculture, pêche et agro-alimentaire > Production agricole et foncier" | "Agriculture, pêche et agro-alimentaire > Transformation des produits agricoles" | "Aménagement des territoires > Foncier" | "Aménagement des territoires > Friche" | "Aménagement des territoires > Paysage" | "Aménagement des territoires > Réseaux" | "Culture > Arts plastiques et photographie" | "Culture > Bibliothèques et livres" | "Culture > Médias et communication" | "Culture > Musée" | "Culture > Patrimoine et monuments historiques" | "Culture > Spectacle vivant" | "Habitat > Accessibilité" | "Habitat > Architecture" | "Habitat > Bâtiments et construction" | "Habitat > Cimetières et funéraire" | "Habitat > Equipement public" | "Habitat > Espace public" | "Habitat > Espaces verts" | "Habitat > Logement et habitat" | "Industrie, commerce et artisanat > Artisanat" | "Industrie, commerce et artisanat > Commerces et Services" | "Industrie, commerce et artisanat > Economie locale et circuits courts" | "Industrie, commerce et artisanat > Economie sociale et solidaire" | "Industrie, commerce et artisanat > Fiscalité des entreprises" | "Industrie, commerce et artisanat > Industrie" | "Industrie, commerce et artisanat > Innovation, créativité et recherche" | "Industrie, commerce et artisanat > Technologies numériques et numérisation" | "Industrie, commerce et artisanat > Tiers-lieux")[] | null;
+            /** @description Array of competences and sous-competences, empty array means all competences/sous-competences */
+            competences: ("90-025" | "90-11" | "90-12" | "90-13" | "90-18" | "90-20" | "90-21" | "90-211" | "90-212" | "90-213" | "90-22" | "90-221" | "90-222" | "90-223" | "90-23" | "90-24" | "90-25" | "90-251" | "90-252" | "90-253" | "90-254" | "90-255" | "90-256" | "90-26" | "90-27" | "90-28" | "90-281" | "90-282" | "90-283" | "90-284" | "90-288" | "90-29" | "90-31" | "90-311" | "90-312" | "90-313" | "90-314" | "90-315" | "90-316" | "90-317" | "90-318" | "90-32" | "90-321" | "90-322" | "90-323" | "90-324" | "90-325" | "90-326" | "90-327" | "90-33" | "90-331" | "90-332" | "90-338" | "90-34" | "90-341" | "90-348" | "90-39" | "90-41" | "90-411" | "90-412" | "90-413" | "90-414" | "90-418" | "90-421" | "90-422" | "90-423" | "90-424" | "90-425" | "90-428" | "90-51" | "90-511" | "90-512" | "90-513" | "90-514" | "90-515" | "90-518" | "90-52" | "90-53" | "90-54" | "90-55" | "90-551" | "90-552" | "90-553" | "90-554" | "90-555" | "90-56" | "90-57" | "90-58" | "90-581" | "90-588" | "90-59" | "90-61" | "90-62" | "90-63" | "90-631" | "90-632" | "90-633" | "90-64" | "90-65" | "90-66" | "90-67" | "90-68" | "90-71" | "90-72" | "90-720" | "90-721" | "90-722" | "90-73" | "90-731" | "90-732" | "90-733" | "90-734" | "90-735" | "90-74" | "90-75" | "90-751" | "90-752" | "90-753" | "90-754" | "90-758" | "90-76" | "90-77" | "90-78" | "90-81" | "90-82" | "90-821" | "90-822" | "90-823" | "90-824" | "90-825" | "90-828" | "90-83" | "90-831" | "90-832" | "90-833" | "90-834" | "90-835" | "90-838" | "90-84" | "90-841" | "90-842" | "90-843" | "90-844" | "90-845" | "90-846" | "90-847" | "90-848" | "90-849" | "90-85" | "90-851" | "90-852" | "90-853" | "90-854" | "90-855" | "90-86" | "90-87" | "90-89")[] | null;
             /**
              * @description Array of leviers, empty array means all leviers
              * @example [
@@ -454,14 +436,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -483,14 +469,18 @@ export interface operations {
         responses: {
             /** @description Projet created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -510,14 +500,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -542,14 +536,18 @@ export interface operations {
         responses: {
             /** @description Projet updated successfully */
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -569,14 +567,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetExtraFieldsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -600,14 +602,18 @@ export interface operations {
         };
         responses: {
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetExtraFieldsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -629,14 +635,18 @@ export interface operations {
         responses: {
             /** @description Bulk Projets created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["BulkCreateProjetsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -658,14 +668,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ServicesByProjectIdResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -687,14 +701,18 @@ export interface operations {
         responses: {
             /** @description Service created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -719,14 +737,18 @@ export interface operations {
         responses: {
             /** @description Service context created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceContextResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
