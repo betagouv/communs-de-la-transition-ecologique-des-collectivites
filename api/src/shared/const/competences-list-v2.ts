@@ -1,4 +1,4 @@
-const competencesFromM57Referentials = {
+export const competencesFromM57Referentials = {
   "90-025": "Cimetières et pompes funèbres",
   "90-11": "Police, sécurité, justice",
   "90-12": "Incendie et secours",

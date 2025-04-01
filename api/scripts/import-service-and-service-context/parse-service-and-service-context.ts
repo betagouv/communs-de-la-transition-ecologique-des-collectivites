@@ -3,10 +3,10 @@ import { parse } from "csv-parse";
 import { makeNullIfEmptyString, parseExtraField, parseFieldToArray } from "./utils";
 import { leviers } from "@/shared/const/leviers";
 import { ProjetPhases, projetPhasesEnum } from "@database/schema";
-import { CompetenceCodes, Leviers } from "@/shared/types";
+import { CompetenceCode, CompetenceCodes, Leviers } from "@/shared/types";
 import { CreateServiceRequest } from "@/services/dto/create-service.dto";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
-import { competenceCodes } from "@/shared/const/competences-list-v2";
+import { competencesFromM57Referentials } from "@/shared/const/competences-list-v2";
 
 interface CsvRecord {
   name: string;
@@ -58,6 +58,7 @@ export async function parseServiceAndServiceContextsCSVFiles(
   });
 
   const serviceCSVData = fs.createReadStream(servicesFilePath).pipe(servicesParser);
+
   for await (const serviceRecord of serviceCSVData as AsyncIterable<CsvRecord>) {
     services.push({
       ...serviceRecord,
@@ -76,6 +77,7 @@ export async function parseServiceAndServiceContextsCSVFiles(
   });
 
   const serviceContextsCSVData = fs.createReadStream(contextsFilePath).pipe(serviceContextsParser);
+
   for await (const serviceContextRecord of serviceContextsCSVData as AsyncIterable<CsvContextRecord>) {
     serviceContexts.push(parseServiceContextFromCsvRecord(serviceContextRecord, parsingErrors));
   }
@@ -85,9 +87,15 @@ export async function parseServiceAndServiceContextsCSVFiles(
 
 function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItemsFile: string[]): ParsedServiceContext {
   const parsedLeviers = record.leviers ? parseFieldToArray(record.leviers, leviers, "levier", invalidItemsFile) : [];
+  const competenceCodes = getCompetencesCodeFromLabels(record.competences);
 
-  const parsedCompetences = record.competences
-    ? parseFieldToArray(record.competences, competenceCodes, "competence", invalidItemsFile)
+  const parsedCompetences = competenceCodes
+    ? parseFieldToArray(
+        competenceCodes,
+        Object.keys(competencesFromM57Referentials) as CompetenceCode[],
+        "competence",
+        invalidItemsFile,
+      )
     : [];
 
   const parsedStatus = record.status
@@ -108,4 +116,24 @@ function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItems
     iframeUrl: makeNullIfEmptyString(record.iframeUrl),
     extraFields: parseExtraField(record.extraFields),
   };
+}
+
+const competenceLabelToCode = Object.entries(competencesFromM57Referentials).reduce<Record<string, CompetenceCode>>(
+  (acc, [code, label]) => {
+    acc[label.trim()] = code as CompetenceCode;
+    return acc;
+  },
+  {},
+);
+
+function getCompetencesCodeFromLabels(competences: string) {
+  return competences
+    ? competences
+        .split(",")
+        .map((label) => {
+          const trimedLabel = label.trim();
+          return competenceLabelToCode[trimedLabel] ?? trimedLabel;
+        })
+        .join()
+    : "";
 }

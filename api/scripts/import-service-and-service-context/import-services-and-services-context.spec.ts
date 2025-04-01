@@ -14,8 +14,8 @@ describe("parseCSVFiles", () => {
 
   const contextValidData =
     "serviceName,sousTitre,description,logoUrl,redirectionUrl,redirectionLabel,iframeUrl,extendLabel,status,leviers,competences,extraField\n" +
-    'UrbanVitaliz,Recommandations d’actions pour faciliter la réhabilitation des friches urbaines,"UrbanVitaliz donne des recommandations d’actions à la collectivité, en fonction du projet qu’elle lui a soumis et des caractéristiques de la friches. Elle oriente ainsi vers les acteurs, dispositifs, financements, prestations, outils et stratégies disponibles, susceptibles de débloquer le porteur de projet. ",https://urbanvitaliz.fr/static/img/favicons/apple-touch-icon.png,https://urbanvitaliz.fr/,Découvrez UrbanVitaliz,,,"Etude, Idée, Opération",,"90-411",\n' +
-    'UrbanVitaliz,Des ressources autour de la réhabilitation des friches urbaines,Retrouvez des articles thématiques sur le sujet des friches urbaines.,https://urbanvitaliz.fr/static/img/favicons/apple-touch-icon.png,https://urbanvitaliz.fr/ressource/,,,,"Etude, Idée, Opération",,"90-411",\n';
+    'UrbanVitaliz,Recommandations d’actions pour faciliter la réhabilitation des friches urbaines,"UrbanVitaliz donne des recommandations d’actions à la collectivité, en fonction du projet qu’elle lui a soumis et des caractéristiques de la friches. Elle oriente ainsi vers les acteurs, dispositifs, financements, prestations, outils et stratégies disponibles, susceptibles de débloquer le porteur de projet. ",https://urbanvitaliz.fr/static/img/favicons/apple-touch-icon.png,https://urbanvitaliz.fr/,Découvrez UrbanVitaliz,,,"Etude, Idée, Opération",,"Energie éolienne, Energie hydraulique, Energie photovoltaïque",\n' +
+    'UrbanVitaliz,Des ressources autour de la réhabilitation des friches urbaines,Retrouvez des articles thématiques sur le sujet des friches urbaines.,https://urbanvitaliz.fr/static/img/favicons/apple-touch-icon.png,https://urbanvitaliz.fr/ressource/,,,,"Etude, Idée, Opération",,NULL,\n';
 
   beforeEach(() => {
     if (!fs.existsSync(tempDir)) {
@@ -31,14 +31,13 @@ describe("parseCSVFiles", () => {
   it("should generate an invalid items file when there are invalid service context entries", async () => {
     fs.writeFileSync(serviceCSVPath, serviceData);
     const invalidServiceContextData = contextValidData.replace(/Etude/g, "Invalid_phase");
-    fs.writeFileSync(serviceContextPath, invalidServiceContextData.replace(/90-411/g, "90-4111"));
+    fs.writeFileSync(serviceContextPath, invalidServiceContextData.replace(/Energie éolienne/g, "Energie éooolienne"));
 
     const { errors } = await parseServiceAndServiceContextsCSVFiles(serviceCSVPath, serviceContextPath);
 
     expect(errors).toStrictEqual([
-      "Invalid competence: 90-4111",
+      "Invalid competence: Energie éooolienne",
       "Invalid phases: Invalid_phase",
-      "Invalid competence: 90-4111",
       "Invalid phases: Invalid_phase",
     ]);
   });
@@ -50,5 +49,27 @@ describe("parseCSVFiles", () => {
     const { errors } = await parseServiceAndServiceContextsCSVFiles(serviceCSVPath, serviceContextPath);
 
     expect(errors.length).toBe(0);
+  });
+
+  it("should handle null values properly for competences", async () => {
+    fs.writeFileSync(serviceCSVPath, serviceData);
+    fs.writeFileSync(serviceContextPath, contextValidData);
+
+    const { data } = await parseServiceAndServiceContextsCSVFiles(serviceCSVPath, serviceContextPath);
+
+    expect(data.serviceContexts[1]).toStrictEqual({
+      competences: null,
+      description: "Retrouvez des articles thématiques sur le sujet des friches urbaines.",
+      extendLabel: null,
+      extraFields: [],
+      iframeUrl: null,
+      leviers: [],
+      logoUrl: "https://urbanvitaliz.fr/static/img/favicons/apple-touch-icon.png",
+      phases: ["Etude", "Idée", "Opération"],
+      redirectionLabel: null,
+      redirectionUrl: "https://urbanvitaliz.fr/ressource/",
+      serviceName: "UrbanVitaliz",
+      sousTitre: "Des ressources autour de la réhabilitation des friches urbaines",
+    });
   });
 });
