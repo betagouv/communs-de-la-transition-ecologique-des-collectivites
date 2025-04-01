@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsEnum, IsIn, IsOptional, IsString, IsUrl, ValidateIf } from "class-validator";
 import { ProjetPhases, projetPhasesEnum, serviceContext } from "@database/schema";
 import { InferInsertModel } from "drizzle-orm";
-import { Competences, Leviers } from "@/shared/types";
+import { CompetenceCodes, Leviers } from "@/shared/types";
 import { competenceCodes } from "@/shared/const/competences-list-v2";
 import { leviers } from "@/shared/const/leviers";
 import { ExtraFieldConfig } from "@/services/dto/extra-fields-config.dto";
@@ -23,9 +23,9 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
     description: "Array of competences and sous-competences, empty array means all competences/sous-competences",
   })
   @IsArray()
-  @ValidateIf((_object: CreateServiceContextRequest, value: Competences | null) => value !== null)
+  @ValidateIf((_object: CreateServiceContextRequest, value: CompetenceCodes | null) => value !== null)
   @IsIn(competenceCodes, { each: true })
-  competences!: Competences | null;
+  competences!: CompetenceCodes | null;
 
   @ApiProperty({
     type: String,

@@ -1,5 +1,5 @@
 import { ProjetPhases, projetPhasesEnum, PhaseStatut, phaseStatutEnum } from "@database/schema";
-import { Competences, Leviers } from "@/shared/types";
+import { CompetenceCodes, Leviers } from "@/shared/types";
 import { ApiProperty } from "@nestjs/swagger";
 import { leviers } from "@/shared/const/leviers";
 import { competenceCodes } from "@/shared/const/competences-list-v2";
@@ -46,7 +46,7 @@ export class ProjetResponse {
   programme!: string | null;
 
   @ApiProperty({ nullable: true, type: String, enum: competenceCodes })
-  competences!: Competences | null;
+  competences!: CompetenceCodes | null;
 
   @ApiProperty({
     nullable: true,

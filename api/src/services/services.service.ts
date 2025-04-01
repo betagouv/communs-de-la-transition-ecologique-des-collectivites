@@ -6,7 +6,7 @@ import { CustomLogger } from "@logging/logger.service";
 import { projets, services } from "@database/schema";
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { ServicesContextService } from "@/services/services-context.service";
-import { Competences, Leviers } from "@/shared/types";
+import { CompetenceCodes, Leviers } from "@/shared/types";
 
 @Injectable()
 export class ServicesService {
@@ -62,7 +62,7 @@ export class ServicesService {
     }
 
     return this.serviceContextService.findMatchingServicesContext(
-      project.competences as Competences,
+      project.competences as CompetenceCodes,
       project.leviers as Leviers,
       project.phase,
     );

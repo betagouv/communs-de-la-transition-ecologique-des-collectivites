@@ -4,7 +4,7 @@ import { CustomLogger } from "@logging/logger.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq, InferSelectModel } from "drizzle-orm";
 import { ProjetResponse } from "@projets/dto/projet.dto";
-import { Competences, Leviers } from "@/shared/types";
+import { CompetenceCodes, Leviers } from "@/shared/types";
 
 type Collectivite = InferSelectModel<typeof collectivites>;
 
@@ -78,7 +78,7 @@ export class GetProjetsService {
         referentPrenom: porteurReferentPrenom,
         referentFonction: porteurReferentFonction,
       },
-      competences: projet.competences ? (projet.competences as Competences) : null,
+      competences: projet.competences ? (projet.competences as CompetenceCodes) : null,
       leviers: projet.leviers ? (projet.leviers as Leviers) : null,
       collectivites: projet.collectivites.map((c) => c.collectivite),
     };

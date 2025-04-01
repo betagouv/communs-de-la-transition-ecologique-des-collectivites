@@ -11,7 +11,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { PhaseStatut, phaseStatutEnum, ProjetPhases, projetPhasesEnum } from "@database/schema";
-import { Competences, Leviers } from "@/shared/types";
+import { CompetenceCodes, Leviers } from "@/shared/types";
 import { competenceCodes } from "@/shared/const/competences-list-v2";
 import { leviers } from "@/shared/const/leviers";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
@@ -114,7 +114,7 @@ export class CreateProjetRequest {
   @IsOptional()
   @IsArray()
   @IsIn(competenceCodes, { each: true })
-  competences?: Competences | null;
+  competences?: CompetenceCodes | null;
 
   @ApiProperty({
     type: String,
