@@ -2,11 +2,11 @@ import fs from "fs";
 import { parse } from "csv-parse";
 import { makeNullIfEmptyString, parseExtraField, parseFieldToArray } from "./utils";
 import { leviers } from "@/shared/const/leviers";
-import { competences } from "@/shared/const/competences-list";
 import { ProjetPhases, projetPhasesEnum } from "@database/schema";
 import { Competences, Leviers } from "@/shared/types";
 import { CreateServiceRequest } from "@/services/dto/create-service.dto";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
+import { competenceCodes } from "@/shared/const/competences-list-v2";
 
 interface CsvRecord {
   name: string;
@@ -87,7 +87,7 @@ function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItems
   const parsedLeviers = record.leviers ? parseFieldToArray(record.leviers, leviers, "levier", invalidItemsFile) : [];
 
   const parsedCompetences = record.competences
-    ? parseFieldToArray(record.competences, competences, "competence", invalidItemsFile)
+    ? parseFieldToArray(record.competences, competenceCodes, "competence", invalidItemsFile)
     : [];
 
   const parsedStatus = record.status
