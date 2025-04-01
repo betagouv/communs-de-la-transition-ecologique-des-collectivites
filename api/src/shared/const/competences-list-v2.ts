@@ -121,7 +121,7 @@ export const competenceLabels = {
   "90-758": "Autres actions",
   "90-76": "Préserv. patrim. naturel,risques techno",
   "90-77": "Environnement infrastructures transports",
-  "90-78": "Autres actions",
+  "90-78": "Environnement / Autres actions",
   "90-81": "Transports scolaires",
   "90-82": "Transports publics de voyageurs",
   "90-821": "Transport sur route",
