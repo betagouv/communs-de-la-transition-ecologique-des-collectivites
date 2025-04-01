@@ -30,8 +30,12 @@ export class ServicesContextService {
     const categorizationConditions = [];
 
     if (competences?.length) {
+      // Get both original competences and their parent codes
+      // parent code is XX-XX whereas children code is XX-XXX
+      const competencesWithParents = competences.flatMap((competence) => [competence, competence.slice(0, 5)]);
+
       categorizationConditions.push(
-        or(eq(serviceContext.competences, []), arrayOverlaps(serviceContext.competences, competences)),
+        or(eq(serviceContext.competences, []), arrayOverlaps(serviceContext.competences, competencesWithParents)),
       );
     }
 

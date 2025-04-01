@@ -566,6 +566,82 @@ describe("ServiceContextService", () => {
 
       expect(serviceContexts).toHaveLength(0);
     });
+
+    it("should match child competences with parent competence codes", async () => {
+      const service = await servicesService.create(servicePayload);
+
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        competences: ["90-85"],
+        phases: [],
+        leviers: [],
+      };
+      await serviceContextService.create(service.id, createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-851"], null, null);
+
+      expect(serviceContexts).toHaveLength(1);
+      expect(serviceContexts[0]).toEqual({
+        id: service.id,
+        createdAt: expect.any(Date),
+        name: service.name,
+        description: createContextDto.description,
+        sousTitre: service.sousTitre,
+        logoUrl: service.logoUrl,
+        redirectionUrl: service.redirectionUrl,
+        redirectionLabel: service.redirectionLabel,
+        extendLabel: null,
+        iframeUrl: null,
+        isListed: true,
+        extraFields: [],
+      });
+    });
+
+    it("should match multiple child competences with parent competence code", async () => {
+      const service = await servicesService.create(servicePayload);
+
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        competences: ["90-85"],
+        phases: [],
+        leviers: [],
+      };
+      await serviceContextService.create(service.id, createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-851", "90-852"], null, null);
+
+      expect(serviceContexts).toHaveLength(1);
+      expect(serviceContexts[0]).toEqual({
+        id: service.id,
+        createdAt: expect.any(Date),
+        name: service.name,
+        description: createContextDto.description,
+        sousTitre: service.sousTitre,
+        logoUrl: service.logoUrl,
+        redirectionUrl: service.redirectionUrl,
+        redirectionLabel: service.redirectionLabel,
+        extendLabel: null,
+        iframeUrl: null,
+        isListed: true,
+        extraFields: [],
+      });
+    });
+
+    it("should not match children code on service with parent code on project", async () => {
+      const service = await servicesService.create(servicePayload);
+
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        competences: ["90-851"],
+        phases: [],
+        leviers: [],
+      };
+      await serviceContextService.create(service.id, createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-85"], null, null);
+
+      expect(serviceContexts).toHaveLength(0);
+    });
   });
 
   describe("create", () => {
