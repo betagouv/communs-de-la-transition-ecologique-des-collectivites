@@ -1,4 +1,4 @@
-export const competenceLabels = {
+const competencesFromM57Referentials = {
   "90-025": "Cimetières et pompes funèbres",
   "90-11": "Police, sécurité, justice",
   "90-12": "Incendie et secours",
@@ -158,5 +158,5 @@ export const competenceLabels = {
   "90-89": "Transports / Sécurité",
 };
 
-export type CompetenceCode = keyof typeof competenceLabels;
-export const competenceCodes = Object.keys(competenceLabels) as CompetenceCode[];
+export type CompetenceCode = keyof typeof competencesFromM57Referentials;
+export const competenceCodes = Object.keys(competencesFromM57Referentials) as CompetenceCode[];
