@@ -43,7 +43,8 @@ export class CorsMiddleware implements NestMiddleware {
       cors({
         origin: (origin: string | undefined, callback) => {
           if (!origin) {
-            callback(new Error("Origin is not set"));
+            // Allow requests with no origin (same-origin requests)
+            callback(null, true);
             return;
           }
           if (isOriginAllowed(origin)) {

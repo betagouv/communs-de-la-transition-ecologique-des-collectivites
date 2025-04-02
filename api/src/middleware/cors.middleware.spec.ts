@@ -125,6 +125,15 @@ describe("CorsMiddleware", () => {
         expect(nextFunction).toHaveBeenNthCalledWith(index + 1, new Error(`${origin} not allowed by CORS`));
       });
     });
+
+    it("should allow requests with no origin (same domain origin)", () => {
+      process.env.CORS_ALLOWED_DOMAINS = "example.com";
+
+      mockRequest.headers = { origin: undefined };
+      middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(nextFunction).toHaveBeenCalledWith();
+    });
   });
 
   describe("isOriginAllowed", () => {
