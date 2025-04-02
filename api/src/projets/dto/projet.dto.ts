@@ -2,7 +2,7 @@ import { ProjetPhases, projetPhasesEnum, PhaseStatut, phaseStatutEnum } from "@d
 import { CompetenceCodes, Leviers } from "@/shared/types";
 import { ApiProperty } from "@nestjs/swagger";
 import { leviers } from "@/shared/const/leviers";
-import { competenceCodes } from "@/shared/const/competences-list-v2";
+import { competenceCodes } from "@/shared/const/competences-list";
 import { Collectivite } from "@projets/dto/collectivite.dto";
 import { PorteurDto } from "@projets/dto/porteur.dto";
 import { ValidateNested } from "class-validator";

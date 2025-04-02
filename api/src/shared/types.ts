@@ -1,5 +1,5 @@
 import { leviers } from "@/shared/const/leviers";
-import { competenceCodes } from "@/shared/const/competences-list-v2";
+import { competenceCodes } from "@/shared/const/competences-list";
 
 export type ServiceType = "MEC" | "TeT" | "Recoco";
 

@@ -12,7 +12,7 @@ import {
 } from "class-validator";
 import { PhaseStatut, phaseStatutEnum, ProjetPhases, projetPhasesEnum } from "@database/schema";
 import { CompetenceCodes, Leviers } from "@/shared/types";
-import { competenceCodes } from "@/shared/const/competences-list-v2";
+import { competenceCodes } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 import { PorteurDto } from "@projets/dto/porteur.dto";

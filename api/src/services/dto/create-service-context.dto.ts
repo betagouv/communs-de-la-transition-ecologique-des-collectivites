@@ -3,7 +3,7 @@ import { IsArray, IsEnum, IsIn, IsOptional, IsString, IsUrl, ValidateIf } from "
 import { ProjetPhases, projetPhasesEnum, serviceContext } from "@database/schema";
 import { InferInsertModel } from "drizzle-orm";
 import { CompetenceCodes, Leviers } from "@/shared/types";
-import { competenceCodes } from "@/shared/const/competences-list-v2";
+import { competenceCodes } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
 import { ExtraFieldConfig } from "@/services/dto/extra-fields-config.dto";
 

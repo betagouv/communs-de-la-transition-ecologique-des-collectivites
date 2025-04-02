@@ -4,7 +4,6 @@ export const competencesFromM57Referentials = {
   "90-12": "Incendie et secours",
   "90-13": "Hygiène et salubrité publique",
   "90-18": "Sécurité / Autres interv. protect. personnes, biens",
-  "90-20": "Enseignement, formation professionnelle et apprentissage / Services communs",
   "90-21": "Enseignement du premier degré",
   "90-211": "Ecoles maternelles",
   "90-212": "Ecoles primaires",

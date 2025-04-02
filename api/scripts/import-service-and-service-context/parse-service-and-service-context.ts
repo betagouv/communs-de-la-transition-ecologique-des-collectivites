@@ -6,7 +6,7 @@ import { ProjetPhases, projetPhasesEnum } from "@database/schema";
 import { CompetenceCode, CompetenceCodes, Leviers } from "@/shared/types";
 import { CreateServiceRequest } from "@/services/dto/create-service.dto";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
-import { competencesFromM57Referentials } from "@/shared/const/competences-list-v2";
+import { competencesFromM57Referentials } from "@/shared/const/competences-list";
 
 interface CsvRecord {
   name: string;
