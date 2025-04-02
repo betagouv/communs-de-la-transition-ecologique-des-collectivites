@@ -11,8 +11,8 @@ import {
   ValidateNested,
 } from "class-validator";
 import { PhaseStatut, phaseStatutEnum, ProjetPhases, projetPhasesEnum } from "@database/schema";
-import { Competences, Leviers } from "@/shared/types";
-import { competences } from "@/shared/const/competences-list";
+import { CompetenceCodes, Leviers } from "@/shared/types";
+import { competenceCodes } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 import { PorteurDto } from "@projets/dto/porteur.dto";
@@ -104,18 +104,17 @@ export class CreateProjetRequest {
   collectivites!: CollectiviteReference[];
 
   @ApiProperty({
+    nullable: true,
     type: String,
-    enum: competences,
+    enum: competenceCodes,
+    description: "Array of competences and sous-competences",
     isArray: true,
     required: false,
-    nullable: true,
-    description: "Array of competences and sous-competences",
-    example: ["Santé", "Culture > Arts plastiques et photographie"],
   })
-  @IsArray()
   @IsOptional()
-  @IsIn(competences, { each: true })
-  competences?: Competences | null;
+  @IsArray()
+  @IsIn(competenceCodes, { each: true })
+  competences?: CompetenceCodes | null;
 
   @ApiProperty({
     type: String,

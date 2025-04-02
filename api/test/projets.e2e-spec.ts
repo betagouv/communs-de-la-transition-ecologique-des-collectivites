@@ -2,7 +2,7 @@
 
 import { getFormattedDate } from "./helpers/get-formatted-date";
 import { createApiClient } from "@test/helpers/api-client";
-import { Competence, Levier } from "@/shared/types";
+import { CompetenceCode, Levier } from "@/shared/types";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
 import { collectivites, PhaseStatut, ProjetPhases } from "@database/schema";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
@@ -86,7 +86,7 @@ describe("Projets (e2e)", () => {
       const { data: updatedProjet } = await api.projects.getOne(data!.id);
 
       expect(updatedProjet).toMatchObject({
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
+        competences: ["90-411", "90-311"],
         recocoId: "Recoco-service-id",
       });
     });
@@ -105,7 +105,7 @@ describe("Projets (e2e)", () => {
       const { data: updatedProjet } = await api.projects.getOne(data!.id);
 
       expect(updatedProjet).toMatchObject({
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
+        competences: ["90-411", "90-311"],
         collectivites: [
           {
             codeInsee: missingCodeInsee,
@@ -223,12 +223,12 @@ describe("Projets (e2e)", () => {
     it("should reject when project has wrong competences", async () => {
       const { error } = await api.projects.create({
         ...validProjet,
-        competences: ["Wrong_Competence" as Competence],
+        competences: ["Wrong_Competence" as CompetenceCode],
       });
 
       expect(error?.statusCode).toBe(400);
       expect(error?.message[0]).toContain(
-        "each value in competences must be one of the following values: Autres interventions de protection civile",
+        "each value in competences must be one of the following values: 90-025, 90-11,",
       );
     });
 
@@ -479,7 +479,7 @@ describe("Projets (e2e)", () => {
           referentPrenom: null,
           referentTelephone: null,
         },
-        competences: ["Santé", "Culture > Arts plastiques et photographie"],
+        competences: ["90-411", "90-311"],
         leviers: ["Bio-carburants"],
         programme: null,
         mecId: "test-external-id",

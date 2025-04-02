@@ -2,8 +2,8 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsEnum, IsIn, IsOptional, IsString, IsUrl, ValidateIf } from "class-validator";
 import { ProjetPhases, projetPhasesEnum, serviceContext } from "@database/schema";
 import { InferInsertModel } from "drizzle-orm";
-import { Competences, Leviers } from "@/shared/types";
-import { competences } from "@/shared/const/competences-list";
+import { CompetenceCodes, Leviers } from "@/shared/types";
+import { competenceCodes } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
 import { ExtraFieldConfig } from "@/services/dto/extra-fields-config.dto";
 
@@ -15,18 +15,17 @@ export class CreateServiceContextResponse {
 
 export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof serviceContext>, "serviceId"> {
   @ApiProperty({
-    type: String,
-    enum: competences,
-    isArray: true,
     nullable: true,
+    type: String,
+    isArray: true,
     required: true,
+    enum: competenceCodes,
     description: "Array of competences and sous-competences, empty array means all competences/sous-competences",
-    example: ["Santé", "Culture > Arts plastiques et photographie"],
   })
   @IsArray()
-  @ValidateIf((_object: CreateServiceContextRequest, value: Competences | null) => value !== null)
-  @IsIn(competences, { each: true })
-  competences!: Competences | null;
+  @ValidateIf((_object: CreateServiceContextRequest, value: CompetenceCodes | null) => value !== null)
+  @IsIn(competenceCodes, { each: true })
+  competences!: CompetenceCodes | null;
 
   @ApiProperty({
     type: String,

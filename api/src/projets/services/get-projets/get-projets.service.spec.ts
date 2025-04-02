@@ -74,7 +74,7 @@ describe("ProjetFindService", () => {
     },
     programme: null,
     leviers: ["Bio-carburants"],
-    competences: ["Santé", "Culture > Arts plastiques et photographie"],
+    competences: ["90-411", "90-311"],
     budgetPrevisionnel: 100000,
     collectivites: expect.arrayContaining(
       mockedCollectivites.map(({ code, type }, index) => ({
