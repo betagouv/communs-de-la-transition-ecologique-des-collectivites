@@ -72,4 +72,17 @@ describe("parseCSVFiles", () => {
       sousTitre: "Des ressources autour de la réhabilitation des friches urbaines",
     });
   });
+
+  //todo unskip this tests once we use parseField to handle quotes
+  it.skip("should handle competence with space", async () => {
+    fs.writeFileSync(serviceCSVPath, serviceData);
+    fs.writeFileSync(
+      serviceContextPath,
+      contextValidData.replace(/Energie éolienne/g, "Industrie, commerce et artisanat"),
+    );
+
+    const { errors } = await parseServiceAndServiceContextsCSVFiles(serviceCSVPath, serviceContextPath);
+
+    expect(errors.length).toBe(0);
+  });
 });

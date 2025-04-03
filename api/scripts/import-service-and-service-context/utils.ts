@@ -39,6 +39,7 @@ export function parseFieldToArray(
   // Remove curly braces and quotes
   const cleanedField = field.replace(/[{}"]/g, "");
 
+  // todo check if this is still necessary with the competences ref being sent as codes (depending on Tet import where it is used too)
   // this regex is useful as some leviers and competences have a "," inside their own name
   // like Agriculture, pêche et agro-alimentaire therefore we only want to split
   // when the comma is followed by a capital letter or a digit regardless of whistepace which can be present or not based on the csv generation
