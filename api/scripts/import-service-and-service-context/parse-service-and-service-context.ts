@@ -127,13 +127,26 @@ const competenceLabelToCode = Object.entries(competencesFromM57Referentials).red
 );
 
 function getCompetencesCodeFromLabels(competences: string) {
-  return competences
-    ? competences
-        .split(",")
-        .map((label) => {
-          const trimedLabel = label.trim();
-          return competenceLabelToCode[trimedLabel] ?? trimedLabel;
-        })
-        .join()
-    : "";
+  if (!competences) return "";
+
+  const splitedCompetences = competences
+    // Split on commas that are not inside quotes
+    // - (?=...) is a positive lookahead that checks what follows the comma
+    // - (?:[^"]*"[^"]*")* matches any number of pairs of quotes and their content
+    // - [^"]*$ ensures we're not inside a quoted string by checking there's an even number of quotes until the end
+    .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+
+  const cleanedCompetences = splitedCompetences
+    .map((label) => {
+      // Remove any quotes and trim whitespace
+      const trimedLabel = label.trim().replace(/^["']|["']$/g, "");
+      const code = competenceLabelToCode[trimedLabel];
+      if (!code) {
+        console.log(`No code found for label: "${trimedLabel}"`);
+      }
+      return code ?? trimedLabel;
+    })
+    .join();
+
+  return cleanedCompetences;
 }
