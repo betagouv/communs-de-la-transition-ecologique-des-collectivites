@@ -45,6 +45,7 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
     extraFields,
     logoUrl,
     isListed,
+    sousTitre,
   } = service;
   const isLevier = name === "Levier_SGPE";
 
@@ -97,7 +98,7 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
                 </Badge>
               )}
             </div>
-            {/*<span className={classNames(classes.sousTitre, fr.cx("fr-text--sm"))}>{sousTitre}</span>*/}
+            <span className={classes.sousTitre}>{sousTitre}</span>
             <span className={fr.cx("fr-text--sm")}>{descriptionTruncated}</span>
 
             {description.length > maxDescriptionLength && (
