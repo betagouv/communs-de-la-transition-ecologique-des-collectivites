@@ -679,16 +679,28 @@ describe("ServiceContextService", () => {
       });
     });
 
-    it("should throw ConflictException when creating a service context with duplicate description for the same service", async () => {
+    it("should throw ConflictException when creating a service context with duplicate description and sousTitre for the same service", async () => {
       const service = await servicesService.create(validService);
       await serviceContextService.create(service.id, validServiceContext);
 
-      // Try to create second service context with same description
+      // Try to create second service context with same description and same sousTitre
       await expect(serviceContextService.create(service.id, validServiceContext)).rejects.toThrow(
         new ConflictException(
           `A service context with the description "${validServiceContext.description}" already exists for this service`,
         ),
       );
+    });
+
+    it("should not throw ConflictException when creating a service context with duplicate description but different sousTitre", async () => {
+      const service = await servicesService.create(validService);
+      await serviceContextService.create(service.id, validServiceContext);
+
+      const context2 = await serviceContextService.create(service.id, {
+        ...validServiceContext,
+        sousTitre: "different sousTitre",
+      });
+
+      expect(context2).toBeDefined();
     });
 
     it("should allow same description for different services", async () => {
