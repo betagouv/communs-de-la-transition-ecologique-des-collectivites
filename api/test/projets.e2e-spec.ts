@@ -251,7 +251,7 @@ describe("Projets (e2e)", () => {
       });
 
       expect(error?.statusCode).toBe(400);
-      expect(error?.message[0]).toContain("phase must be one of the following values: Idée, Etude, Opération");
+      expect(error?.message[0]).toContain("phase must be one of the following values: Idée, Étude, Opération");
     });
 
     it("should reject when project has wrong phaseStatut", async () => {

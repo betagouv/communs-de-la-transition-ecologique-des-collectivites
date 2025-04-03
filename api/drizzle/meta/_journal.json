@@ -141,6 +141,13 @@
       "when": 1742834007266,
       "tag": "0019_lying_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1743678418227,
+      "tag": "0020_worthless_skaar",
+      "breakpoints": true
     }
   ]
 }
