@@ -53,7 +53,7 @@ export const useStyles = tss.create(() => ({
   },
 
   sousTitre: {
-    color: fr.colors.decisions.text.mention.grey.default,
+    color: fr.colors.decisions.text.default.grey.default,
     fontWeight: 500,
     fontSize: "15px",
     display: "block",
