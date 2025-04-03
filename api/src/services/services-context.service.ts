@@ -125,7 +125,7 @@ export class ServicesContextService {
 
     if (existingServiceContext.length > 0) {
       throw new ConflictException(
-        `A service context with the description "${description}" already exists for this service`,
+        `A service context with the description "${description}" and sousTitre "${sousTitre}" already exists for this service`,
       );
     }
 

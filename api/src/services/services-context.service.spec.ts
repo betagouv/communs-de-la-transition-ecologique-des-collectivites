@@ -686,7 +686,7 @@ describe("ServiceContextService", () => {
       // Try to create second service context with same description and same sousTitre
       await expect(serviceContextService.create(service.id, validServiceContext)).rejects.toThrow(
         new ConflictException(
-          `A service context with the description "${validServiceContext.description}" already exists for this service`,
+          `A service context with the description "${validServiceContext.description}" and sousTitre "${validServiceContext.sousTitre}" already exists for this service`,
         ),
       );
     });
