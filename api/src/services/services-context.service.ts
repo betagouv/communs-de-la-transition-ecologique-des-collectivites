@@ -109,20 +109,24 @@ export class ServicesContextService {
       throw new NotFoundException(`Service with ID ${serviceId} not found`);
     }
 
-    const { competences, leviers, phases, description, ...otherFields } = createServiceContextDto;
+    const { competences, leviers, phases, description, sousTitre, ...otherFields } = createServiceContextDto;
 
-    if (description) {
-      const existingServiceContext = await this.dbService.database
-        .select()
-        .from(serviceContext)
-        .where(and(eq(serviceContext.serviceId, serviceId), eq(serviceContext.description, description)))
-        .limit(1);
+    const existingServiceContext = await this.dbService.database
+      .select()
+      .from(serviceContext)
+      .where(
+        and(
+          eq(serviceContext.serviceId, serviceId),
+          eq(serviceContext.description, description ?? service.description),
+          eq(serviceContext.sousTitre, sousTitre ?? service.sousTitre),
+        ),
+      )
+      .limit(1);
 
-      if (existingServiceContext.length > 0) {
-        throw new ConflictException(
-          `A service context with the description "${description}" already exists for this service`,
-        );
-      }
+    if (existingServiceContext.length > 0) {
+      throw new ConflictException(
+        `A service context with the description "${description}" and sousTitre "${sousTitre}" already exists for this service`,
+      );
     }
 
     const [newServiceContext] = await this.dbService.database
@@ -131,6 +135,7 @@ export class ServicesContextService {
         serviceId,
         ...otherFields,
         description,
+        sousTitre,
         competences,
         leviers,
         phases,
