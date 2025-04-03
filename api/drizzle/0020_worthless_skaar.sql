@@ -1,0 +1,1 @@
+ALTER TYPE projet_phases RENAME VALUE 'Etude' TO 'Étude';

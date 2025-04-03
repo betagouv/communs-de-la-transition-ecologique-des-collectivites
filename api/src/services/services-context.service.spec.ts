@@ -251,7 +251,7 @@ describe("ServiceContextService", () => {
         description: "Context Description",
         // Empty array should match all
         competences: [],
-        phases: ["Etude"],
+        phases: ["Étude"],
         leviers: [],
       };
       await serviceContextService.create(service.id, createContextDto);
