@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.11](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.10...v0.0.11) (2025-04-07)
+
+
+### Features
+
+* adapt widget following project endpoint rename ([d5c171e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d5c171ea8eeea74912227ecc4dc3f508e9c6f3fa))
+* add isListed badge in debug mode ([#109](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/109)) ([135ef6f](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/135ef6f120f0cd10e2495c2a507b7c8dc807d599))
+* adjust subtitle according to design ([#126](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/126)) ([ba1f7f9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ba1f7f9b20317909af58b0adf51b257cb3bda398))
+* init matomo ([526a447](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/526a4478c98281cb2f42c6674319d28c5c681af0))
+* make backend serve demo-widget ([7709383](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/7709383d87d3aa914495b962aa911528fbda1e7e))
+* make create endpoint using upsert instead of create ([#120](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/120)) ([7c38fed](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/7c38fed7756bdee12a45f6743a9113aea71be422))
+* make import service script compatible with null value for matching criteria ([#114](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/114)) ([636d854](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/636d85407a29f0f8dfbbfdaa4a33f8c005f0575f))
+* make matching criteria nullable for service context ([#113](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/113)) ([316a259](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/316a259839ea1c32223583a4376141958a3a2bd5))
+* rename Etude to Etude with accent ([#133](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/133)) ([da618b5](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/da618b583cd7bfeafb8891d8880a3a64f7d2a504))
+
+
+### Bug Fixes
+
+* adapt apiproperty to allow null value for service create dto ([95ce5ab](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/95ce5abee61675a2a6ee6b1bff9b833d66528f6a))
+* allow request for widget when no origin ([#131](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/131)) ([a86c7cd](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/a86c7cd19da39655cd237d415d41b1df456fed72))
+* make swagger example valid commune and epci ([#122](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/122)) ([de0f096](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/de0f096beaa705e2dd4be13200ef207d6f50da24))
+
 ## [0.0.10](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.9...v0.0.10) (2025-03-11)
 
 ## [0.0.9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.8...v0.0.9) (2025-03-10)
