@@ -10,7 +10,7 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import { PhaseStatut, phaseStatutEnum, ProjetPhases, projetPhasesEnum } from "@database/schema";
+import { PhaseStatut, phaseStatutEnum, ProjetPhase, projetPhasesEnum } from "@database/schema";
 import { CompetenceCodes, Leviers } from "@/shared/types";
 import { competenceCodes } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
@@ -69,7 +69,7 @@ export class CreateProjetRequest {
   })
   @IsIn(projetPhasesEnum.enumValues)
   @IsOptional()
-  phase?: ProjetPhases | null;
+  phase?: ProjetPhase | null;
 
   @ApiProperty({
     enum: phaseStatutEnum.enumValues,

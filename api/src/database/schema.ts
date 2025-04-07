@@ -17,7 +17,7 @@ import { uuidv7 } from "uuidv7";
 
 const projetPhases = ["Idée", "Étude", "Opération"] as const;
 export const projetPhasesEnum = pgEnum("projet_phases", projetPhases);
-export type ProjetPhases = (typeof projetPhasesEnum.enumValues)[number];
+export type ProjetPhase = (typeof projetPhasesEnum.enumValues)[number];
 
 const phaseStatut = ["En cours", "En retard", "En pause", "Bloqué", "Abandonné", "Terminé"] as const;
 export const phaseStatutEnum = pgEnum("phase_statut", phaseStatut);

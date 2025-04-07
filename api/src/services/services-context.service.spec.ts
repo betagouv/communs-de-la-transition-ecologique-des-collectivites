@@ -550,6 +550,93 @@ describe("ServiceContextService", () => {
       expect(serviceContexts).toHaveLength(0);
     });
 
+    it("should allow other criteria to be matched when phase is null", async () => {
+      const service1 = await servicesService.create({ ...servicePayload, name: "UrbanVitaliz" });
+      const service2 = await servicesService.create({ ...servicePayload, name: "Expertises-Territoires" });
+
+      const createContextDto1: CreateServiceContextRequest = {
+        description: "UrbanVitaliz Context Description",
+        competences: null,
+        phases: null,
+        leviers: ["Bio-carburants"],
+      };
+
+      const createContextDto2: CreateServiceContextRequest = {
+        description: "Expertises-Territoires Context Description",
+        competences: ["90-518"],
+        phases: null,
+        leviers: null,
+      };
+      await serviceContextService.create(service1.id, createContextDto1);
+      await serviceContextService.create(service2.id, createContextDto2);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
+        ["90-51", "90-518"],
+        ["Bio-carburants"],
+        "Idée",
+      );
+
+      expect(serviceContexts).toHaveLength(2);
+    });
+
+    it("should allow other criteria to be matched when levier is null", async () => {
+      const service1 = await servicesService.create({ ...servicePayload, name: "UrbanVitaliz" });
+      const service2 = await servicesService.create({ ...servicePayload, name: "Expertises-Territoires" });
+
+      const createContextDto1: CreateServiceContextRequest = {
+        description: "UrbanVitaliz Context Description",
+        competences: ["90-518"],
+        phases: null,
+        leviers: null,
+      };
+
+      const createContextDto2: CreateServiceContextRequest = {
+        description: "Expertises-Territoires Context Description",
+        competences: ["90-41"],
+        phases: null,
+        leviers: null,
+      };
+      await serviceContextService.create(service1.id, createContextDto1);
+      await serviceContextService.create(service2.id, createContextDto2);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
+        ["90-41", "90-518"],
+        null,
+        "Idée",
+      );
+
+      expect(serviceContexts).toHaveLength(2);
+    });
+
+    it("should allow other criteria to be matched when competences is null", async () => {
+      const service1 = await servicesService.create({ ...servicePayload, name: "UrbanVitaliz" });
+      const service2 = await servicesService.create({ ...servicePayload, name: "Expertises-Territoires" });
+
+      const createContextDto1: CreateServiceContextRequest = {
+        description: "UrbanVitaliz Context Description",
+        competences: null,
+        phases: null,
+        leviers: null,
+      };
+
+      const createContextDto2: CreateServiceContextRequest = {
+        description: "Expertises-Territoires Context Description",
+        competences: null,
+        phases: null,
+        leviers: null,
+      };
+      await serviceContextService.create(service1.id, createContextDto1);
+      await serviceContextService.create(service2.id, createContextDto2);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
+        ["90-41", "90-518"],
+        null,
+        "Idée",
+      );
+
+      expect(serviceContexts).toHaveLength(0);
+    });
+
     it("should not match null value", async () => {
       const service = await servicesService.create(servicePayload);
 

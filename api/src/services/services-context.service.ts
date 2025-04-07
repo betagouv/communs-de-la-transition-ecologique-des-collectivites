@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { ProjetPhases, serviceContext, services } from "@database/schema";
-import { and, arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
+import { ProjetPhase, serviceContext, services } from "@database/schema";
+import { and, arrayOverlaps, eq, InferSelectModel, isNull, or } from "drizzle-orm";
 import { CompetenceCodes, Leviers } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/services/dto/create-service-context.dto";
@@ -20,14 +20,39 @@ export class ServicesContextService {
     private readonly logger: CustomLogger,
   ) {}
 
+  // Helper to check if other criteria exist for a given criteria type
+  private hasOtherCriteria(
+    currentCriteria: "competences" | "leviers" | "phases",
+    referentialData: {
+      competences: CompetenceCodes | null;
+      leviers: Leviers | null;
+      projetPhase: ProjetPhase | null;
+    },
+  ): boolean {
+    const { competences, leviers, projetPhase } = referentialData;
+
+    switch (currentCriteria) {
+      case "competences":
+        return Boolean(leviers?.length) || Boolean(projetPhase);
+      case "leviers":
+        return Boolean(competences?.length) || Boolean(projetPhase);
+      case "phases":
+        return Boolean(competences?.length) || Boolean(leviers?.length);
+      default:
+        return false;
+    }
+  }
+
   async findMatchingServicesContext(
     competences: CompetenceCodes | null,
     leviers: Leviers | null,
-    projetPhases: ProjetPhases | null,
+    projetPhase: ProjetPhase | null,
   ): Promise<ServicesByProjectIdResponse[]> {
     let matchingContexts: JoinResult[] = [];
     const conditions = [];
     const categorizationConditions = [];
+
+    const referentialData = { competences, leviers, projetPhase };
 
     if (competences?.length) {
       // Get both original competences and their parent codes
@@ -35,20 +60,38 @@ export class ServicesContextService {
       const competencesWithParents = competences.flatMap((competence) => [competence, competence.slice(0, 5)]);
 
       categorizationConditions.push(
-        or(eq(serviceContext.competences, []), arrayOverlaps(serviceContext.competences, competencesWithParents)),
+        or(
+          eq(serviceContext.competences, []),
+          arrayOverlaps(serviceContext.competences, competencesWithParents),
+          // we only add this condition when there are other criteria
+          // as null should not prevent other criteria to match, same for all the other criteria
+          this.hasOtherCriteria("competences", referentialData) ? isNull(serviceContext.competences) : undefined,
+        ),
       );
     }
 
     if (leviers?.length) {
-      categorizationConditions.push(or(eq(serviceContext.leviers, []), arrayOverlaps(serviceContext.leviers, leviers)));
+      categorizationConditions.push(
+        or(
+          eq(serviceContext.leviers, []),
+          arrayOverlaps(serviceContext.leviers, leviers),
+          this.hasOtherCriteria("leviers", referentialData) ? isNull(serviceContext.leviers) : undefined,
+        ),
+      );
     }
 
     if (categorizationConditions.length > 0) {
       conditions.push(or(...categorizationConditions));
     }
 
-    if (projetPhases) {
-      conditions.push(or(eq(serviceContext.phases, []), arrayOverlaps(serviceContext.phases, [projetPhases])));
+    if (projetPhase) {
+      conditions.push(
+        or(
+          eq(serviceContext.phases, []),
+          arrayOverlaps(serviceContext.phases, [projetPhase]),
+          this.hasOtherCriteria("phases", referentialData) ? isNull(serviceContext.phases) : undefined,
+        ),
+      );
     }
 
     if (conditions.length === 0) {

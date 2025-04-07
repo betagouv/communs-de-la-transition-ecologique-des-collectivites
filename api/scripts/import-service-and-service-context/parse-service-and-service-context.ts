@@ -2,7 +2,7 @@ import fs from "fs";
 import { parse } from "csv-parse";
 import { makeNullIfEmptyString, parseExtraField, parseFieldToArray } from "./utils";
 import { leviers } from "@/shared/const/leviers";
-import { ProjetPhases, projetPhasesEnum } from "@database/schema";
+import { ProjetPhase, projetPhasesEnum } from "@database/schema";
 import { CompetenceCode, CompetenceCodes, Leviers } from "@/shared/types";
 import { CreateServiceRequest } from "@/services/dto/create-service.dto";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
@@ -106,7 +106,7 @@ function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItems
     serviceName: record.serviceName,
     leviers: parsedLeviers as Leviers,
     competences: parsedCompetences as CompetenceCodes,
-    phases: parsedStatus as ProjetPhases[],
+    phases: parsedStatus as ProjetPhase[],
     description: makeNullIfEmptyString(record.description),
     sousTitre: makeNullIfEmptyString(record.sousTitre),
     logoUrl: makeNullIfEmptyString(record.logoUrl),

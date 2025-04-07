@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsEnum, IsIn, IsOptional, IsString, IsUrl, ValidateIf } from "class-validator";
-import { ProjetPhases, projetPhasesEnum, serviceContext } from "@database/schema";
+import { ProjetPhase, projetPhasesEnum, serviceContext } from "@database/schema";
 import { InferInsertModel } from "drizzle-orm";
 import { CompetenceCodes, Leviers } from "@/shared/types";
 import { competenceCodes } from "@/shared/const/competences-list";
@@ -49,9 +49,9 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
     description: "Project phases for which the serviceContext applies, empty array means all phases",
   })
   @IsArray()
-  @ValidateIf((_object: CreateServiceContextRequest, value: ProjetPhases[] | null) => value !== null)
+  @ValidateIf((_object: CreateServiceContextRequest, value: ProjetPhase[] | null) => value !== null)
   @IsEnum(projetPhasesEnum.enumValues, { each: true })
-  phases!: ProjetPhases[] | null;
+  phases!: ProjetPhase[] | null;
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()
