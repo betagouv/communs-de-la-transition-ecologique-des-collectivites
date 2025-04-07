@@ -8,7 +8,7 @@ import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/ser
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { ExtraFieldConfig } from "./dto/extra-fields-config.dto";
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-// This interface is used in both findMatchingServicesContext and getAllServicesContexts
+
 interface JoinResult {
   services: InferSelectModel<typeof services>;
   service_context: InferSelectModel<typeof serviceContext>;
@@ -44,7 +44,7 @@ export class ServicesContextService {
         ),
       );
 
-    const allServiceContextsMatchingLeviersOrCompetences = allServiceContexts.filter(({ service_context }) => {
+    const serviceContextsMatchingLeviersOrCompetences = allServiceContexts.filter(({ service_context }) => {
       // service context with empty array match all possible values
       if (competences && service_context.competences?.length === 0) return true;
       if (leviers && service_context.leviers?.length === 0) return true;
@@ -59,7 +59,7 @@ export class ServicesContextService {
       );
     });
 
-    const matchingBasedOnPhase = allServiceContextsMatchingLeviersOrCompetences.filter(({ service_context }) => {
+    const serviceContextsMatchingPhases = serviceContextsMatchingLeviersOrCompetences.filter(({ service_context }) => {
       if (
         // service context with empty array match all possible values
         (projetPhase && service_context.phases?.length === 0) ||
@@ -76,7 +76,7 @@ export class ServicesContextService {
     });
 
     // Map to the expected response format
-    return matchingBasedOnPhase.map(({ services, service_context }) => ({
+    return serviceContextsMatchingPhases.map(({ services, service_context }) => ({
       ...services,
       description: service_context.description ?? services.description,
       sousTitre: service_context.sousTitre ?? services.sousTitre,
