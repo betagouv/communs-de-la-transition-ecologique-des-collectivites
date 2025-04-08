@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.13](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.12...v0.0.13) (2025-04-08)
+
+
+### Features
+
+* add 4xx errors as warning in logs ([#137](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/137)) ([2525d0b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2525d0ba7e740cd3054ab14632afdf621ab9479e))
+* add body to 4xx error logs ([#139](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/139)) ([972d403](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/972d403d4885e8421ae022126ad5d9ff47d20201))
+* add new csv service context following leviers changes ([#136](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/136)) ([aeeae8a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/aeeae8af7a2806db09c695713ced36171bb8833e))
+* remove en savoir plus and publish new version of the widget ([#141](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/141)) ([79c5b56](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/79c5b56bf4327c03a5a657bba5ae8e336e51f951))
+
 ## [0.0.12](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.11...v0.0.12) (2025-04-08)
 
 ## [0.0.11](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.10...v0.0.11) (2025-04-07)
