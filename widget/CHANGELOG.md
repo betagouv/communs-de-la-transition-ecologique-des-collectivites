@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.1.8
+
+### Minor Changes
+
+- remove en savoir plus
+
 ## 0.1.7
 
 ### Minor Changes

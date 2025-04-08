@@ -34,7 +34,7 @@ export const InternalServicesWidget = ({ projectId, isStagingEnv, debug }: Servi
       <h2 className={classNames(fr.cx("fr-h6", "fr-mb-2w"), styles.title)}>Services</h2>
       <span className={fr.cx("fr-text--sm")}>
         Ces services sont en lien avec les <strong>thématiques, l’état d’avancement</strong> ainsi que la{" "}
-        <strong>localisation</strong> de votre projet. En savoir plus
+        <strong>localisation</strong> de votre projet.
       </span>
       <div className={classNames(fr.cx("fr-mt-3w"), styles.services)}>
         {servicesData.map((service) => (
