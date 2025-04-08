@@ -22,6 +22,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       if (status >= 400 && status < 500) {
         this.logger.warn(`HTTP ${status} Exception`, {
           statusCode: status,
+          body: request.body as Record<string, unknown>,
           path: request.url,
           method: request.method,
           error: errorResponse,
