@@ -1,10 +1,10 @@
 import createClient from "openapi-fetch";
 import type { paths } from "@test/generated-types";
 import { config } from "dotenv";
-import * as path from "path";
 import { parseServiceAndServiceContextsCSVFiles, ParsedData } from "./parse-service-and-service-context";
+import { join } from "path";
 
-config({ path: path.resolve(__dirname, "../../.env") });
+config({ path: join(__dirname, `../../.env.${process.env.NODE_ENV ?? "development"}`) });
 
 if (!process.env.SERVICE_MANAGEMENT_API_KEY) {
   console.error("Please set SERVICE_MANAGEMENT_API_KEY environment variable");

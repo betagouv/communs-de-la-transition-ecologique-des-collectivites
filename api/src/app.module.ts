@@ -17,6 +17,7 @@ import { ProjetsModule } from "@projets/projets.module";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: `.env.${process.env.NODE_ENV ?? "development"}`,
     }),
     SentryModule.forRoot(),
     ThrottlerModule.forRoot(throttlerConfig),

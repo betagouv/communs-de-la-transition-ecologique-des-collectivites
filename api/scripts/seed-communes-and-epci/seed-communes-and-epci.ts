@@ -12,7 +12,7 @@ import { CustomLogger } from "@logging/logger.service";
 import { formatError } from "@/exceptions/utils";
 import { LoggerModule } from "@logging/logger.module";
 
-config({ path: join(__dirname, "../../.env") });
+config({ path: join(__dirname, `../../.env.${process.env.NODE_ENV ?? "development"}`) });
 
 @Module({
   imports: [ConfigModule.forRoot(), LoggerModule],
