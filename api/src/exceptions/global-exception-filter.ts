@@ -22,8 +22,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       if (status >= 400 && status < 500) {
         this.logger.warn(`HTTP ${status} Exception`, {
           statusCode: status,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          body: request.body,
+          body: request.body as Record<string, unknown>,
           path: request.url,
           method: request.method,
           error: errorResponse,
