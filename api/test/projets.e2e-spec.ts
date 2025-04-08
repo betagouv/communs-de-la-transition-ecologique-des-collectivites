@@ -4,7 +4,7 @@ import { getFormattedDate } from "./helpers/get-formatted-date";
 import { createApiClient } from "@test/helpers/api-client";
 import { CompetenceCode, Levier } from "@/shared/types";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
-import { collectivites, PhaseStatut, ProjetPhases } from "@database/schema";
+import { collectivites, PhaseStatut, ProjetPhase } from "@database/schema";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 
 describe("Projets (e2e)", () => {
@@ -159,7 +159,7 @@ describe("Projets (e2e)", () => {
     it("should automatically set phaseStatut to 'En cours' when phase is provided without phaseStatut", async () => {
       const { data, error } = await api.projects.create({
         ...validProjet,
-        phase: "Idée" as ProjetPhases,
+        phase: "Idée" as ProjetPhase,
       });
 
       expect(error).toBeUndefined();
@@ -247,7 +247,7 @@ describe("Projets (e2e)", () => {
     it("should reject when project has wrong phase", async () => {
       const { error } = await api.projects.create({
         ...validProjet,
-        phase: "Wrong_Phase" as ProjetPhases,
+        phase: "Wrong_Phase" as ProjetPhase,
       });
 
       expect(error?.statusCode).toBe(400);
@@ -425,7 +425,7 @@ describe("Projets (e2e)", () => {
 
     it("should automatically set phaseStatut to 'En cours' when updating phase without phaseStatut", async () => {
       const updateData = {
-        phase: "Opération" as ProjetPhases,
+        phase: "Opération" as ProjetPhase,
         externalId: validProjet.externalId,
       };
 

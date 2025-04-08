@@ -11,7 +11,7 @@ if (!process.env.SERVICE_MANAGEMENT_API_KEY) {
   process.exit(1);
 }
 
-const baseUrl = "http://localhost:3000";
+const baseUrl = process.env.API_BASE_URL;
 const apiKey = process.env.SERVICE_MANAGEMENT_API_KEY;
 
 const apiClient = createClient<paths>({

@@ -1,12 +1,13 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { ProjetPhases, serviceContext, services } from "@database/schema";
-import { and, arrayOverlaps, eq, InferSelectModel, or } from "drizzle-orm";
+import { ProjetPhase, serviceContext, services } from "@database/schema";
+import { and, eq, InferSelectModel, sql } from "drizzle-orm";
 import { CompetenceCodes, Leviers } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/services/dto/create-service-context.dto";
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { ExtraFieldConfig } from "./dto/extra-fields-config.dto";
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 
 interface JoinResult {
   services: InferSelectModel<typeof services>;
@@ -23,45 +24,59 @@ export class ServicesContextService {
   async findMatchingServicesContext(
     competences: CompetenceCodes | null,
     leviers: Leviers | null,
-    projetPhases: ProjetPhases | null,
+    projetPhase: ProjetPhase | null,
   ): Promise<ServicesByProjectIdResponse[]> {
-    let matchingContexts: JoinResult[] = [];
-    const conditions = [];
-    const categorizationConditions = [];
-
-    if (competences?.length) {
-      // Get both original competences and their parent codes
-      // parent code is XX-XX whereas children code is XX-XXX
-      const competencesWithParents = competences.flatMap((competence) => [competence, competence.slice(0, 5)]);
-
-      categorizationConditions.push(
-        or(eq(serviceContext.competences, []), arrayOverlaps(serviceContext.competences, competencesWithParents)),
-      );
-    }
-
-    if (leviers?.length) {
-      categorizationConditions.push(or(eq(serviceContext.leviers, []), arrayOverlaps(serviceContext.leviers, leviers)));
-    }
-
-    if (categorizationConditions.length > 0) {
-      conditions.push(or(...categorizationConditions));
-    }
-
-    if (projetPhases) {
-      conditions.push(or(eq(serviceContext.phases, []), arrayOverlaps(serviceContext.phases, [projetPhases])));
-    }
-
-    if (conditions.length === 0) {
+    // If no criteria provided, return empty array
+    if (!competences?.length && !leviers?.length && !projetPhase) {
       return [];
     }
 
-    matchingContexts = await this.dbService.database
+    // Get all service contexts for listed services
+    const allServiceContexts: JoinResult[] = await this.dbService.database
       .select()
       .from(serviceContext)
       .innerJoin(services, eq(services.id, serviceContext.serviceId))
-      .where(and(eq(services.isListed, true), ...conditions));
+      .where(
+        and(
+          eq(services.isListed, true),
+          // At least one of competences, leviers, or phases must not be null
+          sql`NOT (${serviceContext.competences} IS NULL AND ${serviceContext.leviers} IS NULL AND ${serviceContext.phases} IS NULL)`,
+        ),
+      );
 
-    return matchingContexts.map(({ services, service_context }) => ({
+    const serviceContextsMatchingLeviersOrCompetences = allServiceContexts.filter(({ service_context }) => {
+      // service context with empty array match all possible values
+      if (competences && service_context.competences?.length === 0) return true;
+      if (leviers && service_context.leviers?.length === 0) return true;
+
+      // Get both original competences and their parent codes
+      // parent code is XX-XX whereas children code is XX-XXX
+      const competencesWithParents = competences?.flatMap((competence) => [competence, competence.slice(0, 5)]);
+
+      return (
+        competencesWithParents?.some((projetCompetence) => service_context.competences?.includes(projetCompetence)) ||
+        leviers?.some((projetLevier) => service_context.leviers?.includes(projetLevier))
+      );
+    });
+
+    const serviceContextsMatchingPhases = serviceContextsMatchingLeviersOrCompetences.filter(({ service_context }) => {
+      if (
+        // service context with empty array match all possible values
+        (projetPhase && service_context.phases?.length === 0) ||
+        // some service_context might have null value for phases because phase is not relevant for them. In that case we match them all) ;
+        service_context.phases === null
+      ) {
+        return true;
+      }
+      // the only case for which we can have null is for the imported projects
+      // in this case we do not match the project until we have a phase
+      if (projetPhase === null) return false;
+
+      return service_context.phases?.includes(projetPhase);
+    });
+
+    // Map to the expected response format
+    return serviceContextsMatchingPhases.map(({ services, service_context }) => ({
       ...services,
       description: service_context.description ?? services.description,
       sousTitre: service_context.sousTitre ?? services.sousTitre,
