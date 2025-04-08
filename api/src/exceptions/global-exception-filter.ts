@@ -18,6 +18,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const status = exception.getStatus();
       const errorResponse = exception.getResponse();
 
+      // Log 4xx errors as warnings
+      if (status >= 400 && status < 500) {
+        this.logger.warn(`HTTP ${status} Exception`, {
+          statusCode: status,
+          path: request.url,
+          method: request.method,
+          error: errorResponse,
+        });
+      }
+
       return response.status(status).json({
         statusCode: status,
         ...(typeof errorResponse === "object" ? errorResponse : { message: errorResponse }),
