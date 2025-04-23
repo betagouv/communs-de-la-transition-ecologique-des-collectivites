@@ -12,11 +12,13 @@ import { SentryModule } from "@sentry/nestjs/setup";
 import { CorsMiddleware } from "./middleware/cors.middleware";
 import { GeoModule } from "@/geo/geo.module";
 import { ProjetsModule } from "@projets/projets.module";
+import { currentEnv } from "@/shared/utils/currentEnv";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: `.env.${currentEnv}`,
     }),
     SentryModule.forRoot(),
     ThrottlerModule.forRoot(throttlerConfig),
