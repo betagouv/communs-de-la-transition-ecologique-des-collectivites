@@ -14,7 +14,7 @@ describe("parseCSVFiles", () => {
 
   const contextValidData =
     "serviceName,sousTitre,description,logoUrl,redirectionUrl,redirectionLabel,iframeUrl,extendLabel,status,leviers,competences,extraField\n" +
-    'UrbanVitaliz,Recommandations d’actions pour faciliter la réhabilitation des friches urbaines,"UrbanVitaliz donne des recommandations d’actions à la collectivité, en fonction du projet qu’elle lui a soumis et des caractéristiques de la friches. Elle oriente ainsi vers les acteurs, dispositifs, financements, prestations, outils et stratégies disponibles, susceptibles de débloquer le porteur de projet. ",https://urbanvitaliz.fr/static/img/favicons/apple-touch-icon.png,https://urbanvitaliz.fr/,Découvrez UrbanVitaliz,,,"Étude, Idée, Opération",,"Energie éolienne, Energie hydraulique, Energie photovoltaïque",\n' +
+    'UrbanVitaliz,Recommandations d’actions pour faciliter la réhabilitation des friches urbaines,"UrbanVitaliz donne des recommandations d’actions à la collectivité, en fonction du projet qu’elle lui a soumis et des caractéristiques de la friches. Elle oriente ainsi vers les acteurs, dispositifs, financements, prestations, outils et stratégies disponibles, susceptibles de débloquer le porteur de projet. ",https://urbanvitaliz.fr/static/img/favicons/apple-touch-icon.png,https://urbanvitaliz.fr/,Découvrez UrbanVitaliz,,,"Étude, Idée, Opération",,"Politique de l\'énergie > Energie éolienne, Politique de l\'énergie > Energie hydraulique, Politique de l\'énergie > Energie photovoltaïque",\n' +
     'UrbanVitaliz,Des ressources autour de la réhabilitation des friches urbaines,Retrouvez des articles thématiques sur le sujet des friches urbaines.,https://urbanvitaliz.fr/static/img/favicons/apple-touch-icon.png,https://urbanvitaliz.fr/ressource/,,,,"Étude, Idée, Opération",,NULL,\n';
 
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe("parseCSVFiles", () => {
     const { errors } = await parseServiceAndServiceContextsCSVFiles(serviceCSVPath, serviceContextPath);
 
     expect(errors).toStrictEqual([
-      "Invalid competence: Energie éooolienne",
+      "Invalid competence: Politique de l'énergie > Energie éooolienne",
       "Invalid phases: Invalid_phase",
       "Invalid phases: Invalid_phase",
     ]);
