@@ -4,11 +4,11 @@ import createClient from "openapi-fetch";
 import type { paths } from "@test/generated-types";
 import { config } from "dotenv";
 import * as path from "path";
-import { Competences, Leviers } from "@/shared/types";
+import { CompetenceCodes, Leviers } from "@/shared/types";
 import { leviers } from "@/shared/const/leviers";
-import { competences } from "@/shared/const/competences-list";
+import { competencesFromM57Referentials } from "@/shared/const/competences-list";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
-import { ProjetPhase, projetPhasesEnum } from "@database/schema";
+import { PhaseStatut, phaseStatutEnum, ProjetPhase, projetPhasesEnum } from "@database/schema";
 
 config({ path: path.resolve(__dirname, "../../.env") });
 
@@ -18,16 +18,20 @@ interface CsvRecord {
   description: string;
   budget: string;
   forecasted_start_date: string;
-  project_status: string;
   commune: string;
   insee_code: string;
   siren_epci: string;
+  nature_epci: string;
   leviers: string;
-  competences: string;
+  codes_competences: string;
+  phase: string;
+  phasestatut: string;
 }
 
-async function importProjectsTet(csvFilePath: string) {
-  const baseUrl = "http://localhost:3000";
+const NATURE_EPCI_FISCALITE_PROPRE = ["CC", "CA", "METRO", "CU"];
+
+async function importProjetsTet(csvFilePath: string) {
+  const baseUrl = process.env.API_BASE_URL;
   const apiKey = process.env.TET_API_KEY;
 
   const apiClient = createClient<paths>({
@@ -48,27 +52,38 @@ async function importProjectsTet(csvFilePath: string) {
 
   const projects: CreateProjetRequest[] = [];
   const invalidItemsFile = fs.createWriteStream("invalid_items.txt", { flags: "a" });
+  const competencesCodeFromReferential = Object.keys(competencesFromM57Referentials);
 
   for await (const record of parser as AsyncIterable<CsvRecord>) {
     const parsedLeviers = parseFieldToArray(record.leviers, leviers, "levier", invalidItemsFile);
-    const parsedCompetences = parseFieldToArray(record.competences, competences, "competence", invalidItemsFile);
+    const parsedCompetences = parseFieldToArray(
+      record.codes_competences,
+      competencesCodeFromReferential,
+      "competence",
+      invalidItemsFile,
+    );
 
     // Validate and handle project status
     const validPhases = projetPhasesEnum.enumValues;
-    const phase = validPhases.includes(record.project_status as ProjetPhase)
-      ? (record.project_status as ProjetPhase)
+    const phase = validPhases.includes(record.phase as ProjetPhase) ? (record.phase as ProjetPhase) : null;
+
+    const phaseStatut = phaseStatutEnum.enumValues.includes(record.phasestatut as PhaseStatut)
+      ? (record.phasestatut as PhaseStatut)
       : null;
 
-    projects.push({
-      externalId: record.tet_id,
-      nom: record.nom,
-      description: record.description,
-      budgetPrevisionnel: parseFloat(record.budget),
-      phase,
-      collectivites: [mapCollectivites(record.insee_code, record.siren_epci)],
-      leviers: parsedLeviers as Leviers,
-      competences: parsedCompetences as Competences,
-    });
+    if (NATURE_EPCI_FISCALITE_PROPRE.includes(record.nature_epci)) {
+      projects.push({
+        externalId: record.tet_id,
+        nom: record.nom,
+        description: record.description,
+        budgetPrevisionnel: parseFloat(record.budget),
+        phase,
+        phaseStatut,
+        collectivites: [mapCollectivites(record.insee_code, record.siren_epci)],
+        leviers: parsedLeviers as Leviers,
+        competences: parsedCompetences as CompetenceCodes,
+      });
+    }
   }
 
   // Close the write stream when done
@@ -96,7 +111,7 @@ async function importProjectsTet(csvFilePath: string) {
 function parseFieldToArray(
   field: string,
   validList: readonly string[],
-  mode: "competence" | "levier",
+  type: "competence" | "levier",
   invalidItemsFile: fs.WriteStream,
 ): string[] {
   // Remove curly braces and quotes
@@ -111,7 +126,7 @@ function parseFieldToArray(
         return false;
       }
       if (!validList.includes(item)) {
-        invalidItemsFile.write(`Invalid ${mode}: ${item}\n`);
+        invalidItemsFile.write(`Invalid ${type}: ${item}\n`);
         return false;
       }
       return true;
@@ -143,4 +158,4 @@ if (!csvFilePath) {
   process.exit(1);
 }
 
-void importProjectsTet(csvFilePath);
+void importProjetsTet(csvFilePath);
