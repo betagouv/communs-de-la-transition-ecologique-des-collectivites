@@ -172,12 +172,16 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
   );
 };
 
+// https://facili-tacct-preprod.osc-fr1.scalingo.io/thematiques?code={codeCollectivite}&libelle=Communaut%C3%A9%20d%27agglom%C3%A9ration%20Chauny-Tergnier-La%20F%C3%A8re&type={collectiviteType}
+
 const truncateDescription = (description: string, maxDescriptionLength: number) =>
   `${description.slice(0, maxDescriptionLength - 3)}${description.length > maxDescriptionLength ? "..." : ""}`;
 
 const replaceUrlParamsDirect = (url: string, projectExtraField: ExtraFields): string => {
   return url.replace(/{(\w+)}/g, (_, key) => {
+    // check for any extra Fields to be replaced
     const matchingExtraField = projectExtraField.find((field) => field.name === key);
+
     return matchingExtraField?.value ?? `{${key}}`;
   });
 };
