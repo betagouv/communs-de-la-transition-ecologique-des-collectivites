@@ -2,7 +2,7 @@ import { fr } from "@codegouvfr/react-dsfr";
 import classNames from "classnames";
 import { Service } from "./Service.tsx";
 import styles from "./InternalServicesWidget.module.css";
-import { useGetProject, useGetProjectExtraFields, useGetServicesByProjectId } from "./queries.ts";
+import { useGetProjectExtraFields, useGetProjectPublicInfo, useGetServicesByProjectId } from "./queries.ts";
 import { ServicesWidgetProps } from "./types.ts";
 import { useEffect } from "react";
 import { trackEvent } from "../../matomo/trackEvent.ts";
@@ -12,7 +12,7 @@ export const InternalServicesWidget = ({ projectId, isStagingEnv, debug }: Servi
 
   const { data: servicesData, error, isLoading } = useGetServicesByProjectId(projectId, isStagingEnv, debug);
   const { data } = useGetProjectExtraFields(projectId, isStagingEnv);
-  const { data: projectData } = useGetProject(projectId, isStagingEnv);
+  const { data: projectData } = useGetProjectPublicInfo(projectId, isStagingEnv);
 
   console.log("projectData", projectData);
 

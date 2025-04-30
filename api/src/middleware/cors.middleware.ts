@@ -38,7 +38,7 @@ export class CorsMiddleware implements NestMiddleware {
     // /projects/:projectId/extra-fields through a POST request to enable the widget to save the extra fields
     // /services/project/:projectId through a GET request to get the services for current project in the widget
     const corsEnabledRoutes = [
-      "/projets/:projectId/publicInfo",
+      "/projets/:projectId/public-info",
       "/projets/:projectId/extra-fields",
       "/services/project/:projectId",
     ];

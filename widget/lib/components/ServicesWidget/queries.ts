@@ -41,19 +41,19 @@ const fetchServicesByProjectId = async (projectId: string, isStagingEnv: boolean
   return data;
 };
 
-// -------------- Project - GET -------------- //
+// -------------- Project public info - GET -------------- //
 
-export const useGetProject = (projectId: string, isStagingEnv = false) => {
+export const useGetProjectPublicInfo = (projectId: string, isStagingEnv = false) => {
   return useQuery({
-    queryKey: ["projects", projectId],
-    queryFn: () => fetchProject(projectId, isStagingEnv),
+    queryKey: ["project-public-info", projectId],
+    queryFn: () => fetchProjectPublicInfo(projectId, isStagingEnv),
   });
 };
 
-const fetchProject = async (projectId: string, isStagingEnv: boolean) => {
+const fetchProjectPublicInfo = async (projectId: string, isStagingEnv: boolean) => {
   const apiClient = makeApiClient(isStagingEnv);
 
-  const { data, error } = await apiClient.GET("/projets/{id}", {
+  const { data, error } = await apiClient.GET("/projets/{id}/public-info", {
     params: {
       path: { id: projectId },
     },

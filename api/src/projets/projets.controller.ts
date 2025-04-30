@@ -15,6 +15,7 @@ import { CreateProjetsService } from "@projets/services/create-projets/create-pr
 import { CreateProjetExtraFieldRequest, ProjetExtraFieldsResponse } from "@projets/dto/extra-fields.dto";
 import { extractApiKey } from "@projets/extract-api-key";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
+import { ProjectPublicInfoResponse } from "@projets/dto/project-public-info.dto";
 
 @ApiBearerAuth()
 @Controller("projets")
@@ -43,6 +44,13 @@ export class ProjetsController {
   @Get(":id")
   findOne(@Param() { id }: UUIDDto): Promise<ProjetResponse> {
     return this.projetFindService.findOne(id);
+  }
+
+  @Public()
+  @ApiEndpointResponses({ successStatus: 200, response: ProjectPublicInfoResponse })
+  @Get(":id/public-info")
+  getPublicInfo(@Param() { id }: UUIDDto): Promise<ProjectPublicInfoResponse> {
+    return this.projetFindService.getPublicInfo(id);
   }
 
   @Public()
