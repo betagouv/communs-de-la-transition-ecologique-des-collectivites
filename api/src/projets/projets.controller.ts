@@ -12,7 +12,7 @@ import { UUIDDto } from "@/shared/dto/uuid";
 import { ExtraFieldsService } from "@projets/services/extra-fields/extra-fields.service";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
-import { CreateProjetExtraFieldRequest, ProjetExtraFieldsResponse } from "@projets/dto/extra-fields.dto";
+import { CreateProjetExtraFieldRequest, ExtraField } from "@projets/dto/extra-fields.dto";
 import { extractApiKey } from "@projets/extract-api-key";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { ProjectPublicInfoResponse } from "@projets/dto/project-public-info.dto";
@@ -54,19 +54,19 @@ export class ProjetsController {
   }
 
   @Public()
-  @ApiEndpointResponses({ successStatus: 200, response: ProjetExtraFieldsResponse })
+  @ApiEndpointResponses({ successStatus: 200, response: ExtraField, isArray: true })
   @Get(":id/extra-fields")
-  getExtraFields(@Param() { id }: UUIDDto): Promise<ProjetExtraFieldsResponse> {
+  getExtraFields(@Param() { id }: UUIDDto): Promise<ExtraField[]> {
     return this.extraFieldsService.getExtraFieldsByProjetId(id);
   }
 
   @Public()
-  @ApiEndpointResponses({ successStatus: 201, response: ProjetExtraFieldsResponse })
+  @ApiEndpointResponses({ successStatus: 201, response: ExtraField, isArray: true })
   @Post(":id/extra-fields")
   updateExtraFields(
     @Param() { id }: UUIDDto,
     @Body() extraFieldsDto: CreateProjetExtraFieldRequest,
-  ): Promise<ProjetExtraFieldsResponse> {
+  ): Promise<ExtraField[]> {
     return this.extraFieldsService.createExtraFields(id, extraFieldsDto);
   }
 

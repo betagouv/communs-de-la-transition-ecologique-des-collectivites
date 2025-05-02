@@ -1,6 +1,6 @@
 import { components } from "../../generated-types.ts";
 
-export type ServiceType = components["schemas"]["ServicesByProjectIdResponse"];
+export type Service = components["schemas"]["ServicesByProjectIdResponse"];
 
 export interface ServicesWidgetProps {
   projectId: string;
@@ -9,3 +9,5 @@ export interface ServicesWidgetProps {
 }
 
 export type ExtraFields = components["schemas"]["ExtraField"][];
+
+export type ProjectData = components["schemas"]["ProjectPublicInfoResponse"];

@@ -43,10 +43,12 @@ const fetchServicesByProjectId = async (projectId: string, isStagingEnv: boolean
 
 // -------------- Project public info - GET -------------- //
 
-export const useGetProjectPublicInfo = (projectId: string, isStagingEnv = false) => {
+export const useGetProjectPublicInfo = (projectId: string, debug?: boolean, isStagingEnv = false) => {
   return useQuery({
     queryKey: ["project-public-info", projectId],
     queryFn: () => fetchProjectPublicInfo(projectId, isStagingEnv),
+    //this query is only retried when not in debug mode
+    ...(debug ? { retry: 0 } : {}),
   });
 };
 

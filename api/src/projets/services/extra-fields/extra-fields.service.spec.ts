@@ -41,7 +41,7 @@ describe("ExtraFieldService", () => {
 
       const createdProjet = await createService.create(createDto, "MEC_test_api_key");
       const result = await extraFieldsService.getExtraFieldsByProjetId(createdProjet.id);
-      expect(result).toEqual({ extraFields: [] });
+      expect(result).toEqual([]);
     });
   });
 
@@ -55,7 +55,7 @@ describe("ExtraFieldService", () => {
         extraFields: [{ name: "surface", value: "100" }],
       });
       const result = await extraFieldsService.getExtraFieldsByProjetId(createdProjet.id);
-      expect(result).toEqual({ extraFields: [{ name: "surface", value: "100" }] });
+      expect(result).toEqual([{ name: "surface", value: "100" }]);
     });
   });
 });

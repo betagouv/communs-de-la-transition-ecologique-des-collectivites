@@ -7,7 +7,7 @@ import IFrameResized from "./IFrameResized.tsx";
 import LevierDetails, { LevierData } from "./LevierDetails.tsx";
 import voiture_electrique from "../../leviers_data/voiture_electrique.json";
 import Input from "@codegouvfr/react-dsfr/Input";
-import { ExtraFields, ServiceType } from "./types.ts";
+import { ExtraFields, ProjectData, Service as ServiceType } from "./types.ts";
 import { usePostExtraFields } from "./queries.ts";
 import { trackEvent } from "../../matomo/trackEvent.ts";
 import Badge from "@codegouvfr/react-dsfr/Badge";
@@ -19,10 +19,11 @@ interface ServiceProps {
   projectExtraFields: ExtraFields;
   isStagingEnv?: boolean;
   projectId: string;
+  projectData: ProjectData;
   debug?: boolean;
 }
 
-export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, debug }: ServiceProps) => {
+export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, projectData, debug }: ServiceProps) => {
   const { classes } = useStyles();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const maxDescriptionLength = isMobile ? 200 : 400;
@@ -165,23 +166,47 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
           expanded={expanded}
         >
           {isLevier ? <LevierDetails {...(voiture_electrique as LevierData)} /> : null}
-          {iframeUrl && <IFrameResized src={replaceUrlParamsDirect(iframeUrl, projectExtraFields)} />}
+          {iframeUrl && <IFrameResized src={replaceIframeUrlParams(iframeUrl, projectData, projectExtraFields)} />}
         </Accordion>
       )}
     </div>
   );
 };
 
-// https://facili-tacct-preprod.osc-fr1.scalingo.io/thematiques?code={codeCollectivite}&libelle=Communaut%C3%A9%20d%27agglom%C3%A9ration%20Chauny-Tergnier-La%20F%C3%A8re&type={collectiviteType}
-
 const truncateDescription = (description: string, maxDescriptionLength: number) =>
   `${description.slice(0, maxDescriptionLength - 3)}${description.length > maxDescriptionLength ? "..." : ""}`;
 
-const replaceUrlParamsDirect = (url: string, projectExtraField: ExtraFields): string => {
-  return url.replace(/{(\w+)}/g, (_, key) => {
-    // check for any extra Fields to be replaced
-    const matchingExtraField = projectExtraField.find((field) => field.name === key);
+interface ParamsType {
+  collectiviteType: string;
+  collectiviteCode: string;
+  collectiviteLabel: string;
+}
 
-    return matchingExtraField?.value ?? `{${key}}`;
+export const replaceIframeUrlParams = (
+  url: string,
+  projectData: ProjectData,
+  projectExtraFields: ExtraFields,
+): string => {
+  //todo need to add support for collectivite array support
+  const firstCollectivite = projectData.collectivites[0];
+
+  const params: ParamsType = {
+    collectiviteType: firstCollectivite.type,
+    // there is either an EPCI or a codeInsee
+    collectiviteCode: firstCollectivite.type === "EPCI" ? firstCollectivite.siren! : firstCollectivite.codeInsee!,
+    collectiviteLabel: firstCollectivite.nom,
+  };
+
+  const result = url.replace(/{(\w+)}/g, (_, key) => {
+    console.log("key", key);
+    if (key in params) {
+      return encodeURIComponent(params[key as keyof ParamsType]);
+    }
+
+    const matchingExtraField = projectExtraFields.find((field) => field.name === key);
+    return encodeURIComponent(matchingExtraField?.value ?? "");
   });
+
+  console.log("result", result);
+  return result;
 };

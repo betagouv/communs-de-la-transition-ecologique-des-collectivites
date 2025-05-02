@@ -4,6 +4,8 @@ import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
 import { ServicesWidget } from "./ServicesWidget.tsx";
 import { getApiUrl } from "../../utils.ts";
+import { Bénéfriche } from "../../test/stub/service.ts";
+import { extraFields, project } from "../../test/stub/project.ts";
 
 const getMockedServices = (env: "prod" | "staging") => [
   {
@@ -16,29 +18,18 @@ const getMockedServices = (env: "prod" | "staging") => [
     name: `Service 2 ${env}`,
     description: "Description for service 2",
   },
-  {
-    id: "7",
-    name: "Bénéfriches",
-    description:
-      "Bénéfriches quantifie et monétarise les impacts environnementaux, sociaux et économiques d'un projet d'aménagement, sur friche ou en extension urbaine.",
-    logoUrl: "https://benefriches.ademe.fr/favicon/favicon-192.png",
-    redirectionUrl: "https://benefriches.ademe.fr/",
-    iframeUrl:
-      "https://benefriches-staging.osc-fr1.scalingo.io/embed/calcul-rapide-impacts-projet-urbain?siteSurfaceArea={surface}&siteCityCode=31070",
-    sousTitre: "",
-    redirectionLabel: null,
-    extendLabel: null,
-    extraFields: [{ name: "surface", label: "Surface de la friche en m2" }],
-  },
+  Bénéfriche,
 ];
 
-// Set up MSW handlers
 const handlers = [
   http.get("http://localhost:3000/services/project/:projectId", () => {
     return HttpResponse.json(getMockedServices("prod"));
   }),
   http.get("http://localhost:3000/projets/:projectId/extra-fields", () => {
-    return HttpResponse.json({ extraFields: [] });
+    return HttpResponse.json([]);
+  }),
+  http.get("http://localhost:3000/projets/:projectId/public-info", () => {
+    return HttpResponse.json(project);
   }),
 ];
 
@@ -69,9 +60,7 @@ describe("LesCommuns", () => {
   it("should display 'voir le détail' button when corresponding extrafield is present", async () => {
     server.use(
       http.get("http://localhost:3000/projets/:projectId/extra-fields", () => {
-        return HttpResponse.json({
-          extraFields: [{ name: "surface", value: "1000" }],
-        });
+        return HttpResponse.json(extraFields);
       }),
     );
 
