@@ -3,8 +3,9 @@ import type { paths } from "@test/generated-types";
 import { config } from "dotenv";
 import { parseServiceAndServiceContextsCSVFiles, ParsedData } from "./parse-service-and-service-context";
 import { currentEnv } from "@/shared/utils/currentEnv";
+import { join } from "path";
 
-config({ path: `../../.env.${currentEnv}` });
+config({ path: join(__dirname, `../../.env.${currentEnv}`) });
 
 if (!process.env.SERVICE_MANAGEMENT_API_KEY) {
   console.error("Please set SERVICE_MANAGEMENT_API_KEY environment variable");
@@ -88,4 +89,7 @@ async function importParsedDataToDatabase(parsedData: ParsedData["data"]) {
 }
 
 // Run the import
-void importServicesAndServiceContexts("./services-import-new.csv", "./services-context-import-new.csv");
+void importServicesAndServiceContexts(
+  join(__dirname, "services-import-new.csv"),
+  join(__dirname, "services-context-import-new.csv"),
+);
