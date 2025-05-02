@@ -119,7 +119,7 @@ describe("Service", () => {
       const url = "https://example.com?type={collectiviteType}&code={collectiviteCode}";
 
       const result = replaceIframeUrlParams(url, project, []);
-      expect(result).toBe(`https://example.com?type=${collectivite.type}&code=${collectivite.siren}`);
+      expect(result).toBe(`https://example.com?type=${collectivite.type}&code=${collectivite.codeInsee}`);
     });
 
     it("should replace parameters from extraFields", () => {
@@ -139,7 +139,7 @@ describe("Service", () => {
       const extraFields: ExtraFields = [{ name: "customParam", value: "customValue" }];
       const result = replaceIframeUrlParams(url, project, extraFields);
       expect(result).toBe(
-        `https://example.com?type=${collectivite.type}&code=${collectivite.siren}&libelle=L'Abergement-Cl%C3%A9menciat&param=customValue`,
+        `https://example.com?type=${collectivite.type}&code=${collectivite.codeInsee}&libelle=L'Abergement-Cl%C3%A9menciat&param=customValue`,
       );
     });
 
