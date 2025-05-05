@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.1.9
+
+### Minor Changes
+
+- make iframe url dynamic with project content
+
 ## 0.1.8
 
 ### Minor Changes
