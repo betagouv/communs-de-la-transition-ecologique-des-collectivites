@@ -41,16 +41,45 @@ const fetchServicesByProjectId = async (projectId: string, isStagingEnv: boolean
   return data;
 };
 
+// -------------- Project public info - GET -------------- //
+
+export const useGetProjectPublicInfo = (projectId: string, debug?: boolean, isStagingEnv = false) => {
+  return useQuery({
+    queryKey: ["project-public-info", projectId],
+    queryFn: () => fetchProjectPublicInfo(projectId, isStagingEnv),
+    //this query is only retried when not in debug mode to not delay demo widget display (which has no project context associated)
+    ...(debug ? { retry: 0 } : {}),
+  });
+};
+
+const fetchProjectPublicInfo = async (projectId: string, isStagingEnv: boolean) => {
+  const apiClient = makeApiClient(isStagingEnv);
+
+  const { data, error } = await apiClient.GET("/projets/{id}/public-info", {
+    params: {
+      path: { id: projectId },
+    },
+  });
+
+  // needed to comply to react-query error pattern
+  // https://tanstack.com/query/latest/docs/framework/react/guides/query-functions?from=reactQueryV3#usage-with-fetch-and-other-clients-that-do-not-throw-by-default
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
 // -------------- Project extra fields - GET -------------- //
 
 export const useGetProjectExtraFields = (projectId: string, isStagingEnv = false) => {
   return useQuery({
     queryKey: ["project-extra-fields", projectId],
-    queryFn: () => fetchProject(projectId, isStagingEnv),
+    queryFn: () => fetchProjectExtraFields(projectId, isStagingEnv),
   });
 };
 
-const fetchProject = async (projectId: string, isStagingEnv: boolean) => {
+const fetchProjectExtraFields = async (projectId: string, isStagingEnv: boolean) => {
   const apiClient = makeApiClient(isStagingEnv);
 
   const { data, error } = await apiClient.GET("/projets/{id}/extra-fields", {

@@ -28,6 +28,13 @@ export const createApiClient = (apiKey: string) => {
           },
         }),
 
+      getPublicInfo: (id: string) =>
+        client.GET("/projets/{id}/public-info", {
+          params: {
+            path: { id },
+          },
+        }),
+
       update: (id: string, data: components["schemas"]["UpdateProjetRequest"]) =>
         client.PATCH("/projets/{id}", {
           params: {

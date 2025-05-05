@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsString } from "class-validator";
 
-class ExtraField {
+export class ExtraField {
   @ApiProperty({ description: "Name of the extra field" })
   @IsString()
   name!: string;
@@ -9,15 +9,6 @@ class ExtraField {
   @ApiProperty({ description: "Value of the extra field" })
   @IsString()
   value!: string;
-}
-
-export class ProjetExtraFieldsResponse {
-  @ApiProperty({
-    description: "Array of extra field names, values, and labels",
-    type: [ExtraField],
-  })
-  @IsArray()
-  extraFields!: ExtraField[];
 }
 
 export class CreateProjetExtraFieldRequest {

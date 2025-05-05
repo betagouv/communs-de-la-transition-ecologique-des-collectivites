@@ -31,7 +31,8 @@ export class ServicesContextService {
       return [];
     }
 
-    // Get all service contexts for listed services
+    // Get all service contexts for listed services - this is safe as we have relativly few listed services (less than 100)
+    // and it is easier to refine the results programmatically
     const allServiceContexts: JoinResult[] = await this.dbService.database
       .select()
       .from(serviceContext)

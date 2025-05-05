@@ -5,6 +5,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq, InferSelectModel } from "drizzle-orm";
 import { ProjetResponse } from "@projets/dto/projet.dto";
 import { CompetenceCodes, Leviers } from "@/shared/types";
+import { ProjectPublicInfoResponse } from "@projets/dto/project-public-info.dto";
 
 type Collectivite = InferSelectModel<typeof collectivites>;
 
@@ -55,6 +56,34 @@ export class GetProjetsService {
     }
 
     return this.mapFieldsToDTO(projet);
+  }
+
+  async getPublicInfo(id: string): Promise<ProjectPublicInfoResponse> {
+    const projet = await this.dbService.database.query.projets.findFirst({
+      where: eq(projets.id, id),
+      columns: {
+        description: true,
+        phase: true,
+      },
+      with: {
+        collectivites: {
+          with: {
+            collectivite: true,
+          },
+        },
+      },
+    });
+
+    if (!projet) {
+      this.logger.warn("Projet not found", { projetId: id });
+      throw new NotFoundException(`Projet with ID ${id} not found`);
+    }
+
+    return {
+      description: projet.description,
+      phase: projet.phase,
+      collectivites: projet.collectivites.map((c) => c.collectivite),
+    };
   }
 
   private mapFieldsToDTO(projet: ProjetWithCollectivites): ProjetResponse {

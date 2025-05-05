@@ -2,13 +2,13 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { projets, serviceExtraFields } from "@database/schema";
 import { eq } from "drizzle-orm";
-import { CreateProjetExtraFieldRequest, ProjetExtraFieldsResponse } from "@projets/dto/extra-fields.dto";
+import { CreateProjetExtraFieldRequest, ExtraField } from "@projets/dto/extra-fields.dto";
 
 @Injectable()
 export class ExtraFieldsService {
   constructor(private readonly dbService: DatabaseService) {}
 
-  async getExtraFieldsByProjetId(projetId: string): Promise<ProjetExtraFieldsResponse> {
+  async getExtraFieldsByProjetId(projetId: string): Promise<ExtraField[]> {
     await this.throwIfProjectIsNotFound(projetId);
 
     const extraFields = await this.dbService.database
@@ -16,13 +16,10 @@ export class ExtraFieldsService {
       .from(serviceExtraFields)
       .where(eq(serviceExtraFields.projetId, projetId));
 
-    return { extraFields };
+    return extraFields;
   }
 
-  async createExtraFields(
-    projetId: string,
-    extraFieldsDto: CreateProjetExtraFieldRequest,
-  ): Promise<ProjetExtraFieldsResponse> {
+  async createExtraFields(projetId: string, extraFieldsDto: CreateProjetExtraFieldRequest): Promise<ExtraField[]> {
     await this.throwIfProjectIsNotFound(projetId);
 
     return this.dbService.database.transaction(async (tx) => {
@@ -39,7 +36,7 @@ export class ExtraFieldsService {
         )
         .returning();
 
-      return { extraFields: updatedExtrafields };
+      return updatedExtrafields;
     });
   }
 
