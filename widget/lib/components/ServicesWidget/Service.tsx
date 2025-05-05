@@ -187,7 +187,8 @@ export const replaceIframeUrlParams = (
   projectData: ProjectData,
   projectExtraFields: ExtraFields,
 ): string => {
-  //todo need to add support for collectivite array support
+  //for now all the iframe url we have are mono collectivite.
+  // we'lle need to add support for multi collectivité in iframe url once we integrate AT
   const firstCollectivite = projectData.collectivites[0];
 
   const params: ParamsType = {
@@ -198,7 +199,6 @@ export const replaceIframeUrlParams = (
   };
 
   const result = url.replace(/{(\w+)}/g, (_, key) => {
-    console.log("key", key);
     if (key in params) {
       return encodeURIComponent(params[key as keyof ParamsType]);
     }
@@ -207,6 +207,5 @@ export const replaceIframeUrlParams = (
     return encodeURIComponent(matchingExtraField?.value ?? "");
   });
 
-  console.log("result", result);
   return result;
 };

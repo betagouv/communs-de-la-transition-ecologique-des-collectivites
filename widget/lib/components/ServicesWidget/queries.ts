@@ -47,7 +47,7 @@ export const useGetProjectPublicInfo = (projectId: string, debug?: boolean, isSt
   return useQuery({
     queryKey: ["project-public-info", projectId],
     queryFn: () => fetchProjectPublicInfo(projectId, isStagingEnv),
-    //this query is only retried when not in debug mode
+    //this query is only retried when not in debug mode to not delay demo widget display (which has no project context associated)
     ...(debug ? { retry: 0 } : {}),
   });
 };

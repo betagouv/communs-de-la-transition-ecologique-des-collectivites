@@ -63,7 +63,6 @@ export class GetProjetsService {
       where: eq(projets.id, id),
       columns: {
         description: true,
-        competences: true,
         phase: true,
       },
       with: {
