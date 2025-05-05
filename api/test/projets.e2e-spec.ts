@@ -534,4 +534,43 @@ describe("Projets (e2e)", () => {
       );
     });
   });
+
+  describe("GET /projects/:id/public-info", () => {
+    it("should return a specific project", async () => {
+      const { data: createdProjet, error: _createError } = await api.projects.create(validProjet);
+
+      const projectId = createdProjet!.id;
+
+      const { data, error } = await api.projects.getPublicInfo(projectId);
+
+      const { description, phase } = validProjet;
+
+      expect(error).toBeUndefined();
+      expect(data).toEqual({
+        description,
+        phase,
+        collectivites: [
+          {
+            codeInsee: mockedDefaultCollectivite.code,
+            codeEpci: null,
+            type: mockedDefaultCollectivite.type,
+            siren: null,
+            codeDepartements: null,
+            codeRegions: null,
+            nom: "Commune 1",
+            id: expect.any(String),
+            createdAt: expect.any(String),
+            updatedAt: expect.any(String),
+          },
+        ],
+      });
+    });
+
+    it("should return 404 for non-existent project", async () => {
+      const nonExistentId = "00000000-0000-0000-0000-000000000000";
+      const { error } = await api.projects.getOne(nonExistentId);
+
+      expect(error?.statusCode).toBe(404);
+    });
+  });
 });

@@ -212,10 +212,6 @@ export interface components {
             /** @description Array of extra field names, values, and labels */
             extraFields: components["schemas"]["ExtraField"][];
         };
-        ProjetExtraFieldsResponse: {
-            /** @description Array of extra field names, values, and labels */
-            extraFields: components["schemas"]["ExtraField"][];
-        };
         CollectiviteReference: {
             /**
              * @description Types of the collectivite
@@ -458,14 +454,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -487,14 +487,18 @@ export interface operations {
         responses: {
             /** @description Projet created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -514,14 +518,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -546,14 +554,18 @@ export interface operations {
         responses: {
             /** @description Projet updated successfully */
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -573,14 +585,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectPublicInfoResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -600,14 +616,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ExtraField"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -631,14 +651,18 @@ export interface operations {
         };
         responses: {
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
-                    "application/json": components["schemas"]["ProjetExtraFieldsResponse"];
+                    "application/json": components["schemas"]["ExtraField"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -660,14 +684,18 @@ export interface operations {
         responses: {
             /** @description Bulk Projets created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["BulkCreateProjetsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -689,14 +717,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ServicesByProjectIdResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -718,14 +750,18 @@ export interface operations {
         responses: {
             /** @description Service created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -750,14 +786,18 @@ export interface operations {
         responses: {
             /** @description Service context created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceContextResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
