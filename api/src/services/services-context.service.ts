@@ -69,9 +69,10 @@ export class ServicesContextService {
       ) {
         return true;
       }
-      // the only case for which we can have null is for the imported projects
-      // in this case we do not match the project until we have a phase
-      if (projetPhase === null) return false;
+      // if a project has has no phase that means we haven't managed to determine
+      // which phase it correspond to during import (i.e fiche action from tet which can be either operation or etude)
+      // for those ones we take the risk to display all services context associated to the competences/leviers regardless of the phase
+      if (projetPhase === null) return true;
 
       return service_context.phases?.includes(projetPhase);
     });
@@ -95,7 +96,8 @@ export class ServicesContextService {
     const allServicesContexts = await this.dbService.database
       .select()
       .from(serviceContext)
-      .innerJoin(services, eq(services.id, serviceContext.serviceId));
+      .innerJoin(services, eq(services.id, serviceContext.serviceId))
+      .orderBy(services.name);
 
     return allServicesContexts.map(({ services, service_context }) => ({
       ...services,

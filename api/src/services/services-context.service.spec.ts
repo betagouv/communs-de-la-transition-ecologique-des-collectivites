@@ -439,7 +439,7 @@ describe("ServiceContextService", () => {
       expect(serviceContexts).toHaveLength(0);
     });
 
-    it("should match services by project etapes", async () => {
+    it("should match services by project phase", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
@@ -466,7 +466,7 @@ describe("ServiceContextService", () => {
       });
     });
 
-    it("should match all etapes when service context has empty etapes array", async () => {
+    it("should match all phase when service context has empty phase array", async () => {
       const service = await servicesService.create(servicePayload);
 
       const createContextDto: CreateServiceContextRequest = {
@@ -731,6 +731,19 @@ describe("ServiceContextService", () => {
       const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-85"], null, null);
 
       expect(serviceContexts).toHaveLength(0);
+    });
+
+    it("should match service regardless of phase when project has no phase", async () => {
+      const service = await servicesService.create(servicePayload);
+      const createContextDto: CreateServiceContextRequest = {
+        description: "Context Description",
+        competences: ["90-411"],
+        phases: ["Idée"],
+        leviers: [],
+      };
+      await serviceContextService.create(service.id, createContextDto);
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, null);
+      expect(serviceContexts).toHaveLength(1);
     });
   });
 
