@@ -183,7 +183,7 @@ describe("ProjetFindService", () => {
       });
 
       const createdProjetId = (await createProjetsService.create(createDto, "MEC_test_api_key")).id;
-      const createdProjet = await getProjetsService.getPublicInfo(createdProjetId);
+      const createdProjet = await getProjetsService.getPublicInfo(createdProjetId, "communId");
       const { description, phase } = createDto;
 
       expect(createdProjet).toEqual({
@@ -195,7 +195,7 @@ describe("ProjetFindService", () => {
 
     it("should throw NotFoundException when Projet not found", async () => {
       const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      await expect(getProjetsService.getPublicInfo(nonExistentId)).rejects.toThrow(NotFoundException);
+      await expect(getProjetsService.getPublicInfo(nonExistentId, "communId")).rejects.toThrow(NotFoundException);
     });
   });
 });

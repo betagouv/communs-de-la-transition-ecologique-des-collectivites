@@ -35,6 +35,7 @@ describe("Service", () => {
         projectId="123"
         isStagingEnv={false}
         projectData={project}
+        idType={"communId"}
       />,
     );
 
@@ -54,6 +55,7 @@ describe("Service", () => {
         projectId="123"
         projectData={project}
         isStagingEnv={false}
+        idType={"communId"}
       />,
     );
 
@@ -86,6 +88,7 @@ describe("Service", () => {
           projectId="123"
           isStagingEnv={false}
           projectData={project}
+          idType={"communId"}
         />,
       );
 
@@ -106,6 +109,7 @@ describe("Service", () => {
           projectData={project}
           projectId="123"
           isStagingEnv={false}
+          idType={"communId"}
         />,
       );
 
