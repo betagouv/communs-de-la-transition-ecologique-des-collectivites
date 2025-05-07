@@ -10,6 +10,7 @@ import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { UUIDDto } from "@/shared/dto/uuid";
 import { IdType, idTypes } from "@/shared/types";
+import { ProjectId, ProjectIdType } from "@/shared/decorator/projetId-decorator";
 
 @ApiBearerAuth()
 @ApiTags("services")
@@ -38,7 +39,7 @@ export class ServicesController {
   @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
   @Get("project/:id")
   getServicesByProjectId(
-    @Param() { id }: UUIDDto,
+    @ProjectId() id: ProjectIdType[IdType],
     @Query("debug") debug: boolean,
     @Query("idType") idType: IdType,
   ): Promise<ServicesByProjectIdResponse[]> {

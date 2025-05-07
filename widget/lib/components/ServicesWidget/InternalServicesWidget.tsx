@@ -44,7 +44,6 @@ export const InternalServicesWidget = ({
   // and if we don't have related info for the project
   if (isLoading || isProjectLoading || !servicesData?.length || (!projectData && !debug)) return null;
 
-  console.log("projectData", projectData);
   if (error) return <div>Error: {error.message}</div>;
 
   return (

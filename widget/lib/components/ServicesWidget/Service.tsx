@@ -62,6 +62,7 @@ export const Service = ({
   const missingExtraFields = (extraFields || []).filter(
     (field) => !projectExtraFields.some((projectExtraField) => projectExtraField.name === field.name),
   );
+
   const needsAccordion = (isLevier || iframeUrl) && missingExtraFields.length === 0;
 
   const handleInputChange = (fieldName: string, value: string) => {

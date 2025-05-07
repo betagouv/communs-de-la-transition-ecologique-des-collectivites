@@ -17,6 +17,7 @@ import { extractApiKey } from "@projets/extract-api-key";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { ProjectPublicInfoResponse } from "@projets/dto/project-public-info.dto";
 import { IdType, idTypes } from "@/shared/types";
+import { ProjectId, ProjectIdType } from "@/shared/decorator/projetId-decorator";
 
 @ApiBearerAuth()
 @Controller("projets")
@@ -51,7 +52,10 @@ export class ProjetsController {
   @ApiEndpointResponses({ successStatus: 200, response: ProjectPublicInfoResponse })
   @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
   @Get(":id/public-info")
-  getPublicInfo(@Param("id") id: string, @Query("idType") idType: IdType): Promise<ProjectPublicInfoResponse> {
+  getPublicInfo(
+    @ProjectId() id: ProjectIdType[IdType],
+    @Query("idType") idType: IdType,
+  ): Promise<ProjectPublicInfoResponse> {
     return this.projetFindService.getPublicInfo(id, idType);
   }
 
@@ -59,7 +63,7 @@ export class ProjetsController {
   @ApiEndpointResponses({ successStatus: 200, response: ExtraField, isArray: true })
   @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
   @Get(":id/extra-fields")
-  getExtraFields(@Param("id") id: string, @Query("idType") idType: IdType): Promise<ExtraField[]> {
+  getExtraFields(@ProjectId() id: ProjectIdType[IdType], @Query("idType") idType: IdType): Promise<ExtraField[]> {
     return this.extraFieldsService.getExtraFieldsByProjetId(id, idType);
   }
 
@@ -68,7 +72,7 @@ export class ProjetsController {
   @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
   @Post(":id/extra-fields")
   updateExtraFields(
-    @Param() { id }: UUIDDto,
+    @ProjectId() id: ProjectIdType[IdType],
     @Query("idType") idType: IdType,
     @Body() extraFieldsDto: CreateProjetExtraFieldRequest,
   ): Promise<ExtraField[]> {
