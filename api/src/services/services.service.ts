@@ -6,7 +6,7 @@ import { CustomLogger } from "@logging/logger.service";
 import { projets, services } from "@database/schema";
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { ServicesContextService } from "@/services/services-context.service";
-import { CompetenceCodes, Leviers } from "@/shared/types";
+import { CompetenceCodes, IdType, Leviers } from "@/shared/types";
 
 @Injectable()
 export class ServicesService {
@@ -52,13 +52,15 @@ export class ServicesService {
     return service;
   }
 
-  async getServicesByProjectId(projectId: string): Promise<ServicesByProjectIdResponse[]> {
+  async getServicesByProjectId(id: string, idType: IdType): Promise<ServicesByProjectIdResponse[]> {
+    const whereCondition = idType === "tetId" ? eq(projets.tetId, id) : eq(projets.id, id);
+
     const project = await this.dbService.database.query.projets.findFirst({
-      where: eq(projets.id, projectId),
+      where: whereCondition,
     });
 
     if (!project) {
-      throw new NotFoundException(`Projet with ID ${projectId} not found`);
+      throw new NotFoundException(`Projet with ${idType} ${id} not found`);
     }
 
     return this.serviceContextService.findMatchingServicesContext(

@@ -4,7 +4,7 @@ import { CustomLogger } from "@logging/logger.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq, InferSelectModel } from "drizzle-orm";
 import { ProjetResponse } from "@projets/dto/projet.dto";
-import { CompetenceCodes, Leviers } from "@/shared/types";
+import { CompetenceCodes, IdType, Leviers } from "@/shared/types";
 import { ProjectPublicInfoResponse } from "@projets/dto/project-public-info.dto";
 
 type Collectivite = InferSelectModel<typeof collectivites>;
@@ -58,9 +58,11 @@ export class GetProjetsService {
     return this.mapFieldsToDTO(projet);
   }
 
-  async getPublicInfo(id: string): Promise<ProjectPublicInfoResponse> {
+  async getPublicInfo(id: string, idType: IdType): Promise<ProjectPublicInfoResponse> {
+    const whereCondition = eq(idType === "tetId" ? projets.tetId : projets.id, id);
+
     const projet = await this.dbService.database.query.projets.findFirst({
-      where: eq(projets.id, id),
+      where: whereCondition,
       columns: {
         description: true,
         phase: true,
@@ -75,8 +77,8 @@ export class GetProjetsService {
     });
 
     if (!projet) {
-      this.logger.warn("Projet not found", { projetId: id });
-      throw new NotFoundException(`Projet with ID ${id} not found`);
+      this.logger.warn(`Projet not found by ${idType}`, { [idType]: id });
+      throw new NotFoundException(`Projet with ${idType} ${id} not found`);
     }
 
     return {

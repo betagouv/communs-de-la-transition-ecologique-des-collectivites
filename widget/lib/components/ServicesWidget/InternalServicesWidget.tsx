@@ -3,16 +3,31 @@ import classNames from "classnames";
 import { Service } from "./Service.tsx";
 import styles from "./InternalServicesWidget.module.css";
 import { useGetProjectExtraFields, useGetProjectPublicInfo, useGetServicesByProjectId } from "./queries.ts";
-import { ServicesWidgetProps } from "./types.ts";
+import { Service as ServiceType, ServicesWidgetProps } from "./types.ts";
 import { useEffect } from "react";
 import { trackEvent } from "../../matomo/trackEvent.ts";
 import { project as fakeProjet } from "../../test/stub/project.ts";
 import { extraFields as fakeExtraFields } from "../../test/stub/project.ts";
 
-export const InternalServicesWidget = ({ projectId, isStagingEnv, debug }: ServicesWidgetProps) => {
-  const { data: servicesData, error, isLoading } = useGetServicesByProjectId(projectId, isStagingEnv, debug);
-  const { data: extraFieldsData } = useGetProjectExtraFields(projectId, isStagingEnv);
-  const { data: projectData, isLoading: isProjectLoading } = useGetProjectPublicInfo(projectId, debug, isStagingEnv);
+export const InternalServicesWidget = ({
+  projectId,
+  idType = "communId",
+  isStagingEnv,
+  debug,
+}: ServicesWidgetProps) => {
+  const {
+    data: servicesData,
+    error,
+    isLoading,
+  } = useGetServicesByProjectId({ projectId, idType, options: { isStagingEnv, debug } });
+
+  const { data: extraFieldsData } = useGetProjectExtraFields({ projectId, idType, options: { isStagingEnv, debug } });
+
+  const { data: projectData, isLoading: isProjectLoading } = useGetProjectPublicInfo({
+    projectId,
+    idType,
+    options: { isStagingEnv, debug },
+  });
 
   useEffect(() => {
     if (servicesData) {
@@ -29,17 +44,19 @@ export const InternalServicesWidget = ({ projectId, isStagingEnv, debug }: Servi
   // and if we don't have related info for the project
   if (isLoading || isProjectLoading || !servicesData?.length || (!projectData && !debug)) return null;
 
+  console.log("projectData", projectData);
   if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div className={classNames(fr.cx("fr-container", "fr-p-3w", "fr-pt-4w"), styles.container)}>
       <h2 className={classNames(fr.cx("fr-h6", "fr-mb-2w"), styles.title)}>Services</h2>
       <span className={fr.cx("fr-text--sm")}>
-        Ces services sont en lien avec les <strong>thématiques, l’état d’avancement</strong> ainsi que la&nbsp;
+        Ces services sont en lien avec les <strong>thématiques, l&apos;état d&apos;avancement</strong> ainsi que
+        la&nbsp;
         <strong>localisation</strong> de votre projet.
       </span>
       <div className={classNames(fr.cx("fr-mt-3w"), styles.services)}>
-        {servicesData.map((service) => (
+        {servicesData?.map((service: ServiceType) => (
           <Service
             key={`${service.id}-${service.description}`}
             service={service}
@@ -49,6 +66,7 @@ export const InternalServicesWidget = ({ projectId, isStagingEnv, debug }: Servi
             isStagingEnv={isStagingEnv}
             projectId={projectId}
             debug={debug}
+            idType={idType}
           />
         ))}
       </div>
