@@ -55,7 +55,7 @@ export const InternalServicesWidget = ({
         <strong>localisation</strong> de votre projet.
       </span>
       <div className={classNames(fr.cx("fr-mt-3w"), styles.services)}>
-        {servicesData?.map((service: ServiceType) => (
+        {servicesData.map((service: ServiceType) => (
           <Service
             key={`${service.id}-${service.description}`}
             service={service}
