@@ -10,7 +10,7 @@ export class ExtraFieldsService {
   constructor(private readonly dbService: DatabaseService) {}
 
   async getExtraFieldsByProjetId(id: string, idType: IdType): Promise<ExtraField[]> {
-    const projet = await this.findProjectByIdType(id, idType);
+    const projet = await this.findProjetByIdType(id, idType);
 
     const extraFields = await this.dbService.database
       .select({ name: serviceExtraFields.name, value: serviceExtraFields.value })
@@ -25,7 +25,7 @@ export class ExtraFieldsService {
     extraFieldsDto: CreateProjetExtraFieldRequest,
     idType: IdType,
   ): Promise<ExtraField[]> {
-    const projet = await this.findProjectByIdType(id, idType);
+    const projet = await this.findProjetByIdType(id, idType);
 
     return this.dbService.database.transaction(async (tx) => {
       // todo handle conflictual update / deletion
@@ -45,7 +45,7 @@ export class ExtraFieldsService {
     });
   }
 
-  private async findProjectByIdType(id: string, idType: IdType) {
+  private async findProjetByIdType(id: string, idType: IdType) {
     const whereCondition = idType === "tetId" ? eq(projets.tetId, id) : eq(projets.id, id);
 
     const projet = await this.dbService.database.query.projets.findFirst({

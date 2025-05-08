@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.2.0
+
+### Patch Changes
+
+- make widget compatible with tet id
+
 ## 0.1.9
 
 ### Minor Changes
