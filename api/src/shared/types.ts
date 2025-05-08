@@ -8,3 +8,6 @@ export type CompetenceCodes = CompetenceCode[];
 
 export type Levier = (typeof leviers)[number];
 export type Leviers = Levier[];
+
+export const idTypes = ["communId", "tetId"] as const;
+export type IdType = (typeof idTypes)[number];

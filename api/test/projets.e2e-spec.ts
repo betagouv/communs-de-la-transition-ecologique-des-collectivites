@@ -541,9 +541,39 @@ describe("Projets (e2e)", () => {
 
       const projectId = createdProjet!.id;
 
-      const { data, error } = await api.projects.getPublicInfo(projectId);
+      const { data, error } = await api.projects.getPublicInfo(projectId, "communId");
 
       const { description, phase } = validProjet;
+
+      expect(error).toBeUndefined();
+      expect(data).toEqual({
+        description,
+        phase,
+        collectivites: [
+          {
+            codeInsee: mockedDefaultCollectivite.code,
+            codeEpci: null,
+            type: mockedDefaultCollectivite.type,
+            siren: null,
+            codeDepartements: null,
+            codeRegions: null,
+            nom: "Commune 1",
+            id: expect.any(String),
+            createdAt: expect.any(String),
+            updatedAt: expect.any(String),
+          },
+        ],
+      });
+    });
+
+    it("should return a specific project wit tetId", async () => {
+      const tetApiClient = createApiClient(process.env.TET_API_KEY!);
+      const tetProject = mockProjetPayload({ externalId: "tet-project-1", description: "projet tet" });
+      const { error: _createError } = await tetApiClient.projects.create(tetProject);
+
+      const { data, error } = await tetApiClient.projects.getPublicInfo(tetProject.externalId, "tetId");
+
+      const { description, phase } = tetProject;
 
       expect(error).toBeUndefined();
       expect(data).toEqual({

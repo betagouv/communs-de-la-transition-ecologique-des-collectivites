@@ -1418,10 +1418,12 @@ export interface operations {
   };
   ProjetsController_getPublicInfo: {
     parameters: {
-      query?: never;
+      query: {
+        /** @description Type of ID provided */
+        idType: "communId" | "tetId";
+      };
       header?: never;
       path: {
-        /** @description An Id in a UUID format */
         id: string;
       };
       cookie?: never;
@@ -1449,10 +1451,12 @@ export interface operations {
   };
   ProjetsController_getExtraFields: {
     parameters: {
-      query?: never;
+      query: {
+        /** @description Type of ID provided */
+        idType: "communId" | "tetId";
+      };
       header?: never;
       path: {
-        /** @description An Id in a UUID format */
         id: string;
       };
       cookie?: never;
@@ -1480,7 +1484,10 @@ export interface operations {
   };
   ProjetsController_updateExtraFields: {
     parameters: {
-      query?: never;
+      query: {
+        /** @description Type of ID provided */
+        idType: "communId" | "tetId";
+      };
       header?: never;
       path: {
         /** @description An Id in a UUID format */
@@ -1550,6 +1557,8 @@ export interface operations {
     parameters: {
       query: {
         debug: boolean;
+        /** @description Type of ID provided */
+        idType: "communId" | "tetId";
       };
       header?: never;
       path: {

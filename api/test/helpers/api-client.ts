@@ -1,5 +1,6 @@
 import type { paths, components } from "../generated-types";
 import createClient from "openapi-fetch";
+import { IdType } from "@/shared/types";
 
 export const createApiClient = (apiKey: string) => {
   const baseUrl = "http://localhost:3000";
@@ -28,10 +29,11 @@ export const createApiClient = (apiKey: string) => {
           },
         }),
 
-      getPublicInfo: (id: string) =>
+      getPublicInfo: (id: string, idType: IdType) =>
         client.GET("/projets/{id}/public-info", {
           params: {
             path: { id },
+            query: { idType },
           },
         }),
 
@@ -56,7 +58,13 @@ export const createApiClient = (apiKey: string) => {
 
       getByProjectId: (id: string, debug?: boolean) =>
         client.GET("/services/project/{id}", {
-          params: { path: { id }, query: { debug: Boolean(debug) } },
+          params: {
+            path: { id },
+            query: {
+              debug: Boolean(debug),
+              idType: "communId",
+            },
+          },
         }),
     },
   };

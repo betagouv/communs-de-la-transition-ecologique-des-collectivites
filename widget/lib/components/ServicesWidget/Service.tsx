@@ -7,7 +7,7 @@ import IFrameResized from "./IFrameResized.tsx";
 import LevierDetails, { LevierData } from "./LevierDetails.tsx";
 import voiture_electrique from "../../leviers_data/voiture_electrique.json";
 import Input from "@codegouvfr/react-dsfr/Input";
-import { ExtraFields, ProjectData, Service as ServiceType } from "./types.ts";
+import { ExtraFields, IdType, ProjectData, Service as ServiceType } from "./types.ts";
 import { usePostExtraFields } from "./queries.ts";
 import { trackEvent } from "../../matomo/trackEvent.ts";
 import Badge from "@codegouvfr/react-dsfr/Badge";
@@ -21,9 +21,18 @@ interface ServiceProps {
   projectId: string;
   projectData: ProjectData;
   debug?: boolean;
+  idType: IdType;
 }
 
-export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, projectData, debug }: ServiceProps) => {
+export const Service = ({
+  service,
+  projectExtraFields,
+  isStagingEnv,
+  projectId,
+  projectData,
+  debug,
+  idType,
+}: ServiceProps) => {
   const { classes } = useStyles();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const maxDescriptionLength = isMobile ? 200 : 400;
@@ -53,6 +62,7 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
   const missingExtraFields = (extraFields || []).filter(
     (field) => !projectExtraFields.some((projectExtraField) => projectExtraField.name === field.name),
   );
+
   const needsAccordion = (isLevier || iframeUrl) && missingExtraFields.length === 0;
 
   const handleInputChange = (fieldName: string, value: string) => {
@@ -65,11 +75,12 @@ export const Service = ({ service, projectExtraFields, isStagingEnv, projectId, 
 
     postExtraFields({
       postExtraFielsPayload: {
+        projectId,
         fieldName: field.name,
         fieldValue,
-        projectId,
       },
       isStagingEnv: Boolean(isStagingEnv),
+      idType: idType,
     });
 
     setExpanded(true);

@@ -23,7 +23,19 @@ Then import and use the component:
 import { ServicesWidget } from "@betagouv/les-communs-widget";
 
 function App() {
-  return <ServicesWidget projectId="your-project-id" />;
+  return <ServicesWidget projectId="0195af3a-6b26-7a5c-a091-712901a4498d" />;
+}
+```
+
+By default the widget needs to consume the projectId from the Communs database. This ID is a uuid and you will get a 400 if you try any other format
+
+Depending on the widget consumers, you might be able to use your own id as such. For now we only support tet
+
+```tsx
+import { ServicesWidget } from "@betagouv/les-communs-widget";
+
+function App() {
+  <ServicesWidget projectId="your-project-id-from-your-base" idType={"tetId"} />;
 }
 ```
 

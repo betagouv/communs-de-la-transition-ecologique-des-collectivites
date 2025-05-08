@@ -1,7 +1,8 @@
 import { paths } from "../../generated-types.ts";
 import createFetchClient from "openapi-fetch";
 import { getApiUrl } from "../../utils.ts";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
+import { IdType, Service, ProjectData, ExtraFields } from "./types.ts";
 
 const makeApiClient = (isStagingEnv = false) => {
   const apiUrl = getApiUrl(isStagingEnv);
@@ -14,26 +15,33 @@ const makeApiClient = (isStagingEnv = false) => {
   });
 };
 
-// -------------- Services by Projects - GET -------------- //
+interface BaseQueryParams {
+  projectId: string;
+  idType: IdType;
+  options: {
+    isStagingEnv?: boolean;
+    debug?: boolean;
+  };
+}
 
-export const useGetServicesByProjectId = (projectId: string, isStagingEnv = false, debug = false) => {
+// -------------- Services by Projects - GET -------------- //
+export const useGetServicesByProjectId = (params: BaseQueryParams): UseQueryResult<Service[]> => {
   return useQuery({
-    queryKey: ["project-services", projectId],
-    queryFn: () => fetchServicesByProjectId(projectId, isStagingEnv, debug),
+    queryKey: ["project-services", params.projectId],
+    queryFn: () => fetchServicesByProjectId(params),
   });
 };
 
-const fetchServicesByProjectId = async (projectId: string, isStagingEnv: boolean, debug: boolean) => {
+const fetchServicesByProjectId = async ({ projectId, idType, options }: BaseQueryParams) => {
+  const { isStagingEnv = false, debug = false } = options;
   const apiClient = makeApiClient(isStagingEnv);
   const { data, error } = await apiClient.GET(`/services/project/{id}`, {
     params: {
-      query: { debug },
+      query: { debug, idType },
       path: { id: projectId },
     },
   });
 
-  // needed to comply to react-query error pattern
-  // https://tanstack.com/query/latest/docs/framework/react/guides/query-functions?from=reactQueryV3#usage-with-fetch-and-other-clients-that-do-not-throw-by-default
   if (error) {
     throw new Error(error.message);
   }
@@ -41,28 +49,26 @@ const fetchServicesByProjectId = async (projectId: string, isStagingEnv: boolean
   return data;
 };
 
-// -------------- Project public info - GET -------------- //
-
-export const useGetProjectPublicInfo = (projectId: string, debug?: boolean, isStagingEnv = false) => {
+// -------------- Project Public Info - GET -------------- //
+export const useGetProjectPublicInfo = (params: BaseQueryParams): UseQueryResult<ProjectData> => {
   return useQuery({
-    queryKey: ["project-public-info", projectId],
-    queryFn: () => fetchProjectPublicInfo(projectId, isStagingEnv),
-    //this query is only retried when not in debug mode to not delay demo widget display (which has no project context associated)
-    ...(debug ? { retry: 0 } : {}),
+    queryKey: ["project-public-info", params.projectId],
+    queryFn: () => fetchProjectPublicInfo(params),
+    ...(params.options.debug ? { retry: 0 } : {}),
   });
 };
 
-const fetchProjectPublicInfo = async (projectId: string, isStagingEnv: boolean) => {
+const fetchProjectPublicInfo = async ({ projectId, idType, options }: BaseQueryParams) => {
+  const { isStagingEnv = false } = options;
   const apiClient = makeApiClient(isStagingEnv);
 
   const { data, error } = await apiClient.GET("/projets/{id}/public-info", {
     params: {
+      query: { idType },
       path: { id: projectId },
     },
   });
 
-  // needed to comply to react-query error pattern
-  // https://tanstack.com/query/latest/docs/framework/react/guides/query-functions?from=reactQueryV3#usage-with-fetch-and-other-clients-that-do-not-throw-by-default
   if (error) {
     throw new Error(error.message);
   }
@@ -70,26 +76,24 @@ const fetchProjectPublicInfo = async (projectId: string, isStagingEnv: boolean) 
   return data;
 };
 
-// -------------- Project extra fields - GET -------------- //
-
-export const useGetProjectExtraFields = (projectId: string, isStagingEnv = false) => {
+// -------------- Project Extra Fields - GET -------------- //
+export const useGetProjectExtraFields = (params: BaseQueryParams): UseQueryResult<ExtraFields> => {
   return useQuery({
-    queryKey: ["project-extra-fields", projectId],
-    queryFn: () => fetchProjectExtraFields(projectId, isStagingEnv),
+    queryKey: ["project-extra-fields", params.projectId],
+    queryFn: () => fetchProjectExtraFields(params),
   });
 };
 
-const fetchProjectExtraFields = async (projectId: string, isStagingEnv: boolean) => {
-  const apiClient = makeApiClient(isStagingEnv);
+const fetchProjectExtraFields = async ({ projectId, idType, options }: BaseQueryParams) => {
+  const apiClient = makeApiClient(options.isStagingEnv);
 
   const { data, error } = await apiClient.GET("/projets/{id}/extra-fields", {
     params: {
+      query: { idType },
       path: { id: projectId },
     },
   });
 
-  // needed to comply to react-query error pattern
-  // https://tanstack.com/query/latest/docs/framework/react/guides/query-functions?from=reactQueryV3#usage-with-fetch-and-other-clients-that-do-not-throw-by-default
   if (error) {
     throw new Error(error.message);
   }
@@ -105,10 +109,12 @@ export const usePostExtraFields = () => {
     mutationFn: ({
       postExtraFielsPayload,
       isStagingEnv,
+      idType,
     }: {
       postExtraFielsPayload: PostExtraFields;
       isStagingEnv: boolean;
-    }) => postExtraFields(postExtraFielsPayload, isStagingEnv),
+      idType: IdType;
+    }) => postExtraFields(postExtraFielsPayload, idType, isStagingEnv),
     onSuccess: async (_, { postExtraFielsPayload }) => {
       await queryClient.invalidateQueries({
         queryKey: ["project-extra-fields", postExtraFielsPayload.projectId],
@@ -123,12 +129,17 @@ interface PostExtraFields {
   fieldValue: string;
 }
 
-const postExtraFields = async ({ projectId, fieldName, fieldValue }: PostExtraFields, isStagingEnv = false) => {
+const postExtraFields = async (
+  { projectId, fieldName, fieldValue }: PostExtraFields,
+  idType: IdType,
+  isStagingEnv = false,
+) => {
   const apiClient = makeApiClient(isStagingEnv);
 
   const { data, error } = await apiClient.POST("/projets/{id}/extra-fields", {
     body: { extraFields: [{ name: fieldName, value: fieldValue }] },
     params: {
+      query: { idType },
       path: { id: projectId },
     },
   });

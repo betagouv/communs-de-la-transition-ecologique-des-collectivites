@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { CreateOrUpdateProjetResponse, CreateProjetRequest } from "./dto/create-projet.dto";
 import { UpdateProjetRequest } from "./dto/update-projet.dto";
 import { ProjetResponse } from "./dto/projet.dto";
-import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiQuery } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { Request } from "express";
 import { BulkCreateProjetsRequest, BulkCreateProjetsResponse } from "./dto/bulk-create-projets.dto";
@@ -16,6 +16,8 @@ import { CreateProjetExtraFieldRequest, ExtraField } from "@projets/dto/extra-fi
 import { extractApiKey } from "@projets/extract-api-key";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { ProjectPublicInfoResponse } from "@projets/dto/project-public-info.dto";
+import { IdType, idTypes } from "@/shared/types";
+import { ProjectId, ProjectIdType } from "@/shared/decorator/projetId-decorator";
 
 @ApiBearerAuth()
 @Controller("projets")
@@ -48,26 +50,33 @@ export class ProjetsController {
 
   @Public()
   @ApiEndpointResponses({ successStatus: 200, response: ProjectPublicInfoResponse })
+  @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
   @Get(":id/public-info")
-  getPublicInfo(@Param() { id }: UUIDDto): Promise<ProjectPublicInfoResponse> {
-    return this.projetFindService.getPublicInfo(id);
+  getPublicInfo(
+    @ProjectId() id: ProjectIdType[IdType],
+    @Query("idType") idType: IdType,
+  ): Promise<ProjectPublicInfoResponse> {
+    return this.projetFindService.getPublicInfo(id, idType);
   }
 
   @Public()
   @ApiEndpointResponses({ successStatus: 200, response: ExtraField, isArray: true })
+  @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
   @Get(":id/extra-fields")
-  getExtraFields(@Param() { id }: UUIDDto): Promise<ExtraField[]> {
-    return this.extraFieldsService.getExtraFieldsByProjetId(id);
+  getExtraFields(@ProjectId() id: ProjectIdType[IdType], @Query("idType") idType: IdType): Promise<ExtraField[]> {
+    return this.extraFieldsService.getExtraFieldsByProjetId(id, idType);
   }
 
   @Public()
   @ApiEndpointResponses({ successStatus: 201, response: ExtraField, isArray: true })
+  @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
   @Post(":id/extra-fields")
   updateExtraFields(
-    @Param() { id }: UUIDDto,
+    @ProjectId() id: ProjectIdType[IdType],
+    @Query("idType") idType: IdType,
     @Body() extraFieldsDto: CreateProjetExtraFieldRequest,
   ): Promise<ExtraField[]> {
-    return this.extraFieldsService.createExtraFields(id, extraFieldsDto);
+    return this.extraFieldsService.createExtraFields(id, extraFieldsDto, idType);
   }
 
   @Post()

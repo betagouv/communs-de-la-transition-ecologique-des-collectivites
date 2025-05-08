@@ -3,12 +3,14 @@ import { ServicesService } from "./services.service";
 import { ServicesContextService } from "./services-context.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "./dto/create-service-context.dto";
 import { Public } from "@/auth/public.decorator";
-import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { UUIDDto } from "@/shared/dto/uuid";
+import { IdType, idTypes } from "@/shared/types";
+import { ProjectId, ProjectIdType } from "@/shared/decorator/projetId-decorator";
 
 @ApiBearerAuth()
 @ApiTags("services")
@@ -34,15 +36,17 @@ export class ServicesController {
     response: ServicesByProjectIdResponse,
     isArray: true,
   })
+  @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
   @Get("project/:id")
   getServicesByProjectId(
-    @Param() { id }: UUIDDto,
+    @ProjectId() id: ProjectIdType[IdType],
     @Query("debug") debug: boolean,
+    @Query("idType") idType: IdType,
   ): Promise<ServicesByProjectIdResponse[]> {
     if (debug) {
       return this.serviceContextService.getAllServicesContexts();
     }
-    return this.servicesService.getServicesByProjectId(id);
+    return this.servicesService.getServicesByProjectId(id, idType);
   }
 
   @ApiBearerAuth()
