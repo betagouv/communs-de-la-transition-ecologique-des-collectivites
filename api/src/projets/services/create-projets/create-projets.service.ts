@@ -7,6 +7,10 @@ import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 import { ServiceIdentifierService } from "@projets/services/service-identifier/service-identifier.service";
 import { BulkCreateProjetsRequest } from "@projets/dto/bulk-create-projets.dto";
 import { PorteurDto } from "@projets/dto/porteur.dto";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
+import { CustomLogger } from "@logging/logger.service";
+import { PROJECT_QUALIFICATION_COMPETENCES_JOB, PROJECT_QUALIFICATION_QUEUE_NAME } from "@/projet-qualification/const";
 
 @Injectable()
 export class CreateProjetsService {
@@ -14,6 +18,8 @@ export class CreateProjetsService {
     private dbService: DatabaseService,
     private readonly collectivitesService: CollectivitesService,
     private readonly serviceIdentifierService: ServiceIdentifierService,
+    @InjectQueue(PROJECT_QUALIFICATION_QUEUE_NAME) private qualificationQueue: Queue,
+    private logger: CustomLogger,
   ) {}
 
   async create(createProjectDto: CreateProjetRequest, apiKey: string): Promise<{ id: string }> {
@@ -40,6 +46,10 @@ export class CreateProjetsService {
         .returning();
 
       await this.collectivitesService.createOrUpdateRelations(tx, upsertedProject.id, createProjectDto.collectivites);
+
+      if (!createProjectDto.competences || createProjectDto.competences.length === 0) {
+        await this.scheduleProjectQualification(upsertedProject.id);
+      }
 
       return { id: upsertedProject.id };
     });
@@ -80,6 +90,24 @@ export class CreateProjetsService {
 
       return { ids: createdProjects.map((p) => p.id) };
     });
+  }
+
+  private async scheduleProjectQualification(projetId: string): Promise<void> {
+    this.logger.log(`Scheduling qualification for projet ${projetId}`);
+
+    await this.qualificationQueue.add(
+      PROJECT_QUALIFICATION_COMPETENCES_JOB,
+      { projetId },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+      },
+    );
+
+    this.logger.log(`Qualification job scheduled for project ${projetId}`);
   }
 
   private mapPorteurToDatabase(porteur: PorteurDto | null | undefined) {

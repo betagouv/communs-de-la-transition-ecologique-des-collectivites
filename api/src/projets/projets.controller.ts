@@ -111,10 +111,9 @@ export class ProjetsController {
     description: "Projet updated successfully",
   })
   update(
-    @Req() request: Request,
     @Param() { id }: UUIDDto,
     @Body() updateProjetDto: UpdateProjetRequest,
   ): Promise<CreateOrUpdateProjetResponse> {
-    return this.projetUpdateService.update(id, updateProjetDto, extractApiKey(request));
+    return this.projetUpdateService.update(id, updateProjetDto);
   }
 }

@@ -1,6 +1,6 @@
 import { Module, NestModule, MiddlewareConsumer } from "@nestjs/common";
 import { AppService } from "./app.service";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { DatabaseModule } from "@database/database.module";
 import { LoggerModule } from "@/logging/logger.module";
 import { RequestLoggingInterceptor } from "@/logging/request-logging.interceptor";
@@ -13,20 +13,35 @@ import { CorsMiddleware } from "./middleware/cors.middleware";
 import { GeoModule } from "@/geo/geo.module";
 import { ProjetsModule } from "@projets/projets.module";
 import { currentEnv } from "@/shared/utils/currentEnv";
+import { BullModule } from "@nestjs/bullmq";
+import { ProjetQualificationModule } from "@/projet-qualification/projet-qualification.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${currentEnv}`,
+      ignoreEnvFile: process.env.NODE_ENV === "production", // In production, environment variables are set by the deployment
     }),
     SentryModule.forRoot(),
     ThrottlerModule.forRoot(throttlerConfig),
+    BullModule.forRootAsync({
+      useFactory: (config: ConfigService) => {
+        return {
+          connection: {
+            host: config.getOrThrow<string>("QUEUE_REDIS_HOST"),
+            port: config.getOrThrow<number>("QUEUE_REDIS_PORT"),
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
     DatabaseModule,
     ProjetsModule,
     ServicesModule,
     LoggerModule,
     GeoModule,
+    ProjetQualificationModule,
   ],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
 })

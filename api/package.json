@@ -42,6 +42,8 @@
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org betagouv --project communs-de-la-transition-eco-api ./dist && sentry-cli --url https://sentry.incubateur.net/ sourcemaps upload --org betagouv --project communs-de-la-transition-eco-api ./dist"
   },
   "dependencies": {
+    "@nestjs/bullmq": "^11.0.1",
+    "bullmq": "^5.1.1",
     "@nestjs/common": "^11.0.20",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.20",
