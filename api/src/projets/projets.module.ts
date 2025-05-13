@@ -26,6 +26,6 @@ import { PROJECT_QUALIFICATION_QUEUE_NAME } from "@/projet-qualification/const";
     ServiceIdentifierService,
     ExtraFieldsService,
   ],
-  exports: [UpdateProjetsService],
+  exports: [UpdateProjetsService, GetProjetsService],
 })
 export class ProjetsModule {}

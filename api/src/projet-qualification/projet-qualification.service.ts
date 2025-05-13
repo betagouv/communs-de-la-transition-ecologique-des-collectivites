@@ -1,14 +1,23 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import { CustomLogger } from "@logging/logger.service";
-import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
-import { CompetenceCodes } from "@/shared/types";
 import { InternalServerErrorException } from "@nestjs/common";
+import path from "path";
+import { spawn } from "child_process";
+import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
+import {
+  COMPETENCE_SCORE_TRESHOLD,
+  CompetencesResult,
+  PROJECT_QUALIFICATION_COMPETENCES_JOB,
+  PROJECT_QUALIFICATION_LEVIERS_JOB,
+} from "@/projet-qualification/const";
+import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 
 @Processor("project-qualification")
 export class ProjetQualificationService extends WorkerHost {
   constructor(
     private readonly projetUpdateService: UpdateProjetsService,
+    private readonly projetGetService: GetProjetsService,
     private logger: CustomLogger,
   ) {
     super();
@@ -16,48 +25,105 @@ export class ProjetQualificationService extends WorkerHost {
 
   async process(job: Job<{ projetId: string }>) {
     const { projetId } = job.data;
+    this.logger.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
 
-    this.logger.log(`Processing qualification job for project ${projetId}`);
-
+    console.log("job.name", job.name);
     try {
-      const competencesCodes = await this.analyzeProjectSkills("test");
+      const projet = await this.projetGetService.findOne(projetId);
 
-      // this will throw if projet is not found
-      await this.projetUpdateService.update(projetId, { competences: competencesCodes });
-
-      this.logger.log(
-        `Successfully qualified project ${projetId} with competences code: ${competencesCodes.join(", ")}`,
-      );
-
-      //todo do I really need to catch those error with my globale exception handler ?
+      // we only trigger the job from the create service when there is a description
+      // but since it's async, and the descritption might have been removed at the time the job is processed we recheck in this logic too
+      if (projet.description) {
+        switch (job.name) {
+          case PROJECT_QUALIFICATION_COMPETENCES_JOB:
+            await this.analyzeAndUpdateCompetences(projet.description, projet.id);
+            break;
+          case PROJECT_QUALIFICATION_LEVIERS_JOB:
+            throw new Error("need to implement it ");
+          default:
+            throw new Error(`${job.name} is not covered yet`);
+        }
+      }
     } catch (error) {
-      this.logger.error(`Error qualifying project ${projetId}`, { error });
-      throw new InternalServerErrorException(`Error qualifying project ${projetId}`);
+      this.logger.error(`Error qualifying and updating project ${projetId} for job ${job.name}`, {
+        error: {
+          message: error instanceof Error ? error.message : "Unknown error",
+          stack: error instanceof Error ? error.stack : undefined,
+        },
+      });
+
+      throw new InternalServerErrorException(`Error qualifying project ${projetId} for job ${job.name}`);
     }
   }
+  private async analyzeAndUpdateCompetences(description: string, projetId: string): Promise<void> {
+    const result = await this.analyzeProjet<CompetencesResult>(description, "competences");
 
-  private async analyzeProjectSkills(description: string): Promise<CompetenceCodes> {
-    try {
-      // Pour le test, on renvoie des valeurs hardcodées
-      // Plus tard, ce sera remplacé par un appel à un script Python ou un LLM
-
-      // Simuler un appel à un script Python (à des fins de démonstration)
-      // const { stdout } = await execPromise('python3 ./scripts/analyze_skills.py "' + description.replace(/"/g, '\\"') + '"');
-      // return JSON.parse(stdout);
-
-      // Pour l'instant, on retourne des compétences hardcodées
-      const mockSkills: CompetenceCodes = ["90-18"];
-
-      // Simulation d'un traitement qui prend du temps
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-
-      return mockSkills;
-    } catch (error) {
-      this.logger.error(`Error analyzing projet description to get competence for description ${description}`, {
-        error,
-      });
-      // En cas d'erreur, retourner au moins quelques skills génériques
-      throw new InternalServerErrorException(`Error analyzing projet description to get competence`);
+    if (result.errorMessage) {
+      throw new Error(`Error while qualifying competences for ${projetId} - error : ${result.errorMessage}`);
     }
+
+    const competencesCodes = result.competences
+      .filter((competence) => competence.score > COMPETENCE_SCORE_TRESHOLD)
+      .map((competence) => competence.code);
+
+    // this will throw if projet is not found
+    await this.projetUpdateService.update(projetId, { competences: competencesCodes });
+
+    this.logger.log(`Successfully qualified project ${projetId} with competences code ${competencesCodes.join()}`);
+  }
+
+  private async analyzeProjet<T>(description: string, type: "TE" | "competences"): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const escapedDescription = description.replace(/'/g, "'\\''");
+
+      //todo make sure this properly works for prod (or use relative path)
+      const pythonScript = path.join(
+        process.cwd(),
+        "src",
+        "projet-qualification",
+        "llm-scripts",
+        "competences-and-leviers-qualification.py",
+      );
+
+      const pythonProcess = spawn("python3", [pythonScript, `'${escapedDescription}'`, "--type", type]);
+
+      let outputString = "";
+      let errorString = "";
+
+      pythonProcess.stdout.on("data", (data) => {
+        outputString += data.toString();
+        console.log("Python process output:", outputString);
+      });
+
+      pythonProcess.stderr.on("data", (data) => {
+        errorString += data.toString();
+        console.log("Python process error:", errorString);
+      });
+
+      pythonProcess.on("close", (code) => {
+        console.log("Python process exited with code:", code);
+        console.log("Raw output:", outputString);
+        if (code !== 0) {
+          reject(new Error(`Process exited with code ${code}. Error: ${errorString}`));
+          return;
+        }
+        try {
+          console.log("parseResult", JSON.parse(outputString) as T);
+
+          const jsonResult = JSON.parse(outputString) as T;
+          /* if (type === "TE") {
+            const classificationResult = JSON.parse(outputs[0]);
+            console.log("Classification Result:", classificationResult);
+            jsonResult = classificationResult;
+            console.log("Final Result:", jsonResult);
+          } else {*/
+          resolve(jsonResult);
+        } catch (e) {
+          console.error("JSON parse error:", e);
+          console.error("Failed to parse:", outputString);
+          reject(e);
+        }
+      });
+    });
   }
 }
