@@ -90,26 +90,20 @@ export class ProjetQualificationService extends WorkerHost {
       let outputString = "";
       let errorString = "";
 
-      pythonProcess.stdout.on("data", (data) => {
+      pythonProcess.stdout.on("data", (data: Buffer) => {
         outputString += data.toString();
-        console.log("Python process output:", outputString);
       });
 
-      pythonProcess.stderr.on("data", (data) => {
+      pythonProcess.stderr.on("data", (data: Buffer) => {
         errorString += data.toString();
-        console.log("Python process error:", errorString);
       });
 
       pythonProcess.on("close", (code) => {
-        console.log("Python process exited with code:", code);
-        console.log("Raw output:", outputString);
         if (code !== 0) {
           reject(new Error(`Process exited with code ${code}. Error: ${errorString}`));
           return;
         }
         try {
-          console.log("parseResult", JSON.parse(outputString) as T);
-
           const jsonResult = JSON.parse(outputString) as T;
           /* if (type === "TE") {
             const classificationResult = JSON.parse(outputs[0]);
@@ -119,9 +113,7 @@ export class ProjetQualificationService extends WorkerHost {
           } else {*/
           resolve(jsonResult);
         } catch (e) {
-          console.error("JSON parse error:", e);
-          console.error("Failed to parse:", outputString);
-          reject(e);
+          reject(new Error(`Failed to parse JSON output: ${e instanceof Error ? e.message : String(e)}`));
         }
       });
     });
