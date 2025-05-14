@@ -4,9 +4,6 @@ import { currentEnv } from "@/shared/utils/currentEnv";
 
 dotenv.config({ path: `.env.${currentEnv}` });
 
-console.log("currentEnv", currentEnv);
-console.log("process.env.DATABASE_URL", process.env.DATABASE_URL);
-
 export default defineConfig({
   schema: "./src/database/schema.ts",
   out: "./drizzle",
