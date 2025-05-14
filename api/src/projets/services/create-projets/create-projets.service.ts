@@ -47,7 +47,10 @@ export class CreateProjetsService {
 
       await this.collectivitesService.createOrUpdateRelations(tx, upsertedProject.id, createProjectDto.collectivites);
 
-      if (!createProjectDto.competences || createProjectDto.competences.length === 0) {
+      const hasProjetNoCompetences = !upsertedProject.competences || upsertedProject.competences.length === 0;
+
+      // we only trigger the qualification if the description is available since the llm bases its logic on it
+      if (upsertedProject.description && hasProjetNoCompetences) {
         await this.scheduleProjectQualification(upsertedProject.id);
       }
 
