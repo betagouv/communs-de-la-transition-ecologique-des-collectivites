@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from
 import { CreateOrUpdateProjetResponse, CreateProjetRequest } from "./dto/create-projet.dto";
 import { UpdateProjetRequest } from "./dto/update-projet.dto";
 import { ProjetResponse } from "./dto/projet.dto";
-import { ApiBearerAuth, ApiOperation, ApiQuery } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { Request } from "express";
 import { BulkCreateProjetsRequest, BulkCreateProjetsResponse } from "./dto/bulk-create-projets.dto";
@@ -51,6 +51,7 @@ export class ProjetsController {
   @Public()
   @ApiEndpointResponses({ successStatus: 200, response: ProjectPublicInfoResponse })
   @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
+  @ApiParam({ name: "id", type: String, required: true })
   @Get(":id/public-info")
   getPublicInfo(
     @ProjectId() id: ProjectIdType[IdType],
@@ -62,6 +63,7 @@ export class ProjetsController {
   @Public()
   @ApiEndpointResponses({ successStatus: 200, response: ExtraField, isArray: true })
   @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
+  @ApiParam({ name: "id", type: String, required: true })
   @Get(":id/extra-fields")
   getExtraFields(@ProjectId() id: ProjectIdType[IdType], @Query("idType") idType: IdType): Promise<ExtraField[]> {
     return this.extraFieldsService.getExtraFieldsByProjetId(id, idType);
@@ -70,6 +72,7 @@ export class ProjetsController {
   @Public()
   @ApiEndpointResponses({ successStatus: 201, response: ExtraField, isArray: true })
   @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
+  @ApiParam({ name: "id", type: String, required: true })
   @Post(":id/extra-fields")
   updateExtraFields(
     @ProjectId() id: ProjectIdType[IdType],

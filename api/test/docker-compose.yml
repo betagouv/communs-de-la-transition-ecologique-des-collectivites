@@ -8,3 +8,13 @@ services:
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: e2e_test_db
       POSTGRES_USER: postgres
+  redis:
+    image: redis:alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+

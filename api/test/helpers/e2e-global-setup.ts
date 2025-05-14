@@ -18,10 +18,10 @@ declare global {
 }
 
 export default async function globalSetup() {
-  console.time("e2e-setup");
-
   const DATABASE_URL = "postgres://postgres:mypassword@localhost:5433/e2e_test_db";
   process.env.DATABASE_URL = DATABASE_URL;
+  process.env.QUEUE_REDIS_PORT = "6380";
+  process.env.QUEUE_REDIS_HOST = "localhost";
 
   await dockerCompose.upAll({
     cwd: join(__dirname),

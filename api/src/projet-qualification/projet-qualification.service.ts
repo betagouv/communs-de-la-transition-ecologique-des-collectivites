@@ -27,10 +27,8 @@ export class ProjetQualificationService extends WorkerHost {
     const { projetId } = job.data;
     this.logger.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
 
-    console.log("job.name", job.name);
     try {
       const projet = await this.projetGetService.findOne(projetId);
-
       // we only trigger the job from the create service when there is a description
       // but since it's async, and the descritption might have been removed at the time the job is processed we recheck in this logic too
       if (projet.description) {
