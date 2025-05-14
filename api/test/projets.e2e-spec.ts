@@ -91,6 +91,26 @@ describe("Projets (e2e)", () => {
       });
     });
 
+    it("should update competence when not provided", async () => {
+      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+
+      const { data } = await mecClient.projects.create({
+        ...validProjet,
+        competences: null,
+        description: "rénovation des chauffage d'une ecole primaire",
+        externalId: "mec-competence-not-provided",
+      });
+
+      // await 5 seconds for qualifiying competence job to finish
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      const { data: updatedProjet } = await api.projects.getOne(data!.id);
+
+      expect(updatedProjet).toMatchObject({
+        competences: ["90-212"],
+      });
+    }, 10000);
+
     it("should create a valid project when missing valid collectivites", async () => {
       const missingCodeInsee = "10110"; //Courteranges
 

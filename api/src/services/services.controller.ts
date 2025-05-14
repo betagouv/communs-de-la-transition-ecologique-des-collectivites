@@ -3,7 +3,7 @@ import { ServicesService } from "./services.service";
 import { ServicesContextService } from "./services-context.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "./dto/create-service-context.dto";
 import { Public } from "@/auth/public.decorator";
-import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
@@ -37,6 +37,7 @@ export class ServicesController {
     isArray: true,
   })
   @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
+  @ApiParam({ name: "id", type: String, required: true })
   @Get("project/:id")
   getServicesByProjectId(
     @ProjectId() id: ProjectIdType[IdType],

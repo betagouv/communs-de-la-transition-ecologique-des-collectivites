@@ -1,6 +1,6 @@
 import { Module, NestModule, MiddlewareConsumer } from "@nestjs/common";
 import { AppService } from "./app.service";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { DatabaseModule } from "@database/database.module";
 import { LoggerModule } from "@/logging/logger.module";
 import { RequestLoggingInterceptor } from "@/logging/request-logging.interceptor";
@@ -13,20 +13,54 @@ import { CorsMiddleware } from "./middleware/cors.middleware";
 import { GeoModule } from "@/geo/geo.module";
 import { ProjetsModule } from "@projets/projets.module";
 import { currentEnv } from "@/shared/utils/currentEnv";
+import { BullModule } from "@nestjs/bullmq";
+import { ProjetQualificationModule } from "@/projet-qualification/projet-qualification.module";
+import { BullBoardModule } from "@bull-board/nestjs";
+import basicAuth from "express-basic-auth";
+import { ExpressAdapter } from "@bull-board/express";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${currentEnv}`,
+      ignoreEnvFile: process.env.NODE_ENV === "production", // In production, environment variables are set by the deployment
     }),
     SentryModule.forRoot(),
     ThrottlerModule.forRoot(throttlerConfig),
+    BullModule.forRootAsync({
+      useFactory: (config: ConfigService) => {
+        const redisUrl = config.getOrThrow<string>("REDIS_URL");
+        const redisConfig = new URL(redisUrl);
+        return {
+          connection: {
+            host: redisConfig.hostname,
+            port: parseInt(redisConfig.port),
+            password: redisConfig.password,
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
+    BullBoardModule.forRootAsync({
+      useFactory: (config: ConfigService) => {
+        return {
+          route: "/queues",
+          adapter: ExpressAdapter,
+          middleware: basicAuth({
+            challenge: true,
+            users: { admin: config.getOrThrow<string>("QUEUE_BOARD_PWD") },
+          }),
+        };
+      },
+      inject: [ConfigService],
+    }),
     DatabaseModule,
     ProjetsModule,
     ServicesModule,
     LoggerModule,
     GeoModule,
+    ProjetQualificationModule,
   ],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
 })

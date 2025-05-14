@@ -4,7 +4,7 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { CreateProjetRequest } from "../../dto/create-projet.dto";
 import { TestingModule } from "@nestjs/testing";
-import { ConflictException, NotFoundException } from "@nestjs/common";
+import { NotFoundException } from "@nestjs/common";
 import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { UpdateProjetsService } from "./update-projets.service";
 import { collectivites } from "@database/schema";
@@ -73,7 +73,7 @@ describe("ProjetUpdateService", () => {
       externalId: EXTERNAL_ID,
     };
 
-    await updateService.update(ProjetId, updateDto, MEC_API_KEY);
+    await updateService.update(ProjetId, updateDto);
     const updatedProjet = await findService.findOne(ProjetId);
     const { externalId, ...expectedfields } = updateDto;
 
@@ -111,7 +111,7 @@ describe("ProjetUpdateService", () => {
 
     const { externalId, ...expectedFields } = updateDto;
 
-    await updateService.update(ProjetId, updateDto, MEC_API_KEY);
+    await updateService.update(ProjetId, updateDto);
     const updatedProjet = await findService.findOne(ProjetId);
 
     expect(updatedProjet).toMatchObject({
@@ -137,7 +137,7 @@ describe("ProjetUpdateService", () => {
       externalId: EXTERNAL_ID,
     };
 
-    await updateService.update(ProjetId, updateDto, MEC_API_KEY);
+    await updateService.update(ProjetId, updateDto);
     const updatedProjet = await findService.findOne(ProjetId);
 
     expect(updatedProjet.collectivites).toHaveLength(1);
@@ -152,24 +152,9 @@ describe("ProjetUpdateService", () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
     const updateDto = { nom: "Updated Name", externalId: "test-external-id-4" };
 
-    await expect(updateService.update(nonExistentId, updateDto, "MEC_test_api_key")).rejects.toThrow(NotFoundException);
-    await expect(updateService.update(nonExistentId, updateDto, "MEC_test_api_key")).rejects.toThrow(
+    await expect(updateService.update(nonExistentId, updateDto)).rejects.toThrow(NotFoundException);
+    await expect(updateService.update(nonExistentId, updateDto)).rejects.toThrow(
       `Projet with ID ${nonExistentId} not found`,
-    );
-  });
-
-  it("should throw ConflictException when externalId doesn't match", async () => {
-    const updateDto = {
-      nom: "Updated Projet",
-      description: "Updated Description",
-      budgetPrevisionnel: 200000,
-      externalId: "different-external-id", // Different from the one used in creation
-    };
-
-    await expect(updateService.update(ProjetId, updateDto, MEC_API_KEY)).rejects.toThrow(
-      new ConflictException(
-        `Projet with ID ${ProjetId} cannot be updated: externalId mismatch (current: test-service-id, requested: different-external-id)`,
-      ),
     );
   });
 });
