@@ -30,10 +30,13 @@ import { ExpressAdapter } from "@bull-board/express";
     ThrottlerModule.forRoot(throttlerConfig),
     BullModule.forRootAsync({
       useFactory: (config: ConfigService) => {
+        const redisUrl = config.getOrThrow<string>("REDIS_URL");
+        const redisConfig = new URL(redisUrl);
         return {
           connection: {
-            host: config.getOrThrow<string>("QUEUE_REDIS_HOST"),
-            port: config.getOrThrow<number>("QUEUE_REDIS_PORT"),
+            host: redisConfig.hostname,
+            port: parseInt(redisConfig.port),
+            password: redisConfig.password,
           },
         };
       },
