@@ -14,8 +14,6 @@ export class UpdateProjetsService {
   ) {}
 
   async update(id: string, updateProjectDto: UpdateProjetRequest): Promise<{ id: string }> {
-    // const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
-
     const { collectivites, porteur, ...otherFields } = updateProjectDto;
 
     return this.dbService.database.transaction(async (tx) => {
@@ -24,12 +22,6 @@ export class UpdateProjetsService {
       if (!existingProject) {
         throw new NotFoundException(`Projet with ID ${id} not found`);
       }
-
-      // if (existingProject[serviceIdField] !== externalId) {
-      //   throw new ConflictException(
-      //     `Projet with ID ${id} cannot be updated: externalId mismatch (current: ${existingProject[serviceIdField]}, requested: ${updateProjectDto.externalId})`,
-      //   );
-      // }
 
       const fieldsToUpdate = removeUndefined({
         ...otherFields,
