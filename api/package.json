@@ -27,7 +27,7 @@
     "test:e2e": "pnpm generate-types && jest --config test/jest-e2e.config.ts --runInBand --detectOpenHandles",
     "test:e2e:start": "docker-compose -f docker-compose.e2e-test.yml up -d",
     "test:e2e:stop": "docker-compose -f docker-compose.e2e-test.yml down -v",
-    "test:e2e:full": "pnpm test:e2e:env:start && pnpm test:e2e && pnpm test:e2e:env:stop",
+    "test:e2e:full": "pnpm test:e2e:start && pnpm test:e2e && pnpm test:e2e:stop",
     "test:scripts:watch": "jest --config test/jest.scripts.config.ts --watch",
     "generate-types": "bash scripts/generate-types.sh",
     "convert-geo-api-to-openapi": "npx swagger2openapi https://geo.api.gouv.fr/definition.yml -o src/geo/openapi-definition.yml",
