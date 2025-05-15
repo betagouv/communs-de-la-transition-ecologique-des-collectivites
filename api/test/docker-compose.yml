@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: e2e_test_db
       POSTGRES_USER: postgres
-  redis:
+  redis_e2e:
     image: redis:alpine
     ports:
       - "6380:6379"
