@@ -1,0 +1,36 @@
+version: '3.8'
+
+networks:
+  e2e_test_network:
+    name: e2e_test_network
+
+services:
+  e2e_test_db:
+    image: postgres:15
+    container_name: e2e_test_db
+    environment:
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=e2e_test_db
+      - POSTGRES_USER=postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - e2e_test_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  e2e_test_redis:
+    image: redis:alpine
+    container_name: e2e_test_redis
+    ports:
+      - "6380:6379"
+    networks:
+      - e2e_test_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
