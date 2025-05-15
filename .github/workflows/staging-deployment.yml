@@ -18,7 +18,7 @@ jobs:
 
     # those services are used by unit tests job, the integrated/e2e test have their own docker-compose file
     # this should be improved for a better isolation either through specific workflow or by having the integrated test having their own
-    # docker compose
+    # docker compos
     services:
       postgres:
         image: postgres:15
