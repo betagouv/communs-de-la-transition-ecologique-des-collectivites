@@ -25,7 +25,6 @@ jobs:
           POSTGRES_DB: test_db
         ports:
           - 5432:5432
-        # Add health check to ensure postgres is ready before running tests
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -35,11 +34,12 @@ jobs:
         image: redis:alpine
         ports:
           - "6380:6379"
-        healthcheck:
-          test: [ "CMD", "redis-cli", "ping" ]
-          interval: 1s
-          timeout: 3s
-          retries: 30
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
