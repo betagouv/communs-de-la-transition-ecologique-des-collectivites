@@ -13,4 +13,4 @@ services:
   e2e_test_redis:
     image: redis:alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"

@@ -89,7 +89,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SERVICE_MANAGEMENT_API_KEY: ${{ secrets.SERVICE_MANAGEMENT_API_KEY }}
           DATABASE_URL: postgres://postgres:mypassword@localhost:5433/e2e_test_db
-          REDIS_URL: redis://localhost:6379
+          REDIS_URL: redis://localhost:6380
           QUEUE_BOARD_PWD: AdminIsWatchingYou
 
 
