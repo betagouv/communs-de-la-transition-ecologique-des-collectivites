@@ -16,6 +16,9 @@ jobs:
   lint-test-typecheck: #might split the steps once the tests become heavier
     runs-on: ubuntu-latest
 
+    # those services are used by unit tests job, the integrated/e2e test have their own docker-compose file
+    # this should be improved for a better isolation either through specific workflow or by having the integrated test having their own
+    # docker compose
     services:
       postgres:
         image: postgres:15
@@ -25,7 +28,6 @@ jobs:
           POSTGRES_DB: test_db
         ports:
           - 5432:5432
-        # Add health check to ensure postgres is ready before running tests
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -34,12 +36,13 @@ jobs:
       redis:
         image: redis:alpine
         ports:
-          - "6380:6379"
-        healthcheck:
-          test: [ "CMD", "redis-cli", "ping" ]
-          interval: 1s
-          timeout: 3s
-          retries: 30
+          - "6379:6379"
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -75,6 +78,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379
+          QUEUE_BOARD_PWD: AdminIsWatchingYou
 
       - name: Integrated tests
         run: pnpm run test:e2e --detectOpenHandles --no-buffer
@@ -86,6 +90,7 @@ jobs:
           SERVICE_MANAGEMENT_API_KEY: ${{ secrets.SERVICE_MANAGEMENT_API_KEY }}
           DATABASE_URL: postgres://postgres:mypassword@localhost:5433/e2e_test_db
           REDIS_URL: redis://localhost:6380
+          QUEUE_BOARD_PWD: AdminIsWatchingYou
 
 
   deploy-staging:

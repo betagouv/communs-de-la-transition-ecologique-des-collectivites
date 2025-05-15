@@ -31,6 +31,10 @@ export default async function globalSetup() {
     cwd: join(__dirname),
   });
 
+  await dockerCompose.exec("redis_e2e", ["sh", "-c", "until redis-cli ping; do sleep 1; done"], {
+    cwd: join(__dirname),
+  });
+
   execSync("npm run db:migrate:drizzle", {
     env: {
       ...process.env,
