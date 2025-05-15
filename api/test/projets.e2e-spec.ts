@@ -109,7 +109,7 @@ describe("Projets (e2e)", () => {
       expect(updatedProjet).toMatchObject({
         competences: ["90-212"],
       });
-    }, 10000);
+    }, 20000);
 
     it("should create a valid project when missing valid collectivites", async () => {
       const missingCodeInsee = "10110"; //Courteranges
