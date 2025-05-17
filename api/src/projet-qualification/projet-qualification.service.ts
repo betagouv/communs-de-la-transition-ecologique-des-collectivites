@@ -85,6 +85,7 @@ export class ProjetQualificationService extends WorkerHost {
 
       const pythonScript = path.join(__dirname, "llm-scripts", "competences-and-leviers-qualification.py");
 
+      console.log(`Le script Python existe : ${pythonScript}`);
       if (!existsSync(pythonScript)) {
         console.log(`Le script Python n'existe pas : ${pythonScript}`);
         throw new Error(`Le script Python n'existe pas : ${pythonScript}`);
