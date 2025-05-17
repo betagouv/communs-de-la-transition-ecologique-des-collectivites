@@ -106,6 +106,7 @@ export class ProjetQualificationService extends WorkerHost {
 
       pythonProcess.on("close", (code) => {
         if (code !== 0) {
+          console.log(`Process exited with code ${code}. Error: ${errorString}`);
           reject(new Error(`Process exited with code ${code}. Error: ${errorString}`));
           return;
         }
@@ -117,8 +118,10 @@ export class ProjetQualificationService extends WorkerHost {
             jsonResult = classificationResult;
             console.log("Final Result:", jsonResult);
           } else {*/
+          console.log("Final Result:", jsonResult);
           resolve(jsonResult);
         } catch (e) {
+          console.log(`Failed to parse JSON output: ${e instanceof Error ? e.message : String(e)}`);
           reject(new Error(`Failed to parse JSON output: ${e instanceof Error ? e.message : String(e)}`));
         }
       });
