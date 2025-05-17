@@ -92,7 +92,7 @@ describe("Projets (e2e)", () => {
     });
 
     // todo this test fails in CI
-    it.skip("should update competence when not provided", async () => {
+    it("should update competence when not provided", async () => {
       const mecClient = createApiClient(process.env.MEC_API_KEY!);
 
       const { data } = await mecClient.projects.create({
