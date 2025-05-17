@@ -91,7 +91,6 @@ describe("Projets (e2e)", () => {
       });
     });
 
-    // todo this test fails in CI
     it("should update competence when not provided", async () => {
       const mecClient = createApiClient(process.env.MEC_API_KEY!);
 
@@ -102,17 +101,15 @@ describe("Projets (e2e)", () => {
         externalId: "mec-competence-not-provided",
       });
 
-      console.log("project created", data!.id);
-
       // await 15 seconds for qualifiying competence job to finish
-      await new Promise((resolve) => setTimeout(resolve, 15000));
+      await new Promise((resolve) => setTimeout(resolve, 7000));
 
       const { data: updatedProjet } = await api.projects.getOne(data!.id);
 
       expect(updatedProjet).toMatchObject({
         competences: ["90-212"],
       });
-    }, 25000);
+    }, 10000);
 
     it("should create a valid project when missing valid collectivites", async () => {
       const missingCodeInsee = "10110"; //Courteranges

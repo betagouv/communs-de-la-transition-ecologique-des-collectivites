@@ -94,7 +94,7 @@ jobs:
           QUEUE_BOARD_PWD: AdminIsWatchingYou
 
       - name: Integrated tests
-        run: pnpm run test:e2e:full --detectOpenHandles --no-buffer
+        run: pnpm run test:e2e:full
         env:
           MEC_API_KEY: ${{ secrets.MEC_API_KEY }}
           TET_API_KEY: ${{ secrets.TET_API_KEY }}
