@@ -28,9 +28,13 @@ export class ProjetQualificationService extends WorkerHost {
     this.logger.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
     console.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
     try {
+      console.log(`getting project fr ${projetId} for job ${job.name}`);
       const projet = await this.projetGetService.findOne(projetId);
       // we only trigger the job from the create service when there is a description
       // but since it's async, and the descritption might have been removed at the time the job is processed we recheck in this logic too
+
+      console.log(`project fr ${projetId} for job ${job.name}`, projet);
+
       if (projet.description) {
         switch (job.name) {
           case PROJECT_QUALIFICATION_COMPETENCES_JOB:
@@ -54,6 +58,8 @@ export class ProjetQualificationService extends WorkerHost {
     }
   }
   private async analyzeAndUpdateCompetences(description: string, projetId: string): Promise<void> {
+    console.log(`trying to qualify project ${projetId} with description ${description}`);
+
     const result = await this.analyzeProjet<CompetencesResult>(description, "competences");
     console.log("qualification result in queue: ", result);
 
