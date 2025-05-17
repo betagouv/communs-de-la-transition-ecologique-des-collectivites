@@ -18,7 +18,7 @@ jobs:
 
     # those services are used by unit tests job, the integrated/e2e test have their own docker-compose file
     # this should be improved for a better isolation either through specific workflow or by having the integrated test having their own
-    # docker compose
+    # docker compos
     services:
       postgres:
         image: postgres:15
@@ -51,6 +51,19 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          cd ..
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          cd api
+
       - name: Install pnpm
         shell: bash
         run: npm install -g pnpm@10.0.0
@@ -81,7 +94,7 @@ jobs:
           QUEUE_BOARD_PWD: AdminIsWatchingYou
 
       - name: Integrated tests
-        run: pnpm run test:e2e --detectOpenHandles --no-buffer
+        run: pnpm run test:e2e:full
         env:
           MEC_API_KEY: ${{ secrets.MEC_API_KEY }}
           TET_API_KEY: ${{ secrets.TET_API_KEY }}
@@ -111,6 +124,6 @@ jobs:
           ssh-keyscan -H ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
 
       - name: Deploy to Scalingo (Staging)
-        run: |    
+        run: |
           # Push the staging branch to Scalingo's main branch
           git push git@ssh.osc-fr1.scalingo.com:les-communs-transition-ecologique-api-staging.git main

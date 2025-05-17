@@ -12,6 +12,7 @@ import {
   PROJECT_QUALIFICATION_LEVIERS_JOB,
 } from "@/projet-qualification/const";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
+import { existsSync } from "fs";
 
 @Processor("project-qualification")
 export class ProjetQualificationService extends WorkerHost {
@@ -26,7 +27,6 @@ export class ProjetQualificationService extends WorkerHost {
   async process(job: Job<{ projetId: string }>) {
     const { projetId } = job.data;
     this.logger.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
-
     try {
       const projet = await this.projetGetService.findOne(projetId);
       // we only trigger the job from the create service when there is a description
@@ -74,14 +74,11 @@ export class ProjetQualificationService extends WorkerHost {
     return new Promise((resolve, reject) => {
       const escapedDescription = description.replace(/'/g, "'\\''");
 
-      //todo make sure this properly works for prod (or use relative path)
-      const pythonScript = path.join(
-        process.cwd(),
-        "src",
-        "projet-qualification",
-        "llm-scripts",
-        "competences-and-leviers-qualification.py",
-      );
+      const pythonScript = path.join(__dirname, "llm-scripts", "competences-and-leviers-qualification.py");
+
+      if (!existsSync(pythonScript)) {
+        throw new Error(`Le script Python n'existe pas : ${pythonScript}`);
+      }
 
       const pythonProcess = spawn("python3", [pythonScript, `'${escapedDescription}'`, "--type", type]);
 

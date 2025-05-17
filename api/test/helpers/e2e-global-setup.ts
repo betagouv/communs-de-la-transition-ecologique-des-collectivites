@@ -2,8 +2,6 @@ import "tsconfig-paths/register";
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
-import dockerCompose from "docker-compose";
-import { join } from "path";
 import { execSync } from "child_process";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { DatabaseService } from "@database/database.service";
@@ -20,20 +18,7 @@ declare global {
 export default async function globalSetup() {
   const DATABASE_URL = "postgres://postgres:mypassword@localhost:5433/e2e_test_db";
   process.env.DATABASE_URL = DATABASE_URL;
-  process.env.QUEUE_REDIS_URL = "redis://localhost:6380";
-
-  await dockerCompose.upAll({
-    cwd: join(__dirname),
-    log: true,
-  });
-
-  await dockerCompose.exec("e2e_test_db", ["sh", "-c", "until pg_isready ; do sleep 1; done"], {
-    cwd: join(__dirname),
-  });
-
-  await dockerCompose.exec("redis_e2e", ["sh", "-c", "until redis-cli ping; do sleep 1; done"], {
-    cwd: join(__dirname),
-  });
+  process.env.REDIS_URL = "redis://localhost:6380";
 
   execSync("npm run db:migrate:drizzle", {
     env: {
