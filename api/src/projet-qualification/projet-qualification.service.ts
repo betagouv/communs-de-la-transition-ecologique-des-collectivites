@@ -26,7 +26,7 @@ export class ProjetQualificationService extends WorkerHost {
   async process(job: Job<{ projetId: string }>) {
     const { projetId } = job.data;
     this.logger.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
-
+    console.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
     try {
       const projet = await this.projetGetService.findOne(projetId);
       // we only trigger the job from the create service when there is a description
@@ -55,8 +55,10 @@ export class ProjetQualificationService extends WorkerHost {
   }
   private async analyzeAndUpdateCompetences(description: string, projetId: string): Promise<void> {
     const result = await this.analyzeProjet<CompetencesResult>(description, "competences");
+    console.log("qualification result in queue: ", result);
 
     if (result.errorMessage) {
+      console.log(`Error while qualifying competences for ${projetId} - error : ${result.errorMessage}`);
       throw new Error(`Error while qualifying competences for ${projetId} - error : ${result.errorMessage}`);
     }
 
