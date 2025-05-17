@@ -102,6 +102,8 @@ describe("Projets (e2e)", () => {
         externalId: "mec-competence-not-provided",
       });
 
+      console.log("project created", data!.id);
+
       // await 15 seconds for qualifiying competence job to finish
       await new Promise((resolve) => setTimeout(resolve, 15000));
 
