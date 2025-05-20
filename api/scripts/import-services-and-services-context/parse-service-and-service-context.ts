@@ -1,12 +1,12 @@
 import fs from "fs";
 import { parse } from "csv-parse";
-import { makeNullIfEmptyString, parseExtraField, parseFieldToArray } from "./utils";
 import { leviers } from "@/shared/const/leviers";
 import { ProjetPhase, projetPhasesEnum } from "@database/schema";
 import { CompetenceCode, CompetenceCodes, Leviers } from "@/shared/types";
 import { CreateServiceRequest } from "@/services/dto/create-service.dto";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
 import { competencesFromM57Referentials } from "@/shared/const/competences-list";
+import { makeNullIfEmptyString, parseExtraField, parseFieldToArray } from "../utils";
 
 interface CsvRecord {
   name: string;

@@ -1,31 +1,3 @@
-export function parseExtraField(extraFieldString: string | undefined): { name: string; label: string }[] {
-  if (!extraFieldString) {
-    return [];
-  }
-  // Replace single quotes with double quotes to make a JSON valid string
-  let jsonString = extraFieldString.replace(/'/g, '"');
-
-  // Add quotes around keys if they are missing
-  jsonString = jsonString.replace(/(\w+):/g, '"$1":');
-
-  // Parse the JSON string into an Array
-  try {
-    const extraFields = JSON.parse(jsonString) as { name: string; label: string };
-    return [extraFields];
-  } catch (error) {
-    console.error("Failed to parse extraField:", error);
-    throw new Error("Invalid extraField format");
-  }
-}
-
-export const makeNullIfEmptyString = (value: string | undefined): string | null => {
-  if (!value) {
-    return null;
-  }
-  return value;
-};
-
-// Helper functions
 export function parseFieldToArray(
   field: string,
   validList: readonly string[],
@@ -58,3 +30,30 @@ export function parseFieldToArray(
       return true;
     });
 }
+
+export function parseExtraField(extraFieldString: string | undefined): { name: string; label: string }[] {
+  if (!extraFieldString) {
+    return [];
+  }
+  // Replace single quotes with double quotes to make a JSON valid string
+  let jsonString = extraFieldString.replace(/'/g, '"');
+
+  // Add quotes around keys if they are missing
+  jsonString = jsonString.replace(/(\w+):/g, '"$1":');
+
+  // Parse the JSON string into an Array
+  try {
+    const extraFields = JSON.parse(jsonString) as { name: string; label: string };
+    return [extraFields];
+  } catch (error) {
+    console.error("Failed to parse extraField:", error);
+    throw new Error("Invalid extraField format");
+  }
+}
+
+export const makeNullIfEmptyString = (value: string | undefined): string | null => {
+  if (!value) {
+    return null;
+  }
+  return value;
+};

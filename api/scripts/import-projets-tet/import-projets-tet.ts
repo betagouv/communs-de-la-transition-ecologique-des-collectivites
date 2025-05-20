@@ -3,14 +3,16 @@ import * as fs from "fs";
 import createClient from "openapi-fetch";
 import type { paths } from "@test/generated-types";
 import { config } from "dotenv";
-import * as path from "path";
 import { CompetenceCodes, Leviers } from "@/shared/types";
 import { leviers } from "@/shared/const/leviers";
 import { competencesFromM57Referentials } from "@/shared/const/competences-list";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 import { PhaseStatut, phaseStatutEnum, ProjetPhase, projetPhasesEnum } from "@database/schema";
+import { join } from "path";
+import { currentEnv } from "@/shared/utils/currentEnv";
+import { parseFieldToArray } from "../utils";
 
-config({ path: path.resolve(__dirname, "../../.env") });
+config({ path: join(__dirname, `../../.env.${currentEnv}`) });
 
 interface CsvRecord {
   tet_id: string;
@@ -28,39 +30,45 @@ interface CsvRecord {
   phasestatut: string;
 }
 
-const NATURE_EPCI_FISCALITE_PROPRE = ["CC", "CA", "METRO", "CU"];
+// todo we exclude METRO for now as we don't support departement/metropole as a collectivite
+const NATURE_EPCI_FISCALITE_PROPRE = ["CC", "CA", "CU"];
+const EPCI_TEST_CODES = "000000000";
+const REUNION_DEPARTEMENT = "229740014";
+const baseUrl = process.env.API_BASE_URL;
+const apiKey = process.env.TET_API_KEY;
+
+const apiClient = createClient<paths>({
+  baseUrl,
+  headers: {
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
+  },
+});
+
+const parser = parse({
+  columns: true,
+  skip_empty_lines: true,
+  trim: true,
+});
 
 async function importProjetsTet(csvFilePath: string) {
-  const baseUrl = process.env.API_BASE_URL;
-  const apiKey = process.env.TET_API_KEY;
-
-  const apiClient = createClient<paths>({
-    baseUrl,
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  const parser = parse({
-    columns: true,
-    skip_empty_lines: true,
-    trim: true,
-  });
+  const parsingErrors: string[] = [];
 
   fs.createReadStream(csvFilePath).pipe(parser);
 
   const projects: CreateProjetRequest[] = [];
-  const invalidItemsFile = fs.createWriteStream("invalid_items.txt", { flags: "a" });
   const competencesCodeFromReferential = Object.keys(competencesFromM57Referentials);
+  let totalRecords = 0;
+  let eligibleProjects = 0;
 
   for await (const record of parser as AsyncIterable<CsvRecord>) {
-    const parsedLeviers = parseFieldToArray(record.leviers, leviers, "levier", invalidItemsFile);
+    totalRecords++;
+    const parsedLeviers = parseFieldToArray(record.leviers, leviers, "levier", parsingErrors);
     const parsedCompetences = parseFieldToArray(
       record.codes_competences,
       competencesCodeFromReferential,
       "competence",
-      invalidItemsFile,
+      parsingErrors,
     );
 
     // Validate and handle project status
@@ -71,7 +79,16 @@ async function importProjetsTet(csvFilePath: string) {
       ? (record.phasestatut as PhaseStatut)
       : null;
 
-    if (NATURE_EPCI_FISCALITE_PROPRE.includes(record.nature_epci)) {
+    // Dans la boucle de traitement
+    if (
+      NATURE_EPCI_FISCALITE_PROPRE.includes(record.nature_epci) &&
+      record.siren_epci !== EPCI_TEST_CODES &&
+      //we do this as reunion is the only departement that is entered as a CC the other are entered as a METRO.
+      // we will import those fiche action once we get the proper support for departement
+      record.siren_epci !== REUNION_DEPARTEMENT
+    ) {
+      eligibleProjects++;
+
       projects.push({
         externalId: record.tet_id,
         nom: record.nom,
@@ -86,51 +103,30 @@ async function importProjetsTet(csvFilePath: string) {
     }
   }
 
-  // Close the write stream when done
-  invalidItemsFile.end();
+  console.log(`Parsed ${totalRecords} records, ${eligibleProjects} eligible projects`);
+  // we do not want to trigger the import if there are any invalid records
+  if (parsingErrors.length > 0) {
+    console.error("Invalid items found, exiting, please fix the data and try again", parsingErrors);
+    process.exit(1);
+  }
 
-  const batchSize = 500;
+  const batchSize = 300;
   for (let i = 0; i < projects.length; i += batchSize) {
     const batch = projects.slice(i, i + batchSize);
 
     printBatchWeight(batch);
 
     const { data, error } = await apiClient.POST("/projets/bulk", {
-      body: { projects: batch },
+      body: { projets: batch },
     });
 
-    console.error(`Successfully imported batch starting at index ${i}:`, data);
+    console.log(`Successfully imported batch starting at index ${i}:`, data);
     if (error) {
       console.error(`Failed to import batch starting at index ${i}:`, error);
     } else {
       console.log(`Successfully imported ${data?.ids.length} projects from batch starting at index ${i}`);
     }
   }
-}
-
-function parseFieldToArray(
-  field: string,
-  validList: readonly string[],
-  type: "competence" | "levier",
-  invalidItemsFile: fs.WriteStream,
-): string[] {
-  // Remove curly braces and quotes
-  const cleanedField = field.replace(/[{}"]/g, "");
-
-  // Split by comma followed by a capital letter or a digit
-  return cleanedField
-    .split(/,(?=[A-Z0-9])/)
-    .map((item) => item.trim())
-    .filter((item) => {
-      if (item === "NULL" || item === "") {
-        return false;
-      }
-      if (!validList.includes(item)) {
-        invalidItemsFile.write(`Invalid ${type}: ${item}\n`);
-        return false;
-      }
-      return true;
-    });
 }
 
 const mapCollectivites = (inseeCode: string, epciCode: string): { code: string; type: "Commune" | "EPCI" } => {

@@ -267,7 +267,7 @@ export interface components {
             id: string;
         };
         BulkCreateProjetsRequest: {
-            projects: components["schemas"]["CreateProjetRequest"][];
+            projets: components["schemas"]["CreateProjetRequest"][];
         };
         BulkCreateProjetsResponse: {
             ids: string[];
