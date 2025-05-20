@@ -1,8 +1,7 @@
-import { DatabaseService } from "@database/database.service";
-import { ConflictException, Injectable } from "@nestjs/common";
+import { DatabaseService, Tx } from "@database/database.service";
+import { Injectable } from "@nestjs/common";
 import { CollectivitesService } from "../collectivites/collectivites.service";
 import { projets } from "@database/schema";
-import { eq } from "drizzle-orm";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 import { ServiceIdentifierService } from "@projets/services/service-identifier/service-identifier.service";
 import { BulkCreateProjetsRequest } from "@projets/dto/bulk-create-projets.dto";
@@ -22,77 +21,59 @@ export class CreateProjetsService {
     private logger: CustomLogger,
   ) {}
 
-  async create(createProjectDto: CreateProjetRequest, apiKey: string): Promise<{ id: string }> {
-    const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
-
-    const { externalId, porteur, ...otherFields } = createProjectDto;
-
+  async create(createProjetDto: CreateProjetRequest, apiKey: string): Promise<{ id: string }> {
     return this.dbService.database.transaction(async (tx) => {
-      const [upsertedProject] = await tx
-        .insert(projets)
-        .values({
-          ...otherFields,
-          [serviceIdField]: externalId,
-          ...this.mapPorteurToDatabase(porteur),
-        })
-        .onConflictDoUpdate({
-          target: projets[serviceIdField],
-          set: {
-            ...otherFields,
-            ...this.mapPorteurToDatabase(porteur),
-            updatedAt: new Date(),
-          },
-        })
-        .returning();
+      const projectId = await this.createOrUpdateProjet(tx, createProjetDto, apiKey);
 
-      await this.collectivitesService.createOrUpdateRelations(tx, upsertedProject.id, createProjectDto.collectivites);
-
-      const hasProjetNoCompetences = !upsertedProject.competences || upsertedProject.competences.length === 0;
-
-      // we only trigger the qualification if the description is available since the llm bases its logic on it
-      if (upsertedProject.description && hasProjetNoCompetences) {
-        await this.scheduleProjectQualification(upsertedProject.id);
-      }
-
-      return { id: upsertedProject.id };
+      return { id: projectId };
     });
   }
 
   async createBulk(bulkCreateProjectsRequest: BulkCreateProjetsRequest, apiKey: string): Promise<{ ids: string[] }> {
-    const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
-
     return this.dbService.database.transaction(async (tx) => {
-      const createdProjects = [];
+      const createdProjets: string[] = [];
 
-      for (const projectDto of bulkCreateProjectsRequest.projects) {
-        const { collectivites, externalId, porteur, ...projectFields } = projectDto;
-
-        const existingProject = await this.dbService.database
-          .select()
-          .from(projets)
-          .where(eq(projets[serviceIdField], externalId))
-          .limit(1);
-
-        if (existingProject.length > 0) {
-          throw new ConflictException(`Projet with ${serviceIdField} ${externalId} already exists`);
-        }
-
-        const [newProject] = await tx
-          .insert(projets)
-          .values({
-            ...projectFields,
-            [serviceIdField]: externalId,
-            ...this.mapPorteurToDatabase(porteur),
-          })
-          .returning({ id: projets.id });
-
-        await this.collectivitesService.createOrUpdateRelations(tx, newProject.id, collectivites);
-
-        createdProjects.push(newProject);
+      for (const projetDto of bulkCreateProjectsRequest.projets) {
+        const result = await this.createOrUpdateProjet(tx, projetDto, apiKey);
+        createdProjets.push(result);
       }
 
-      return { ids: createdProjects.map((p) => p.id) };
+      return { ids: createdProjets };
     });
+  }
+
+  private async createOrUpdateProjet(tx: Tx, projectDto: CreateProjetRequest, apiKey: string): Promise<string> {
+    const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
+
+    const { externalId, porteur, collectivites, ...otherFields } = projectDto;
+
+    const [upsertedProject] = await tx
+      .insert(projets)
+      .values({
+        ...otherFields,
+        [serviceIdField]: externalId,
+        ...this.mapPorteurToDatabase(porteur),
+      })
+      .onConflictDoUpdate({
+        target: projets[serviceIdField],
+        set: {
+          ...otherFields,
+          ...this.mapPorteurToDatabase(porteur),
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+
+    await this.collectivitesService.createOrUpdateRelations(tx, upsertedProject.id, collectivites);
+
+    const hasProjetNoCompetences = !upsertedProject.competences || upsertedProject.competences.length === 0;
+
+    // we only trigger the qualification if the description is available since the llm bases its logic on it
+    if (upsertedProject.description && hasProjetNoCompetences) {
+      await this.scheduleProjectQualification(upsertedProject.id);
+    }
+
+    return upsertedProject.id;
   }
 
   private async scheduleProjectQualification(projetId: string): Promise<void> {
