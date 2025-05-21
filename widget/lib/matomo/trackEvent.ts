@@ -23,7 +23,7 @@ export const trackEventv2 = async ({ action, name, value, isStagingEnv }: TrackE
   const apiUrl = getApiUrl(isStagingEnv);
 
   try {
-    const response = await fetch(`${apiUrl}/analytics/track`, {
+    const response = await fetch(`${apiUrl}/analytics/trackEvent`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,9 +33,6 @@ export const trackEventv2 = async ({ action, name, value, isStagingEnv }: TrackE
         action,
         name,
         value,
-        url: window.location.href,
-        hostDomain,
-        env,
       }),
     });
 
