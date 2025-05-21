@@ -332,10 +332,7 @@ describe("Projets (e2e)", () => {
       const { error } = await api.projets.createBulk(invalidProjets);
 
       expect(error?.statusCode).toBe(400);
-      expect(error?.message).toStrictEqual([
-        "projects.0.nom should not be empty",
-        "projects.1.nom should not be empty",
-      ]);
+      expect(error?.message).toStrictEqual(["projets.0.nom should not be empty", "projets.1.nom should not be empty"]);
     });
 
     it("should reject when projets array is empty", async () => {
@@ -580,6 +577,7 @@ describe("Projets (e2e)", () => {
             updatedAt: expect.any(String),
           },
         ],
+        updatedAt: expect.any(String),
       });
     });
 
@@ -610,6 +608,7 @@ describe("Projets (e2e)", () => {
             updatedAt: expect.any(String),
           },
         ],
+        updatedAt: expect.any(String),
       });
     });
 
