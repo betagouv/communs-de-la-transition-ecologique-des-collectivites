@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.16](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.15...v0.0.16) (2025-05-21)
+
+
+### Features
+
+* wip import script for tet ([#49](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/49)) ([1719573](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/1719573864d05ef908efa4cbd131aaaab7b5f612))
+
 ## [0.0.15](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.14...v0.0.15) (2025-05-19)
 
 ## [0.0.14](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.13...v0.0.14) (2025-05-08)
