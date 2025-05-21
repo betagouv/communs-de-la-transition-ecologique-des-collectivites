@@ -14,6 +14,6 @@ export class BulkCreateProjetsRequest {
   // Both @ValidateNested and @Type are required to validate nested objects properly
   @ValidateNested({ each: true })
   @Type(() => CreateProjetRequest)
-  @ArrayMinSize(1, { message: "At least one project must be provided" })
-  projects!: CreateProjetRequest[];
+  @ArrayMinSize(1, { message: "At least one projet must be provided" })
+  projets!: CreateProjetRequest[];
 }

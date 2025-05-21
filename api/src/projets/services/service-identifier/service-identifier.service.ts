@@ -1,8 +1,9 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { ServiceTypeIds } from "@/shared/types";
 
 @Injectable()
 export class ServiceIdentifierService {
-  getServiceIdFieldFromApiKey(apiKey: string): "mecId" | "tetId" | "recocoId" {
+  getServiceIdFieldFromApiKey(apiKey: string): ServiceTypeIds {
     switch (apiKey) {
       case process.env.MEC_API_KEY:
         return "mecId";

@@ -34,6 +34,7 @@
     "generate-geo-types": "openapi-typescript src/geo/openapi-definition.yml -o src/geo/api.d.ts",
     "seed:communes-and-epci:dev": "cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register scripts/seed-communes-and-epci/seed-communes-and-epci.ts",
     "seed:services:dev": "cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register scripts/import-services-and-services-context/import-services-and-services-contexts.ts",
+    "import:projects-tet": "cd scripts/import-projets-tet && cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register import-projets-tet.ts import-projets-tet-data.csv",
     "release": "commit-and-tag-version",
     "db:start": "docker compose up -d",
     "db:clean": "docker compose down -v",

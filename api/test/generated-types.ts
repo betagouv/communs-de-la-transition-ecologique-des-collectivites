@@ -197,6 +197,8 @@ export interface components {
             message: string;
         };
         ProjectPublicInfoResponse: {
+            /** Format: date-time */
+            updatedAt: string;
             description: string | null;
             collectivites: components["schemas"]["Collectivite"][];
             /** @enum {string|null} */
@@ -267,7 +269,7 @@ export interface components {
             id: string;
         };
         BulkCreateProjetsRequest: {
-            projects: components["schemas"]["CreateProjetRequest"][];
+            projets: components["schemas"]["CreateProjetRequest"][];
         };
         BulkCreateProjetsResponse: {
             ids: string[];

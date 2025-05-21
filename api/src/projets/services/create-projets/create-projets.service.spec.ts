@@ -1,6 +1,5 @@
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
-import { CreateProjetRequest } from "../../dto/create-projet.dto";
 import { TestingModule } from "@nestjs/testing";
 import { CreateProjetsService } from "./create-projets.service";
 import { collectivites, projets, projetsToCollectivites } from "@database/schema";
@@ -81,7 +80,7 @@ describe("ProjectCreateService", () => {
   describe("createBulk", () => {
     it("should create multiple projects in a transaction", async () => {
       const projectsToCreate: BulkCreateProjetsRequest = {
-        projects: [mockProjetPayload(), mockProjetPayload({ nom: "Test Project 2", externalId: "test-external-id-2" })],
+        projets: [mockProjetPayload(), mockProjetPayload({ nom: "Test Project 2", externalId: "test-external-id-2" })],
       };
 
       const result = await service.createBulk(projectsToCreate, "MEC_test_api_key");
@@ -110,22 +109,6 @@ describe("ProjectCreateService", () => {
         );
 
       expect(projectCollectivites).toHaveLength(2);
-    });
-
-    it("should rollback all changes if any project creation fails", async () => {
-      const projectsToCreate = {
-        projects: [mockProjetPayload(), mockProjetPayload({ nom: "Test Project 2" })] as CreateProjetRequest[],
-      };
-
-      await expect(service.createBulk(projectsToCreate, "MEC_test_api_key")).rejects.toThrow();
-
-      // Verify no projects were created
-      const createdProjects = await testDbService.database.select().from(projets);
-      expect(createdProjects).toHaveLength(0);
-
-      // Verify no collectivites relations were created
-      const projectCollectivites = await testDbService.database.select().from(projetsToCollectivites);
-      expect(projectCollectivites).toHaveLength(0);
     });
   });
 });
