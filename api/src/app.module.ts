@@ -18,6 +18,7 @@ import { ProjetQualificationModule } from "@/projet-qualification/projet-qualifi
 import { BullBoardModule } from "@bull-board/nestjs";
 import basicAuth from "express-basic-auth";
 import { ExpressAdapter } from "@bull-board/express";
+import { TrackingModule } from "@/tracking/tracking.module";
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { ExpressAdapter } from "@bull-board/express";
     LoggerModule,
     GeoModule,
     ProjetQualificationModule,
+    TrackingModule,
   ],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
 })

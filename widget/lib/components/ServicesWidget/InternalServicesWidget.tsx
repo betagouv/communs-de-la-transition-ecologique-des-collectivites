@@ -5,9 +5,8 @@ import styles from "./InternalServicesWidget.module.css";
 import { useGetProjectExtraFields, useGetProjectPublicInfo, useGetServicesByProjectId } from "./queries.ts";
 import { Service as ServiceType, ServicesWidgetProps } from "./types.ts";
 import { useEffect } from "react";
-import { trackEvent } from "../../matomo/trackEvent.ts";
-import { project as fakeProjet } from "../../test/stub/project.ts";
-import { extraFields as fakeExtraFields } from "../../test/stub/project.ts";
+import { trackEventv2 } from "../../matomo/trackEvent.ts";
+import { extraFields as fakeExtraFields, project as fakeProjet } from "../../test/stub/project.ts";
 
 export const InternalServicesWidget = ({
   projectId,
@@ -31,7 +30,8 @@ export const InternalServicesWidget = ({
 
   useEffect(() => {
     if (servicesData) {
-      trackEvent({
+      //todo improve this void / async mess
+      void trackEventv2({
         action: "Nombre de services affichés",
         name: "Nombre de services affichés",
         value: servicesData.length,
