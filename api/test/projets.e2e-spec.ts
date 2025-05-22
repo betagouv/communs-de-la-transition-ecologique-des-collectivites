@@ -577,7 +577,6 @@ describe("Projets (e2e)", () => {
             updatedAt: expect.any(String),
           },
         ],
-        updatedAt: expect.any(String),
       });
     });
 
@@ -608,7 +607,6 @@ describe("Projets (e2e)", () => {
             updatedAt: expect.any(String),
           },
         ],
-        updatedAt: expect.any(String),
       });
     });
 
