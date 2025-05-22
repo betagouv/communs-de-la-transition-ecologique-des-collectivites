@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.2.1
+
+### Minor Changes
+
+- make tracking server side to avoid matomo script collision with host platform
+
 ## 0.2.0
 
 ### Patch Changes

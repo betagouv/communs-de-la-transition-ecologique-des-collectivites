@@ -139,6 +139,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/trackEvent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AnalyticsController_trackEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -197,8 +213,6 @@ export interface components {
             message: string;
         };
         ProjectPublicInfoResponse: {
-            /** Format: date-time */
-            updatedAt: string;
             description: string | null;
             collectivites: components["schemas"]["Collectivite"][];
             /** @enum {string|null} */
@@ -436,6 +450,12 @@ export interface components {
         };
         CreateServiceContextResponse: {
             id: string;
+        };
+        TrackEventRequest: {
+            name: string;
+            action: string;
+            category: string;
+            value?: string;
         };
     };
     responses: never;
@@ -758,6 +778,35 @@ export interface operations {
                 headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["CreateServiceContextResponse"];
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    AnalyticsController_trackEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrackEventRequest"];
+            };
+        };
+        responses: {
+            /** @description tracking event sent successfully */
+            201: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": string;
                 };
             };
             /** @description Error response */

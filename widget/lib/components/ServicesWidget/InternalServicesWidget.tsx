@@ -2,12 +2,15 @@ import { fr } from "@codegouvfr/react-dsfr";
 import classNames from "classnames";
 import { Service } from "./Service.tsx";
 import styles from "./InternalServicesWidget.module.css";
-import { useGetProjectExtraFields, useGetProjectPublicInfo, useGetServicesByProjectId } from "./queries.ts";
+import {
+  useGetProjectExtraFields,
+  useGetProjectPublicInfo,
+  useGetServicesByProjectId,
+  useTrackEvent,
+} from "./queries.ts";
 import { Service as ServiceType, ServicesWidgetProps } from "./types.ts";
 import { useEffect } from "react";
-import { trackEvent } from "../../matomo/trackEvent.ts";
-import { project as fakeProjet } from "../../test/stub/project.ts";
-import { extraFields as fakeExtraFields } from "../../test/stub/project.ts";
+import { extraFields as fakeExtraFields, project as fakeProjet } from "../../test/stub/project.ts";
 
 export const InternalServicesWidget = ({
   projectId,
@@ -29,16 +32,20 @@ export const InternalServicesWidget = ({
     options: { isStagingEnv, debug },
   });
 
+  const { mutate: trackEvent } = useTrackEvent();
+
   useEffect(() => {
     if (servicesData) {
       trackEvent({
         action: "Nombre de services affichés",
         name: "Nombre de services affichés",
-        value: servicesData.length,
-        isStagingEnv,
+        value: servicesData.length.toString(),
+        options: {
+          isStagingEnv,
+        },
       });
     }
-  }, [isStagingEnv, servicesData]);
+  }, [isStagingEnv, servicesData, trackEvent]);
 
   // do not display anything while we don't know if there are any services or there are no services
   // and if we don't have related info for the project

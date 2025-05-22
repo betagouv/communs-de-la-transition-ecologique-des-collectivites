@@ -33,9 +33,6 @@ interface CsvRecord {
 // todo we exclude METRO for now as we don't support departement/metropole as a collectivite
 const NATURE_EPCI_FISCALITE_PROPRE = ["CC", "CA", "CU"];
 
-const IMPORT_DATE_STRING = "2025-05-21T15:45:00.000Z";
-const IMPORT_DATE = new Date(IMPORT_DATE_STRING);
-
 const EPCI_TEST_CODES = "000000000";
 const REUNION_DEPARTEMENT = "229740014";
 const baseUrl = process.env.API_BASE_URL;
@@ -64,7 +61,6 @@ async function importProjetsTet(csvFilePath: string) {
   const competencesCodeFromReferential = Object.keys(competencesFromM57Referentials);
   let totalRecords = 0;
   let eligibleProjects = 0;
-  const listOfProjectSkippedBecauseUpdateDate: string[] = [];
 
   for await (const record of parser as AsyncIterable<CsvRecord>) {
     totalRecords++;
@@ -91,22 +87,6 @@ async function importProjetsTet(csvFilePath: string) {
       // we will import those fiche action once we get the proper support for departement
       record.siren_epci !== REUNION_DEPARTEMENT
     ) {
-      const existingTetProject = await apiClient.GET("/projets/{id}/public-info", {
-        params: {
-          path: { id: record.tet_id },
-          query: { idType: "tetId" },
-        },
-      });
-
-      const hasProjectBeenUpdatedSinceDump =
-        existingTetProject.data && new Date(existingTetProject.data.updatedAt) > IMPORT_DATE;
-
-      if (hasProjectBeenUpdatedSinceDump) {
-        console.log("existingTetProject data", existingTetProject.data);
-        listOfProjectSkippedBecauseUpdateDate.push(record.tet_id);
-        continue;
-      }
-
       eligibleProjects++;
 
       projects.push({
@@ -124,7 +104,6 @@ async function importProjetsTet(csvFilePath: string) {
   }
 
   console.log(`Parsed ${totalRecords} records, ${eligibleProjects} eligible projects`);
-  console.log({ listOfProjectSkippedBecauseUpdateDate });
   // we do not want to trigger the import if there are any invalid records
   if (parsingErrors.length > 0) {
     console.error("Invalid items found, exiting, please fix the data and try again", parsingErrors);

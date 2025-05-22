@@ -15,9 +15,6 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
-    volumes:
-      - redis-data:/data
 volumes:
   postgres-data:
-  redis-data:
 
