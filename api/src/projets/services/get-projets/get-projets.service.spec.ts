@@ -190,7 +190,6 @@ describe("ProjetFindService", () => {
         description,
         phase,
         collectivites: expectedCommonFields.collectivites,
-        updatedAt: expect.any(Date),
       });
     });
 

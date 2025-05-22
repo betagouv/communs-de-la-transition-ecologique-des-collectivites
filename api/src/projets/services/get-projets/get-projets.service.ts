@@ -86,8 +86,6 @@ export class GetProjetsService {
       description: projet.description,
       phase: projet.phase,
       collectivites: projet.collectivites.map((c) => c.collectivite),
-      // temporary code for tet import
-      updatedAt: projet.updatedAt,
     };
   }
 
