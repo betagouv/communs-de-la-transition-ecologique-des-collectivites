@@ -180,12 +180,8 @@ interface TrackEventParams {
 const postTrackEvent = async ({ action, name, value }: TrackEventParams, isStagingEnv = false) => {
   const apiClient = makeApiClient(isStagingEnv);
 
-  const hostDomain = window.location.hostname;
-  const env = isStagingEnv ? "staging" : "prod";
-  const category = `Widget-service_${env}-${hostDomain}`;
-
   const { data, error } = await apiClient.POST("/analytics/trackEvent", {
-    body: { action, name, value, category },
+    body: { action, name, value, category: window.location.hostname },
   });
 
   if (error) {
