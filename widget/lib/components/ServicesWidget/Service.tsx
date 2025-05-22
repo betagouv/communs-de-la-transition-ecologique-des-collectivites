@@ -87,8 +87,12 @@ export const Service = ({
   };
 
   useEffect(() => {
-    trackEvent({ action: "Affichage du service", name, options: { isStagingEnv } });
-  }, [isStagingEnv, name, trackEvent]);
+    // we only track this event when no debug mode
+    // to not overload the throttle on the API
+    if (!debug) {
+      trackEvent({ action: "Affichage du service", name, options: { isStagingEnv } });
+    }
+  }, [debug, isStagingEnv, name, trackEvent]);
 
   const toggleDescription = () => {
     setDescriptionExpanded(!descriptionExpanded);

@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.2.2
+
+### Minor Changes
+
+- avoid trackEvent on individual service display when in debug mode
+
 ## 0.2.1
 
 ### Minor Changes
