@@ -152,3 +152,45 @@ const postExtraFields = async (
 
   return data;
 };
+
+// -------------- Project extra fields - POST -------------- //
+
+export const useTrackEvent = () => {
+  return useMutation({
+    mutationFn: ({
+      action,
+      name,
+      value,
+      options: { isStagingEnv },
+    }: {
+      action: string;
+      name: string;
+      value?: string;
+      options: { isStagingEnv?: boolean };
+    }) => postTrackEvent({ action, name, value }, isStagingEnv),
+  });
+};
+
+interface TrackEventParams {
+  action: string;
+  name: string;
+  value?: string;
+}
+
+const postTrackEvent = async ({ action, name, value }: TrackEventParams, isStagingEnv = false) => {
+  const apiClient = makeApiClient(isStagingEnv);
+
+  const hostDomain = window.location.hostname;
+  const env = isStagingEnv ? "staging" : "prod";
+  const category = `Widget-service_${env}-${hostDomain}`;
+
+  const { data, error } = await apiClient.POST("/analytics/trackEvent", {
+    body: { action, name, value, category },
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+};

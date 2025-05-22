@@ -8,8 +8,7 @@ import LevierDetails, { LevierData } from "./LevierDetails.tsx";
 import voiture_electrique from "../../leviers_data/voiture_electrique.json";
 import Input from "@codegouvfr/react-dsfr/Input";
 import { ExtraFields, IdType, ProjectData, Service as ServiceType } from "./types.ts";
-import { usePostExtraFields } from "./queries.ts";
-import { trackEvent } from "../../matomo/trackEvent.ts";
+import { usePostExtraFields, useTrackEvent } from "./queries.ts";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import { useStyles } from "./Service.style.ts";
 import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
@@ -40,6 +39,7 @@ export const Service = ({
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const { mutate: postExtraFields } = usePostExtraFields();
+  const { mutate: trackEvent } = useTrackEvent();
 
   const descriptionTruncated = descriptionExpanded
     ? service.description
@@ -87,8 +87,8 @@ export const Service = ({
   };
 
   useEffect(() => {
-    trackEvent({ action: "Affichage du service", name, isStagingEnv });
-  }, [isStagingEnv, name]);
+    trackEvent({ action: "Affichage du service", name, options: { isStagingEnv } });
+  }, [isStagingEnv, name, trackEvent]);
 
   const toggleDescription = () => {
     setDescriptionExpanded(!descriptionExpanded);
@@ -136,7 +136,8 @@ export const Service = ({
                   href: redirectionUrl,
                   target: "_blank",
                   rel: "noopener noreferrer",
-                  onClick: () => trackEvent({ action: "Clic sur le l'url de redirection", name, isStagingEnv }),
+                  onClick: () =>
+                    trackEvent({ action: "Clic sur le l'url de redirection", name, options: { isStagingEnv } }),
                 }}
                 priority="tertiary no outline"
               >
@@ -171,7 +172,11 @@ export const Service = ({
         <Accordion
           label={extendLabel ?? "Voir le détail"}
           onExpandedChange={(value) => {
-            trackEvent({ action: value ? "Clic sur le collapse" : "Clic sur le expand", name, isStagingEnv });
+            trackEvent({
+              action: value ? "Clic sur le collapse" : "Clic sur le expand",
+              name,
+              options: { isStagingEnv },
+            });
             setExpanded((prevValue) => !prevValue);
           }}
           expanded={expanded}
@@ -198,7 +203,7 @@ export const replaceIframeUrlParams = (
   projectData: ProjectData,
   projectExtraFields: ExtraFields,
 ): string => {
-  //for now all the iframe url we have are mono collectivite.
+  // for now all the iframe url we have are mono collectivite.
   // we'lle need to add support for multi collectivité in iframe url once we integrate AT
   const firstCollectivite = projectData.collectivites[0];
 

@@ -139,6 +139,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/analytics/trackEvent": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["AnalyticsController_trackEvent"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -687,7 +703,7 @@ export interface components {
       id: string;
     };
     BulkCreateProjetsRequest: {
-      projects: components["schemas"]["CreateProjetRequest"][];
+      projets: components["schemas"]["CreateProjetRequest"][];
     };
     BulkCreateProjetsResponse: {
       ids: string[];
@@ -943,7 +959,7 @@ export interface components {
             | "SAF"
           )[]
         | null;
-      externalId: string;
+      externalId?: string;
     };
     ExtraFieldConfig: {
       /** @description Name of the extra field */
@@ -1279,6 +1295,13 @@ export interface components {
     CreateServiceContextResponse: {
       id: string;
     };
+    TrackEventRequest: {
+      name: string;
+      action: string;
+      category: string;
+      value?: string;
+    };
+    Response: Record<string, never>;
   };
   responses: never;
   parameters: never;
@@ -1490,7 +1513,6 @@ export interface operations {
       };
       header?: never;
       path: {
-        /** @description An Id in a UUID format */
         id: string;
       };
       cookie?: never;
@@ -1562,7 +1584,6 @@ export interface operations {
       };
       header?: never;
       path: {
-        /** @description An Id in a UUID format */
         id: string;
       };
       cookie?: never;
@@ -1644,6 +1665,39 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["CreateServiceContextResponse"];
+        };
+      };
+      /** @description Error response */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  AnalyticsController_trackEvent: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TrackEventRequest"];
+      };
+    };
+    responses: {
+      /** @description tracking event sent successfully */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Response"];
         };
       };
       /** @description Error response */
