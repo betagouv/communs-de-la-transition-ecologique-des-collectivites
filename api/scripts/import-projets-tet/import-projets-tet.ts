@@ -59,11 +59,30 @@ async function importProjetsTet(csvFilePath: string) {
 
   const projects: CreateProjetRequest[] = [];
   const competencesCodeFromReferential = Object.keys(competencesFromM57Referentials);
+  // Ajout d'un compteur avant la boucle
+  let ignoredRecords = 0;
+  let ignoredByNatureEpci = 0;
+  let ignoredBySirenEpci = 0;
   let totalRecords = 0;
   let eligibleProjects = 0;
 
+  // Dans la boucle for await
   for await (const record of parser as AsyncIterable<CsvRecord>) {
     totalRecords++;
+
+    if (!NATURE_EPCI_FISCALITE_PROPRE.includes(record.nature_epci)) {
+      ignoredByNatureEpci++;
+      ignoredRecords++;
+      console.log(`Record ${record.tet_id} ignored due to nature_epci: ${record.nature_epci}`);
+      continue;
+    }
+
+    if (record.siren_epci === EPCI_TEST_CODES || record.siren_epci === REUNION_DEPARTEMENT) {
+      ignoredBySirenEpci++;
+      ignoredRecords++;
+      console.log(`Record ${record.tet_id} ignored due to siren_epci: ${record.siren_epci}`);
+      continue;
+    }
     const parsedLeviers = parseFieldToArray(record.leviers, leviers, "levier", parsingErrors);
     const parsedCompetences = parseFieldToArray(
       record.codes_competences,
@@ -80,13 +99,14 @@ async function importProjetsTet(csvFilePath: string) {
       ? (record.phasestatut as PhaseStatut)
       : null;
 
-    if (
+    const isEligibleForImport =
       NATURE_EPCI_FISCALITE_PROPRE.includes(record.nature_epci) &&
       record.siren_epci !== EPCI_TEST_CODES &&
       // we do this as reunion is the only departement that is entered as a CC the other are entered as a METRO.
       // we will import those fiche action once we get the proper support for departement
-      record.siren_epci !== REUNION_DEPARTEMENT
-    ) {
+      record.siren_epci !== REUNION_DEPARTEMENT;
+
+    if (isEligibleForImport) {
       eligibleProjects++;
 
       projects.push({
@@ -127,6 +147,11 @@ async function importProjetsTet(csvFilePath: string) {
       console.log(`Successfully imported ${data?.ids.length} projects from batch starting at index ${i}`);
     }
   }
+  console.log(`Total records processed: ${totalRecords}`);
+  console.log(`Total records imported: ${eligibleProjects}`);
+  console.log(`Total records ignored: ${ignoredRecords}`);
+  console.log(`Records ignored by nature_epci: ${ignoredByNatureEpci}`);
+  console.log(`Records ignored by siren_epci: ${ignoredBySirenEpci}`);
 }
 
 const mapCollectivites = (inseeCode: string, epciCode: string): { code: string; type: "Commune" | "EPCI" } => {
