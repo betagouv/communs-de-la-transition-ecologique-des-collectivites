@@ -33,6 +33,10 @@ describe("ProjectCreateService", () => {
   });
 
   describe("create", () => {
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
     it("should create a new project", async () => {
       const createDto = mockProjetPayload();
 
@@ -74,6 +78,28 @@ describe("ProjectCreateService", () => {
       await expect(service.create(createDto, "TET_test_api_key")).resolves.toEqual({
         id: expect.any(String),
       });
+    });
+
+    it("should not trigger a qualification job when competences are  already filled in", async () => {
+      const createDto = mockProjetPayload();
+      await service.create(createDto, "MEC_test_api_key");
+
+      const spyOnSchedule = jest.spyOn(service as any, "scheduleProjectQualification");
+
+      await service.create({ ...createDto, budgetPrevisionnel: 10000 }, "MEC_test_api_key");
+
+      expect(spyOnSchedule).not.toHaveBeenCalled();
+    });
+
+    it("should trigger a qualification job when competences are not already filled in", async () => {
+      const createDto = mockProjetPayload({ competences: [] });
+      await service.create(createDto, "MEC_test_api_key");
+
+      const spyOnSchedule = jest.spyOn(service as any, "scheduleProjectQualification");
+
+      await service.create({ ...createDto, budgetPrevisionnel: 10000 }, "MEC_test_api_key");
+
+      expect(spyOnSchedule).toHaveBeenCalled();
     });
   });
 
