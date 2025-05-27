@@ -68,8 +68,7 @@ export class CreateProjetsService {
 
     const hasProjetNoCompetences = !upsertedProject.competences || upsertedProject.competences.length === 0;
 
-    // we only trigger the qualification if the description is available since the llm bases its logic on it
-    if (upsertedProject.description && hasProjetNoCompetences) {
+    if (hasProjetNoCompetences) {
       this.logger.log(
         `Triggering qualification for upsertedProject ${upsertedProject.id} with description ${upsertedProject.description}`,
         { competences: upsertedProject.competences },

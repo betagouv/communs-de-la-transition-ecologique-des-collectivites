@@ -29,12 +29,14 @@ export class ProjetQualificationService extends WorkerHost {
     this.logger.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
     try {
       const projet = await this.projetGetService.findOne(projetId);
-      // we only trigger the job from the create service when there is a description
+      // we only trigger the job from the create service when there is a description or a name
       // but since it's async, and the descritption might have been removed at the time the job is processed we recheck in this logic too
-      if (projet.description) {
+      if (projet.description || projet.nom) {
+        const context = `${projet.nom}\n${projet.description}`;
+
         switch (job.name) {
           case PROJECT_QUALIFICATION_COMPETENCES_JOB:
-            await this.analyzeAndUpdateCompetences(projet.description, projet.id);
+            await this.analyzeAndUpdateCompetences(context, projet.id);
             break;
           case PROJECT_QUALIFICATION_LEVIERS_JOB:
             throw new Error("need to implement it ");
@@ -53,8 +55,13 @@ export class ProjetQualificationService extends WorkerHost {
       throw new InternalServerErrorException(`Error qualifying project ${projetId} for job ${job.name}`);
     }
   }
-  private async analyzeAndUpdateCompetences(description: string, projetId: string): Promise<void> {
-    const result = await this.analyzeProjet<CompetencesResult>(description, "competences");
+  private async analyzeAndUpdateCompetences(context: string, projetId: string): Promise<void> {
+    const result = await this.analyzeProjet<CompetencesResult>(context, "competences");
+
+    if (result.competences.length === 0) {
+      this.logger.log(`No competences found for project ${projetId} with context ${context}`);
+      return;
+    }
 
     if (result.errorMessage) {
       throw new Error(`Error while qualifying competences for ${projetId} - error : ${result.errorMessage}`);
@@ -70,9 +77,9 @@ export class ProjetQualificationService extends WorkerHost {
     this.logger.log(`Successfully qualified project ${projetId} with competences code ${competencesCodes.join()}`);
   }
 
-  private async analyzeProjet<T>(description: string, type: "TE" | "competences"): Promise<T> {
+  private async analyzeProjet<T>(context: string, type: "TE" | "competences"): Promise<T> {
     return new Promise((resolve, reject) => {
-      const escapedDescription = description.replace(/'/g, "'\\''");
+      const escapedDescription = context.replace(/'/g, "'\\''");
 
       const pythonScript = path.join(__dirname, "llm-scripts", "competences-and-leviers-qualification.py");
 
@@ -100,6 +107,7 @@ export class ProjetQualificationService extends WorkerHost {
         }
         try {
           const jsonResult = JSON.parse(outputString) as T;
+
           /* if (type === "TE") {
             const classificationResult = JSON.parse(outputs[0]);
             console.log("Classification Result:", classificationResult);
