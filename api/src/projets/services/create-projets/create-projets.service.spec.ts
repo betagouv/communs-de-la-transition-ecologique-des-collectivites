@@ -92,12 +92,13 @@ describe("ProjectCreateService", () => {
     });
 
     it("should trigger a qualification job when competences are not already filled in", async () => {
-      const createDto = mockProjetPayload({ competences: [] });
-      await service.create(createDto, "MEC_test_api_key");
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { competences, ...restOfProject } = mockProjetPayload();
+      await service.create(restOfProject, "MEC_test_api_key");
 
       const spyOnSchedule = jest.spyOn(service as any, "scheduleProjectQualification");
 
-      await service.create({ ...createDto, budgetPrevisionnel: 10000 }, "MEC_test_api_key");
+      await service.create({ ...restOfProject, budgetPrevisionnel: 10000 }, "MEC_test_api_key");
 
       expect(spyOnSchedule).toHaveBeenCalled();
     });
