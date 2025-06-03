@@ -70,19 +70,6 @@ async function importProjetsTet(csvFilePath: string) {
   for await (const record of parser as AsyncIterable<CsvRecord>) {
     totalRecords++;
 
-    if (!NATURE_EPCI_FISCALITE_PROPRE.includes(record.nature_epci)) {
-      ignoredByNatureEpci++;
-      ignoredRecords++;
-      console.log(`Record ${record.tet_id} ignored due to nature_epci: ${record.nature_epci}`);
-      continue;
-    }
-
-    if (record.siren_epci === EPCI_TEST_CODES || record.siren_epci === REUNION_DEPARTEMENT) {
-      ignoredBySirenEpci++;
-      ignoredRecords++;
-      console.log(`Record ${record.tet_id} ignored due to siren_epci: ${record.siren_epci}`);
-      continue;
-    }
     const parsedLeviers = parseFieldToArray(record.leviers, leviers, "levier", parsingErrors);
     const parsedCompetences = parseFieldToArray(
       record.codes_competences,
@@ -99,14 +86,14 @@ async function importProjetsTet(csvFilePath: string) {
       ? (record.phasestatut as PhaseStatut)
       : null;
 
-    const isEligibleForImport =
+    const isEpciEligibleForImport =
       NATURE_EPCI_FISCALITE_PROPRE.includes(record.nature_epci) &&
       record.siren_epci !== EPCI_TEST_CODES &&
       // we do this as reunion is the only departement that is entered as a CC the other are entered as a METRO.
       // we will import those fiche action once we get the proper support for departement
       record.siren_epci !== REUNION_DEPARTEMENT;
 
-    if (isEligibleForImport) {
+    if (isEpciEligibleForImport || record.insee_code) {
       eligibleProjects++;
 
       projects.push({
@@ -120,6 +107,19 @@ async function importProjetsTet(csvFilePath: string) {
         leviers: parsedLeviers as Leviers,
         competences: parsedCompetences as CompetenceCodes,
       });
+    } else {
+      if (!NATURE_EPCI_FISCALITE_PROPRE.includes(record.nature_epci)) {
+        ignoredByNatureEpci++;
+        ignoredRecords++;
+        console.log(`Record ${record.tet_id} ignored due to nature_epci: ${record.nature_epci}`);
+        continue;
+      }
+
+      if (record.siren_epci === EPCI_TEST_CODES || record.siren_epci === REUNION_DEPARTEMENT) {
+        ignoredBySirenEpci++;
+        ignoredRecords++;
+        console.log(`Record ${record.tet_id} ignored due to siren_epci: ${record.siren_epci}`);
+      }
     }
   }
 
