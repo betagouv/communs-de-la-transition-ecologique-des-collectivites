@@ -61,19 +61,25 @@ export const InternalServicesWidget = ({
         la&nbsp;
         <strong>localisation</strong> de votre projet.
       </span>
-      <div className={classNames(fr.cx("fr-mt-3w"), styles.services)}>
+      <div
+        className={classNames(fr.cx("fr-mt-3w"), styles.services)}
+        role="list"
+        aria-label="Liste des services disponibles"
+      >
         {servicesData.map((service: ServiceType) => (
-          <Service
-            key={`${service.id}-${service.description}`}
-            service={service}
-            // projectData is always defined if not in debug mode
-            projectData={debug ? fakeProjet : projectData!}
-            projectExtraFields={debug ? fakeExtraFields : (extraFieldsData ?? [])}
-            isStagingEnv={isStagingEnv}
-            projectId={projectId}
-            debug={debug}
-            idType={idType}
-          />
+          <div key={`${service.name}-${service.description}`} role="listitem">
+            <Service
+              key={`${service.id}-${service.description}`}
+              service={service}
+              // projectData is always defined if not in debug mode
+              projectData={debug ? fakeProjet : projectData!}
+              projectExtraFields={debug ? fakeExtraFields : (extraFieldsData ?? [])}
+              isStagingEnv={isStagingEnv}
+              projectId={projectId}
+              debug={debug}
+              idType={idType}
+            />
+          </div>
         ))}
       </div>
     </div>

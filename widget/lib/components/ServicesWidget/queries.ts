@@ -54,7 +54,7 @@ export const useGetProjectPublicInfo = (params: BaseQueryParams): UseQueryResult
   return useQuery({
     queryKey: ["project-public-info", params.projectId],
     queryFn: () => fetchProjectPublicInfo(params),
-    ...(params.options.debug ? { retry: 0 } : {}),
+    enabled: !params.options.debug,
   });
 };
 
@@ -81,6 +81,7 @@ export const useGetProjectExtraFields = (params: BaseQueryParams): UseQueryResul
   return useQuery({
     queryKey: ["project-extra-fields", params.projectId],
     queryFn: () => fetchProjectExtraFields(params),
+    enabled: !params.options.debug,
   });
 };
 
