@@ -47,7 +47,6 @@ async function importParsedDataToDatabase(parsedData: ParsedData["data"]) {
   for (const service of parsedData.services) {
     try {
       const { data, error } = await apiClient.POST("/services", { body: service });
-
       if (error) {
         console.error(`Failed to import service ${service.name}:`, error);
       } else {
@@ -90,6 +89,6 @@ async function importParsedDataToDatabase(parsedData: ParsedData["data"]) {
 
 // Run the import
 void importServicesAndServiceContexts(
-  join(__dirname, "services-import-new.csv"),
-  join(__dirname, "services-context-import-new.csv"),
+  join(__dirname, "services-import.csv"),
+  join(__dirname, "services-context-import.csv"),
 );

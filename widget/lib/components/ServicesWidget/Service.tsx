@@ -115,7 +115,9 @@ export const Service = ({
               )}
             </div>
             <span className={classes.sousTitre}>{sousTitre}</span>
-            <span className={fr.cx("fr-text--sm")}>{descriptionTruncated}</span>
+            <span style={{ whiteSpace: "pre-wrap" }} className={fr.cx("fr-text--sm")}>
+              {descriptionTruncated}
+            </span>
 
             {description.length > maxDescriptionLength && (
               <Button
