@@ -1,5 +1,19 @@
 # @betagouv/les-communs-widget
 
+## 0.2.4
+
+### Minor Changes
+
+- fix dupplicate key issue for service
+- do not trigger useless call in debug mode
+
+## 0.2.3
+
+### Minor Changes
+
+- preserve formatting in service description
+- improve accessibility on service list
+
 ## 0.2.2
 
 ### Minor Changes

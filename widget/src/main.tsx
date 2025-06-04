@@ -5,10 +5,10 @@ import { ServicesWidget } from "../lib";
 
 startReactDsfr({ defaultColorScheme: "system" });
 
-const PROJECT_ID_WITHOUT_EXTRAFIELD = "test-tet-id";
+const PROJECT_ID_WITHOUT_EXTRAFIELD = "01973222-5e47-7cfd-a5b7-4e427f423e74";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ServicesWidget projectId={PROJECT_ID_WITHOUT_EXTRAFIELD} idType={"tetId"} debug />
+    <ServicesWidget projectId={PROJECT_ID_WITHOUT_EXTRAFIELD} debug />
   </StrictMode>,
 );
