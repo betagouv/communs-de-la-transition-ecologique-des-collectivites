@@ -8,11 +8,14 @@ import { GetProjetsService } from "@projets/services/get-projets/get-projets.ser
 import {
   COMPETENCE_SCORE_TRESHOLD,
   CompetencesResult,
+  LEVIER_SCORE_TRESHOLD,
+  LeviersResult,
   PROJECT_QUALIFICATION_COMPETENCES_JOB,
   PROJECT_QUALIFICATION_LEVIERS_JOB,
 } from "@/projet-qualification/const";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { existsSync } from "fs";
+import { Levier } from "@/shared/types";
 
 @Processor("project-qualification")
 export class ProjetQualificationService extends WorkerHost {
@@ -39,7 +42,8 @@ export class ProjetQualificationService extends WorkerHost {
             await this.analyzeAndUpdateCompetences(context, projet.id);
             break;
           case PROJECT_QUALIFICATION_LEVIERS_JOB:
-            throw new Error("need to implement it ");
+            await this.analyzeAndUpdateLeviers(context, projet.id);
+            break;
           default:
             throw new Error(`${job.name} is not covered yet`);
         }
@@ -55,6 +59,29 @@ export class ProjetQualificationService extends WorkerHost {
       throw new InternalServerErrorException(`Error qualifying project ${projetId} for job ${job.name}`);
     }
   }
+
+  private async analyzeAndUpdateLeviers(context: string, projetId: string): Promise<void> {
+    const result = await this.analyzeProjet<LeviersResult>(context, "TE");
+
+    if (Object.keys(result.leviers).length === 0) {
+      this.logger.log(`No levier found for project ${projetId} with context ${context}`);
+      return;
+    }
+
+    if (result.errorMessage) {
+      throw new Error(`Error while qualifying leviers for ${projetId} - error : ${result.errorMessage}`);
+    }
+
+    const keptLeviers = Object.entries(result.leviers)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .filter(([_, score]) => score > LEVIER_SCORE_TRESHOLD)
+      .map(([name]) => name as Levier);
+
+    await this.projetUpdateService.update(projetId, { leviers: keptLeviers });
+
+    this.logger.log(`Successfully qualified project ${projetId} with leviers ${keptLeviers.join()}`);
+  }
+
   private async analyzeAndUpdateCompetences(context: string, projetId: string): Promise<void> {
     const result = await this.analyzeProjet<CompetencesResult>(context, "competences");
 
@@ -107,13 +134,6 @@ export class ProjetQualificationService extends WorkerHost {
         }
         try {
           const jsonResult = JSON.parse(outputString) as T;
-
-          /* if (type === "TE") {
-            const classificationResult = JSON.parse(outputs[0]);
-            console.log("Classification Result:", classificationResult);
-            jsonResult = classificationResult;
-            console.log("Final Result:", jsonResult);
-          } else {*/
           resolve(jsonResult);
         } catch (e) {
           reject(new Error(`Failed to parse JSON output: ${e instanceof Error ? e.message : String(e)}`));
