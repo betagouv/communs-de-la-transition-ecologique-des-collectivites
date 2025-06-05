@@ -6,7 +6,12 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { collectivites } from "@database/schema";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
-import { PROJECT_QUALIFICATION_COMPETENCES_JOB, CompetencesResult } from "./const";
+import {
+  CompetencesResult,
+  LeviersResult,
+  PROJECT_QUALIFICATION_COMPETENCES_JOB,
+  PROJECT_QUALIFICATION_LEVIERS_JOB,
+} from "./const";
 import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
 import { CompetenceCode } from "@/shared/types";
 
@@ -72,6 +77,38 @@ describe("ProjetQualificationService", () => {
 
       const updatedProjet = await findService.findOne(createdProjet.id);
       expect(updatedProjet.competences).toEqual(["90-75"]);
+    });
+
+    it("should process a qualifying leviers job successfully", async () => {
+      const createDto = mockProjetPayload({
+        description: "rénovation du chauffage d'une école primaire",
+        leviers: null,
+      });
+      const createdProjet = await createService.create(createDto, "MEC_test_api_key");
+
+      const mockCompetencesResult: LeviersResult = {
+        projet: "Test projet",
+        classification: null,
+        raisonnement: null,
+        leviers: {
+          "Elevage durable": 0.6,
+          "Sobriété foncière": 0.9,
+        },
+        errorMessage: "",
+      };
+
+      jest.spyOn<any, any>(qualificationService, "analyzeProjet").mockResolvedValueOnce(mockCompetencesResult);
+
+      const mockJob = {
+        name: PROJECT_QUALIFICATION_LEVIERS_JOB,
+        data: { projetId: createdProjet.id },
+      } as Job<{ projetId: string }>;
+
+      // Process job
+      await qualificationService.process(mockJob);
+
+      const updatedProjet = await findService.findOne(createdProjet.id);
+      expect(updatedProjet.leviers).toEqual(["Sobriété foncière"]);
     });
 
     it("should handle errors in analyzeProjet", async () => {

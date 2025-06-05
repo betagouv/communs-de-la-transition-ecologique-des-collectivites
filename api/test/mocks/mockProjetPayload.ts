@@ -13,6 +13,6 @@ export const mockProjetPayload = (specificPayload: Partial<CreateProjetRequest> 
   phaseStatut: specificPayload.phaseStatut ?? "En cours",
   collectivites: specificPayload.collectivites ?? [mockedDefaultCollectivite],
   competences: specificPayload.competences ?? ["90-411", "90-311"],
-  leviers: ["Bio-carburants"],
+  leviers: specificPayload.leviers ?? ["Bio-carburants"],
   externalId: specificPayload.externalId ?? "test-external-id",
 });

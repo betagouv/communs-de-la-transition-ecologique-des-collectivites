@@ -183,7 +183,8 @@ def classification_TE(projet: str, system_prompt=system_prompt_classification_TE
         "projet": projet,
         "classification": None,
         "leviers": [],
-        "raisonnement": None
+        "raisonnement": None,
+        "errorMessage": ""
     }
     
     # Parse JSON content
@@ -195,16 +196,16 @@ def classification_TE(projet: str, system_prompt=system_prompt_classification_TE
             json_data = post_treatment_leviers(json_data, leviers, corrections_leviers)
             response_dict.update(json_data)
         except json.JSONDecodeError:
-            response_dict["classification"] = "Error in treating the project: Invalid JSON format"
+            response_dict["errorMessage"] = "Error in treating the project: Invalid JSON format"
     else:
         print("No JSON content found in the response.")
-        response_dict["classification"] = "Error in treating the project: No JSON content found in the LLM response"
+        response_dict["errorMessage"] = "Error in treating the project: No JSON content found in the LLM response"
     
     # Add reasoning
     if raisonnement_content:
         response_dict["raisonnement"] = raisonnement_content.group(1).strip()
     else:
-        response_dict["raisonnement"] = "No raisonnement found in the response."
+        response_dict["errorMessage"] = "No raisonnement found in the response."
     return response_dict
 
 def post_treatment_competences_V2(json_data, competences_dict, corrections_competences_V2 = None):

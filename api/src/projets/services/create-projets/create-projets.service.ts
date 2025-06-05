@@ -9,7 +9,12 @@ import { PorteurDto } from "@projets/dto/porteur.dto";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { CustomLogger } from "@logging/logger.service";
-import { PROJECT_QUALIFICATION_COMPETENCES_JOB, PROJECT_QUALIFICATION_QUEUE_NAME } from "@/projet-qualification/const";
+import {
+  PROJECT_QUALIFICATION_COMPETENCES_JOB,
+  PROJECT_QUALIFICATION_LEVIERS_JOB,
+  PROJECT_QUALIFICATION_QUEUE_NAME,
+  QualificationJobType,
+} from "@/projet-qualification/const";
 
 @Injectable()
 export class CreateProjetsService {
@@ -70,20 +75,30 @@ export class CreateProjetsService {
 
     if (hasProjetNoCompetences) {
       this.logger.log(
-        `Triggering qualification for upsertedProject ${upsertedProject.id} with description ${upsertedProject.description}`,
-        { competences: upsertedProject.competences },
+        `Triggering competence qualification for upsertedProject ${upsertedProject.id} with description ${upsertedProject.description}`,
+        { competences: upsertedProject.competences }, //debug log
       );
-      await this.scheduleProjectQualification(upsertedProject.id);
+      await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_COMPETENCES_JOB);
+    }
+
+    const hasProjetNoLeviers = !upsertedProject.leviers || upsertedProject.leviers.length === 0;
+
+    if (hasProjetNoLeviers) {
+      this.logger.log(
+        `Triggering leviers qualification for upsertedProject ${upsertedProject.id} with description ${upsertedProject.description}`,
+        { leviers: upsertedProject.leviers }, //debug log
+      );
+      await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_LEVIERS_JOB);
     }
 
     return upsertedProject.id;
   }
 
-  private async scheduleProjectQualification(projetId: string): Promise<void> {
-    this.logger.log(`Scheduling qualification for projet ${projetId}`);
+  private async scheduleProjectQualification(projetId: string, jobType: QualificationJobType): Promise<void> {
+    this.logger.log(`Scheduling ${jobType} qualification for projet ${projetId}`);
 
     await this.qualificationQueue.add(
-      PROJECT_QUALIFICATION_COMPETENCES_JOB,
+      jobType,
       { projetId },
       {
         attempts: 3,

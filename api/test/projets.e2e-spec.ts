@@ -101,7 +101,7 @@ describe("Projets (e2e)", () => {
         externalId: "mec-competence-not-provided",
       });
 
-      // await 15 seconds for qualifiying competence job to finish
+      // await 7 seconds for qualifiying competence job to finish
       await new Promise((resolve) => setTimeout(resolve, 7000));
 
       const { data: updatedProjet } = await api.projets.getOne(data!.id);
@@ -110,6 +110,26 @@ describe("Projets (e2e)", () => {
         competences: ["90-212"],
       });
     }, 10000);
+
+    it("should update leviers when not provided", async () => {
+      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+
+      const { data } = await mecClient.projets.create({
+        ...validProjet,
+        leviers: null,
+        description: "Aménagement de logements sur une friche",
+        externalId: "mec-leviers-not-provided",
+      });
+
+      // await 15 seconds for qualifiying levier job to finish
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+
+      const { data: updatedProjet } = await api.projets.getOne(data!.id);
+
+      expect(updatedProjet).toMatchObject({
+        leviers: ["Sobriété foncière"],
+      });
+    }, 20000);
 
     it("should create a valid projet when missing valid collectivites", async () => {
       const missingCodeInsee = "10110"; //Courteranges
