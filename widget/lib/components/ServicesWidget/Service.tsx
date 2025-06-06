@@ -202,6 +202,8 @@ interface ParamsType {
   collectiviteType: string;
   collectiviteCode: string;
   collectiviteLabel: string;
+  //some iframe only support epci
+  epciCodeSiren: string | null;
 }
 
 export const replaceIframeUrlParams = (
@@ -218,11 +220,16 @@ export const replaceIframeUrlParams = (
     // there is either an EPCI or a codeInsee
     collectiviteCode: firstCollectivite.type === "EPCI" ? firstCollectivite.siren! : firstCollectivite.codeInsee!,
     collectiviteLabel: firstCollectivite.nom,
+    epciCodeSiren: firstCollectivite.codeEpci,
   };
 
   const result = url.replace(/{(\w+)}/g, (_, key) => {
     if (key in params) {
-      return encodeURIComponent(params[key as keyof ParamsType]);
+      const paramValue = params[key as keyof ParamsType];
+
+      // todo for now this has been introduced to handle null epci code from some communes for lvao iframe
+      //if no value is available pass empty string to delegate to the iframe to handle the edge case
+      return encodeURIComponent(paramValue ?? "");
     }
 
     const matchingExtraField = projectExtraFields.find((field) => field.name === key);

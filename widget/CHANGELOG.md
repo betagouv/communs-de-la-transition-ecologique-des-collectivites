@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.2.5
+
+### Minor Changes
+
+- support epciCodeSiren param in iframe for service only supporting epci
+
 ## 0.2.4
 
 ### Minor Changes
