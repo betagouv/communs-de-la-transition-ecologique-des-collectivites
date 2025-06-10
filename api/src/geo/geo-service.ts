@@ -5,6 +5,7 @@ import { collectivites } from "@database/schema";
 import { CustomLogger } from "@logging/logger.service";
 import { formatError } from "@/exceptions/utils";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
+import { sql } from "drizzle-orm";
 
 @Injectable()
 export class GeoService {
@@ -18,34 +19,74 @@ export class GeoService {
     const communes = await this.geoApi.getAllCommunes();
     const epcis = await this.geoApi.getAllEpcis();
 
-    const allCollectivites = [...communes, ...epcis];
-
-    this.logger.log(`Inserting ${allCollectivites.length} collectivites`);
+    this.logger.log(`Inserting ${communes.length} communes and ${epcis.length} EPCIs`);
 
     const BATCH_SIZE = 1000;
 
-    for (let i = 0; i < allCollectivites.length; i += BATCH_SIZE) {
-      const batch = allCollectivites.slice(i, i + BATCH_SIZE);
+    const mapCollectiviteToDbFields = (collectivite: Collectivite) => ({
+      nom: collectivite.nom,
+      type: collectivite.type,
+      codeInsee: collectivite.codeInsee ?? null,
+      codeDepartements: collectivite.codeDepartements ?? null,
+      codeRegions: collectivite.codeRegions ?? null,
+      codeEpci: collectivite.codeEpci ?? null,
+      siren: collectivite.siren ?? null,
+    });
+
+    // we process communes and epci in 2 stage because the unique constraint from the DB
+    // change for communes and epci, needing a different conflict targeting
+    for (let i = 0; i < communes.length; i += BATCH_SIZE) {
+      const batch = communes.slice(i, i + BATCH_SIZE);
 
       await this.dbService.database.transaction(async (tx) => {
         try {
-          await tx.insert(collectivites).values(
-            batch.map((collectivite) => ({
-              nom: collectivite.nom,
-              type: collectivite.type,
-              codeInsee: collectivite.codeInsee ?? null,
-              codeDepartement: collectivite.codeDepartements ?? null,
-              codeRegion: collectivite.codeRegions ?? null,
-              codeEpci: collectivite.codeEpci ?? null,
-              siren: collectivite.siren ?? null,
-            })),
-          );
+          await tx
+            .insert(collectivites)
+            .values(batch.map(mapCollectiviteToDbFields))
+            .onConflictDoUpdate({
+              target: [collectivites.codeInsee, collectivites.type],
+              set: {
+                nom: sql`excluded.nom`,
+                codeDepartements: sql`excluded.code_departements`,
+                codeRegions: sql`excluded.code_regions`,
+                codeEpci: sql`excluded.code_epci`,
+                siren: sql`excluded.siren`,
+                updatedAt: sql`now()`,
+              },
+            });
         } catch (e) {
-          this.logger.error("failing to create all collectivites", formatError(e));
+          this.logger.error("failing to create communes batch", formatError(e));
         }
       });
 
-      this.logger.log(`Inserted batch ${i / BATCH_SIZE + 1} of ${Math.ceil(allCollectivites.length / BATCH_SIZE)}`);
+      this.logger.log(`Inserted communes batch ${i / BATCH_SIZE + 1} of ${Math.ceil(communes.length / BATCH_SIZE)}`);
+    }
+
+    for (let i = 0; i < epcis.length; i += BATCH_SIZE) {
+      const batch = epcis.slice(i, i + BATCH_SIZE);
+
+      await this.dbService.database.transaction(async (tx) => {
+        try {
+          await tx
+            .insert(collectivites)
+            .values(batch.map(mapCollectiviteToDbFields))
+            .onConflictDoUpdate({
+              target: [collectivites.codeEpci, collectivites.type],
+              set: {
+                nom: sql`excluded.nom`,
+                codeInsee: sql`excluded.code_insee`,
+                codeDepartements: sql`excluded.code_departements`,
+                codeRegions: sql`excluded.code_regions`,
+                siren: sql`excluded.siren`,
+                updatedAt: sql`now()`,
+              },
+            });
+        } catch (e) {
+          this.logger.error("failing to create EPCIs batch", formatError(e));
+        }
+      });
+
+      this.logger.log(`Inserted EPCIs batch ${i / BATCH_SIZE + 1} of ${Math.ceil(epcis.length / BATCH_SIZE)}`);
     }
   }
 

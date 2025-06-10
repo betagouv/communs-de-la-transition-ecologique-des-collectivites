@@ -137,6 +137,7 @@ export const serviceContext = pgTable(
     competences: text("competences").array().default([]),
     leviers: text("leviers").array().default([]),
     phases: projetPhasesEnum("phases").array().default([]),
+    regions: text("regions").array().default([]),
 
     // Custom display options
     name: text("name"),
