@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.20](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.19...v0.0.20) (2025-06-11)
+
+
+### Features
+
+* add communes project to tet import ([#196](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/196)) ([cd46a66](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/cd46a66440b208e2b356aa380605a911969abbd3))
+* add individual logging for failing record during update ([#205](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/205)) ([02084c7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/02084c7fdb7c4126290c6ae7f1b3d6d0b6e25812))
+* add leviers qualification job ([#199](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/199)) ([296f1b3](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/296f1b37cc5841be65c91599ec36e0c0411b99b1))
+* bump widget version ([#198](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/198)) ([f76e13b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f76e13b2d7c0837d2350bc1134a97bcf65a46e50))
+* preserve description formatting ([#197](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/197)) ([0d47b53](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/0d47b530df67ee0cfb4764b733e48c4465efd50e))
+* support epciCodeSiren param in iframe ([#201](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/201)) ([70e65b9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/70e65b9c2f64d3945c7bdd787b96f64d11929888))
+
 ## [0.0.19](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.17...v0.0.19) (2025-05-28)
 
 
