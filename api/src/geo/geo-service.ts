@@ -21,7 +21,7 @@ export class GeoService {
 
     this.logger.log(`Inserting ${communes.length} communes and ${epcis.length} EPCIs`);
 
-    const BATCH_SIZE = 100;
+    const BATCH_SIZE = 1000;
 
     const mapCollectiviteToDbFields = (collectivite: Collectivite) => ({
       nom: collectivite.nom,
