@@ -1,0 +1,1 @@
+ALTER TABLE "collectivites" DROP CONSTRAINT "collectivites_siren_unique";

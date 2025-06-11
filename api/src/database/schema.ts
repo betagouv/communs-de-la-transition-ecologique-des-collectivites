@@ -77,7 +77,7 @@ export const collectivites = pgTable(
     codeDepartements: text("code_departements").array(),
     codeRegions: text("code_regions").array(),
     codeEpci: text("code_epci"),
-    siren: text("siren").unique(),
+    siren: text("siren"),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
