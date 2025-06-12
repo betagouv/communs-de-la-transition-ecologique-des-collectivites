@@ -57,16 +57,26 @@ export class ServicesService {
 
     const project = await this.dbService.database.query.projets.findFirst({
       where: whereCondition,
+      with: {
+        collectivites: {
+          with: {
+            collectivite: true,
+          },
+        },
+      },
     });
 
     if (!project) {
       throw new NotFoundException(`Projet with ${idType} ${id} not found`);
     }
 
+    const projectCollectivites = project.collectivites.map((relation) => relation.collectivite);
+
     return this.serviceContextService.findMatchingServicesContext(
       project.competences as CompetenceCodes,
       project.leviers as Leviers,
       project.phase,
+      projectCollectivites,
     );
   }
 }
