@@ -134,10 +134,11 @@ export const serviceContext = pgTable(
     serviceId: uuid("service_id")
       .notNull()
       .references(() => services.id),
+    // competences, leviers and phases can be NULL, to remove this field from the matching
     competences: text("competences").array().default([]),
     leviers: text("leviers").array().default([]),
     phases: projetPhasesEnum("phases").array().default([]),
-    regions: text("regions").array().default([]),
+    regions: text("regions").array().default([]).notNull(),
 
     // Custom display options
     name: text("name"),
