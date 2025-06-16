@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, IsEnum } from "class-validator";
 
 export class TrackEventRequest {
   @ApiProperty()
@@ -21,4 +21,87 @@ export class TrackEventRequest {
   @IsString()
   @IsOptional()
   value?: string;
+}
+
+export enum MatomoPeriod {
+  DAY = "day",
+  WEEK = "week",
+  MONTH = "month",
+  YEAR = "year",
+  RANGE = "range",
+}
+
+export class MatomoStatsRequest {
+  @ApiProperty({ enum: MatomoPeriod, default: MatomoPeriod.MONTH })
+  @IsEnum(MatomoPeriod)
+  @IsNotEmpty()
+  period!: MatomoPeriod;
+
+  @ApiProperty({ required: false, default: "last6" })
+  @IsString()
+  @IsOptional()
+  date?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  platform?: string;
+}
+
+export class MatomoEventData {
+  @ApiProperty()
+  label!: string;
+
+  @ApiProperty()
+  nb_events!: number;
+
+  @ApiProperty({ required: false })
+  nb_events_with_value?: number;
+
+  @ApiProperty({ required: false })
+  sum_event_value?: number;
+
+  @ApiProperty({ required: false })
+  min_event_value?: number;
+
+  @ApiProperty({ required: false })
+  max_event_value?: number;
+
+  @ApiProperty({ required: false })
+  avg_event_value?: number;
+}
+
+export class MatomoApiResponse {
+  [key: string]: MatomoEventData[];
+}
+
+export class ChartDataPoint {
+  @ApiProperty()
+  date!: string;
+
+  @ApiProperty()
+  interactions!: number;
+}
+
+export class DashboardData {
+  @ApiProperty()
+  navigationToService!: number;
+
+  @ApiProperty()
+  serviceIframeDisplays!: number;
+
+  @ApiProperty()
+  servicesDisplayedPerProject!: number;
+
+  @ApiProperty()
+  externalLinkClicks!: number;
+
+  @ApiProperty()
+  serviceDetailExpansions!: number;
+
+  @ApiProperty()
+  iframeInteractions!: number;
+
+  @ApiProperty({ type: [ChartDataPoint] })
+  chartData!: ChartDataPoint[];
 }
