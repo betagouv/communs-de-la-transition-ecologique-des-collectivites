@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@codegouvfr/react-dsfr": "^1.22.5",
+    "classnames": "^2.5.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^2.15.0"
