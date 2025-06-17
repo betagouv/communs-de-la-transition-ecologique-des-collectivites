@@ -75,17 +75,12 @@ function App() {
           <div className={fr.cx("fr-mt-6w", "fr-pt-4w")}>
             <p className={fr.cx("fr-text--sm")}>
               <a
-                href="https://stats.beta.gouv.fr/index.php?module=CoreHome&action=index&idSite=1234"
+                href="https://stats.beta.gouv.fr/index.php?module=CoreHome&action=index&idSite=217&period=day&date=yesterday#?period=day&date=2025-01-14&category=Dashboard_Dashboard&subcategory=1&idSite=217"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={fr.cx("fr-link")}
               >
                 Découvrez toutes les statistiques sur matomo
-              </a>
-            </p>
-            <p className={fr.cx("fr-text--sm", "fr-mt-2w")}>
-              <a href="#metabase" className={fr.cx("fr-link")}>
-                Découvrez toutes les statistiques de notre base de données sur metabase
               </a>
             </p>
           </div>

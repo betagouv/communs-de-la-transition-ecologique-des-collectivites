@@ -1,7 +1,6 @@
 import type { DashboardData } from "../types";
 
-//todo make it base on env var
-const apiUrl = "http://localhost:3000/analytics/dashboard";
+const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/analytics/dashboard`;
 
 export const getDashboardData = async (platform = "all"): Promise<DashboardData> => {
   try {
