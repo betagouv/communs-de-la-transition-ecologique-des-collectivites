@@ -4,6 +4,7 @@ import { AppModule } from "./app.module";
 import { setupApp } from "./setup-app";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { serveDemoWidget } from "@/serve-demo-widget";
+import { serveStatisticsDashboard } from "@/serve-statistics-dashboard";
 
 async function bootstrap() {
   // Initialize Sentry - this not following their doc here : https://docs.sentry.io/platforms/javascript/guides/nestjs/
@@ -18,6 +19,7 @@ async function bootstrap() {
 
   setupApp(app);
   serveDemoWidget(app);
+  serveStatisticsDashboard(app);
 
   await app.listen(process.env.PORT ?? 3000);
 }
