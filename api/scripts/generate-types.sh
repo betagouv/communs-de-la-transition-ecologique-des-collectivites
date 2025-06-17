@@ -16,7 +16,7 @@ echo "Generating types..."
 pnpm openapi-typescript http://localhost:3000/openapi.json -o test/generated-types.ts
 
 # Kill the development server
-echo "Cleaning up..."
+echo "Cleaning up.."
 kill -9 $DEV_SERVER_PID
 kill -9 $(lsof -t -i :3000)
 
