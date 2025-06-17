@@ -3,9 +3,10 @@ import { Select } from "@codegouvfr/react-dsfr/Select";
 interface PlatformFilterProps {
   value: string;
   onChange: (value: string) => void;
+  platforms: string[];
 }
 
-export function PlatformFilter({ value, onChange }: PlatformFilterProps) {
+export function PlatformFilter({ value, onChange, platforms }: PlatformFilterProps) {
   return (
     <div style={{ maxWidth: "300px" }}>
       <Select
@@ -16,9 +17,11 @@ export function PlatformFilter({ value, onChange }: PlatformFilterProps) {
         }}
       >
         <option value="all">Toutes les plateformes</option>
-        <option value="production">Production</option>
-        <option value="staging">Staging</option>
-        <option value="development">Development</option>
+        {platforms.map((platform) => (
+          <option key={platform} value={platform}>
+            {platform}
+          </option>
+        ))}
       </Select>
     </div>
   );

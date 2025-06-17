@@ -10,6 +10,7 @@ import { getDashboardData } from "./utils/getDashboardData.ts";
 function App() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
+  const [platforms, setPlatforms] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,6 +21,7 @@ function App() {
         setError(null);
         const data = await getDashboardData(selectedPlatform);
         setDashboardData(data);
+        setPlatforms(data.hostingPlatforms);
       } catch (err) {
         console.error("Failed to load dashboard data:", err);
         setError("Erreur lors du chargement des données");
@@ -35,19 +37,25 @@ function App() {
     <div className={fr.cx("fr-grid-row")}>
       <div className={fr.cx("fr-col-12")}>
         <Header
+          brandTop={
+            <>
+              République
+              <br />
+              Française
+            </>
+          }
           homeLinkProps={{
             href: "/",
             title: "Accueil - Les Communs",
           }}
           serviceTitle="Les Communs de la transition écologique"
           serviceTagline="Tableau de bord des statistiques"
-          brandTop={undefined}
         />
 
         <div className={fr.cx("fr-p-6w")}>
           <h1 className={fr.cx("fr-h1", "fr-mb-4w")}>Statistiques d&#39;usage</h1>
 
-          <PlatformFilter value={selectedPlatform} onChange={setSelectedPlatform} />
+          <PlatformFilter value={selectedPlatform} onChange={setSelectedPlatform} platforms={platforms} />
 
           {isLoading && <div className={fr.cx("fr-mt-4w")}>Chargement des données...</div>}
 

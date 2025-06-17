@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
+  ChartDataPoint,
   DashboardData,
   MatomoApiResponse,
   MatomoStatsRequest,
   TrackEventRequest,
-  ChartDataPoint,
 } from "@/analytics/analytics.dto";
 
 const MATOMO_URL = "https://stats.beta.gouv.fr/matomo.php";
@@ -45,9 +45,9 @@ export class AnalyticsService {
     return "tracking successful";
   }
 
-  async getDashboardData(request: MatomoStatsRequest): Promise<DashboardData> {
+  async getDashboardData({ period, date, hostingPlatform }: MatomoStatsRequest): Promise<DashboardData> {
     try {
-      const events = await this.getEvents(request.period, request.date ?? "last6");
+      const events = await this.getEvents(period, date ?? "last6");
 
       // Initialize statistics
       let navigationToService = 0;
@@ -56,26 +56,36 @@ export class AnalyticsService {
       let externalLinkClicks = 0;
       let serviceDetailExpansions = 0;
       let iframeInteractions = 0;
+      const allHostingPlatforms: string[] = [];
+      let monthWhichHaveStats = 0;
 
-      // Prepare chart data
       const chartData: ChartDataPoint[] = [];
 
       console.log("events", events);
-      // Process each month's data
+
       Object.entries(events).forEach(([month, monthEvents]) => {
         let monthInteractions = 0;
 
-        monthEvents.forEach((event) => {
-          let eventValue: number;
+        monthEvents.forEach((event, index) => {
+          if (!allHostingPlatforms.includes(event.Events_EventCategory)) {
+            allHostingPlatforms.push(event.Events_EventCategory);
+          }
 
-          switch (event.label) {
+          //do not include data not related to the selected hosting platform
+          if (hostingPlatform !== "all" && hostingPlatform !== event.Events_EventCategory) {
+            return;
+          }
+
+          switch (event.Events_EventAction) {
             case "Affichage du service":
-            case "Affichage du service-server-side":
+              // we only increase one time per month when both platform are computed
+              if ((hostingPlatform === "all" && index === 0) || hostingPlatform === event.Events_EventCategory) {
+                monthWhichHaveStats++;
+              }
+              //todo should we do something to display this stat on the statistic page in the future ?
               break;
             case "Nombre de services affichés":
-            case "Nombre de services affichés-server-side":
-              eventValue = event.sum_event_value ?? 0;
-              servicesDisplayedPerProject += eventValue;
+              servicesDisplayedPerProject += event.avg_event_value ?? 0;
               break;
             case "Clic sur le l'url de redirection":
               externalLinkClicks += event.nb_events;
@@ -83,13 +93,11 @@ export class AnalyticsService {
               navigationToService += event.nb_events;
               break;
             case "Clic sur le expand":
-            case "Clic sur le expand-server-side":
               serviceDetailExpansions += event.nb_events;
               monthInteractions += event.nb_events;
               serviceIframeDisplays += event.nb_events;
               break;
             case "Clic sur le collapse":
-            case "Clic sur le collapse-server-side":
               iframeInteractions += event.nb_events;
               monthInteractions += event.nb_events;
               break;
@@ -102,26 +110,30 @@ export class AnalyticsService {
         });
       });
 
-      return {
+      const results = {
         navigationToService,
         serviceIframeDisplays,
-        servicesDisplayedPerProject,
+        servicesDisplayedPerProject: servicesDisplayedPerProject / monthWhichHaveStats,
         externalLinkClicks,
         serviceDetailExpansions,
         iframeInteractions,
         chartData,
+        hostingPlatforms: allHostingPlatforms,
       };
-    } catch (error) {
+
+      return results;
+    } catch (error: any) {
       console.error("Failed to fetch dashboard data:", error);
       throw error;
     }
   }
 
-  private async getEvents(period = "month", date = "today"): Promise<MatomoApiResponse> {
+  private async getEvents(period = "month", date: string): Promise<MatomoApiResponse> {
     return this.makeMatomoApiRequest({
       method: "Events.getAction",
       period,
       date,
+      secondaryDimension: "eventCategory",
     });
   }
 
@@ -133,11 +145,11 @@ export class AnalyticsService {
       module: "API",
       format: "JSON",
       idSite: siteId,
+      flat: "1",
       token_auth: apiToken,
       ...params,
     });
 
-    console.log("body", searchParams);
     try {
       const response = await fetch(MATOMO_API_URL, {
         method: "POST",

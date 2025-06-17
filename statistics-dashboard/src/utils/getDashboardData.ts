@@ -3,12 +3,12 @@ import type { DashboardData } from "../types";
 //todo make it base on env var
 const apiUrl = "http://localhost:3000/analytics/dashboard";
 
-export const getDashboardData = async (platform = "all"): Promise<DashboardData> => {
+export const getDashboardData = async (hostingPlatform?: string): Promise<DashboardData> => {
   try {
     const params = new URLSearchParams({
       period: "month",
       date: "last6",
-      ...(platform !== "all" ? { platform } : {}),
+      ...(hostingPlatform ? { hostingPlatform } : {}),
     });
 
     const response = await fetch(`${apiUrl}?${params}`, {
