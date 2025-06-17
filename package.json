@@ -3,11 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm --filter api build && pnpm --filter widget-sandbox build",
+    "build": "pnpm --filter api build && pnpm --filter widget-sandbox build && pnpm --filter statistics-dashboard build",
     "start": "pnpm --filter api start",
     "build:api": "pnpm --filter api build",
     "build:widget": "pnpm --filter widget build",
     "build:widget-sandbox": "pnpm --filter widget-sandbox build",
+    "build:statistics-dashboard": "pnpm --filter statistics-dashboard build",
     "format": "pnpm -r format",
     "dev": "pnpm -r dev",
     "dev:api": "pnpm --filter api dev",
