@@ -155,6 +155,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AnalyticsController_getDashboardData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -456,6 +472,20 @@ export interface components {
             action: string;
             category: string;
             value?: string;
+        };
+        ChartDataPoint: {
+            date: string;
+            interactions: number;
+        };
+        DashboardData: {
+            navigationToService: number;
+            serviceIframeDisplays: number;
+            servicesDisplayedPerProject: number;
+            externalLinkClicks: number;
+            serviceDetailExpansions: number;
+            iframeInteractions: number;
+            chartData: components["schemas"]["ChartDataPoint"][];
+            hostingPlatforms: string[];
         };
     };
     responses: never;
@@ -807,6 +837,35 @@ export interface operations {
                 headers: Record<string, unknown>;
                 content: {
                     "application/json": string;
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    AnalyticsController_getDashboardData: {
+        parameters: {
+            query: {
+                period: "day" | "week" | "month" | "year" | "range";
+                date?: string;
+                hostingPlatform?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Retrieve dashboard statistics from Matomo */
+            200: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["DashboardData"];
                 };
             };
             /** @description Error response */

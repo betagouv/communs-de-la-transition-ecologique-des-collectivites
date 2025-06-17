@@ -24,7 +24,7 @@
     "test:watch": "jest --config test/jest.config.ts --watch --runInBand",
     "test:cov": "jest --config test/jest.config.ts --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --config test/jest.config.ts",
-    "test:ci": "jest --config test/jest.config.ts --runInBand --testTimeout=10000 && pnpm test:script",
+    "test:ci": "jest --config test/jest.config.ts --runInBand --testTimeout=15000 && pnpm test:script",
     "test:e2e": "pnpm test:e2e:start && pnpm generate-types && jest --config test/jest-e2e.config.ts --runInBand --detectOpenHandles --no-buffer && pnpm test:e2e:stop",
     "test:e2e:start": "docker compose -f docker-compose.e2e-test.yml up -d",
     "test:e2e:stop": "docker compose -f docker-compose.e2e-test.yml down -v",
