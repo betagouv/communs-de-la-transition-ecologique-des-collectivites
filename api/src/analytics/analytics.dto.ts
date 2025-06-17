@@ -42,9 +42,10 @@ export class MatomoStatsRequest {
   @IsOptional()
   date?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsString()
-  hostingPlatform!: string;
+  @IsOptional()
+  hostingPlatform?: string;
 }
 
 export class MatomoEventData {
@@ -53,6 +54,12 @@ export class MatomoEventData {
 
   @ApiProperty()
   nb_events!: number;
+
+  @ApiProperty()
+  Events_EventCategory!: string;
+
+  @ApiProperty()
+  Events_EventAction!: string;
 
   @ApiProperty({ required: false })
   nb_events_with_value?: number;
@@ -68,12 +75,6 @@ export class MatomoEventData {
 
   @ApiProperty({ required: false })
   avg_event_value?: number;
-
-  @ApiProperty()
-  Events_EventCategory!: string;
-
-  @ApiProperty()
-  Events_EventAction!: string;
 }
 
 export class MatomoApiResponse {
@@ -86,9 +87,6 @@ export class ChartDataPoint {
 
   @ApiProperty()
   interactions!: number;
-
-  @ApiProperty({ required: false })
-  category?: string;
 }
 
 export class DashboardData {
@@ -110,9 +108,9 @@ export class DashboardData {
   @ApiProperty()
   iframeInteractions!: number;
 
-  @ApiProperty()
-  hostingPlatforms!: string[];
-
   @ApiProperty({ type: [ChartDataPoint] })
   chartData!: ChartDataPoint[];
+
+  @ApiProperty()
+  hostingPlatforms!: string[];
 }

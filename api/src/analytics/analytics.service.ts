@@ -61,8 +61,6 @@ export class AnalyticsService {
 
       const chartData: ChartDataPoint[] = [];
 
-      console.log("events", events);
-
       Object.entries(events).forEach(([month, monthEvents]) => {
         let monthInteractions = 0;
 
@@ -110,18 +108,18 @@ export class AnalyticsService {
         });
       });
 
-      const results = {
+      const avgServicesDisplayedPerProject = servicesDisplayedPerProject / monthWhichHaveStats;
+
+      return {
         navigationToService,
         serviceIframeDisplays,
-        servicesDisplayedPerProject: servicesDisplayedPerProject / monthWhichHaveStats,
+        servicesDisplayedPerProject: Number(avgServicesDisplayedPerProject.toFixed(2)),
         externalLinkClicks,
         serviceDetailExpansions,
         iframeInteractions,
         chartData,
         hostingPlatforms: allHostingPlatforms,
       };
-
-      return results;
     } catch (error: any) {
       console.error("Failed to fetch dashboard data:", error);
       throw error;
