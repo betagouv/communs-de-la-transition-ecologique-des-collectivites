@@ -53,7 +53,7 @@ function App() {
         />
 
         <div className={fr.cx("fr-p-6w")}>
-          <h1 className={fr.cx("fr-h1", "fr-mb-4w")}>Statistiques d&#39;usage</h1>
+          <h2 className={fr.cx("fr-h2", "fr-mb-4w")}>1) Statistiques d&#39;usage du module d’aiguillage</h2>
 
           <PlatformFilter value={selectedPlatform} onChange={setSelectedPlatform} platforms={platforms} />
 
@@ -67,8 +67,8 @@ function App() {
 
           {dashboardData && !isLoading && (
             <>
-              <StatisticsCards data={dashboardData} />
               <InteractionsChart data={dashboardData.chartData} />
+              <StatisticsCards data={dashboardData} />
             </>
           )}
 
@@ -85,6 +85,9 @@ function App() {
             </p>
           </div>
         </div>
+      </div>
+      <div className={fr.cx("fr-p-6w")}>
+        <h2 className={fr.cx("fr-h2", "fr-mb-4w")}>2) Statistiques API et base de données (à venir)</h2>
       </div>
     </div>
   );

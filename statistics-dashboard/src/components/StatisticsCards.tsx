@@ -15,8 +15,9 @@ export function StatisticsCards({ data }: StatisticsCardsProps) {
       value: data.navigationToService,
     },
     {
-      title: "Affichage iframe des services",
+      title: "Nombre de vues « tableau de bord » consultées",
       value: data.serviceIframeDisplays,
+      detail: "Nombre d’aperçus de services référencés dans le module consultés",
     },
     {
       title: "Nombre de service affichés par projet",
@@ -26,7 +27,7 @@ export function StatisticsCards({ data }: StatisticsCardsProps) {
 
   return (
     <div className={classNames(fr.cx("fr-mt-4w"), styles.container)}>
-      {cards.map(({ title, value }) => (
+      {cards.map(({ title, value, detail }) => (
         <div
           key={title}
           style={{
@@ -38,6 +39,7 @@ export function StatisticsCards({ data }: StatisticsCardsProps) {
             title={value}
             desc={title}
             titleAs="h2"
+            detail={detail}
             classes={{
               title: "fr-h1",
             }}
