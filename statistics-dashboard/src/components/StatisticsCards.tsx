@@ -11,16 +11,16 @@ interface StatisticsCardsProps {
 export function StatisticsCards({ data }: StatisticsCardsProps) {
   const cards = [
     {
-      title: "Navigation vers le service",
+      title: "Navigations vers le service",
       value: data.navigationToService,
     },
     {
       title: "Nombre de vues « tableau de bord » consultées",
       value: data.serviceIframeDisplays,
-      detail: "Nombre d’aperçus de services référencés dans le module consultés",
+      detail: "Nombre d’aperçus de services référencés dans le module consulté",
     },
     {
-      title: "Nombre de service affichés par projet",
+      title: "Nombre de services affichés par projet",
       value: data.servicesDisplayedPerProject,
     },
   ];
