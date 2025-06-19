@@ -74,15 +74,6 @@ export function DatabaseUsageStatistics({ data, isLoading = false }: DatabaseUsa
               </div>
             ))}
           </div>
-
-          {!data && (
-            <div className={fr.cx("fr-alert", "fr-alert--info", "fr-mt-4w")}>
-              <p>
-                Ces statistiques seront bientôt disponibles avec des données en temps réel provenant de notre API et
-                base de données.
-              </p>
-            </div>
-          )}
         </>
       )}
     </div>
