@@ -32,7 +32,14 @@ export function InteractionsChart({ data }: InteractionsChartProps) {
 
   return (
     <div className={fr.cx("fr-mt-6w")}>
-      <h2 className={fr.cx("fr-h4", "fr-mb-4w")}>Évolution des interactions avec le widget sur les 6 derniers mois</h2>
+      <h2 className={fr.cx("fr-h4", "fr-mb-2w")}>
+        ★ Nombre d’interactions d&#39;usagers avec un service externe grâce au module (6 derniers mois)
+      </h2>
+      <p className={fr.cx("fr-mb-4w")}>
+        Les interactions regroupent les visites direct vers un service externe et les interactions via la vue tableau de
+        bord. A terme, nous souhaiterions mesurer notre impact en agrégeant le nombre d’usagers envoyés vers un service
+        numérique et ayant terminé le parcours de ce service
+      </p>
 
       <div style={{ width: "100%", height: 400, backgroundColor: "#f8f9fa", padding: "20px", borderRadius: "8px" }}>
         <ResponsiveContainer width="100%" height="100%">
