@@ -176,6 +176,51 @@ describe("ServiceContextService", () => {
       });
     });
 
+    it("should return service context fields over service fields when  provided", async () => {
+      const service = await servicesService.create({
+        ...servicePayload,
+        iframeUrl: "https://test.com/iframe",
+        extendLabel: "Extend Label",
+      });
+
+      const createContextDto: CreateServiceContextRequest = {
+        competences: ["90-411"],
+        leviers: [],
+        phases: [],
+        description: "Context Description",
+        sousTitre: "Context Sous Titre",
+        logoUrl: "Context Logo Url",
+        redirectionUrl: "Context Redirection Url",
+        redirectionLabel: "Context Redirection Label",
+        extendLabel: "Context Extend Label",
+        iframeUrl: "Context IFrame Url",
+        name: "Context Name",
+      };
+      await serviceContextService.create(service.id, createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
+        ["90-411", "90-311"],
+        null,
+        "Idée",
+      );
+
+      expect(serviceContexts).toHaveLength(1);
+      expect(serviceContexts[0]).toEqual({
+        id: service.id,
+        createdAt: expect.any(Date),
+        name: createContextDto.name,
+        description: createContextDto.description,
+        sousTitre: createContextDto.sousTitre,
+        logoUrl: createContextDto.logoUrl,
+        redirectionUrl: createContextDto.redirectionUrl,
+        redirectionLabel: createContextDto.redirectionLabel,
+        extendLabel: createContextDto.extendLabel,
+        iframeUrl: createContextDto.iframeUrl,
+        isListed: true,
+        extraFields: [],
+      });
+    });
+
     it("should match competence and phases when both are provided", async () => {
       const service = await servicesService.create(servicePayload);
 
@@ -779,6 +824,7 @@ describe("ServiceContextService", () => {
         ...validServiceContext,
         iframeUrl: null,
         extraFields: [],
+        name: null,
       });
     });
 
@@ -859,6 +905,7 @@ describe("ServiceContextService", () => {
         serviceId: service.id,
         ...createContextDto,
         iframeUrl: null,
+        name: null,
       });
     });
   });
