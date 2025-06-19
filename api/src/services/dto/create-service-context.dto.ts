@@ -117,6 +117,15 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   iframeUrl?: string | null;
 
   @ApiProperty({
+    required: false,
+    nullable: true,
+    type: String,
+  })
+  @IsString()
+  @IsOptional()
+  name?: string | null;
+
+  @ApiProperty({
     description: "Array of extra field definitions required for this service context",
     example: [{ name: "field1", label: "Field 1 Label" }],
     type: [ExtraFieldConfig],

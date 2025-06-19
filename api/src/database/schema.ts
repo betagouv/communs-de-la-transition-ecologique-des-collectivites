@@ -139,6 +139,7 @@ export const serviceContext = pgTable(
     phases: projetPhasesEnum("phases").array().default([]),
 
     // Custom display options
+    name: text("name"),
     description: text("description"),
     sousTitre: text("sous_titre"),
     logoUrl: text("logo_url"),

@@ -36,9 +36,9 @@ export function InteractionsChart({ data }: InteractionsChartProps) {
         ★ Nombre d’interactions d&#39;usagers avec un service externe grâce au module (6 derniers mois)
       </h2>
       <p className={fr.cx("fr-mb-4w")}>
-        Les interactions regroupent les visites direct vers un service externe et les interactions via la vue tableau de
-        bord. A terme, nous souhaiterions mesurer notre impact en agrégeant le nombre d’usagers envoyés vers un service
-        numérique et ayant terminé le parcours de ce service
+        Les interactions regroupent les visites directes vers un service externe et les interactions via la vue tableau
+        de bord. À terme, nous souhaiterions mesurer notre impact en agrégeant le nombre d’usagers envoyés vers un
+        service numérique et ayant terminé le parcours de ce service
       </p>
 
       <div style={{ width: "100%", height: 400, backgroundColor: "#f8f9fa", padding: "20px", borderRadius: "8px" }}>

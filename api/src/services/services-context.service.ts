@@ -87,6 +87,7 @@ export class ServicesContextService {
       redirectionLabel: service_context.redirectionLabel ?? services.redirectionLabel,
       extendLabel: service_context.extendLabel ?? services.extendLabel,
       iframeUrl: service_context.iframeUrl ?? services.iframeUrl,
+      name: service_context.name ?? services.name,
       // workaround to a specific jsonb array bug in drizzle https://github.com/drizzle-team/drizzle-orm/issues/2913
       extraFields: (service_context.extraFields ?? []) as ExtraFieldConfig[],
     }));
@@ -127,7 +128,7 @@ export class ServicesContextService {
       throw new NotFoundException(`Service with ID ${serviceId} not found`);
     }
 
-    const { competences, leviers, phases, description, sousTitre, ...otherFields } = createServiceContextDto;
+    const { competences, leviers, phases, description, sousTitre, name, ...otherFields } = createServiceContextDto;
 
     const existingServiceContext = await this.dbService.database
       .select()
@@ -157,6 +158,7 @@ export class ServicesContextService {
         competences,
         leviers,
         phases,
+        name,
       })
       .returning();
 
