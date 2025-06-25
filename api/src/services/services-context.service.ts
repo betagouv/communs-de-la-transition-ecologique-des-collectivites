@@ -7,6 +7,7 @@ import { CustomLogger } from "@logging/logger.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/services/dto/create-service-context.dto";
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { ExtraFieldConfig } from "./dto/extra-fields-config.dto";
+import { RegionCode } from "@/shared/const/region-codes";
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 
 interface JoinResult {
@@ -172,7 +173,7 @@ export class ServicesContextService {
 
     const codeRegionsFromProject = projetCollectivites.flatMap((collectivite) => collectivite.codeRegions ?? []);
 
-    return codeRegionsFromProject.some((regionCode) => service_context.regions?.includes(regionCode));
+    return codeRegionsFromProject.some((regionCode) => service_context.regions?.includes(regionCode as RegionCode));
   }
 
   private mapToServiceResponse(results: JoinResult[]): ServicesByProjectIdResponse[] {
@@ -185,6 +186,7 @@ export class ServicesContextService {
       redirectionLabel: service_context.redirectionLabel ?? services.redirectionLabel,
       extendLabel: service_context.extendLabel ?? services.extendLabel,
       iframeUrl: service_context.iframeUrl ?? services.iframeUrl,
+      name: service_context.name ?? services.name,
       // workaround to a specific jsonb array bug in drizzle https://github.com/drizzle-team/drizzle-orm/issues/2913
       extraFields: (service_context.extraFields ?? []) as ExtraFieldConfig[],
     }));

@@ -102,7 +102,7 @@ describe("Projets (e2e)", () => {
       });
 
       // await 7 seconds for qualifiying competence job to finish
-      await new Promise((resolve) => setTimeout(resolve, 15000));
+      await new Promise((resolve) => setTimeout(resolve, 7000));
 
       const { data: updatedProjet } = await api.projets.getOne(data!.id);
 
@@ -122,7 +122,7 @@ describe("Projets (e2e)", () => {
       });
 
       // await 15 seconds for qualifiying levier job to finish
-      await new Promise((resolve) => setTimeout(resolve, 20000));
+      await new Promise((resolve) => setTimeout(resolve, 15000));
 
       const { data: updatedProjet } = await api.projets.getOne(data!.id);
 

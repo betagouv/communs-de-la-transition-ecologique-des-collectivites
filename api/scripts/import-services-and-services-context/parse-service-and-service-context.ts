@@ -115,6 +115,8 @@ function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItems
     extendLabel: makeNullIfEmptyString(record.extendLabel),
     iframeUrl: makeNullIfEmptyString(record.iframeUrl),
     extraFields: parseExtraField(record.extraFields),
+    // todo add regions parsing logic
+    regions: [],
   };
 }
 

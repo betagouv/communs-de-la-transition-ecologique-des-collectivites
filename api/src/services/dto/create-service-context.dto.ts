@@ -6,6 +6,7 @@ import { CompetenceCodes, Leviers } from "@/shared/types";
 import { competenceCodes } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
 import { ExtraFieldConfig } from "@/services/dto/extra-fields-config.dto";
+import { RegionCode, regionCodes } from "@/shared/const/region-codes";
 
 export class CreateServiceContextResponse {
   @ApiProperty()
@@ -52,6 +53,17 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @ValidateIf((_object: CreateServiceContextRequest, value: ProjetPhase[] | null) => value !== null)
   @IsEnum(projetPhasesEnum.enumValues, { each: true })
   phases!: ProjetPhase[] | null;
+
+  @ApiProperty({
+    description: "Array of region codes for which the service context applies, empty array means all regions",
+    example: ["11", "24"],
+    enum: regionCodes,
+    required: true,
+    isArray: true,
+  })
+  @IsArray()
+  @IsIn(regionCodes, { each: true })
+  regions!: RegionCode[];
 
   @ApiProperty({ required: false, nullable: true, type: String })
   @IsString()

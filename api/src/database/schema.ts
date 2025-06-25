@@ -1,16 +1,16 @@
 import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
-  integer,
-  pgEnum,
-  uuid,
-  primaryKey,
-  index,
-  boolean,
-  jsonb,
   unique,
   uniqueIndex,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { eq, relations, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
@@ -138,7 +138,7 @@ export const serviceContext = pgTable(
     competences: text("competences").array().default([]),
     leviers: text("leviers").array().default([]),
     phases: projetPhasesEnum("phases").array().default([]),
-    regions: text("regions").array().default([]).notNull(),
+    regions: text("regions").array().default([]),
 
     // Custom display options
     name: text("name"),

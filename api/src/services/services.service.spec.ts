@@ -97,7 +97,9 @@ describe("ServicesService", () => {
         competences: ["90-851"],
         phases: [],
         leviers: ["Bio-carburants"],
+        regions: [],
       };
+
       await serviceContext.create(createdService.id, createServiceContextDto);
 
       const result = await service.getServicesByProjectId(createDto.externalId, "tetId");
