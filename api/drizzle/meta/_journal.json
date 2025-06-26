@@ -162,6 +162,13 @@
       "when": 1750339125896,
       "tag": "0022_numerous_chameleon",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1750932880788,
+      "tag": "0023_left_toad",
+      "breakpoints": true
     }
   ]
 }

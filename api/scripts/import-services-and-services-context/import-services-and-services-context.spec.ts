@@ -64,6 +64,7 @@ describe("parseCSVFiles", () => {
       extraFields: [],
       iframeUrl: null,
       leviers: [],
+      regions: [],
       logoUrl: "https://urbanvitaliz.fr/static/img/favicons/apple-touch-icon.png",
       phases: ["Étude", "Idée", "Opération"],
       redirectionLabel: null,

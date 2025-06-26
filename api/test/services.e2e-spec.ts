@@ -44,6 +44,7 @@ describe("Services (e2e)", () => {
       leviers: [],
       extraFields: [{ name: "surface", label: "Surface en m2" }],
       phases: [],
+      regions: [],
     };
 
     it("should reject when using regular API key", async () => {
@@ -85,6 +86,7 @@ describe("Services (e2e)", () => {
         competences: null,
         leviers: null,
         phases: null,
+        regions: [],
       });
 
       expect(error).toBeUndefined();

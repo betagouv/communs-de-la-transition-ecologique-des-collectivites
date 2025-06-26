@@ -5,6 +5,7 @@ import { collectivites } from "@database/schema";
 import { CustomLogger } from "@logging/logger.service";
 import { formatError } from "@/exceptions/utils";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
+import { sql, eq } from "drizzle-orm";
 
 @Injectable()
 export class GeoService {
@@ -18,34 +19,124 @@ export class GeoService {
     const communes = await this.geoApi.getAllCommunes();
     const epcis = await this.geoApi.getAllEpcis();
 
-    const allCollectivites = [...communes, ...epcis];
-
-    this.logger.log(`Inserting ${allCollectivites.length} collectivites`);
+    this.logger.log(`Inserting ${communes.length} communes and ${epcis.length} EPCIs`);
 
     const BATCH_SIZE = 1000;
 
-    for (let i = 0; i < allCollectivites.length; i += BATCH_SIZE) {
-      const batch = allCollectivites.slice(i, i + BATCH_SIZE);
+    const mapCollectiviteToDbFields = (collectivite: Collectivite) => ({
+      nom: collectivite.nom,
+      type: collectivite.type,
+      codeInsee: collectivite.codeInsee ?? null,
+      codeDepartements: collectivite.codeDepartements ?? null,
+      codeRegions: collectivite.codeRegions ?? null,
+      codeEpci: collectivite.codeEpci ?? null,
+      siren: collectivite.siren ?? null,
+    });
 
-      await this.dbService.database.transaction(async (tx) => {
+    const upatedValues = {
+      nom: sql`excluded.nom`,
+      type: sql`excluded.type`,
+      codeInsee: sql`excluded.code_insee`,
+      codeDepartements: sql`excluded.code_departements`,
+      codeRegions: sql`excluded.code_regions`,
+      codeEpci: sql`excluded.code_epci`,
+      updatedAt: sql`now()`,
+    };
+
+    // Helper function to process individual records when batch fails
+    const processIndividualRecords = async (records: Collectivite[], type: "communes" | "epcis") => {
+      for (const record of records) {
         try {
-          await tx.insert(collectivites).values(
-            batch.map((collectivite) => ({
-              nom: collectivite.nom,
-              type: collectivite.type,
-              codeInsee: collectivite.codeInsee ?? null,
-              codeDepartement: collectivite.codeDepartements ?? null,
-              codeRegion: collectivite.codeRegions ?? null,
-              codeEpci: collectivite.codeEpci ?? null,
-              siren: collectivite.siren ?? null,
-            })),
-          );
-        } catch (e) {
-          this.logger.error("failing to create all collectivites", formatError(e));
-        }
-      });
+          const mappedValue = mapCollectiviteToDbFields(record);
 
-      this.logger.log(`Inserted batch ${i / BATCH_SIZE + 1} of ${Math.ceil(allCollectivites.length / BATCH_SIZE)}`);
+          await this.dbService.database.transaction(async (tx) => {
+            if (type === "communes") {
+              // For communes, always use (codeInsee, type) constraint
+              await tx
+                .insert(collectivites)
+                .values([mappedValue])
+                .onConflictDoUpdate({
+                  target: [collectivites.codeInsee, collectivites.type],
+                  targetWhere: eq(collectivites.type, "Commune"),
+                  set: upatedValues,
+                });
+            } else {
+              // For EPCIs, always use (codeEpci, type) constraint
+              await tx
+                .insert(collectivites)
+                .values([mappedValue])
+                .onConflictDoUpdate({
+                  target: [collectivites.codeEpci, collectivites.type],
+                  targetWhere: eq(collectivites.type, "EPCI"),
+                  set: upatedValues,
+                });
+            }
+          });
+        } catch (e) {
+          // Log the specific failing record
+          this.logger.error(`INDIVIDUAL RECORD FAILED - ${type.slice(0, -1)}:`, {
+            nom: record.nom,
+            codeInsee: record.codeInsee,
+            codeEpci: record.codeEpci,
+            siren: record.siren,
+            type: record.type,
+            error: formatError(e),
+          });
+        }
+      }
+    };
+
+    // we process communes and epci in 2 stage because the unique constraint from the DB
+    // change for communes and epci, needing a different conflict targeting
+    for (let i = 0; i < communes.length; i += BATCH_SIZE) {
+      const batch = communes.slice(i, i + BATCH_SIZE);
+
+      try {
+        await this.dbService.database.transaction(async (tx) => {
+          const mappedValues = batch.map(mapCollectiviteToDbFields);
+
+          // For communes, always use (codeInsee, type) constraint
+          await tx
+            .insert(collectivites)
+            .values(mappedValues)
+            .onConflictDoUpdate({
+              target: [collectivites.codeInsee, collectivites.type],
+              targetWhere: eq(collectivites.type, "Commune"),
+              set: upatedValues,
+            });
+        });
+        this.logger.log(`Inserted communes batch ${i / BATCH_SIZE} of ${Math.ceil(communes.length / BATCH_SIZE)}`);
+      } catch (e) {
+        this.logger.error(`Batch ${i / BATCH_SIZE} failed, processing individual records...`, formatError(e));
+        // Process individual records to identify the failing ones if any
+        await processIndividualRecords(batch, "communes");
+        this.logger.log(`Processed individual records for communes batch ${i / BATCH_SIZE}`);
+      }
+    }
+
+    for (let i = 0; i < epcis.length; i += BATCH_SIZE) {
+      const batch = epcis.slice(i, i + BATCH_SIZE);
+
+      try {
+        await this.dbService.database.transaction(async (tx) => {
+          const mappedValues = batch.map(mapCollectiviteToDbFields);
+
+          await tx
+            .insert(collectivites)
+            .values(mappedValues)
+            .onConflictDoUpdate({
+              target: [collectivites.codeEpci, collectivites.type],
+              targetWhere: eq(collectivites.type, "EPCI"),
+              set: upatedValues,
+            });
+        });
+        this.logger.log(`Inserted EPCIs batch ${i / BATCH_SIZE} of ${Math.ceil(epcis.length / BATCH_SIZE)}`);
+      } catch (e) {
+        this.logger.error(`Batch ${i / BATCH_SIZE} failed, processing individual records...`, formatError(e));
+        // Process individual records to identify the failing ones
+        await processIndividualRecords(batch, "epcis");
+        this.logger.log(`Processed individual records for EPCIs batch ${i / BATCH_SIZE}`);
+      }
     }
   }
 
