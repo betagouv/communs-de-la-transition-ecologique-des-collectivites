@@ -1,1 +1,0 @@
-ALTER TABLE "service_context" ADD COLUMN "regions" text[] DEFAULT '{}';
