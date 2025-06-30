@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString } from "class-validator";
-import { competenceCodes } from "@/shared/const/competences-list";
-import { CompetenceCode } from "@/shared/types";
+import { competenceCodes, competenceNames } from "@/shared/const/competences-list";
+import { CompetenceCode, CompetenceName } from "@/shared/types";
 
 export class ProjetQualificationRequest {
   @ApiProperty({
@@ -28,12 +28,13 @@ export class CompetenceDto {
   })
   code!: CompetenceCode;
 
-  //todo make it an enum
   @ApiProperty({
+    enum: competenceNames,
+    type: String,
     description: "Nom de la compétence",
     example: "Aménagement et services urbains > Espaces verts urbains",
   })
-  nom!: string;
+  nom!: CompetenceName;
 
   @ApiProperty({
     description: "Score de pertinence entre 0 et 1",
