@@ -53,7 +53,6 @@ export class ServicesContextService {
     const service = await this.dbService.database.query.services.findFirst({
       where: eq(services.id, serviceId),
     });
-
     if (!service) {
       throw new NotFoundException(`Service with ID ${serviceId} not found`);
     }

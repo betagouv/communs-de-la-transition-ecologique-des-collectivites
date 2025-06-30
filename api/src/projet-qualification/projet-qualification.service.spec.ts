@@ -14,6 +14,7 @@ import {
 } from "./const";
 import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
 import { CompetenceCode } from "@/shared/types";
+import { ProjetQualificationResponse } from "@/projet-qualification/dto/projet-qualification.dto";
 
 describe("ProjetQualificationService", () => {
   let createService: CreateProjetsService;
@@ -125,6 +126,53 @@ describe("ProjetQualificationService", () => {
       } as Job<{ projetId: string }>;
 
       await expect(qualificationService.process(mockJob)).rejects.toThrow();
+    });
+  });
+
+  describe("qualify competences", () => {
+    it("should qualify competences successfully", async () => {
+      const mockCompetencesResult: CompetencesResult = {
+        projet: "Test projet",
+        competences: [
+          {
+            code: "90-75" as CompetenceCode,
+            score: 0.9,
+            competence: "Politique de l'énergie",
+            sous_competence: "Test",
+          },
+          {
+            code: "90-314" as CompetenceCode,
+            score: 0.4,
+            competence: "Culture > Musées",
+            sous_competence: "Test",
+          },
+          {
+            code: "90-41" as CompetenceCode,
+            score: 0.8,
+            competence: "Santé",
+            sous_competence: "Test",
+          },
+        ],
+        errorMessage: "",
+      };
+      const context = "Nom et description du projet";
+
+      jest.spyOn<any, any>(qualificationService, "analyzeProjet").mockResolvedValueOnce(mockCompetencesResult);
+
+      const result = await qualificationService.analyzeCompetences(context, "MEC");
+
+      const firstMatch = mockCompetencesResult.competences[0];
+      const secondMatch = mockCompetencesResult.competences[2];
+
+      const expectedResult: ProjetQualificationResponse = {
+        projet: context,
+        competences: [
+          { code: firstMatch.code, nom: firstMatch.competence, score: firstMatch.score },
+          { code: secondMatch.code, nom: secondMatch.competence, score: secondMatch.score },
+        ],
+      };
+
+      expect(result).toEqual(expectedResult);
     });
   });
 });
