@@ -159,3 +159,4 @@ export const competencesFromM57Referentials = {
 
 export type CompetenceCode = keyof typeof competencesFromM57Referentials;
 export const competenceCodes = Object.keys(competencesFromM57Referentials) as CompetenceCode[];
+export const competenceNames = Object.values(competencesFromM57Referentials);
