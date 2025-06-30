@@ -15,7 +15,8 @@ import {
 } from "@/projet-qualification/const";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { existsSync } from "fs";
-import { Levier } from "@/shared/types";
+import { Levier, ServiceType } from "@/shared/types";
+import { ProjetQualificationResponse } from "@/projet-qualification/dto/projet-qualification.dto";
 
 @Processor("project-qualification")
 export class ProjetQualificationService extends WorkerHost {
@@ -104,7 +105,29 @@ export class ProjetQualificationService extends WorkerHost {
     this.logger.log(`Successfully qualified project ${projetId} with competences code ${competencesCodes.join()}`);
   }
 
-  private async analyzeProjet<T>(context: string, type: "TE" | "competences"): Promise<T> {
+  async analyzeCompetences(context: string, serviceType: ServiceType): Promise<ProjetQualificationResponse> {
+    const result = await this.analyzeProjet<CompetencesResult>(context, "competences");
+
+    if (result.competences.length === 0) {
+      this.logger.log(`No competences found for project with context ${context} for ${serviceType}`);
+    }
+
+    if (result.errorMessage) {
+      throw new Error(`Error while qualifying competences - error : ${result.errorMessage}`);
+    }
+
+    const competences = result.competences
+      .filter((competence) => competence.score > COMPETENCE_SCORE_TRESHOLD)
+      .map((competence) => ({ code: competence.code, score: competence.score, nom: competence.competence }));
+
+    return {
+      projet: context,
+      competences,
+    };
+  }
+
+  //todo should be able to not pass the generic type and derive it from the type
+  async analyzeProjet<T>(context: string, type: "TE" | "competences"): Promise<T> {
     return new Promise((resolve, reject) => {
       const escapedDescription = context.replace(/'/g, "'\\''");
 
