@@ -135,19 +135,19 @@ describe("ProjetQualificationService", () => {
         projet: "Test projet",
         competences: [
           {
-            code: "90-75" as CompetenceCode,
+            code: "90-75",
             score: 0.9,
             competence: "Politique de l'énergie",
             sous_competence: "Test",
           },
           {
-            code: "90-314" as CompetenceCode,
+            code: "90-314",
             score: 0.4,
             competence: "Culture > Musées",
             sous_competence: "Test",
           },
           {
-            code: "90-41" as CompetenceCode,
+            code: "90-41",
             score: 0.8,
             competence: "Santé",
             sous_competence: "Test",
