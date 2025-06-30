@@ -126,7 +126,6 @@ export class ProjetQualificationService extends WorkerHost {
     };
   }
 
-  //todo should be able to not pass the generic type and derive it from the type
   async analyzeProjet<T>(context: string, type: "TE" | "competences"): Promise<T> {
     return new Promise((resolve, reject) => {
       const escapedDescription = context.replace(/'/g, "'\\''");
