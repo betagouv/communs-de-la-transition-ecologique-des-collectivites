@@ -55,10 +55,4 @@ export class ProjetQualificationResponse {
     type: [CompetenceDto],
   })
   competences!: CompetenceDto[];
-
-  @ApiProperty({
-    description: "Message d'erreur éventuel",
-    required: false,
-  })
-  errorMessage?: string;
 }
