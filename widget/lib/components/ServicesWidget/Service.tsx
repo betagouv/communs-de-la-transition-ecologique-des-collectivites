@@ -4,8 +4,6 @@ import { fr } from "@codegouvfr/react-dsfr";
 import { useEffect, useState } from "react";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import IFrameResized from "./IFrameResized.tsx";
-import LevierDetails, { LevierData } from "./LevierDetails.tsx";
-import voiture_electrique from "../../leviers_data/voiture_electrique.json";
 import Input from "@codegouvfr/react-dsfr/Input";
 import { ExtraFields, IdType, ProjectData, Service as ServiceType } from "./types.ts";
 import { usePostExtraFields, useTrackEvent } from "./queries.ts";
@@ -57,13 +55,12 @@ export const Service = ({
     isListed,
     sousTitre,
   } = service;
-  const isLevier = name === "Levier_SGPE";
 
   const missingExtraFields = (extraFields || []).filter(
     (field) => !projectExtraFields.some((projectExtraField) => projectExtraField.name === field.name),
   );
 
-  const needsAccordion = (isLevier || iframeUrl) && missingExtraFields.length === 0;
+  const needsAccordion = iframeUrl && missingExtraFields.length === 0;
 
   const handleInputChange = (fieldName: string, value: string) => {
     setFieldValues((prev) => ({ ...prev, [fieldName]: value }));
@@ -187,9 +184,13 @@ export const Service = ({
           }}
           expanded={expanded}
         >
-          {isLevier ? <LevierDetails {...(voiture_electrique as LevierData)} /> : null}
-          {iframeUrl && <IFrameResized src={replaceIframeUrlParams(iframeUrl, projectData, projectExtraFields)} />}
+          {/*we keep a fragment as a child to avoid accordion errot*/}
+          <></>
         </Accordion>
+      )}
+      {/*we haved moved iframe out of Accordeon as it prevents the iframe from loading properly. Not sure exactly why, I suspect a timing issue between parent and child page from iframe resizer*/}
+      {iframeUrl && expanded && (
+        <IFrameResized src={replaceIframeUrlParams(iframeUrl, projectData, projectExtraFields)} />
       )}
     </div>
   );

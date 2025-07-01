@@ -8,7 +8,15 @@ interface IFrameResizedProps {
 const IFrameResized = ({ src }: IFrameResizedProps) => {
   const iframeRef = useRef(null);
 
-  return <IframeResizer license="GPLv3" src={src} forwardRef={iframeRef} style={{ width: "100%", height: "100vh" }} />;
+  return (
+    <IframeResizer
+      checkOrigin={false}
+      license="GPLv3"
+      src={src}
+      forwardRef={iframeRef}
+      style={{ width: "100%", height: "100vh" }}
+    />
+  );
 };
 
 export default IFrameResized;
