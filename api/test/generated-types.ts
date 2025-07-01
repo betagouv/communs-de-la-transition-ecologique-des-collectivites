@@ -139,6 +139,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/qualification/competences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Qualifier les compétences d'un projet
+         * @description Qualifie la description d'un projet pour identifier les compétences pertinentes des collectivités
+         */
+        post: operations["ProjetQualificationController_analyzeCompetences"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/analytics/trackEvent": {
         parameters: {
             query?: never;
@@ -476,6 +496,42 @@ export interface components {
         CreateServiceContextResponse: {
             id: string;
         };
+        ProjetQualificationRequest: {
+            /**
+             * @description Description du projet à analyser
+             * @example Rénovation énergétique d'un bâtiment public avec installation de panneaux solaires
+             */
+            description: string;
+            /** @description Nom du projet à analyser */
+            nom: string;
+        };
+        CompetenceDto: {
+            /**
+             * @description Code de la compétence
+             * @enum {string}
+             */
+            code: "90-025" | "90-11" | "90-12" | "90-13" | "90-18" | "90-21" | "90-211" | "90-212" | "90-213" | "90-22" | "90-221" | "90-222" | "90-223" | "90-23" | "90-24" | "90-25" | "90-251" | "90-252" | "90-253" | "90-254" | "90-255" | "90-256" | "90-26" | "90-27" | "90-28" | "90-281" | "90-282" | "90-283" | "90-284" | "90-288" | "90-29" | "90-31" | "90-311" | "90-312" | "90-313" | "90-314" | "90-315" | "90-316" | "90-317" | "90-318" | "90-32" | "90-321" | "90-322" | "90-323" | "90-324" | "90-325" | "90-326" | "90-327" | "90-33" | "90-331" | "90-332" | "90-338" | "90-34" | "90-341" | "90-348" | "90-39" | "90-41" | "90-411" | "90-412" | "90-413" | "90-414" | "90-418" | "90-42" | "90-421" | "90-422" | "90-423" | "90-424" | "90-425" | "90-428" | "90-51" | "90-511" | "90-512" | "90-513" | "90-514" | "90-515" | "90-518" | "90-52" | "90-53" | "90-54" | "90-55" | "90-551" | "90-552" | "90-553" | "90-554" | "90-555" | "90-56" | "90-57" | "90-58" | "90-581" | "90-588" | "90-59" | "90-61" | "90-62" | "90-63" | "90-631" | "90-632" | "90-633" | "90-64" | "90-65" | "90-66" | "90-67" | "90-68" | "90-71" | "90-72" | "90-721" | "90-722" | "90-73" | "90-731" | "90-732" | "90-733" | "90-734" | "90-735" | "90-74" | "90-75" | "90-751" | "90-752" | "90-753" | "90-754" | "90-758" | "90-76" | "90-77" | "90-78" | "90-81" | "90-82" | "90-821" | "90-822" | "90-823" | "90-824" | "90-825" | "90-828" | "90-83" | "90-831" | "90-832" | "90-833" | "90-834" | "90-835" | "90-838" | "90-84" | "90-841" | "90-842" | "90-843" | "90-844" | "90-845" | "90-846" | "90-847" | "90-848" | "90-849" | "90-85" | "90-851" | "90-852" | "90-853" | "90-854" | "90-855" | "90-86" | "90-87" | "90-89";
+            /**
+             * @description Nom de la compétence
+             * @example Aménagement et services urbains > Espaces verts urbains
+             * @enum {string}
+             */
+            nom: "Cimetières et pompes funèbres" | "Police, sécurité, justice" | "Incendie et secours" | "Hygiène et salubrité publique" | "Sécurité / Autres interventions protection des personnes, biens" | "Enseignement du premier degré" | "Enseignement du premier degré > Ecoles maternelles" | "Enseignement du premier degré > Ecoles primaires" | "Enseignement du premier degré > Classes regroupées" | "Enseignement du second degré" | "Enseignement du second degré > Collèges" | "Enseignement du second degré > Lycées publics" | "Enseignement du second degré > Lycées privés" | "Enseignement supérieur" | "Cités scolaires" | "Formation professionnelle" | "Formation professionnelle > Insertion sociale et professionnelle" | "Formation professionnelle > Formation professionnalisante personnes" | "Formation professionnelle > Formation certifiante des personnes" | "Formation professionnelle > Formation des actifs occupés" | "Formation professionnelle > Rémunération des stagiaires" | "Formation professionnelle > Autres" | "Apprentissage" | "Formation sanitaire et sociale" | "Autres services périscolaires et annexes" | "Autres services périscolaires et annexes > Hébergement et restauration scolaires" | "Autres services périscolaires et annexes > Sport scolaire" | "Autres services périscolaires et annexes > Médecine scolaire" | "Autres services périscolaires et annexes > Classes de découverte" | "Autres services périscolaires et annexes > Autre service annexe de l'enseignement" | "Enseignement, formation professionnelle et apprentissage / Sécurité" | "Culture" | "Culture > Activités artistiques, actions et manifestations culturelles" | "Culture > Patrimoine" | "Culture > Bibliothèques, médiathèques" | "Culture > Musées" | "Culture > Services d'archives" | "Culture > Théâtres et spectacles vivants" | "Culture > Cinémas et autres salles de spectacles" | "Culture > Archéologie préventive" | "Sports (autres que scolaires)" | "Sports (autres que scolaires) > Salles de sport, gymnases" | "Sports (autres que scolaires) > Stades" | "Sports (autres que scolaires) > Piscines" | "Sports (autres que scolaires) > Centres de formation sportifs" | "Sports (autres que scolaires) > Autres équipements sportifs ou loisirs" | "Sports (autres que scolaires) > Manifestations sportives" | "Sports (autres que scolaires) > Soutien aux sportifs" | "Jeunesse et loisirs" | "Jeunesse et loisirs > Centres de loisirs" | "Jeunesse et loisirs > Colonies de vacances" | "Jeunesse et loisirs > Autres activités pour les jeunes" | "Vie sociale et citoyenne" | "Vie sociale et citoyenne > Egalité entre les femmes et les hommes" | "Vie sociale et citoyenne > Autres" | "Culture, vie sociale, jeunesse, sports et loisir / Sécurité" | "Santé" | "Santé > Protection Maternelle et Infantile et planification familiale" | "Santé > Prévention et éducation pour la santé" | "Santé > Sécurité alimentaire" | "Santé > Dispensaires et autres établissements sanitaires" | "Santé > Autres actions" | "Action sociale" | "Action sociale > Famille et enfance" | "Action sociale > Petite enfance" | "Action sociale > Personnes âgées" | "Action sociale > Personnes en difficulté" | "Action sociale > Personnes handicapées" | "Action sociale > Autres interventions sociales" | "Aménagement des territoires et habitat / Aménagement et services urbains" | "Aménagement et services urbains > Espaces verts urbains" | "Aménagement et services urbains > Eclairage public" | "Aménagement et services urbains > Art public" | "Aménagement et services urbains > Electrification" | "Aménagement et services urbains > Opérations d'aménagement" | "Aménagement et services urbains > Autres actions d'aménagement urbain" | "Aménagement des territoires et habitat / Politique de la ville" | "Aménagement des territoires et habitat / Agglomérations et villes moyennes" | "Aménagement des territoires et habitat / Espace rural et autres espaces de développement" | "Habitat (Logement)" | "Habitat (Logement) > Parc privé de la collectivité" | "Habitat (Logement) > Aide au secteur locatif" | "Habitat (Logement) > Aide à l'accession à la propriété" | "Habitat (Logement) > Aire d'accueil des gens du voyage" | "Habitat (Logement) > Logement social" | "Aménagement des territoires et habitat / Actions en faveur du littoral" | "Aménagement des territoires et habitat / Technologies de l'information et de la communication" | "Aménagement des territoires et habitat / Autres actions" | "Aménagement des territoires et habitat / Autres actions > Réserves Foncières" | "Aménagement des territoires et habitat / Autres actions > Autres actions d'aménagement" | "Aménagement des territoires et habitat / Sécurité" | "Action économique / Interventions économiques transversales" | "Action économique / Structure d'animation et de développement économique" | "Action économique / Actions sectorielles" | "Action économique / Actions sectorielles > Agriculture, pêche et agro-alimentaire" | "Action économique / Actions sectorielles > Industrie, commerce et artisanat" | "Action économique / Actions sectorielles > Développement touristique" | "Action économique / Rayonnement, attractivité du territoire" | "Action économique / Insertion économique et économie sociale, solidaire" | "Action économique / Maintien et développement des services publics" | "Action économique / Recherche et innovation" | "Action économique / Autres actions" | "Environnement / Actions transversales" | "Actions déchets et propreté urbaine" | "Actions déchets et propreté urbaine > Collecte et traitement des déchets" | "Actions déchets et propreté urbaine > Propreté urbaine" | "Actions en matière de gestion des eaux" | "Actions en matière de gestion des eaux > Politique de l'eau" | "Actions en matière de gestion des eaux > Eau potable" | "Actions en matière de gestion des eaux > Assainissement" | "Actions en matière de gestion des eaux > Eaux pluviales" | "Actions en matière de gestion des eaux > Lutte contre les inondations" | "Politique de l'air" | "Politique de l'énergie" | "Politique de l'énergie > Réseaux de chaleur et de froid" | "Politique de l'énergie > Energie photovoltaïque" | "Politique de l'énergie > Energie éolienne" | "Politique de l'énergie > Energie hydraulique" | "Politique de l'énergie > Autres actions" | "Environnement / Préservation patrimoine naturel,risques technologiques" | "Environnement infrastructures transports" | "Environnement / Autres actions" | "Transports scolaires" | "Transports publics de voyageurs" | "Transports publics de voyageurs > Transport sur route" | "Transports publics de voyageurs > Transport ferroviaire" | "Transports publics de voyageurs > Transport fluvial" | "Transports publics de voyageurs > Transport maritime" | "Transports publics de voyageurs > Transport aérien" | "Transports publics de voyageurs > Autres transports" | "Transports de marchandises" | "Transports de marchandises > Fret routier" | "Transports de marchandises > Fret ferroviaire" | "Transports de marchandises > Fret fluvial" | "Transports de marchandises > Fret maritime" | "Transports de marchandises > Fret aérien" | "Transports de marchandises > Autres transports" | "Voirie" | "Voirie > Voirie nationale" | "Voirie > Voirie régionale" | "Voirie > Voirie départementale" | "Voirie > Voirie métropolitaine" | "Voirie > Voirie communale" | "Voirie > Viabilité hivernale et aléas climatiques" | "Voirie > Equipements de voirie" | "Voirie > Parkings" | "Voirie > Sécurité routière" | "Transports / Infrastructures" | "Transports / Infrastructures > Gares, autres infrastructures routières" | "Transports / Infrastructures > Gares et autres infrastructures ferroviaires" | "Transports / Infrastructures > Haltes, autres infrastructures fluviales" | "Transports / Infrastructures > Ports, autres infrastructures portuaires" | "Transports / Infrastructures > Aéroports et autres infrastructures" | "Transports / Liaisons multimodales" | "Circulations douces" | "Transports / Sécurité";
+            /**
+             * @description Score de pertinence entre 0 et 1
+             * @example 0.9
+             */
+            score: number;
+        };
+        ProjetQualificationResponse: {
+            /**
+             * @description Description du projet analysé
+             * @example Rénovation énergétique d'un bâtiment public avec installation de panneaux solaires
+             */
+            projet: string;
+            /** @description Liste des compétences identifiées */
+            competences: components["schemas"]["CompetenceDto"][];
+        };
         TrackEventRequest: {
             name: string;
             action: string;
@@ -515,14 +571,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -544,14 +604,18 @@ export interface operations {
         responses: {
             /** @description Projet created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -571,14 +635,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -603,14 +671,18 @@ export interface operations {
         responses: {
             /** @description Projet updated successfully */
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -632,14 +704,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectPublicInfoResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -661,14 +737,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ExtraField"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -694,14 +774,18 @@ export interface operations {
         };
         responses: {
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ExtraField"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -723,14 +807,18 @@ export interface operations {
         responses: {
             /** @description Bulk Projets created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["BulkCreateProjetsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -753,14 +841,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ServicesByProjectIdResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -782,14 +874,18 @@ export interface operations {
         responses: {
             /** @description Service created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -814,14 +910,51 @@ export interface operations {
         responses: {
             /** @description Service context created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceContextResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ProjetQualificationController_analyzeCompetences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjetQualificationRequest"];
+            };
+        };
+        responses: {
+            /** @description Qualification des compétences réussie */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjetQualificationResponse"];
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -843,14 +976,18 @@ export interface operations {
         responses: {
             /** @description tracking event sent successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": string;
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -872,14 +1009,18 @@ export interface operations {
         responses: {
             /** @description Retrieve dashboard statistics from Matomo */
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["DashboardData"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
