@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.2.6
+
+### Minor Changes
+
+- fix issue between iframe resizer and dsfr accordeon which was not working on tet
+
 ## 0.2.5
 
 ### Minor Changes
