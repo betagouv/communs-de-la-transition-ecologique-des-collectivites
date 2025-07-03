@@ -34,15 +34,17 @@ export function isOriginAllowed(origin: string): boolean {
 @Injectable()
 export class CorsMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
-    // we have only 4 routes that need CORS because they are the one being called by the widget
+    // we have only 5 routes that need CORS because they are the one being called by the widget
     // /projects/:projectId/public-info through a GET to allow it to retrieve public info for the project
     // /projects/:projectId/extra-fields through a POST request to enable the widget to save the extra fields
     // /services/project/:projectId through a GET request to get the services for current project in the widget
+    // /services/search/context through a GET request to get the services by context (competences, leviers, phases)
     // /analytics/trackEvent to do the tracking server side to avoid conflicting with matomo host implementation
     const corsEnabledRoutes = [
       "/projets/:projectId/public-info",
       "/projets/:projectId/extra-fields",
       "/services/project/:projectId",
+      "/services/search/context",
       "/analytics/trackEvent",
       "/analytics/dashboard",
     ];

@@ -2,7 +2,7 @@ import { paths } from "../../generated-types.ts";
 import createFetchClient from "openapi-fetch";
 import { getApiUrl } from "../../utils.ts";
 import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
-import { IdType, Service, ProjectData, ExtraFields } from "./types.ts";
+import { IdType, Service, ProjectData, ExtraFields, ServicesWidgetProps } from "./types.ts";
 
 const makeApiClient = (isStagingEnv = false) => {
   const apiUrl = getApiUrl(isStagingEnv);
@@ -16,7 +16,7 @@ const makeApiClient = (isStagingEnv = false) => {
 };
 
 interface BaseQueryParams {
-  projectId: string;
+  projectId?: string;
   idType: IdType;
   options: {
     isStagingEnv?: boolean;
@@ -24,15 +24,19 @@ interface BaseQueryParams {
   };
 }
 
+interface BaseQueryParamsWithProjectId extends BaseQueryParams {
+  projectId: string;
+}
+
 // -------------- Services by Projects - GET -------------- //
-export const useGetServicesByProjectId = (params: BaseQueryParams): UseQueryResult<Service[]> => {
+export const useGetServicesByProjectId = ({ projectId, ...rest }: BaseQueryParams): UseQueryResult<Service[]> => {
   return useQuery({
-    queryKey: ["project-services", params.projectId],
-    queryFn: () => fetchServicesByProjectId(params),
+    queryKey: ["project-services", projectId],
+    queryFn: () => fetchServicesByProjectId({ ...rest, projectId: projectId! }),
   });
 };
 
-const fetchServicesByProjectId = async ({ projectId, idType, options }: BaseQueryParams) => {
+const fetchServicesByProjectId = async ({ projectId, idType, options }: BaseQueryParamsWithProjectId) => {
   const { isStagingEnv = false, debug = false } = options;
   const apiClient = makeApiClient(isStagingEnv);
   const { data, error } = await apiClient.GET(`/services/project/{id}`, {
@@ -50,15 +54,15 @@ const fetchServicesByProjectId = async ({ projectId, idType, options }: BaseQuer
 };
 
 // -------------- Project Public Info - GET -------------- //
-export const useGetProjectPublicInfo = (params: BaseQueryParams): UseQueryResult<ProjectData> => {
+export const useGetProjectPublicInfo = (params: BaseQueryParamsWithProjectId): UseQueryResult<ProjectData> => {
   return useQuery({
     queryKey: ["project-public-info", params.projectId],
     queryFn: () => fetchProjectPublicInfo(params),
-    enabled: !params.options.debug,
+    enabled: !params.options.debug || Boolean(params.projectId),
   });
 };
 
-const fetchProjectPublicInfo = async ({ projectId, idType, options }: BaseQueryParams) => {
+const fetchProjectPublicInfo = async ({ projectId, idType, options }: BaseQueryParamsWithProjectId) => {
   const { isStagingEnv = false } = options;
   const apiClient = makeApiClient(isStagingEnv);
 
@@ -77,15 +81,20 @@ const fetchProjectPublicInfo = async ({ projectId, idType, options }: BaseQueryP
 };
 
 // -------------- Project Extra Fields - GET -------------- //
-export const useGetProjectExtraFields = (params: BaseQueryParams): UseQueryResult<ExtraFields> => {
+export const useGetProjectExtraFields = ({
+  projectId,
+  idType,
+  options,
+}: BaseQueryParams): UseQueryResult<ExtraFields> => {
   return useQuery({
-    queryKey: ["project-extra-fields", params.projectId],
-    queryFn: () => fetchProjectExtraFields(params),
-    enabled: !params.options.debug,
+    queryKey: ["project-extra-fields", projectId],
+    // projectId is always defined here with the enabled option
+    queryFn: () => fetchProjectExtraFields({ projectId: projectId!, idType, options }),
+    enabled: !options.debug || projectId !== undefined,
   });
 };
 
-const fetchProjectExtraFields = async ({ projectId, idType, options }: BaseQueryParams) => {
+const fetchProjectExtraFields = async ({ projectId, idType, options }: BaseQueryParamsWithProjectId) => {
   const apiClient = makeApiClient(options.isStagingEnv);
 
   const { data, error } = await apiClient.GET("/projets/{id}/extra-fields", {
@@ -190,4 +199,38 @@ const postTrackEvent = async ({ action, name, value }: TrackEventParams, isStagi
   }
 
   return data;
+};
+
+// -------------- Services by Context - POST -------------- //
+export const useGetServicesByContext = (
+  context: ServicesWidgetProps["context"],
+  options: { isStagingEnv?: boolean; debug?: boolean },
+): UseQueryResult<Service[]> => {
+  return useQuery({
+    queryKey: ["context-services", context],
+    queryFn: () => fetchServicesByContext(context, options),
+    enabled: Boolean(context),
+  });
+};
+
+const fetchServicesByContext = async (
+  context: ServicesWidgetProps["context"],
+  options: { isStagingEnv?: boolean; debug?: boolean },
+) => {
+  const { isStagingEnv = false } = options;
+  const apiUrl = getApiUrl(isStagingEnv);
+
+  const params = new URLSearchParams();
+  if (context?.competences?.length) params.append("competences", context.competences.join(","));
+  if (context?.leviers?.length) params.append("leviers", context.leviers.join(","));
+  if (context?.phases?.length) params.append("phases", context.phases.join(","));
+  if (context?.regions?.length) params.append("regions", context.regions.join(","));
+
+  const response = await fetch(`${apiUrl}/services/search/context?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json() as Promise<Service[]>;
 };

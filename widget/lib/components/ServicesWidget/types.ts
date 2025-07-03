@@ -9,8 +9,16 @@ export type ProjectData = components["schemas"]["ProjectPublicInfoResponse"];
 export type IdType = "communId" | "tetId";
 
 export interface ServicesWidgetProps {
-  projectId: string;
+  projectId?: string;
+  idType?: IdType;
+
+  context?: {
+    competences?: string[];
+    leviers?: string[];
+    phases?: string[];
+    regions?: string[];
+  };
+
   isStagingEnv?: boolean;
   debug?: boolean;
-  idType?: IdType;
 }
