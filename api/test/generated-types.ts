@@ -588,14 +588,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -617,14 +621,18 @@ export interface operations {
         responses: {
             /** @description Projet created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -644,14 +652,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -676,14 +688,18 @@ export interface operations {
         responses: {
             /** @description Projet updated successfully */
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateOrUpdateProjetResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -705,14 +721,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjectPublicInfoResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -734,14 +754,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ExtraField"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -767,14 +791,18 @@ export interface operations {
         };
         responses: {
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ExtraField"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -796,14 +824,18 @@ export interface operations {
         responses: {
             /** @description Bulk Projets created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["BulkCreateProjetsResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -826,14 +858,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ServicesByProjectIdResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -844,9 +880,9 @@ export interface operations {
         parameters: {
             query: {
                 /** @description Array of competences and sous-competences */
-                competences?: ("90-025" | "90-11" | "90-12" | "90-13" | "90-18" | "90-21" | "90-211" | "90-212" | "90-213" | "90-22" | "90-221" | "90-222" | "90-223" | "90-23" | "90-24" | "90-25" | "90-251" | "90-252" | "90-253" | "90-254" | "90-255" | "90-256" | "90-26" | "90-27" | "90-28" | "90-281" | "90-282" | "90-283" | "90-284" | "90-288" | "90-29" | "90-31" | "90-311" | "90-312" | "90-313" | "90-314" | "90-315" | "90-316" | "90-317" | "90-318" | "90-32" | "90-321" | "90-322" | "90-323" | "90-324" | "90-325" | "90-326" | "90-327" | "90-33" | "90-331" | "90-332" | "90-338" | "90-34" | "90-341" | "90-348" | "90-39" | "90-41" | "90-411" | "90-412" | "90-413" | "90-414" | "90-418" | "90-42" | "90-421" | "90-422" | "90-423" | "90-424" | "90-425" | "90-428" | "90-51" | "90-511" | "90-512" | "90-513" | "90-514" | "90-515" | "90-518" | "90-52" | "90-53" | "90-54" | "90-55" | "90-551" | "90-552" | "90-553" | "90-554" | "90-555" | "90-56" | "90-57" | "90-58" | "90-581" | "90-588" | "90-59" | "90-61" | "90-62" | "90-63" | "90-631" | "90-632" | "90-633" | "90-64" | "90-65" | "90-66" | "90-67" | "90-68" | "90-71" | "90-72" | "90-721" | "90-722" | "90-73" | "90-731" | "90-732" | "90-733" | "90-734" | "90-735" | "90-74" | "90-75" | "90-751" | "90-752" | "90-753" | "90-754" | "90-758" | "90-76" | "90-77" | "90-78" | "90-81" | "90-82" | "90-821" | "90-822" | "90-823" | "90-824" | "90-825" | "90-828" | "90-83" | "90-831" | "90-832" | "90-833" | "90-834" | "90-835" | "90-838" | "90-84" | "90-841" | "90-842" | "90-843" | "90-844" | "90-845" | "90-846" | "90-847" | "90-848" | "90-849" | "90-85" | "90-851" | "90-852" | "90-853" | "90-854" | "90-855" | "90-86" | "90-87" | "90-89")[];
+                competences?: ("90-025" | "90-11" | "90-12" | "90-13" | "90-18" | "90-21" | "90-211" | "90-212" | "90-213" | "90-22" | "90-221" | "90-222" | "90-223" | "90-23" | "90-24" | "90-25" | "90-251" | "90-252" | "90-253" | "90-254" | "90-255" | "90-256" | "90-26" | "90-27" | "90-28" | "90-281" | "90-282" | "90-283" | "90-284" | "90-288" | "90-29" | "90-31" | "90-311" | "90-312" | "90-313" | "90-314" | "90-315" | "90-316" | "90-317" | "90-318" | "90-32" | "90-321" | "90-322" | "90-323" | "90-324" | "90-325" | "90-326" | "90-327" | "90-33" | "90-331" | "90-332" | "90-338" | "90-34" | "90-341" | "90-348" | "90-39" | "90-41" | "90-411" | "90-412" | "90-413" | "90-414" | "90-418" | "90-42" | "90-421" | "90-422" | "90-423" | "90-424" | "90-425" | "90-428" | "90-51" | "90-511" | "90-512" | "90-513" | "90-514" | "90-515" | "90-518" | "90-52" | "90-53" | "90-54" | "90-55" | "90-551" | "90-552" | "90-553" | "90-554" | "90-555" | "90-56" | "90-57" | "90-58" | "90-581" | "90-588" | "90-59" | "90-61" | "90-62" | "90-63" | "90-631" | "90-632" | "90-633" | "90-64" | "90-65" | "90-66" | "90-67" | "90-68" | "90-71" | "90-72" | "90-721" | "90-722" | "90-73" | "90-731" | "90-732" | "90-733" | "90-734" | "90-735" | "90-74" | "90-75" | "90-751" | "90-752" | "90-753" | "90-754" | "90-758" | "90-76" | "90-77" | "90-78" | "90-81" | "90-82" | "90-821" | "90-822" | "90-823" | "90-824" | "90-825" | "90-828" | "90-83" | "90-831" | "90-832" | "90-833" | "90-834" | "90-835" | "90-838" | "90-84" | "90-841" | "90-842" | "90-843" | "90-844" | "90-845" | "90-846" | "90-847" | "90-848" | "90-849" | "90-85" | "90-851" | "90-852" | "90-853" | "90-854" | "90-855" | "90-86" | "90-87" | "90-89" | "all")[];
                 /** @description Array of leviers */
-                leviers?: ("Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention des déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Augmentation du taux de collecte" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF")[];
+                leviers?: ("Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention des déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Augmentation du taux de collecte" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF" | "all")[];
                 /** @description Project phases */
                 phases: ("Idée" | "Étude" | "Opération")[];
             };
@@ -857,14 +893,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ServicesByProjectIdResponse"][];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -886,14 +926,18 @@ export interface operations {
         responses: {
             /** @description Service created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -918,14 +962,18 @@ export interface operations {
         responses: {
             /** @description Service context created successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["CreateServiceContextResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -947,14 +995,18 @@ export interface operations {
         responses: {
             /** @description Qualification des compétences réussie */
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ProjetQualificationResponse"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -976,14 +1028,18 @@ export interface operations {
         responses: {
             /** @description tracking event sent successfully */
             201: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": string;
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
@@ -1005,14 +1061,18 @@ export interface operations {
         responses: {
             /** @description Retrieve dashboard statistics from Matomo */
             200: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["DashboardData"];
                 };
             };
             /** @description Error response */
             default: {
-                headers: Record<string, unknown>;
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };

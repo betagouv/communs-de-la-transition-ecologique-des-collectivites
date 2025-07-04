@@ -109,6 +109,7 @@ describe("Services (e2e)", () => {
       const { data: serviceData } = await serviceManagementApi.services.create({
         ...validService,
         name: "Context Test Service",
+        isListed: true,
       });
       testServiceId = serviceData!.id;
 
@@ -133,19 +134,19 @@ describe("Services (e2e)", () => {
     });
 
     it("should return all services", async () => {
-      const { data } = await regularApi.services.getByContext({
-        leviers: [],
-        competences: [],
+      const { data } = await clientPublicApi.services.getByContext({
         phases: ["Étude", "Opération", "Idée"],
+        competences: ["all"],
+        leviers: ["all"],
       });
 
       expect(data!.length).toBe(2);
     });
 
     it("should return services with corresponding phases", async () => {
-      const { data, error } = await regularApi.services.getByContext({
+      const { data, error } = await clientPublicApi.services.getByContext({
         phases: ["Opération"],
-        competences: [],
+        competences: ["all"],
       });
 
       expect(error).toBeUndefined();
@@ -154,7 +155,7 @@ describe("Services (e2e)", () => {
     });
 
     it("should return services with corresponding leviers", async () => {
-      const { data, error } = await regularApi.services.getByContext({
+      const { data, error } = await clientPublicApi.services.getByContext({
         leviers: ["Bio-carburants"] as Leviers,
         phases: ["Étude", "Opération", "Idée"],
       });
@@ -165,7 +166,7 @@ describe("Services (e2e)", () => {
     });
 
     it("should return services with corresponding competences", async () => {
-      const { data, error } = await regularApi.services.getByContext({
+      const { data, error } = await clientPublicApi.services.getByContext({
         competences: ["90-71"],
         phases: ["Étude", "Opération", "Idée"],
       });
@@ -176,9 +177,9 @@ describe("Services (e2e)", () => {
     });
 
     it("should return empty array when no matching criteria", async () => {
-      const { data, error } = await regularApi.services.getByContext({
+      const { data, error } = await clientPublicApi.services.getByContext({
         competences: ["90-314"],
-        leviers: ["Bio-carburants"],
+        leviers: ["Efficacité et sobriété logistique"],
         phases: ["Étude", "Opération", "Idée"],
       });
 
@@ -190,7 +191,7 @@ describe("Services (e2e)", () => {
       const { error } = await clientPublicApi.services.getByContext({
         competences: ["90-10000" as CompetenceCode],
         phases: ["Étude", "Opération", "Idée"],
-        leviers: [],
+        leviers: ["all"],
       });
 
       expect(error).toBeDefined();
@@ -198,9 +199,9 @@ describe("Services (e2e)", () => {
     });
 
     it("should reject when invalid levier is provided", async () => {
-      const { error } = await regularApi.services.getByContext({
+      const { error } = await clientPublicApi.services.getByContext({
         leviers: ["Invalid-Levier" as Levier],
-        competences: [],
+        competences: ["all"],
         phases: ["Étude", "Opération", "Idée"],
       });
 
@@ -209,10 +210,10 @@ describe("Services (e2e)", () => {
     });
 
     it("should reject when invalid phase is provided", async () => {
-      const { error } = await regularApi.services.getByContext({
+      const { error } = await clientPublicApi.services.getByContext({
         phases: ["Invalid-Phase" as ProjetPhase],
-        competences: [],
-        leviers: [],
+        competences: ["all"],
+        leviers: ["all"],
       });
 
       expect(error).toBeDefined();

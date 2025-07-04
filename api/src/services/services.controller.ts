@@ -11,6 +11,9 @@ import { GetServicesByContextQuery, ServicesByProjectIdResponse } from "@/servic
 import { UUIDDto } from "@/shared/dto/uuid";
 import { IdType, idTypes } from "@/shared/types";
 import { ProjectId, ProjectIdType } from "@/shared/decorator/projetId-decorator";
+import { competenceCodes } from "@/shared/const/competences-list";
+import { leviers } from "@/shared/const/leviers";
+import { projetPhasesEnum } from "@database/schema";
 
 @ApiBearerAuth()
 @ApiTags("services")
@@ -58,6 +61,27 @@ export class ServicesController {
     isArray: true,
   })
   @Get("search/context")
+  @ApiQuery({
+    name: "competences",
+    required: false,
+    isArray: true,
+    enum: [...competenceCodes, "all"],
+    description: "Array of competences and sous-competences",
+  })
+  @ApiQuery({
+    name: "leviers",
+    required: false,
+    isArray: true,
+    enum: [...leviers, "all"],
+    description: "Array of leviers",
+  })
+  @ApiQuery({
+    name: "phases",
+    required: true,
+    isArray: true,
+    enum: projetPhasesEnum.enumValues,
+    description: "Project phases",
+  })
   getServicesByContext(
     @Query(new ValidationPipe())
     query: GetServicesByContextQuery,
