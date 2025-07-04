@@ -1,6 +1,6 @@
 import { createApiClient } from "./helpers/api-client";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
-import { CompetenceCodes, Leviers } from "@/shared/types";
+import { CompetenceCodes, Levier, Leviers } from "@/shared/types";
 import { ProjetPhase } from "@database/schema";
 
 describe("Services (e2e)", () => {
@@ -112,83 +112,88 @@ describe("Services (e2e)", () => {
       });
       testServiceId = serviceData!.id;
 
-      const testContext: CreateServiceContextRequest = {
-        description: "Test Context Description",
+      const serviceContextOne: CreateServiceContextRequest = {
+        description: "serviceContextOne Description",
         competences: ["90-411", "90-311"],
         leviers: ["Bio-carburants", "Covoiturage"],
         phases: ["Idée", "Étude"],
         regions: [],
       };
 
-      await serviceManagementApi.services.createContext(testServiceId, testContext);
+      const serviceContextTwo: CreateServiceContextRequest = {
+        description: "serviceContextTwo Description",
+        competences: ["90-71", "90-72"],
+        leviers: ["Surface en aire protégée"],
+        phases: ["Idée", "Étude", "Opération"],
+        regions: [],
+      };
+
+      await serviceManagementApi.services.createContext(testServiceId, serviceContextOne);
+      await serviceManagementApi.services.createContext(testServiceId, serviceContextTwo);
     });
 
-    it("should reject when wrong competences code", async () => {
-      const { error } = await clientPublicApi.services.getByContext({
-        competences: ["90-411", "90-10000"] as CompetenceCodes,
+    it("should return all services", async () => {
+      const { data } = await regularApi.services.getByContext({
+        leviers: [],
+        competences: [],
         phases: [],
       });
 
-      expect(error).toBeDefined();
-      expect(error?.statusCode).toBe(400);
+      expect(data!.length).toBe(2);
     });
 
-    it("should return services when valid leviers are provided", async () => {
+    it("should return services with corresponding phases", async () => {
       const { data, error } = await regularApi.services.getByContext({
-        leviers: ["Bio-carburants", "Covoiturage"] as Leviers,
-        phases: [],
+        phases: ["Opération"],
+        leviers: null,
+        competences: [],
       });
 
       expect(error).toBeUndefined();
-      expect(Array.isArray(data)).toBe(true);
-      expect(data!.length).toBeGreaterThan(0);
+      expect(data!.length).toBe(1);
+      expect(data![0].description).toBe("serviceContextTwo Description");
     });
 
-    it("should return services when valid phases are provided", async () => {
+    it("should return services with corresponding leviers", async () => {
       const { data, error } = await regularApi.services.getByContext({
-        phases: ["Idée", "Étude"] as ProjetPhase[],
-      });
-
-      expect(error).toBeUndefined();
-      expect(Array.isArray(data)).toBe(true);
-    });
-
-    it("should return services when competences and leviers are provided", async () => {
-      const { data, error } = await regularApi.services.getByContext({
-        competences: ["90-411"] as CompetenceCodes,
+        competences: null,
         leviers: ["Bio-carburants"] as Leviers,
         phases: [],
       });
 
       expect(error).toBeUndefined();
-      expect(Array.isArray(data)).toBe(true);
+      expect(data!.length).toBe(1);
+      expect(data![0].description).toBe("serviceContextOne Description");
     });
 
-    it("should return empty array when no matching criteria", async () => {
+    it("should return services with corresponding competences", async () => {
       const { data, error } = await regularApi.services.getByContext({
-        competences: ["90-999"] as any, // Compétence inexistante
+        competences: ["90-71"],
+        leviers: null,
         phases: [],
       });
 
       expect(error).toBeUndefined();
-      expect(Array.isArray(data)).toBe(true);
-      expect(data!.length).toBe(0);
+      expect(data!.length).toBe(1);
+      expect(data![0].description).toBe("serviceContextTwo Description");
     });
 
-    it("should reject when no criteria provided", async () => {
-      const { error } = await regularApi.services.getByContext({
+    it("should return empty array when no matching criteria", async () => {
+      const { data, error } = await regularApi.services.getByContext({
+        competences: ["90-314"],
+        leviers: ["Bio-carburants"],
         phases: [],
       });
 
-      expect(error).toBeDefined();
-      expect(error?.statusCode).toBe(400);
-      expect(error?.message).toContain("At least one of competences or leviers must be provided");
+      expect(error).toBeUndefined();
+      expect(data!.length).toBe(0);
     });
 
-    it("should reject when invalid competence code is provided", async () => {
-      const { error } = await regularApi.services.getByContext({
-        competences: ["invalid-code"] as any,
+    it("should reject when invalid competences code", async () => {
+      const { error } = await clientPublicApi.services.getByContext({
+        competences: ["90-411", "90-10000"] as CompetenceCodes,
         phases: [],
+        leviers: [],
       });
 
       expect(error).toBeDefined();
@@ -197,7 +202,8 @@ describe("Services (e2e)", () => {
 
     it("should reject when invalid levier is provided", async () => {
       const { error } = await regularApi.services.getByContext({
-        leviers: ["Invalid-Levier"] as any,
+        leviers: ["Invalid-Levier" as Levier],
+        competences: [],
         phases: [],
       });
 
@@ -207,68 +213,13 @@ describe("Services (e2e)", () => {
 
     it("should reject when invalid phase is provided", async () => {
       const { error } = await regularApi.services.getByContext({
-        phases: ["Invalid-Phase"] as any,
-      });
-
-      expect(error).toBeDefined();
-      expect(error?.statusCode).toBe(400);
-    });
-
-    it("should handle empty arrays gracefully", async () => {
-      const { error } = await regularApi.services.getByContext({
+        phases: ["Invalid-Phase" as ProjetPhase],
         competences: [],
         leviers: [],
-        phases: [],
       });
 
       expect(error).toBeDefined();
       expect(error?.statusCode).toBe(400);
-    });
-
-    it("should handle single values correctly", async () => {
-      const { data, error } = await regularApi.services.getByContext({
-        competences: ["90-411"] as CompetenceCodes,
-        phases: [],
-      });
-
-      expect(error).toBeUndefined();
-      expect(Array.isArray(data)).toBe(true);
-    });
-
-    it("should handle multiple values correctly", async () => {
-      const { data, error } = await regularApi.services.getByContext({
-        competences: ["90-411", "90-311"] as CompetenceCodes,
-        phases: [],
-      });
-
-      expect(error).toBeUndefined();
-      expect(Array.isArray(data)).toBe(true);
-    });
-
-    it("should validate that competences must be valid codes", async () => {
-      const { error } = await regularApi.services.getByContext({
-        competences: ["not-a-valid-code"] as any,
-        phases: [],
-      });
-
-      expect(error).toBeDefined();
-    });
-
-    it("should validate that leviers must be valid", async () => {
-      const { error } = await regularApi.services.getByContext({
-        leviers: ["not-a-valid-levier"] as any,
-        phases: [],
-      });
-
-      expect(error).toBeDefined();
-    });
-
-    it("should validate that phases must be valid", async () => {
-      const { error } = await regularApi.services.getByContext({
-        phases: ["not-a-valid-phase"] as any,
-      });
-
-      expect(error).toBeDefined();
     });
   });
 });

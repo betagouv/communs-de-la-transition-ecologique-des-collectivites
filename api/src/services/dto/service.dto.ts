@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsIn, IsOptional } from "class-validator";
+import { IsArray, IsEnum, IsIn } from "class-validator";
 import { ProjetPhase, projetPhasesEnum, serviceContext, services } from "@database/schema";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { ExtraFieldConfig } from "@/services/dto/extra-fields-config.dto";
@@ -53,20 +53,18 @@ export class ServicesByProjectIdResponse implements ServiceBaseFields, ServiceCo
   extendLabel?: string | null;
 }
 
-export class GetServicesByContextQueryResponse {
+export class GetServicesByContextQuery {
   @ApiProperty({
     nullable: true,
     type: String,
     isArray: true,
     enum: competenceCodes,
     description: "Array of competences and sous-competences",
-    required: false,
     example: ["90-411", "90-311"],
   })
-  @IsOptional()
   @IsArray()
   @IsIn(competenceCodes, { each: true })
-  competences?: CompetenceCodes;
+  competences!: CompetenceCodes | null;
 
   @ApiProperty({
     nullable: true,
@@ -74,23 +72,19 @@ export class GetServicesByContextQueryResponse {
     isArray: true,
     enum: leviers,
     description: "Array of leviers",
-    required: false,
     example: ["Bio-carburants", "Covoiturage"],
   })
-  @IsOptional()
   @IsArray()
   @IsIn(leviers, { each: true })
-  leviers?: Leviers;
+  leviers!: Leviers | null;
 
   @ApiProperty({
     enum: projetPhasesEnum.enumValues,
     isArray: true,
     description: "Project phases",
     example: ["Idée"],
-    required: false,
   })
-  @IsOptional()
   @IsArray()
   @IsEnum(projetPhasesEnum.enumValues, { each: true })
-  phases?: ProjetPhase[];
+  phases!: ProjetPhase[];
 }

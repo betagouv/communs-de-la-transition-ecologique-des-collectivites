@@ -1,4 +1,4 @@
-import type { paths, components } from "../generated-types";
+import type { components, paths } from "../generated-types";
 import createClient from "openapi-fetch";
 import { CompetenceCodes, IdType, Leviers } from "@/shared/types";
 import { ProjetPhase } from "@database/schema";
@@ -68,7 +68,7 @@ export const createApiClient = (apiKey?: string) => {
           },
         }),
 
-      getByContext: (params: { competences?: CompetenceCodes; leviers?: Leviers; phases: ProjetPhase[] }) =>
+      getByContext: (params: { competences: CompetenceCodes | null; leviers: Leviers | null; phases: ProjetPhase[] }) =>
         client.GET("/services/search/context", {
           params: {
             query: params,

@@ -7,7 +7,7 @@ import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiParam, ApiQuery, Ap
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
-import { GetServicesByContextQueryResponse, ServicesByProjectIdResponse } from "@/services/dto/service.dto";
+import { GetServicesByContextQuery, ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { UUIDDto } from "@/shared/dto/uuid";
 import { IdType, idTypes } from "@/shared/types";
 import { ProjectId, ProjectIdType } from "@/shared/decorator/projetId-decorator";
@@ -60,13 +60,13 @@ export class ServicesController {
   @Get("search/context")
   getServicesByContext(
     @Query(new ValidationPipe())
-    query: GetServicesByContextQueryResponse,
+    query: GetServicesByContextQuery,
   ) {
-    // query.competences sera automatiquement un array
     return this.serviceContextService.getServiceContextByContext(
-      query.competences ?? null,
-      query.leviers ?? null,
-      query.phases ?? null,
+      // todo should not have to cast that
+      query.competences,
+      query.leviers,
+      query.phases,
     );
   }
 
