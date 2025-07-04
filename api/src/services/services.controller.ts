@@ -63,9 +63,10 @@ export class ServicesController {
     query: GetServicesByContextQuery,
   ) {
     return this.serviceContextService.getServiceContextByContext(
-      // todo should not have to cast that
-      query.competences,
-      query.leviers,
+      // if competences or leviers are omitted
+      // that means we remove this criteria by passing null to the matching algorithm
+      query.competences ?? null,
+      query.leviers ?? null,
       query.phases,
     );
   }

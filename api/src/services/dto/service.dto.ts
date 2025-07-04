@@ -1,9 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsIn } from "class-validator";
+import { IsArray, IsEnum, IsOptional } from "class-validator";
+import { Transform } from "class-transformer";
 import { ProjetPhase, projetPhasesEnum, serviceContext, services } from "@database/schema";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { ExtraFieldConfig } from "@/services/dto/extra-fields-config.dto";
-import { CompetenceCodes, Leviers } from "@/shared/types";
+import { CompetenceCode, CompetenceCodes, Levier, Leviers } from "@/shared/types";
 import { competenceCodes } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
 
@@ -53,37 +54,47 @@ export class ServicesByProjectIdResponse implements ServiceBaseFields, ServiceCo
   extendLabel?: string | null;
 }
 
+const toArray = <T>(value: any): T[] | undefined => {
+  if (!value) return undefined;
+  if (Array.isArray(value)) return value as T[];
+  return [value] as T[];
+};
+
 export class GetServicesByContextQuery {
   @ApiProperty({
-    nullable: true,
     type: String,
     isArray: true,
+    required: false,
     enum: competenceCodes,
     description: "Array of competences and sous-competences",
     example: ["90-411", "90-311"],
   })
+  @Transform(({ value }) => toArray<CompetenceCode>(value))
   @IsArray()
-  @IsIn(competenceCodes, { each: true })
-  competences!: CompetenceCodes | null;
+  @IsOptional()
+  competences?: CompetenceCodes;
 
   @ApiProperty({
-    nullable: true,
     type: String,
     isArray: true,
+    required: false,
     enum: leviers,
     description: "Array of leviers",
     example: ["Bio-carburants", "Covoiturage"],
   })
+  @Transform(({ value }) => toArray<Levier>(value))
   @IsArray()
-  @IsIn(leviers, { each: true })
-  leviers!: Leviers | null;
+  @IsOptional()
+  leviers?: Leviers;
 
   @ApiProperty({
+    type: String,
     enum: projetPhasesEnum.enumValues,
     isArray: true,
     description: "Project phases",
     example: ["Idée"],
   })
+  @Transform(({ value }) => toArray<ProjetPhase>(value))
   @IsArray()
   @IsEnum(projetPhasesEnum.enumValues, { each: true })
   phases!: ProjetPhase[];
