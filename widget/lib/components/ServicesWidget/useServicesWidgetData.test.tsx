@@ -129,7 +129,7 @@ describe("useServicesWidgetData", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("should handle errors gracefully", async () => {
+  it("should handle errors", async () => {
     server.use(
       http.get(`${getApiUrl(false)}/services/project/:projectId`, () => {
         return HttpResponse.error();

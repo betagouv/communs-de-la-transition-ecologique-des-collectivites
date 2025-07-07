@@ -32,6 +32,7 @@ export const InternalServicesWidget = ({
 
   if (servicesData?.length === 0) return <div>No service displayed</div>;
 
+  //todo see with Mathieu Lejeune a proper error handling design
   if (error) return <div>Error: {error.message}</div>;
 
   return (
@@ -60,7 +61,7 @@ export const InternalServicesWidget = ({
             <Service
               key={`${service.id}-${service.description}`}
               service={service}
-              // projectData is already handled by the hook (includes fake data when needed)
+              // collectivite is already handled by the hook (includes fake data when needed)
               collectivite={projectCollectivite!}
               projectExtraFields={extraFieldsData ?? []}
               isStagingEnv={isStagingEnv}

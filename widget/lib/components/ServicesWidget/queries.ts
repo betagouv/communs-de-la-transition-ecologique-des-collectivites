@@ -229,12 +229,27 @@ const fetchServicesByContext = async (
   const apiUrl = getApiUrl(isStagingEnv);
 
   const params = new URLSearchParams();
-  if (context?.competences?.length) params.append("competences", context.competences.join(","));
-  if (context?.leviers?.length) params.append("leviers", context.leviers.join(","));
-  if (context?.phases?.length) params.append("phases", context.phases.join(","));
-  if (context?.regions?.length) params.append("regions", context.regions.join(","));
 
-  const response = await fetch(`${apiUrl}/services/search/context?${params.toString()}`);
+  if (context?.competences?.length) {
+    context.competences.forEach((competence) => {
+      params.append("competences", competence);
+    });
+  }
+
+  if (context?.leviers?.length) {
+    context.leviers.forEach((levier) => {
+      params.append("leviers", levier);
+    });
+  }
+
+  if (context?.phases?.length) {
+    context.phases.forEach((phase) => {
+      params.append("phases", phase);
+    });
+  }
+
+  const url = `${apiUrl}/services/search/context?${params.toString()}`;
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);

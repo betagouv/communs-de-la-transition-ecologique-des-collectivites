@@ -227,5 +227,5 @@ export type Leviers = Levier[];
 export const idTypes = ["communId", "tetId"] as const;
 export type IdType = (typeof idTypes)[number];
 
-export const projetPhases = ["Idée", "Étude", "Réalisation", "Exploitation"] as const;
+export const projetPhases = ["Idée", "Étude", "Opération"] as const;
 export type ProjetPhase = (typeof projetPhases)[number];
