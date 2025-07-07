@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import IFrameResized from "./IFrameResized.tsx";
 import Input from "@codegouvfr/react-dsfr/Input";
-import { ExtraFields, IdType, ProjectData, Service as ServiceType } from "./types.ts";
+import { Collectivite, ExtraFields, IdType, Service as ServiceType } from "./types.ts";
 import { usePostExtraFields, useTrackEvent } from "./queries.ts";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import { useStyles } from "./Service.style.ts";
@@ -16,7 +16,7 @@ interface ServiceProps {
   projectExtraFields: ExtraFields;
   isStagingEnv?: boolean;
   projectId: string;
-  projectData: ProjectData;
+  collectivite: Collectivite;
   debug?: boolean;
   idType: IdType;
 }
@@ -26,7 +26,7 @@ export const Service = ({
   projectExtraFields,
   isStagingEnv,
   projectId,
-  projectData,
+  collectivite,
   debug,
   idType,
 }: ServiceProps) => {
@@ -190,7 +190,7 @@ export const Service = ({
       )}
       {/*we haved moved iframe out of Accordeon as it prevents the iframe from loading properly. Not sure exactly why, I suspect a timing issue between parent and child page from iframe resizer*/}
       {iframeUrl && expanded && (
-        <IFrameResized src={replaceIframeUrlParams(iframeUrl, projectData, projectExtraFields)} />
+        <IFrameResized src={replaceIframeUrlParams(iframeUrl, collectivite, projectExtraFields)} />
       )}
     </div>
   );
@@ -209,19 +209,15 @@ interface ParamsType {
 
 export const replaceIframeUrlParams = (
   url: string,
-  projectData: ProjectData,
+  projectCollectivite: Collectivite,
   projectExtraFields: ExtraFields,
 ): string => {
-  // for now all the iframe url we have are mono collectivite.
-  // we'lle need to add support for multi collectivité in iframe url once we integrate AT
-  const firstCollectivite = projectData.collectivites[0];
-
   const params: ParamsType = {
-    collectiviteType: firstCollectivite.type,
+    collectiviteType: projectCollectivite.type,
     // there is either an EPCI or a codeInsee
-    collectiviteCode: firstCollectivite.type === "EPCI" ? firstCollectivite.siren! : firstCollectivite.codeInsee!,
-    collectiviteLabel: firstCollectivite.nom,
-    epciCodeSiren: firstCollectivite.codeEpci,
+    collectiviteCode: projectCollectivite.type === "EPCI" ? projectCollectivite.siren! : projectCollectivite.codeInsee!,
+    collectiviteLabel: projectCollectivite.nom,
+    epciCodeSiren: projectCollectivite.codeEpci,
   };
 
   const result = url.replace(/{(\w+)}/g, (_, key) => {

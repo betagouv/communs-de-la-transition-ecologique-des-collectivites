@@ -2,7 +2,7 @@ import { paths } from "../../generated-types.ts";
 import createFetchClient from "openapi-fetch";
 import { getApiUrl } from "../../utils.ts";
 import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
-import { IdType, Service, ProjectData, ExtraFields, ServicesWidgetProps } from "./types.ts";
+import { Collectivite, ExtraFields, IdType, Service, ServicesWidgetProps } from "./types.ts";
 
 const makeApiClient = (isStagingEnv = false) => {
   const apiUrl = getApiUrl(isStagingEnv);
@@ -33,6 +33,7 @@ export const useGetServicesByProjectId = ({ projectId, ...rest }: BaseQueryParam
   return useQuery({
     queryKey: ["project-services", projectId],
     queryFn: () => fetchServicesByProjectId({ ...rest, projectId: projectId! }),
+    enabled: projectId !== undefined,
   });
 };
 
@@ -54,11 +55,14 @@ const fetchServicesByProjectId = async ({ projectId, idType, options }: BaseQuer
 };
 
 // -------------- Project Public Info - GET -------------- //
-export const useGetProjectPublicInfo = (params: BaseQueryParamsWithProjectId): UseQueryResult<ProjectData> => {
+export const useGetProjectPublicInfo = (params: BaseQueryParamsWithProjectId): UseQueryResult<Collectivite> => {
   return useQuery({
     queryKey: ["project-public-info", params.projectId],
     queryFn: () => fetchProjectPublicInfo(params),
     enabled: !params.options.debug || Boolean(params.projectId),
+    // the only needed data from the project for now are the collectivite, furthermore all the iframe url we have are mono collectivite.
+    // we'll need to add support for multi collectivité in iframe url once we integrate Aide territoire
+    select: (data) => data.collectivites[0],
   });
 };
 
@@ -201,11 +205,14 @@ const postTrackEvent = async ({ action, name, value }: TrackEventParams, isStagi
   return data;
 };
 
-// -------------- Services by Context - POST -------------- //
-export const useGetServicesByContext = (
-  context: ServicesWidgetProps["context"],
-  options: { isStagingEnv?: boolean; debug?: boolean },
-): UseQueryResult<Service[]> => {
+// -------------- Services by Context - GET -------------- //
+export const useGetServicesByContext = ({
+  context,
+  options,
+}: {
+  context: ServicesWidgetProps["context"];
+  options: BaseQueryParams["options"];
+}) => {
   return useQuery({
     queryKey: ["context-services", context],
     queryFn: () => fetchServicesByContext(context, options),
@@ -217,7 +224,7 @@ const fetchServicesByContext = async (
   context: ServicesWidgetProps["context"],
   options: { isStagingEnv?: boolean; debug?: boolean },
 ) => {
-  const { isStagingEnv = false } = options;
+  const { isStagingEnv } = options;
   const apiUrl = getApiUrl(isStagingEnv);
 
   const params = new URLSearchParams();
