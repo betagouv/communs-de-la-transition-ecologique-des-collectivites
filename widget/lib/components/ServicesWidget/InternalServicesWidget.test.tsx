@@ -25,6 +25,11 @@ const handlers = [
   http.get("http://localhost:3000/services/project/:projectId", () => {
     return HttpResponse.json(getMockedServices("prod"));
   }),
+
+  http.get(`http://localhost:3000/services/search/context`, () => {
+    return HttpResponse.json(getMockedServices("prod"));
+  }),
+
   http.get("http://localhost:3000/projets/:projectId/extra-fields", () => {
     return HttpResponse.json([]);
   }),
@@ -41,8 +46,25 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe("LesCommuns", () => {
-  it("displays services when data is loaded", async () => {
+  it("displays services when data is loaded with projetId", async () => {
     render(<ServicesWidget projectId="123" />);
+
+    await screen.findByText("Service 1 prod");
+    await screen.findByText("Service 2 prod");
+
+    expect(screen.getByText("Description for service 1")).toBeInTheDocument();
+    expect(screen.getByText("Description for service 2")).toBeInTheDocument();
+  });
+
+  it("displays services when data is loaded with context", async () => {
+    const context = {
+      competences: ["test-competence"],
+      leviers: ["test-levier"],
+      phases: ["test-phase"],
+      regions: ["test-region"],
+    };
+
+    render(<ServicesWidget projectId="123" context={context} />);
 
     await screen.findByText("Service 1 prod");
     await screen.findByText("Service 2 prod");
