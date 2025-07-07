@@ -16,10 +16,6 @@ interface UseServicesWidgetDataResult {
 
   isLoading: boolean;
   error: Error | null;
-
-  // Métadonnées
-  needsFakeData: boolean;
-  mode: "project" | "context";
 }
 
 export const useServicesWidgetData = ({
@@ -36,40 +32,38 @@ export const useServicesWidgetData = ({
   concept of project (ANCT website, Agir pour la transition, etc)
   */
 
+  const mode: "project" | "context" = projectId ? "project" : "context";
+  const needsRealProjectData = mode === "project" && debug !== true;
+
   const {
     data: servicesDataByProject,
     error: projectError,
     isLoading: isProjectLoading,
-  } = useGetServicesByProjectId({ projectId, idType, options: { isStagingEnv, debug } });
+  } = useGetServicesByProjectId({ projectId, idType, options: { isStagingEnv, debug, enabled: mode === "project" } });
 
   const {
     data: servicesDataByContext,
     error: contextError,
     isLoading: isContextLoading,
-  } = useGetServicesByContext({ context, options: { isStagingEnv, debug } });
+  } = useGetServicesByContext({ context, options: { isStagingEnv, debug, enabled: mode === "context" } });
 
   const { data: extraFieldsData } = useGetProjectExtraFields({
     projectId,
     idType,
-    options: { isStagingEnv, debug },
+    options: { isStagingEnv, debug, enabled: needsRealProjectData },
   });
 
-  // Hook for the public info (collectivite mainly for now)
   const { data: firstCollectivite, isLoading: isProjectDataLoading } = useGetProjectPublicInfo({
     projectId: projectId!,
     idType,
-    options: { isStagingEnv, debug },
+    options: { isStagingEnv, debug, enabled: needsRealProjectData },
   });
 
   const { mutate: trackEvent } = useTrackEvent();
 
-  const mode: "project" | "context" = projectId ? "project" : "context";
   const servicesData = mode === "project" ? servicesDataByProject : servicesDataByContext;
   const error = mode === "project" ? projectError : contextError;
   const isLoading = mode === "project" ? isProjectLoading && isProjectDataLoading : isContextLoading;
-
-  //todo adapt this in future for project Data to be available for context mode. The user will have to select a collectivity in this case
-  const needsFakeData = debug === true || mode === "context";
 
   useEffect(() => {
     if (servicesData) {
@@ -84,9 +78,9 @@ export const useServicesWidgetData = ({
     }
   }, [isStagingEnv, servicesData, trackEvent]);
 
-  // Préparer les données finales
-  const collectivite = needsFakeData ? fakeProjet.collectivites[0] : firstCollectivite;
-  const finalExtraFields = needsFakeData ? fakeExtraFields : (extraFieldsData ?? []);
+  //todo adapt this in future for project Data to be available for context mode. The user will have to select a collectivity in this case
+  const collectivite = needsRealProjectData ? firstCollectivite : fakeProjet.collectivites[0];
+  const finalExtraFields = needsRealProjectData ? (extraFieldsData ?? []) : fakeExtraFields;
 
   return {
     services: servicesData,
@@ -94,7 +88,5 @@ export const useServicesWidgetData = ({
     extraFields: finalExtraFields,
     isLoading: isLoading || (mode === "project" && isProjectDataLoading),
     error,
-    needsFakeData,
-    mode,
   };
 };

@@ -22,6 +22,7 @@ interface BaseQueryParams {
   options: {
     isStagingEnv?: boolean;
     debug?: boolean;
+    enabled?: boolean;
   };
 }
 
@@ -34,7 +35,7 @@ export const useGetServicesByProjectId = ({ projectId, ...rest }: BaseQueryParam
   return useQuery({
     queryKey: ["project-services", projectId],
     queryFn: () => fetchServicesByProjectId({ ...rest, projectId: projectId! }),
-    enabled: projectId !== undefined,
+    enabled: rest.options.enabled,
   });
 };
 
@@ -60,7 +61,7 @@ export const useGetProjectPublicInfo = (params: BaseQueryParamsWithProjectId): U
   return useQuery({
     queryKey: ["project-public-info", params.projectId],
     queryFn: () => fetchProjectPublicInfo(params),
-    enabled: !params.options.debug || Boolean(params.projectId),
+    enabled: params.options.enabled,
     // the only needed data from the project for now are the collectivite, furthermore all the iframe url we have are mono collectivite.
     // we'll need to add support for multi collectivité in iframe url once we integrate Aide territoire
     select: (data) => data.collectivites[0],
@@ -93,9 +94,8 @@ export const useGetProjectExtraFields = ({
 }: BaseQueryParams): UseQueryResult<ExtraFields> => {
   return useQuery({
     queryKey: ["project-extra-fields", projectId],
-    // projectId is always defined here with the enabled option
     queryFn: () => fetchProjectExtraFields({ projectId: projectId!, idType, options }),
-    enabled: !options.debug || projectId !== undefined,
+    enabled: options.enabled,
   });
 };
 
