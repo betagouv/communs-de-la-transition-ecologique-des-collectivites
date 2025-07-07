@@ -64,7 +64,7 @@ describe("LesCommuns", () => {
       phases: ["Idée" as ProjetPhase],
     };
 
-    render(<ServicesWidget projectId="123" context={context} />);
+    render(<ServicesWidget context={context} />);
 
     await screen.findByText("Service 1 prod");
     await screen.findByText("Service 2 prod");
