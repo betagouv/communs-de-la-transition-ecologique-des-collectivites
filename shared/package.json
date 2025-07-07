@@ -1,0 +1,22 @@
+{
+  "name": "@communs/shared",
+  "version": "1.0.0",
+  "description": "Types et constantes partagés pour les Communs de la transition écologique",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": ["types", "shared", "communs", "transition-ecologique"],
+  "author": "Les Communs de la transition écologique",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+} 

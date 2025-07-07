@@ -2,7 +2,8 @@ import { paths } from "../../generated-types.ts";
 import createFetchClient from "openapi-fetch";
 import { getApiUrl } from "../../utils.ts";
 import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
-import { Collectivite, ExtraFields, IdType, Service, ServicesWidgetProps } from "./types.ts";
+import { Collectivite, ExtraFields, Service, ServicesWidgetProps } from "./types.ts";
+import { IdType } from "@communs/shared";
 
 const makeApiClient = (isStagingEnv = false) => {
   const apiUrl = getApiUrl(isStagingEnv);

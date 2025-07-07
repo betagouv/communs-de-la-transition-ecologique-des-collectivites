@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 import Accordion from "@codegouvfr/react-dsfr/Accordion";
 import IFrameResized from "./IFrameResized.tsx";
 import Input from "@codegouvfr/react-dsfr/Input";
-import { Collectivite, ExtraFields, IdType, Service as ServiceType } from "./types.ts";
+import { Collectivite, ExtraFields, Service as ServiceType } from "./types.ts";
 import { usePostExtraFields, useTrackEvent } from "./queries.ts";
 import Badge from "@codegouvfr/react-dsfr/Badge";
 import { useStyles } from "./Service.style.ts";
 import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
+import { IdType } from "@communs/shared";
 
 interface ServiceProps {
   service: ServiceType;

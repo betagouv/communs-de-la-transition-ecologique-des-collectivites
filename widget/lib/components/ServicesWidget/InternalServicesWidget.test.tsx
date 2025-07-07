@@ -6,6 +6,7 @@ import { ServicesWidget } from "./ServicesWidget.tsx";
 import { getApiUrl } from "../../utils.ts";
 import { Bénéfriche } from "../../test/stub/service.ts";
 import { extraFields, project } from "../../test/stub/project.ts";
+import { CompetenceCode, Levier, ProjetPhase } from "@communs/shared";
 
 const getMockedServices = (env: "prod" | "staging") => [
   {
@@ -58,10 +59,9 @@ describe("LesCommuns", () => {
 
   it("displays services when data is loaded with context", async () => {
     const context = {
-      competences: ["test-competence"],
-      leviers: ["test-levier"],
-      phases: ["test-phase"],
-      regions: ["test-region"],
+      competences: ["90-11" as CompetenceCode],
+      leviers: ["Gestion des haies" as Levier],
+      phases: ["Idée" as ProjetPhase],
     };
 
     render(<ServicesWidget projectId="123" context={context} />);

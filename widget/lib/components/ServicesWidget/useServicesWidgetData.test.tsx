@@ -5,6 +5,7 @@ import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useServicesWidgetData } from "./useServicesWidgetData.ts";
 import { getApiUrl } from "../../utils.ts";
+import { CompetenceCode, Levier, ProjetPhase } from "@communs/shared";
 
 // Mock des données de test
 const createMockServices = (mode: "project" | "context") => [
@@ -112,10 +113,9 @@ describe("useServicesWidgetData", () => {
       () =>
         useServicesWidgetData({
           context: {
-            competences: ["test-competence"],
-            leviers: ["test-levier"],
-            phases: ["test-phase"],
-            regions: ["test-region"],
+            competences: ["90-11" as CompetenceCode],
+            leviers: ["Gestion des haies" as Levier],
+            phases: ["Idée" as ProjetPhase],
           },
         }),
       { wrapper: createWrapper() },
