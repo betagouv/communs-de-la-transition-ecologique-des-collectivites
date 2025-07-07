@@ -5,7 +5,7 @@ import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useServicesWidgetData } from "./useServicesWidgetData.ts";
 import { getApiUrl } from "../../utils.ts";
-import { CompetenceCode, Levier, ProjetPhase } from "@communs/shared";
+import { CompetenceCode, Levier, ProjetPhase } from "../../shared-types.ts";
 
 // Mock des données de test
 const createMockServices = (mode: "project" | "context") => [

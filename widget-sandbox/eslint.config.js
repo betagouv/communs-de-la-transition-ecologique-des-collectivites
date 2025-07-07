@@ -8,4 +8,5 @@ export default tseslint.config(...reactConfig, {
       tsconfigRootDir: import.meta.dirname,
     },
   },
+  ignores: [".yalc/**/*"],
 });

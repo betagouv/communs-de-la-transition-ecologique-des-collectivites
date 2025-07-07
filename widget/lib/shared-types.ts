@@ -1,3 +1,6 @@
+// Local copy of shared types and constants for the widget package
+
+// Constants for competences
 export const competencesFromM57Referentials = {
   "90-025": "Cimetières et pompes funèbres",
   "90-11": "Police, sécurité, justice",
@@ -157,4 +160,72 @@ export const competencesFromM57Referentials = {
   "90-89": "Transports / Sécurité",
 } as const;
 
-export const competenceCodes = Object.keys(competencesFromM57Referentials) as (keyof typeof competencesFromM57Referentials)[]; 
+export const competenceCodes = Object.keys(
+  competencesFromM57Referentials,
+) as (keyof typeof competencesFromM57Referentials)[];
+
+// Constants for leviers
+export const leviers = [
+  "Gestion des forêts et produits bois",
+  "Changements de pratiques de fertilisation azotée",
+  "Elevage durable",
+  "Gestion des haies",
+  "Bâtiments & Machines agricoles",
+  "Gestion des prairies",
+  "Pratiques stockantes",
+  "Sobriété foncière",
+  "Surface en aire protégée",
+  "Résorption des points noirs prioritaires de continuité écologique",
+  "Restauration des habitats naturels",
+  "Réduction de l'usage des produits phytosanitaires",
+  "Développement de l'agriculture biologique et de HVE",
+  "Respect d'Egalim pour la restauration collective",
+  "Sobriété des bâtiments (résidentiel)",
+  "Changement chaudières fioul + rénovation (résidentiel)",
+  "Changement chaudières gaz + rénovation (résidentiel)",
+  "Rénovation (hors changement chaudières)",
+  "Sobriété des bâtiments (tertiaire)",
+  "Changement chaudières fioul + rénovation (tertiaire)",
+  "Changement chaudières gaz + rénovation (tertiaire)",
+  "Gaz fluorés résidentiel",
+  "Gaz fluorés tertiaire",
+  "Captage de méthane dans les ISDND",
+  "Prévention des déchets",
+  "Valorisation matière des déchets",
+  "Moindre stockage en décharge",
+  "Augmentation du taux de collecte",
+  "Sobriété dans l'utilisation de la ressource en eau",
+  "Protection des zones de captage d'eau",
+  "Désimperméabilisation des sols",
+  "Electricité renouvelable",
+  "Biogaz",
+  "Réseaux de chaleur décarbonés",
+  "Top 50 sites industriels",
+  "Industrie diffuse",
+  "Fret décarboné et multimodalité",
+  "Efficacité et sobriété logistique",
+  "Réduction des déplacements",
+  "Covoiturage",
+  "Vélo",
+  "Transports en commun",
+  "Véhicules électriques",
+  "Efficacité énergétique des véhicules privés",
+  "Bus et cars décarbonés",
+  "2 roues (élec&efficacité)",
+  "Nucléaire",
+  "Bio-carburants",
+  "Efficacité des aéronefs",
+  "SAF",
+] as const;
+
+export type CompetenceCode = (typeof competenceCodes)[number];
+export type CompetenceCodes = CompetenceCode[];
+
+export type Levier = (typeof leviers)[number];
+export type Leviers = Levier[];
+
+export const idTypes = ["communId", "tetId"] as const;
+export type IdType = (typeof idTypes)[number];
+
+export const projetPhases = ["Idée", "Étude", "Réalisation", "Exploitation"] as const;
+export type ProjetPhase = (typeof projetPhases)[number];

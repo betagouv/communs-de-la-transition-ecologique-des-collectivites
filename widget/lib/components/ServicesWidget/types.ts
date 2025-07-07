@@ -1,5 +1,5 @@
 import { components } from "../../generated-types.ts";
-import { CompetenceCode, Levier, ProjetPhase, IdType } from "@communs/shared";
+import { CompetenceCode, Levier, ProjetPhase, IdType } from "../../shared-types";
 
 export type Service = components["schemas"]["ServicesByProjectIdResponse"];
 

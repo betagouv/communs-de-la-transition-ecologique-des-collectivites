@@ -6,7 +6,7 @@ import { ServicesWidget } from "./ServicesWidget.tsx";
 import { getApiUrl } from "../../utils.ts";
 import { Bénéfriche } from "../../test/stub/service.ts";
 import { extraFields, project } from "../../test/stub/project.ts";
-import { CompetenceCode, Levier, ProjetPhase } from "@communs/shared";
+import { CompetenceCode, Levier, ProjetPhase } from "../../shared-types.ts";
 
 const getMockedServices = (env: "prod" | "staging") => [
   {

@@ -3,7 +3,7 @@ import createFetchClient from "openapi-fetch";
 import { getApiUrl } from "../../utils.ts";
 import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import { Collectivite, ExtraFields, Service, ServicesWidgetProps } from "./types.ts";
-import { IdType } from "@communs/shared";
+import { IdType } from "../../shared-types";
 
 const makeApiClient = (isStagingEnv = false) => {
   const apiUrl = getApiUrl(isStagingEnv);
