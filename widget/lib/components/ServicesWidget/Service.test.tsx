@@ -20,6 +20,8 @@ describe("Service", () => {
     return render(<QueryClientProvider client={queryClient}>{component}</QueryClientProvider>);
   };
 
+  const collectivite = project.collectivites[0];
+
   const mockService = {
     ...Bénéfriche,
     description: "A".repeat(500), // Create a long description
@@ -34,7 +36,7 @@ describe("Service", () => {
         projectExtraFields={[]}
         projectId="123"
         isStagingEnv={false}
-        projectData={project}
+        collectivite={collectivite}
         idType={"communId"}
       />,
     );
@@ -53,7 +55,7 @@ describe("Service", () => {
         service={{ ...mockService, description: "A".repeat(399) }}
         projectExtraFields={[]}
         projectId="123"
-        projectData={project}
+        collectivite={collectivite}
         isStagingEnv={false}
         idType={"communId"}
       />,
@@ -87,7 +89,7 @@ describe("Service", () => {
           projectExtraFields={[]}
           projectId="123"
           isStagingEnv={false}
-          projectData={project}
+          collectivite={collectivite}
           idType={"communId"}
         />,
       );
@@ -106,7 +108,7 @@ describe("Service", () => {
         <Service
           service={{ ...mockService, description: "A".repeat(199) }}
           projectExtraFields={[]}
-          projectData={project}
+          collectivite={collectivite}
           projectId="123"
           isStagingEnv={false}
           idType={"communId"}
@@ -118,11 +120,10 @@ describe("Service", () => {
   });
 
   describe("replaceIframeUrlParams", () => {
-    const collectivite = project.collectivites[0];
     it("should replace hardcoded parameters from projectData", () => {
       const url = "https://example.com?type={collectiviteType}&code={collectiviteCode}";
 
-      const result = replaceIframeUrlParams(url, project, []);
+      const result = replaceIframeUrlParams(url, collectivite, []);
       expect(result).toBe(`https://example.com?type=${collectivite.type}&code=${collectivite.codeInsee}`);
     });
 
@@ -132,7 +133,7 @@ describe("Service", () => {
         { name: "param1", value: "value1" },
         { name: "param2", value: "value2" },
       ];
-      const result = replaceIframeUrlParams(url, project, extraFields);
+      const result = replaceIframeUrlParams(url, collectivite, extraFields);
       expect(result).toBe("https://example.com?param1=value1&param2=value2");
     });
 
@@ -141,7 +142,7 @@ describe("Service", () => {
         "https://example.com?type={collectiviteType}&code={collectiviteCode}&libelle={collectiviteLabel}&param={customParam}";
 
       const extraFields: ExtraFields = [{ name: "customParam", value: "customValue" }];
-      const result = replaceIframeUrlParams(url, project, extraFields);
+      const result = replaceIframeUrlParams(url, collectivite, extraFields);
       expect(result).toBe(
         `https://example.com?type=${collectivite.type}&code=${collectivite.codeInsee}&libelle=L'Abergement-Cl%C3%A9menciat&param=customValue`,
       );
@@ -150,7 +151,7 @@ describe("Service", () => {
     it("should remove unfilled parameters", () => {
       const url = "https://example.com?type={collectiviteType}&missing={missingParam}";
 
-      const result = replaceIframeUrlParams(url, project, []);
+      const result = replaceIframeUrlParams(url, collectivite, []);
       expect(result).toBe(`https://example.com?type=${collectivite.type}&missing=`);
     });
 
@@ -158,7 +159,7 @@ describe("Service", () => {
       const url = "https://example.com?type={collectiviteType}";
 
       const extraFields: ExtraFields = [{ name: "collectiviteType", value: "fromExtraFields" }];
-      const result = replaceIframeUrlParams(url, project, extraFields);
+      const result = replaceIframeUrlParams(url, collectivite, extraFields);
       expect(result).toBe(`https://example.com?type=${collectivite.type}`);
     });
   });

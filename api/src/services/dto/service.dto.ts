@@ -1,8 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray } from "class-validator";
-import { serviceContext, services } from "@database/schema";
+import { IsArray, IsEnum, IsIn, IsOptional } from "class-validator";
+import { Transform } from "class-transformer";
+import { ProjetPhase, projetPhasesEnum, serviceContext, services } from "@database/schema";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { ExtraFieldConfig } from "@/services/dto/extra-fields-config.dto";
+import { CompetenceCode, CompetenceCodes, Levier, Leviers } from "@/shared/types";
+import { competenceCodes } from "@/shared/const/competences-list";
+import { leviers } from "@/shared/const/leviers";
 
 type ServiceBaseFields = Pick<
   InferSelectModel<typeof services>,
@@ -48,4 +52,53 @@ export class ServicesByProjectIdResponse implements ServiceBaseFields, ServiceCo
 
   @ApiProperty({ nullable: true, type: String })
   extendLabel?: string | null;
+}
+
+const formatValue = <T>(value: any, allValues: any): T[] | undefined => {
+  if (value === "all") return allValues as T[];
+  if (!value) return undefined;
+  if (Array.isArray(value)) return value as T[];
+  return [value] as T[];
+};
+
+export class GetServicesByContextQuery {
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    required: false,
+    enum: [...competenceCodes, "all"],
+    description: "Array of competences and sous-competences",
+    example: ["90-411", "90-311"],
+  })
+  @Transform(({ value }) => formatValue<CompetenceCode>(value, competenceCodes))
+  @IsArray()
+  @IsIn([...competenceCodes, "all"], { each: true })
+  @IsOptional()
+  competences?: CompetenceCodes;
+
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    required: false,
+    enum: [...leviers, "all"],
+    description: "Array of leviers",
+    example: ["Bio-carburants", "Covoiturage"],
+  })
+  @Transform(({ value }) => formatValue<Levier>(value, leviers))
+  @IsArray()
+  @IsIn([...leviers, "all"], { each: true })
+  @IsOptional()
+  leviers?: Leviers;
+
+  @ApiProperty({
+    type: String,
+    enum: projetPhasesEnum.enumValues,
+    isArray: true,
+    description: "Project phases",
+    example: ["Idée"],
+  })
+  @Transform(({ value }) => formatValue<ProjetPhase>(value, projetPhasesEnum.enumValues))
+  @IsArray()
+  @IsEnum(projetPhasesEnum.enumValues, { each: true })
+  phases!: ProjetPhase[];
 }

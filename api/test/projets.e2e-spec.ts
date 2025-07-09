@@ -8,7 +8,7 @@ import { collectivites, PhaseStatut, ProjetPhase } from "@database/schema";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 
 describe("Projets (e2e)", () => {
-  const api = createApiClient(process.env.MEC_API_KEY!);
+  const api = createApiClient(process.env.MEC_API_KEY);
 
   afterEach(async () => {
     await global.testDbService.cleanDatabase();
@@ -33,7 +33,7 @@ describe("Projets (e2e)", () => {
     });
 
     it("should create a projet with minimal fields", async () => {
-      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+      const mecClient = createApiClient(process.env.MEC_API_KEY);
 
       const minimalProjet: CreateProjetRequest = {
         nom: "minimalProjet",
@@ -48,7 +48,7 @@ describe("Projets (e2e)", () => {
     });
 
     it("should create a valid projet with MEC api key", async () => {
-      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+      const mecClient = createApiClient(process.env.MEC_API_KEY);
       const { data, error } = await mecClient.projets.create(validProjet);
 
       expect(error).toBeUndefined();
@@ -56,7 +56,7 @@ describe("Projets (e2e)", () => {
     });
 
     it("should create a valid projet with TeT api key", async () => {
-      const tetClient = createApiClient(process.env.TET_API_KEY!);
+      const tetClient = createApiClient(process.env.TET_API_KEY);
       const { data, error } = await tetClient.projets.create({
         ...validProjet,
         phase: "Idée",
@@ -74,7 +74,7 @@ describe("Projets (e2e)", () => {
     });
 
     it("should create a valid projet with Recoco api key", async () => {
-      const recocoClient = createApiClient(process.env.RECOCO_API_KEY!);
+      const recocoClient = createApiClient(process.env.RECOCO_API_KEY);
 
       const { data, error } = await recocoClient.projets.create({
         ...validProjet,
@@ -92,7 +92,7 @@ describe("Projets (e2e)", () => {
     });
 
     it("should update competence when not provided", async () => {
-      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+      const mecClient = createApiClient(process.env.MEC_API_KEY);
 
       const { data } = await mecClient.projets.create({
         ...validProjet,
@@ -112,7 +112,7 @@ describe("Projets (e2e)", () => {
     }, 30000);
 
     it("should update leviers when not provided", async () => {
-      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+      const mecClient = createApiClient(process.env.MEC_API_KEY);
 
       const { data } = await mecClient.projets.create({
         ...validProjet,
@@ -134,7 +134,7 @@ describe("Projets (e2e)", () => {
     it("should create a valid projet when missing valid collectivites", async () => {
       const missingCodeInsee = "10110"; //Courteranges
 
-      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+      const mecClient = createApiClient(process.env.MEC_API_KEY);
       const { data, error } = await mecClient.projets.create({
         ...validProjet,
         collectivites: [{ code: missingCodeInsee, type: "Commune" }],
@@ -166,7 +166,7 @@ describe("Projets (e2e)", () => {
     it("should reject a projet when collectivites are not valid", async () => {
       const missingCodeInsee = "invalidCodeInsee";
 
-      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+      const mecClient = createApiClient(process.env.MEC_API_KEY);
       const { error } = await mecClient.projets.create({
         ...validProjet,
         collectivites: [{ code: missingCodeInsee, type: "Commune" }],
@@ -321,7 +321,7 @@ describe("Projets (e2e)", () => {
     });
 
     it("should create multiple valid projets with MEC api key", async () => {
-      const mecClient = createApiClient(process.env.MEC_API_KEY!);
+      const mecClient = createApiClient(process.env.MEC_API_KEY);
       const { data, error } = await mecClient.projets.createBulk(validProjets);
 
       expect(error).toBeUndefined();
@@ -601,7 +601,7 @@ describe("Projets (e2e)", () => {
     });
 
     it("should return a specific projet wit tetId", async () => {
-      const tetApiClient = createApiClient(process.env.TET_API_KEY!);
+      const tetApiClient = createApiClient(process.env.TET_API_KEY);
       const tetProjet = mockProjetPayload({ externalId: "tet-projet-1", description: "projet tet" });
       const { error: _createError } = await tetApiClient.projets.create(tetProjet);
 

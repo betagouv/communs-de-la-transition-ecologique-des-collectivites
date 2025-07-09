@@ -1,9 +1,11 @@
 import { createApiClient } from "./helpers/api-client";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
+import { CompetenceCode, Levier, Leviers } from "@/shared/types";
+import { ProjetPhase } from "@database/schema";
 
 describe("Services (e2e)", () => {
-  const serviceManagementApi = createApiClient(process.env.SERVICE_MANAGEMENT_API_KEY!);
-  const regularApi = createApiClient(process.env.MEC_API_KEY!);
+  const serviceManagementApi = createApiClient(process.env.SERVICE_MANAGEMENT_API_KEY);
+  const regularApi = createApiClient(process.env.MEC_API_KEY);
 
   const validService = {
     name: "Test Service",
@@ -96,6 +98,126 @@ describe("Services (e2e)", () => {
         leviers: null,
         phases: null,
       });
+    });
+  });
+
+  describe("GET /services/search/context", () => {
+    let testServiceId: string;
+    const clientPublicApi = createApiClient();
+
+    beforeAll(async () => {
+      const { data: serviceData } = await serviceManagementApi.services.create({
+        ...validService,
+        name: "Context Test Service",
+        isListed: true,
+      });
+      testServiceId = serviceData!.id;
+
+      const serviceContextOne: CreateServiceContextRequest = {
+        description: "serviceContextOne Description",
+        competences: ["90-411", "90-311"],
+        leviers: ["Bio-carburants", "Covoiturage"],
+        phases: ["Idée", "Étude"],
+        regions: [],
+      };
+
+      const serviceContextTwo: CreateServiceContextRequest = {
+        description: "serviceContextTwo Description",
+        competences: ["90-71", "90-72"],
+        leviers: ["Surface en aire protégée"],
+        phases: ["Idée", "Étude", "Opération"],
+        regions: [],
+      };
+
+      await serviceManagementApi.services.createContext(testServiceId, serviceContextOne);
+      await serviceManagementApi.services.createContext(testServiceId, serviceContextTwo);
+    });
+
+    it("should return all services", async () => {
+      const { data } = await clientPublicApi.services.getByContext({
+        phases: ["Étude", "Opération", "Idée"],
+        competences: ["all"],
+        leviers: ["all"],
+      });
+
+      expect(data!.length).toBe(2);
+    });
+
+    it("should return services with corresponding phases", async () => {
+      const { data, error } = await clientPublicApi.services.getByContext({
+        phases: ["Opération"],
+        competences: ["all"],
+      });
+
+      expect(error).toBeUndefined();
+      expect(data!.length).toBe(1);
+      expect(data![0].description).toBe("serviceContextTwo Description");
+    });
+
+    it("should return services with corresponding leviers", async () => {
+      const { data, error } = await clientPublicApi.services.getByContext({
+        leviers: ["Bio-carburants"] as Leviers,
+        phases: ["Étude", "Opération", "Idée"],
+      });
+
+      expect(error).toBeUndefined();
+      expect(data!.length).toBe(1);
+      expect(data![0].description).toBe("serviceContextOne Description");
+    });
+
+    it("should return services with corresponding competences", async () => {
+      const { data, error } = await clientPublicApi.services.getByContext({
+        competences: ["90-71"],
+        phases: ["Étude", "Opération", "Idée"],
+      });
+
+      expect(error).toBeUndefined();
+      expect(data!.length).toBe(1);
+      expect(data![0].description).toBe("serviceContextTwo Description");
+    });
+
+    it("should return empty array when no matching criteria", async () => {
+      const { data, error } = await clientPublicApi.services.getByContext({
+        competences: ["90-314"],
+        leviers: ["Efficacité et sobriété logistique"],
+        phases: ["Étude", "Opération", "Idée"],
+      });
+
+      expect(error).toBeUndefined();
+      expect(data!.length).toBe(0);
+    });
+
+    it("should reject when invalid competences code", async () => {
+      const { error } = await clientPublicApi.services.getByContext({
+        competences: ["90-10000" as CompetenceCode],
+        phases: ["Étude", "Opération", "Idée"],
+        leviers: ["all"],
+      });
+
+      expect(error).toBeDefined();
+      expect(error?.statusCode).toBe(400);
+    });
+
+    it("should reject when invalid levier is provided", async () => {
+      const { error } = await clientPublicApi.services.getByContext({
+        leviers: ["Invalid-Levier" as Levier],
+        competences: ["all"],
+        phases: ["Étude", "Opération", "Idée"],
+      });
+
+      expect(error).toBeDefined();
+      expect(error?.statusCode).toBe(400);
+    });
+
+    it("should reject when invalid phase is provided", async () => {
+      const { error } = await clientPublicApi.services.getByContext({
+        phases: ["Invalid-Phase" as ProjetPhase],
+        competences: ["all"],
+        leviers: ["all"],
+      });
+
+      expect(error).toBeDefined();
+      expect(error?.statusCode).toBe(400);
     });
   });
 });

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query, UseGuards, ValidationPipe } from "@nestjs/common";
 import { ServicesService } from "./services.service";
 import { ServicesContextService } from "./services-context.service";
 import { CreateServiceContextRequest, CreateServiceContextResponse } from "./dto/create-service-context.dto";
@@ -7,10 +7,13 @@ import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiParam, ApiQuery, Ap
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
-import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
+import { GetServicesByContextQuery, ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { UUIDDto } from "@/shared/dto/uuid";
 import { IdType, idTypes } from "@/shared/types";
 import { ProjectId, ProjectIdType } from "@/shared/decorator/projetId-decorator";
+import { competenceCodes } from "@/shared/const/competences-list";
+import { leviers } from "@/shared/const/leviers";
+import { projetPhasesEnum } from "@database/schema";
 
 @ApiBearerAuth()
 @ApiTags("services")
@@ -48,6 +51,48 @@ export class ServicesController {
       return this.serviceContextService.getAllServicesContexts();
     }
     return this.servicesService.getServicesByProjectId(id, idType);
+  }
+
+  @Public()
+  @ApiOperation({ summary: "Get all services corresponding to a context" })
+  @ApiEndpointResponses({
+    successStatus: 200,
+    response: ServicesByProjectIdResponse,
+    isArray: true,
+  })
+  @Get("search/context")
+  @ApiQuery({
+    name: "competences",
+    required: false,
+    isArray: true,
+    enum: [...competenceCodes, "all"],
+    description: "Array of competences and sous-competences",
+  })
+  @ApiQuery({
+    name: "leviers",
+    required: false,
+    isArray: true,
+    enum: [...leviers, "all"],
+    description: "Array of leviers",
+  })
+  @ApiQuery({
+    name: "phases",
+    required: true,
+    isArray: true,
+    enum: projetPhasesEnum.enumValues,
+    description: "Project phases",
+  })
+  getServicesByContext(
+    @Query(new ValidationPipe())
+    query: GetServicesByContextQuery,
+  ) {
+    return this.serviceContextService.getServiceContextByContext(
+      // if competences or leviers are omitted
+      // that means we remove this criteria by passing null to the matching algorithm
+      query.competences ?? null,
+      query.leviers ?? null,
+      query.phases,
+    );
   }
 
   @ApiBearerAuth()

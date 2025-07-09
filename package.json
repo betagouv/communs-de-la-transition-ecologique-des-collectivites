@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm --filter api build && pnpm --filter widget-sandbox build && pnpm --filter statistics-dashboard build",
+    "build": "pnpm build:api && pnpm build:widget-sandbox && pnpm build:statistics-dashboard",
     "start": "pnpm --filter api start",
     "build:api": "pnpm --filter api build",
     "build:widget": "pnpm --filter widget build",
@@ -18,7 +18,6 @@
     "dev:widget-sandbox": "pnpm --filter widget-sandbox dev",
     "dev:widget-sandbox:link": "cd widget-sandbox && yalc add @betagouv/les-communs-widget && pnpm install",
     "dev:widget-sandbox:unlink": "cd widget-sandbox && yalc remove @betagouv/les-communs-widget && pnpm install",
-    "dev:widget:unlink": "cd widget && yalc remove @betagouv/les-communs-widget && pnpm install",
     "lint": "pnpm -r lint",
     "lint:api": "pnpm --filter api lint",
     "lint:widget": "pnpm --filter widget lint",

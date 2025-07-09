@@ -6,6 +6,7 @@ import { ServicesWidget } from "./ServicesWidget.tsx";
 import { getApiUrl } from "../../utils.ts";
 import { Bénéfriche } from "../../test/stub/service.ts";
 import { extraFields, project } from "../../test/stub/project.ts";
+import { CompetenceCode, Levier, ProjetPhase } from "../../shared-types.ts";
 
 const getMockedServices = (env: "prod" | "staging") => [
   {
@@ -25,6 +26,11 @@ const handlers = [
   http.get("http://localhost:3000/services/project/:projectId", () => {
     return HttpResponse.json(getMockedServices("prod"));
   }),
+
+  http.get(`http://localhost:3000/services/search/context`, () => {
+    return HttpResponse.json(getMockedServices("prod"));
+  }),
+
   http.get("http://localhost:3000/projets/:projectId/extra-fields", () => {
     return HttpResponse.json([]);
   }),
@@ -41,8 +47,24 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe("LesCommuns", () => {
-  it("displays services when data is loaded", async () => {
+  it("displays services when data is loaded with projetId", async () => {
     render(<ServicesWidget projectId="123" />);
+
+    await screen.findByText("Service 1 prod");
+    await screen.findByText("Service 2 prod");
+
+    expect(screen.getByText("Description for service 1")).toBeInTheDocument();
+    expect(screen.getByText("Description for service 2")).toBeInTheDocument();
+  });
+
+  it("displays services when data is loaded with context", async () => {
+    const context = {
+      competences: ["90-11" as CompetenceCode],
+      leviers: ["Gestion des haies" as Levier],
+      phases: ["Idée" as ProjetPhase],
+    };
+
+    render(<ServicesWidget context={context} />);
 
     await screen.findByText("Service 1 prod");
     await screen.findByText("Service 2 prod");

@@ -1,14 +1,14 @@
-import type { paths, components } from "../generated-types";
+import type { components, paths } from "../generated-types";
 import createClient from "openapi-fetch";
 import { IdType } from "@/shared/types";
 
-export const createApiClient = (apiKey: string) => {
+export const createApiClient = (apiKey?: string) => {
   const baseUrl = "http://localhost:3000";
 
   const client = createClient<paths>({
     baseUrl,
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
       "Content-Type": "application/json",
     },
   });
@@ -64,6 +64,13 @@ export const createApiClient = (apiKey: string) => {
               debug: Boolean(debug),
               idType: "communId",
             },
+          },
+        }),
+
+      getByContext: (params: paths["/services/search/context"]["get"]["parameters"]["query"]) =>
+        client.GET("/services/search/context", {
+          params: {
+            query: params,
           },
         }),
     },

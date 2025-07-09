@@ -2,7 +2,8 @@ import { paths } from "../../generated-types.ts";
 import createFetchClient from "openapi-fetch";
 import { getApiUrl } from "../../utils.ts";
 import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
-import { IdType, Service, ProjectData, ExtraFields } from "./types.ts";
+import { Collectivite, ExtraFields, Service, ServicesWidgetProps } from "./types.ts";
+import { IdType } from "../../shared-types";
 
 const makeApiClient = (isStagingEnv = false) => {
   const apiUrl = getApiUrl(isStagingEnv);
@@ -16,23 +17,29 @@ const makeApiClient = (isStagingEnv = false) => {
 };
 
 interface BaseQueryParams {
-  projectId: string;
+  projectId?: string;
   idType: IdType;
   options: {
     isStagingEnv?: boolean;
     debug?: boolean;
+    enabled?: boolean;
   };
 }
 
+interface BaseQueryParamsWithProjectId extends BaseQueryParams {
+  projectId: string;
+}
+
 // -------------- Services by Projects - GET -------------- //
-export const useGetServicesByProjectId = (params: BaseQueryParams): UseQueryResult<Service[]> => {
+export const useGetServicesByProjectId = ({ projectId, ...rest }: BaseQueryParams): UseQueryResult<Service[]> => {
   return useQuery({
-    queryKey: ["project-services", params.projectId],
-    queryFn: () => fetchServicesByProjectId(params),
+    queryKey: ["project-services", projectId],
+    queryFn: () => fetchServicesByProjectId({ ...rest, projectId: projectId! }),
+    enabled: rest.options.enabled,
   });
 };
 
-const fetchServicesByProjectId = async ({ projectId, idType, options }: BaseQueryParams) => {
+const fetchServicesByProjectId = async ({ projectId, idType, options }: BaseQueryParamsWithProjectId) => {
   const { isStagingEnv = false, debug = false } = options;
   const apiClient = makeApiClient(isStagingEnv);
   const { data, error } = await apiClient.GET(`/services/project/{id}`, {
@@ -50,15 +57,18 @@ const fetchServicesByProjectId = async ({ projectId, idType, options }: BaseQuer
 };
 
 // -------------- Project Public Info - GET -------------- //
-export const useGetProjectPublicInfo = (params: BaseQueryParams): UseQueryResult<ProjectData> => {
+export const useGetProjectPublicInfo = (params: BaseQueryParamsWithProjectId): UseQueryResult<Collectivite> => {
   return useQuery({
     queryKey: ["project-public-info", params.projectId],
     queryFn: () => fetchProjectPublicInfo(params),
-    enabled: !params.options.debug,
+    enabled: params.options.enabled,
+    // the only needed data from the project for now are the collectivite, furthermore all the iframe url we have are mono collectivite.
+    // we'll need to add support for multi collectivité in iframe url once we integrate Aide territoire
+    select: (data) => data.collectivites[0],
   });
 };
 
-const fetchProjectPublicInfo = async ({ projectId, idType, options }: BaseQueryParams) => {
+const fetchProjectPublicInfo = async ({ projectId, idType, options }: BaseQueryParamsWithProjectId) => {
   const { isStagingEnv = false } = options;
   const apiClient = makeApiClient(isStagingEnv);
 
@@ -77,15 +87,19 @@ const fetchProjectPublicInfo = async ({ projectId, idType, options }: BaseQueryP
 };
 
 // -------------- Project Extra Fields - GET -------------- //
-export const useGetProjectExtraFields = (params: BaseQueryParams): UseQueryResult<ExtraFields> => {
+export const useGetProjectExtraFields = ({
+  projectId,
+  idType,
+  options,
+}: BaseQueryParams): UseQueryResult<ExtraFields> => {
   return useQuery({
-    queryKey: ["project-extra-fields", params.projectId],
-    queryFn: () => fetchProjectExtraFields(params),
-    enabled: !params.options.debug,
+    queryKey: ["project-extra-fields", projectId],
+    queryFn: () => fetchProjectExtraFields({ projectId: projectId!, idType, options }),
+    enabled: options.enabled,
   });
 };
 
-const fetchProjectExtraFields = async ({ projectId, idType, options }: BaseQueryParams) => {
+const fetchProjectExtraFields = async ({ projectId, idType, options }: BaseQueryParamsWithProjectId) => {
   const apiClient = makeApiClient(options.isStagingEnv);
 
   const { data, error } = await apiClient.GET("/projets/{id}/extra-fields", {
@@ -190,4 +204,56 @@ const postTrackEvent = async ({ action, name, value }: TrackEventParams, isStagi
   }
 
   return data;
+};
+
+// -------------- Services by Context - GET -------------- //
+export const useGetServicesByContext = ({
+  context,
+  options,
+}: {
+  context: ServicesWidgetProps["context"];
+  options: BaseQueryParams["options"];
+}) => {
+  return useQuery({
+    queryKey: ["context-services", context],
+    queryFn: () => fetchServicesByContext(context, options),
+    enabled: Boolean(context),
+  });
+};
+
+const fetchServicesByContext = async (
+  context: ServicesWidgetProps["context"],
+  options: { isStagingEnv?: boolean; debug?: boolean },
+) => {
+  const { isStagingEnv } = options;
+  const apiUrl = getApiUrl(isStagingEnv);
+
+  const params = new URLSearchParams();
+
+  if (context?.competences?.length) {
+    context.competences.forEach((competence) => {
+      params.append("competences", competence);
+    });
+  }
+
+  if (context?.leviers?.length) {
+    context.leviers.forEach((levier) => {
+      params.append("leviers", levier);
+    });
+  }
+
+  if (context?.phases?.length) {
+    context.phases.forEach((phase) => {
+      params.append("phases", phase);
+    });
+  }
+
+  const url = `${apiUrl}/services/search/context?${params.toString()}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json() as Promise<Service[]>;
 };
