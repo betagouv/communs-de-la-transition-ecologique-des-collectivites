@@ -27,6 +27,8 @@ function App() {
 }
 ```
 
+### Project mode
+
 By default the widget needs to consume the projectId from the Communs database. This ID is a uuid and you will get a 400 if you try any other format
 
 Depending on the widget consumers, you might be able to use your own id as such. For now we only support tet
@@ -38,6 +40,54 @@ function App() {
   <ServicesWidget projectId="your-project-id-from-your-base" idType={"tetId"} />;
 }
 ```
+
+### Context mode
+
+For platforms that don't have projects in the Communs database or don't have the concept of projects, you can use the context mode. This allows you to specify competences, leviers, and phases directly to get relevant services.
+
+```tsx
+import { ServicesWidget } from "@betagouv/les-communs-widget";
+
+function App() {
+  return (
+    <ServicesWidget
+      context={{
+        competences: ["90-11", "90-21"], // Police, sécurité, justice & Enseignement du premier degré
+        leviers: ["Gestion des forêts et produits bois", "Sobriété des bâtiments (résidentiel)"],
+        phases: ["Idée", "Étude"],
+      }}
+    />
+  );
+}
+```
+
+**Available competences** (from M57 referential):
+
+- `90-11`: Police, sécurité, justice
+- `90-21`: Enseignement du premier degré
+- `90-31`: Culture
+- `90-41`: Santé
+- `90-51`: Aménagement des territoires et habitat
+- `90-61`: Action économique
+- `90-71`: Environnement
+- `90-81`: Transports scolaires
+- And many more... ([see full list in shared-types.ts](lib/shared-types.ts))
+
+**Available leviers** (ecological transition levers):
+
+- `Gestion des forêts et produits bois`
+- `Changements de pratiques de fertilisation azotée`
+- `Elevage durable`
+- `Gestion des haies`
+- `Sobriété des bâtiments (résidentiel)`
+- `Electricité renouvelable`
+- And many more... ([see full list in shared-types.ts](lib/shared-types.ts))
+
+**Available phases**:
+
+- `Idée`
+- `Étude`
+- `Opération`
 
 ### Debug mode
 
