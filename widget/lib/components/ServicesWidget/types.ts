@@ -8,17 +8,39 @@ export type ExtraFields = components["schemas"]["ExtraField"][];
 export type ProjectData = components["schemas"]["ProjectPublicInfoResponse"];
 export type Collectivite = ProjectData["collectivites"][number];
 
-export interface ServicesWidgetProps {
-  projectId?: string;
-  idType?: IdType;
+interface BaseServicesWidgetProps {
+  isStagingEnv?: boolean;
+  debug?: boolean;
+}
 
-  context?: {
+interface ProjectModeProps extends BaseServicesWidgetProps {
+  idType?: IdType;
+  projectId: string;
+  context?: never;
+}
+
+interface ContextModeProps extends BaseServicesWidgetProps {
+  projectId?: never;
+  idType?: never;
+  context: {
     competences?: CompetenceCode[];
     leviers?: Levier[];
     phases: ProjetPhase[];
     regions?: string[];
   };
-
-  isStagingEnv?: boolean;
-  debug?: boolean;
 }
+
+/**
+ * ServicesWidget props - supports two mutually exclusive modes:
+ *
+ * @example Project Mode
+ * ```tsx
+ * <ServicesWidget projectId="123" />
+ * ```
+ *
+ * @example Context Mode
+ * ```tsx
+ * <ServicesWidget context={{ competences: ["90-11"], phases: ["Idée"] }} />
+ * ```
+ */
+export type ServicesWidgetProps = ProjectModeProps | ContextModeProps;

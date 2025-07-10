@@ -229,3 +229,4 @@ export type IdType = (typeof idTypes)[number];
 
 export const projetPhases = ["Idée", "Étude", "Opération"] as const;
 export type ProjetPhase = (typeof projetPhases)[number];
+export type ProjetPhases = ProjetPhase[];
