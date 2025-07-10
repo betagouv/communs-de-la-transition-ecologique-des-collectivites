@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.3.0
+
+### Patch Changes
+
+- make widget compatible without providing a project id from les Communs
+
 ## 0.2.6
 
 ### Minor Changes

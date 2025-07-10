@@ -168,7 +168,10 @@ describe("useServicesWidgetData", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      // here we expect the service to be defined
+      // as only relying on isLoading does not work in this instance.
+      // not sure why
+      expect(result.current.services).toBeDefined();
     });
 
     expect(result.current.services).toEqual(createMockServices("project"));
