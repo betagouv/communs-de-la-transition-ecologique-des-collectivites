@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.3.1
+
+### Minor Changes
+
+- removing logs from widget
+
 ## 0.3.0
 
 ### Patch Changes
