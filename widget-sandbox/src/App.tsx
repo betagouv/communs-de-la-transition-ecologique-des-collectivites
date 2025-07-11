@@ -3,6 +3,8 @@ import { ServicesWidget } from "@betagouv/les-communs-widget";
 import { ContextFilters } from "./components/ContextFilters";
 import { ContextFilters as ContextFiltersType } from "./types";
 
+// const STAGING_PROJECT_ID = "0195af1f-cf4c-7988-bc69-940b7ba76e1c";
+
 function App() {
   const [filters, setFilters] = useState<ContextFiltersType>({
     competences: ["all"],
