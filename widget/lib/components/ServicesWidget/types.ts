@@ -1,5 +1,5 @@
 import { components } from "../../generated-types.ts";
-import { CompetenceCode, Levier, ProjetPhase, IdType } from "../../shared-types";
+import { CompetenceCodes, IdType, Leviers, ProjetPhase } from "../../shared-types";
 
 export type Service = components["schemas"]["ServicesByProjectIdResponse"];
 
@@ -23,8 +23,8 @@ interface ContextModeProps extends BaseServicesWidgetProps {
   projectId?: never;
   idType?: never;
   context: {
-    competences?: CompetenceCode[];
-    leviers?: Levier[];
+    competences?: CompetenceCodes;
+    leviers?: Leviers;
     phases: ProjetPhase[];
     regions?: string[];
   };

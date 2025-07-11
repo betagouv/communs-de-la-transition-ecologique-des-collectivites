@@ -219,10 +219,10 @@ export const leviers = [
 ] as const;
 
 export type CompetenceCode = (typeof competenceCodes)[number];
-export type CompetenceCodes = CompetenceCode[];
+export type CompetenceCodes = CompetenceCode[] | ["all"];
 
 export type Levier = (typeof leviers)[number];
-export type Leviers = Levier[];
+export type Leviers = Levier[] | ["all"];
 
 export const idTypes = ["communId", "tetId"] as const;
 export type IdType = (typeof idTypes)[number];

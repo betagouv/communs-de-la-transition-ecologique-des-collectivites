@@ -8,4 +8,6 @@ export default tseslint.config(...reactConfig, {
       tsconfigRootDir: import.meta.dirname,
     },
   },
+  // Override to exclude Yalc files from ESLint parsing
+  ignores: [".yalc/**/*", "node_modules/**/*", "dist/**/*"],
 });
