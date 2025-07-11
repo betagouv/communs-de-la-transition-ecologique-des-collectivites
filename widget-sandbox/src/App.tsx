@@ -1,15 +1,24 @@
+import { useState } from "react";
 import { ServicesWidget } from "@betagouv/les-communs-widget";
+import { ContextFilters } from "./components/ContextFilters";
+import { ContextFilters as ContextFiltersType } from "./types";
+
+// const STAGING_PROJECT_ID = "0195af1f-cf4c-7988-bc69-940b7ba76e1c";
 
 function App() {
-  const PROJECT_ID_WITHOUT_EXTRAFIELD = "0195af5a-6c42-7acd-9db4-e4b8582aa366";
+  const [filters, setFilters] = useState<ContextFiltersType>({
+    competences: ["all"],
+    leviers: ["all"],
+    phases: ["Opération", "Idée", "Étude"],
+  });
+
   return (
     <div className="fr-container">
       <h1>Widget Test Sandbox</h1>
-      <ServicesWidget projectId={PROJECT_ID_WITHOUT_EXTRAFIELD} isStagingEnv debug />
+      <ContextFilters filters={filters} onFiltersChange={setFilters} />
+      <ServicesWidget isStagingEnv context={filters} />
     </div>
   );
 }
 
 export default App;
-
-//https://les-communs-transition-ecologique-api-prod.osc-fr1.scalingo.io/services/project/your-test-project-id

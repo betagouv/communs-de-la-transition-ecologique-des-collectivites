@@ -5,26 +5,16 @@ import styles from "./InternalServicesWidget.module.css";
 import { Service as ServiceType, ServicesWidgetProps } from "./types.ts";
 import { useServicesWidgetData } from "./useServicesWidgetData.ts";
 
-export const InternalServicesWidget = ({
-  projectId,
-  context,
-  idType = "communId",
-  isStagingEnv,
-  debug,
-}: ServicesWidgetProps) => {
+export const InternalServicesWidget = (props: ServicesWidgetProps) => {
   const {
     services: servicesData,
     projectCollectivite,
     extraFields: extraFieldsData,
     isLoading,
     error,
-  } = useServicesWidgetData({
-    projectId,
-    context,
-    idType,
-    isStagingEnv,
-    debug,
-  });
+  } = useServicesWidgetData(props);
+
+  const { projectId, idType = "communId", isStagingEnv, debug } = props;
 
   // do not display anything while we don't know if there are any services or there are no services
   // and if we don't have related info for the project (only in mode projet)
