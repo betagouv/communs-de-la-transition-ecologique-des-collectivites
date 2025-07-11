@@ -17,31 +17,28 @@ export const PhasesFilter = ({ value, onChange }: PhasesFilterProps) => {
 
   return (
     <fieldset className={fr.cx("fr-fieldset")}>
-      <legend className={fr.cx("fr-fieldset__legend", "fr-text--regular")}>
-        Phases de projet
-        <span className={fr.cx("fr-hint-text")}>Sélectionnez les phases de votre projet</span>
-      </legend>
+      <legend className={fr.cx("fr-fieldset__legend", "fr-text--regular")}>Phases de projet</legend>
       <div className={fr.cx("fr-fieldset__content")}>
-        {projetPhases.map((phase) => (
-          <div key={phase} className={fr.cx("fr-checkbox-group")}>
-            <input
-              type="checkbox"
-              id={`phase-${phase}`}
-              className="fr-checkbox"
-              checked={value.includes(phase)}
-              onChange={(e) => handleChange(phase, e.target.checked)}
-            />
-            <label className={fr.cx("fr-label")} htmlFor={`phase-${phase}`}>
-              {phase}
-            </label>
-          </div>
-        ))}
+        {/* Individual phase checkboxes in a row */}
+        <div className={fr.cx("fr-grid-row", "fr-grid-row--gutters")}>
+          {projetPhases.map((phase) => (
+            <div key={phase} className={fr.cx("fr-col-12", "fr-col-md-4")}>
+              <div className={fr.cx("fr-checkbox-group")}>
+                <input
+                  type="checkbox"
+                  id={`phase-${phase}`}
+                  className="fr-checkbox"
+                  checked={value.includes(phase)}
+                  onChange={(e) => handleChange(phase, e.target.checked)}
+                />
+                <label className={fr.cx("fr-label")} htmlFor={`phase-${phase}`}>
+                  {phase}
+                </label>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-      {value.length > 0 && (
-        <p className={fr.cx("fr-hint-text")}>
-          {value.length} phase{value.length > 1 ? "s" : ""} sélectionnée{value.length > 1 ? "s" : ""}
-        </p>
-      )}
     </fieldset>
   );
 };

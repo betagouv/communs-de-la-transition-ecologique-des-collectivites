@@ -50,18 +50,15 @@ export const ContextFilters = ({ filters, onFiltersChange }: FilterProps) => {
 
         <div className={fr.cx("fr-card__body")}>
           <div className={fr.cx("fr-grid-row", "fr-grid-row--gutters")}>
-            <div className={fr.cx("fr-col-12", "fr-col-md-4")}>
+            <div className={fr.cx("fr-col-12", "fr-col-md-6")}>
               <CompetencesFilter value={filters.competences} onChange={handleCompetencesChange} />
             </div>
 
-            <div className={fr.cx("fr-col-12", "fr-col-md-4")}>
+            <div className={fr.cx("fr-col-12", "fr-col-md-6")}>
               <LeviersFilter value={filters.leviers} onChange={handleLeviersChange} />
             </div>
-
-            <div className={fr.cx("fr-col-12", "fr-col-md-4")}>
-              <PhasesFilter value={filters.phases} onChange={handlePhasesChange} />
-            </div>
           </div>
+          <PhasesFilter value={filters.phases} onChange={handlePhasesChange} />
 
           <div className={fr.cx("fr-mt-3w")} style={{ textAlign: "center" }}>
             <Button priority="secondary" onClick={handleReset} disabled={!hasActiveFilters}>

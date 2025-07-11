@@ -12,12 +12,21 @@ export const LeviersFilter = ({ value, onChange }: LeviersFilterProps) => {
     onChange(selectedOptions);
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      onChange(["all"]);
+    } else {
+      onChange([]);
+    }
+  };
+
+  const allSelected = value.includes("all");
   return (
     <div className={fr.cx("fr-select-group")}>
       <label className={fr.cx("fr-label")} htmlFor="leviers-select">
         Leviers de transition écologique
-        <span className={fr.cx("fr-hint-text")}>Sélectionnez un ou plusieurs leviers de transition écologique</span>
       </label>
+
       <select
         className={fr.cx("fr-select")}
         id="leviers-select"
@@ -25,6 +34,7 @@ export const LeviersFilter = ({ value, onChange }: LeviersFilterProps) => {
         value={value}
         onChange={handleChange}
         size={8}
+        disabled={allSelected}
       >
         {leviers.map((levier) => (
           <option key={levier} value={levier}>
@@ -32,11 +42,19 @@ export const LeviersFilter = ({ value, onChange }: LeviersFilterProps) => {
           </option>
         ))}
       </select>
-      {value.length > 0 && (
-        <p className={fr.cx("fr-hint-text")}>
-          {value.length} levier{value.length > 1 ? "s" : ""} sélectionné{value.length > 1 ? "s" : ""}
-        </p>
-      )}
+
+      <div className={fr.cx("fr-checkbox-group", "fr-mt-2w")}>
+        <input
+          type="checkbox"
+          id="leviers-select-all"
+          className="fr-checkbox"
+          checked={allSelected}
+          onChange={(e) => handleSelectAll(e.target.checked)}
+        />
+        <label className={fr.cx("fr-label", "fr-text--sm")} htmlFor="leviers-select-all">
+          Sélectionner tous les leviers
+        </label>
+      </div>
     </div>
   );
 };
