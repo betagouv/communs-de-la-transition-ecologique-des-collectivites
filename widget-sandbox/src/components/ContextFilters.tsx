@@ -3,25 +3,24 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import { CompetencesFilter } from "./CompetencesFilter";
 import { LeviersFilter } from "./LeviersFilter";
 import { PhasesFilter } from "./PhasesFilter";
-import { FilterProps } from "../types";
-import { CompetenceCodes, Leviers, ProjetPhases } from "@betagouv/les-communs-widget";
+import { FilterProps, ContextFilters as ContextFiltersType } from "../types";
 
 export const ContextFilters = ({ filters, onFiltersChange }: FilterProps) => {
-  const handleCompetencesChange = (competences: CompetenceCodes) => {
+  const handleCompetencesChange = (competences: ContextFiltersType["competences"]) => {
     onFiltersChange({
       ...filters,
       competences,
     });
   };
 
-  const handleLeviersChange = (leviers: Leviers) => {
+  const handleLeviersChange = (leviers: ContextFiltersType["leviers"]) => {
     onFiltersChange({
       ...filters,
       leviers,
     });
   };
 
-  const handlePhasesChange = (phases: ProjetPhases) => {
+  const handlePhasesChange = (phases: ContextFiltersType["phases"]) => {
     onFiltersChange({
       ...filters,
       phases,
@@ -30,9 +29,9 @@ export const ContextFilters = ({ filters, onFiltersChange }: FilterProps) => {
 
   const handleReset = () => {
     onFiltersChange({
-      competences: [],
-      leviers: [],
-      phases: [],
+      competences: ["all"],
+      leviers: ["all"],
+      phases: ["Opération", "Idée", "Étude"],
     });
   };
 
@@ -42,10 +41,17 @@ export const ContextFilters = ({ filters, onFiltersChange }: FilterProps) => {
     <div className={fr.cx("fr-container", "fr-mb-4w")}>
       <div className={fr.cx("fr-card", "fr-p-4w")}>
         <div className={fr.cx("fr-card__header")}>
-          <h2 className={fr.cx("fr-card__title", "fr-h4")}>Filtres de contexte</h2>
-          <p className={fr.cx("fr-card__desc", "fr-text--sm")}>
-            Sélectionnez les compétences, leviers et phases pour personnaliser les services affichés
-          </p>
+          <div className={fr.cx("fr-grid-row", "fr-grid-row--middle")} style={{ justifyContent: "space-between" }}>
+            <div>
+              <h2 className={fr.cx("fr-card__title", "fr-h4")}>Filtres de contexte</h2>
+              <p className={fr.cx("fr-card__desc", "fr-text--sm")}>
+                Sélectionnez les compétences, leviers et phases pour personnaliser les services affichés
+              </p>
+            </div>
+            <Button priority="secondary" onClick={handleReset} disabled={!hasActiveFilters} size="small">
+              Réinitialiser
+            </Button>
+          </div>
         </div>
 
         <div className={fr.cx("fr-card__body")}>
@@ -59,12 +65,6 @@ export const ContextFilters = ({ filters, onFiltersChange }: FilterProps) => {
             </div>
           </div>
           <PhasesFilter value={filters.phases} onChange={handlePhasesChange} />
-
-          <div className={fr.cx("fr-mt-3w")} style={{ textAlign: "center" }}>
-            <Button priority="secondary" onClick={handleReset} disabled={!hasActiveFilters}>
-              Réinitialiser les filtres
-            </Button>
-          </div>
 
           {hasActiveFilters && (
             <div className={fr.cx("fr-mt-3w", "fr-alert", "fr-alert--info")}>
