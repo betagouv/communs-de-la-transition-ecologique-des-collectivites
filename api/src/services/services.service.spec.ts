@@ -98,6 +98,7 @@ describe("ServicesService", () => {
         phases: [],
         leviers: ["Bio-carburants"],
         regions: [],
+        isListed: true,
       };
 
       await serviceContext.create(createdService.id, createServiceContextDto);

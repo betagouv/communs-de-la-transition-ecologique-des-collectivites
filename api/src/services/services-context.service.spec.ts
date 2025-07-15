@@ -53,7 +53,7 @@ describe("ServiceContextService", () => {
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
         sousTitre: "Context Sous Titre",
-        competences: ["90-411", "90-311"],
+        competences: ["90-411"],
         logoUrl: "https://test.com/context-logo.png",
         redirectionUrl: "https://test.com/context",
         redirectionLabel: "Context Label",
@@ -61,6 +61,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: ["Bio-carburants"],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -97,6 +98,7 @@ describe("ServiceContextService", () => {
         leviers: [],
         phases: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -126,6 +128,7 @@ describe("ServiceContextService", () => {
         leviers: ["Bio-carburants"],
         phases: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -160,6 +163,7 @@ describe("ServiceContextService", () => {
         leviers: [],
         phases: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -207,6 +211,7 @@ describe("ServiceContextService", () => {
         iframeUrl: "Context IFrame Url",
         name: "Context Name",
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -244,6 +249,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -288,6 +294,7 @@ describe("ServiceContextService", () => {
         phases: ["Idée"],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -311,6 +318,7 @@ describe("ServiceContextService", () => {
         phases: ["Idée"],
         leviers: ["Covoiturage"],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -335,6 +343,7 @@ describe("ServiceContextService", () => {
         phases: ["Étude"],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -359,6 +368,7 @@ describe("ServiceContextService", () => {
         phases: ["Idée"],
         leviers: ["Bio-carburants"],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -404,6 +414,7 @@ describe("ServiceContextService", () => {
         phases: ["Idée"],
         leviers: null,
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -440,6 +451,7 @@ describe("ServiceContextService", () => {
         phases: ["Idée"],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -478,6 +490,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -522,6 +535,7 @@ describe("ServiceContextService", () => {
         phases: ["Idée"],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -547,6 +561,32 @@ describe("ServiceContextService", () => {
         phases: ["Idée"],
         leviers: ["Bio-carburants"],
         regions: [],
+        isListed: true,
+      };
+      await serviceContextService.create(service.id, createContextDto);
+
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(
+        ["90-411"],
+        ["Bio-carburants"],
+        "Idée",
+        mockCollectivites,
+      );
+
+      expect(serviceContexts).toHaveLength(0);
+    });
+
+    it("should not match services when targeted service context is not listed", async () => {
+      const service = await servicesService.create({
+        ...servicePayload,
+      });
+
+      const createContextDto: CreateServiceContextRequest = {
+        competences: ["90-411"],
+        description: "Context Description",
+        phases: ["Idée"],
+        leviers: ["Bio-carburants"],
+        regions: [],
+        isListed: false,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -569,6 +609,7 @@ describe("ServiceContextService", () => {
         phases: ["Idée"],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -599,6 +640,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -636,6 +678,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [],
+        isListed: true,
       };
 
       await serviceContextService.create(service.id, createContextDto);
@@ -659,6 +702,7 @@ describe("ServiceContextService", () => {
         phases: null,
         leviers: [],
         regions: [],
+        isListed: true,
       };
 
       await serviceContextService.create(service.id, createContextDto);
@@ -682,6 +726,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: null,
         regions: [],
+        isListed: true,
       };
 
       await serviceContextService.create(service.id, createContextDto);
@@ -706,6 +751,7 @@ describe("ServiceContextService", () => {
         phases: null,
         leviers: ["Bio-carburants"],
         regions: [],
+        isListed: true,
       };
 
       const createContextDto2: CreateServiceContextRequest = {
@@ -714,6 +760,7 @@ describe("ServiceContextService", () => {
         phases: null,
         leviers: null,
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service1.id, createContextDto1);
       await serviceContextService.create(service2.id, createContextDto2);
@@ -738,6 +785,7 @@ describe("ServiceContextService", () => {
         phases: null,
         leviers: null,
         regions: [],
+        isListed: true,
       };
 
       const createContextDto2: CreateServiceContextRequest = {
@@ -746,6 +794,7 @@ describe("ServiceContextService", () => {
         phases: null,
         leviers: null,
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service1.id, createContextDto1);
       await serviceContextService.create(service2.id, createContextDto2);
@@ -770,6 +819,7 @@ describe("ServiceContextService", () => {
         phases: null,
         leviers: ["Bio-carburants"],
         regions: [],
+        isListed: true,
       };
 
       const createContextDto2: CreateServiceContextRequest = {
@@ -778,6 +828,7 @@ describe("ServiceContextService", () => {
         phases: null,
         leviers: ["Covoiturage"],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service1.id, createContextDto1);
       await serviceContextService.create(service2.id, createContextDto2);
@@ -801,6 +852,7 @@ describe("ServiceContextService", () => {
         phases: null,
         leviers: null,
         regions: [],
+        isListed: true,
       };
 
       await serviceContextService.create(service.id, createContextDto);
@@ -824,6 +876,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -860,6 +913,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -896,6 +950,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -917,6 +972,7 @@ describe("ServiceContextService", () => {
         phases: ["Idée"],
         leviers: [],
         regions: [],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
       const serviceContexts = await serviceContextService.findMatchingServicesContext(
@@ -936,6 +992,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [], // Empty array means all regions
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -958,6 +1015,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [ILE_DE_FRANCE_REGION_CODE], // Île-de-France (matches mockCollectivites)
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -980,6 +1038,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [VAL_DE_LOIRE_REGION_CODE], // Centre-Val de Loire (does not match mockCollectivites which has "11")
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -998,6 +1057,7 @@ describe("ServiceContextService", () => {
       const createContextDto: CreateServiceContextRequest = {
         description: "Context Description",
         competences: ["90-411"],
+        isListed: true,
         phases: [],
         leviers: [],
         regions: [VAL_DE_LOIRE_REGION_CODE, ILE_DE_FRANCE_REGION_CODE], // Multiple regions including Île-de-France (11)
@@ -1023,6 +1083,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [VAL_DE_LOIRE_REGION_CODE], // Centre-Val de Loire
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -1039,6 +1100,7 @@ describe("ServiceContextService", () => {
           siren: "213726140",
           createdAt: new Date(),
           updatedAt: new Date(),
+          isListed: false,
         },
       ];
 
@@ -1061,6 +1123,7 @@ describe("ServiceContextService", () => {
         phases: [],
         leviers: [],
         regions: [ILE_DE_FRANCE_REGION_CODE],
+        isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
@@ -1111,6 +1174,7 @@ describe("ServiceContextService", () => {
       extendLabel: "Extend Label",
       phases: [],
       regions: [],
+      isListed: true,
     };
 
     it("should create a new service context", async () => {
@@ -1197,6 +1261,7 @@ describe("ServiceContextService", () => {
           { name: "field2", label: "field2 label" },
         ],
         regions: [],
+        isListed: true,
       };
 
       const result = await serviceContextService.create(service.id, createContextDto);

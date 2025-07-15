@@ -1,0 +1,1 @@
+ALTER TABLE "service_context" ALTER COLUMN "is_listed" SET DEFAULT false;
