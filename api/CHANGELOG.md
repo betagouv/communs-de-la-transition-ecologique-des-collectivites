@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.21](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.20...v0.0.21) (2025-07-15)
+
+
+### Features
+
+* add database section for statistics page ([#213](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/213)) ([e66ccb7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e66ccb7b17aa9313700abd51539d9b149d63a236))
+* integrate early feedback on widget stats ([#211](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/211)) ([5607829](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/56078294b9b09ec52168e3944141e7bf3bb9ceac))
+* remove wip banner ([#214](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/214)) ([7b9e42a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/7b9e42a196a1331bde190a1fa9ee53963affe5e3))
+
+
+### Bug Fixes
+
+* typo in stat page ([#212](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/212)) ([cb3b8ed](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/cb3b8eda0d13cfce3133f7bae89c9de8ce8aa3a9))
+
 ## [0.0.20](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.19...v0.0.20) (2025-06-11)
 
 
