@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.3.2
+
+### Minor Changes
+
+- modify logo ratio
+
 ## 0.3.1
 
 ### Minor Changes
