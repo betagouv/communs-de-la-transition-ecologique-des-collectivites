@@ -37,6 +37,7 @@ export const useStyles = tss.create(() => ({
     borderRadius: "calc(0.5rem - 1px)",
     height: "3rem",
     width: "3rem",
+    objectFit: "contain",
   },
 
   titleContainer: {
