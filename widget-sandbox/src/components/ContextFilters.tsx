@@ -46,12 +46,9 @@ export const ContextFilters = ({ filters, onFiltersChange, debugMode, onDebugMod
     <div className={fr.cx("fr-container", "fr-mb-4w")}>
       <div className={fr.cx("fr-card", "fr-p-4w")}>
         <div className={fr.cx("fr-card__header")}>
-          <div className={fr.cx("fr-grid-row", "fr-grid-row--middle")} style={{ justifyContent: "space-between" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div>
-              <h2 className={fr.cx("fr-card__title", "fr-h4")}>Filtres de contexte</h2>
-              <p className={fr.cx("fr-card__desc", "fr-text--sm")}>
-                Sélectionnez les compétences, leviers et phases pour personnaliser les services affichés
-              </p>
+              <h2 className={fr.cx("fr-card__title", "fr-h4")}>Critères d&#39;affichage</h2>
             </div>
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <Button priority="primary" onClick={() => onDebugModeChange(!debugMode)} size="small">
@@ -62,6 +59,10 @@ export const ContextFilters = ({ filters, onFiltersChange, debugMode, onDebugMod
               </Button>
             </div>
           </div>
+          <p className={fr.cx("fr-card__desc", "fr-text--sm", "fr-mb-2w")}>
+            Sélectionnez les compétences, leviers et phases pour personnaliser les services affichés. Cet encart ne fait
+            pas partie du widget, mais permet de visualiser l&#39;affichage de services en fonction du contexte choisi.
+          </p>
         </div>
 
         <div className={fr.cx("fr-card__body")}>

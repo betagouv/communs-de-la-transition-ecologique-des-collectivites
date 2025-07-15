@@ -15,7 +15,6 @@ function App() {
 
   return (
     <div className="fr-container">
-      <h1>Widget Test Sandbox</h1>
       <ContextFilters
         filters={filters}
         onFiltersChange={setFilters}
