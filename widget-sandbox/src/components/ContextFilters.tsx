@@ -5,7 +5,12 @@ import { LeviersFilter } from "./LeviersFilter";
 import { PhasesFilter } from "./PhasesFilter";
 import { FilterProps, ContextFilters as ContextFiltersType } from "../types";
 
-export const ContextFilters = ({ filters, onFiltersChange }: FilterProps) => {
+interface ContextFiltersProps extends FilterProps {
+  debugMode: boolean;
+  onDebugModeChange: (debugMode: boolean) => void;
+}
+
+export const ContextFilters = ({ filters, onFiltersChange, debugMode, onDebugModeChange }: ContextFiltersProps) => {
   const handleCompetencesChange = (competences: ContextFiltersType["competences"]) => {
     onFiltersChange({
       ...filters,
@@ -48,9 +53,14 @@ export const ContextFilters = ({ filters, onFiltersChange }: FilterProps) => {
                 Sélectionnez les compétences, leviers et phases pour personnaliser les services affichés
               </p>
             </div>
-            <Button priority="secondary" onClick={handleReset} disabled={!hasActiveFilters} size="small">
-              Réinitialiser
-            </Button>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <Button priority="primary" onClick={() => onDebugModeChange(!debugMode)} size="small">
+                {debugMode ? "Afficher les services en fonction du contexte" : "Afficher tous les services"}
+              </Button>
+              <Button priority="secondary" onClick={handleReset} disabled={!hasActiveFilters} size="small">
+                Réinitialiser
+              </Button>
+            </div>
           </div>
         </div>
 
