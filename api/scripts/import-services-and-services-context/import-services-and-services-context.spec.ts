@@ -71,6 +71,7 @@ describe("parseCSVFiles", () => {
       redirectionUrl: "https://urbanvitaliz.fr/ressource/",
       serviceName: "UrbanVitaliz",
       sousTitre: "Des ressources autour de la réhabilitation des friches urbaines",
+      isListed: false,
     });
   });
 
