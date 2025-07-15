@@ -5,7 +5,12 @@ import { LeviersFilter } from "./LeviersFilter";
 import { PhasesFilter } from "./PhasesFilter";
 import { FilterProps, ContextFilters as ContextFiltersType } from "../types";
 
-export const ContextFilters = ({ filters, onFiltersChange }: FilterProps) => {
+interface ContextFiltersProps extends FilterProps {
+  debugMode: boolean;
+  onDebugModeChange: (debugMode: boolean) => void;
+}
+
+export const ContextFilters = ({ filters, onFiltersChange, debugMode, onDebugModeChange }: ContextFiltersProps) => {
   const handleCompetencesChange = (competences: ContextFiltersType["competences"]) => {
     onFiltersChange({
       ...filters,
@@ -41,17 +46,23 @@ export const ContextFilters = ({ filters, onFiltersChange }: FilterProps) => {
     <div className={fr.cx("fr-container", "fr-mb-4w")}>
       <div className={fr.cx("fr-card", "fr-p-4w")}>
         <div className={fr.cx("fr-card__header")}>
-          <div className={fr.cx("fr-grid-row", "fr-grid-row--middle")} style={{ justifyContent: "space-between" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div>
-              <h2 className={fr.cx("fr-card__title", "fr-h4")}>Filtres de contexte</h2>
-              <p className={fr.cx("fr-card__desc", "fr-text--sm")}>
-                Sélectionnez les compétences, leviers et phases pour personnaliser les services affichés
-              </p>
+              <h2 className={fr.cx("fr-card__title", "fr-h4")}>Critères d&#39;affichage</h2>
             </div>
-            <Button priority="secondary" onClick={handleReset} disabled={!hasActiveFilters} size="small">
-              Réinitialiser
-            </Button>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <Button priority="primary" onClick={() => onDebugModeChange(!debugMode)} size="small">
+                {debugMode ? "Afficher les services en fonction du contexte" : "Afficher tous les services"}
+              </Button>
+              <Button priority="secondary" onClick={handleReset} disabled={!hasActiveFilters} size="small">
+                Réinitialiser
+              </Button>
+            </div>
           </div>
+          <p className={fr.cx("fr-card__desc", "fr-text--sm", "fr-mb-2w")}>
+            Sélectionnez les compétences, leviers et phases pour personnaliser les services affichés. Cet encart ne fait
+            pas partie du widget, mais permet de visualiser l&#39;affichage de services en fonction du contexte choisi.
+          </p>
         </div>
 
         <div className={fr.cx("fr-card__body")}>
