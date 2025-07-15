@@ -87,6 +87,7 @@ export class ServicesContextService {
     return newServiceContext;
   }
 
+  //todo might be useful to mutualize both methods between findMatchingServicesContext and getServiceContextByContext
   async findMatchingServicesContext(
     competences: CompetenceCodes | null,
     leviers: Leviers | null,
@@ -114,7 +115,8 @@ export class ServicesContextService {
     const filteredResults = allServiceContexts
       .filter((result) => this.filterByCompetencesAndLeviers(result, competences, leviers))
       .filter((result) => this.filterByPhase(result, projetPhase))
-      .filter((result) => this.filterByRegions(result, projetCollectivites));
+      .filter((result) => this.filterByRegions(result, projetCollectivites))
+      .filter(({ service_context }) => service_context.isListed);
 
     return this.mapToServiceResponse(filteredResults);
   }

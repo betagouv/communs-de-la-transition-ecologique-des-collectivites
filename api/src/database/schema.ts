@@ -134,7 +134,7 @@ export const serviceContext = pgTable(
     serviceId: uuid("service_id")
       .notNull()
       .references(() => services.id),
-    isListed: boolean("is_listed").notNull().default(true),
+    isListed: boolean("is_listed").notNull().default(false),
     // competences, leviers and phases can be NULL, to remove this field from the matching
     competences: text("competences").array().default([]),
     leviers: text("leviers").array().default([]),

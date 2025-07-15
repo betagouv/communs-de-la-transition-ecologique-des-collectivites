@@ -47,6 +47,7 @@ describe("Services (e2e)", () => {
       extraFields: [{ name: "surface", label: "Surface en m2" }],
       phases: [],
       regions: [],
+      isListed: true,
     };
 
     it("should reject when using regular API key", async () => {
@@ -119,6 +120,7 @@ describe("Services (e2e)", () => {
         leviers: ["Bio-carburants", "Covoiturage"],
         phases: ["Idée", "Étude"],
         regions: [],
+        isListed: true,
       };
 
       const serviceContextTwo: CreateServiceContextRequest = {
@@ -127,6 +129,7 @@ describe("Services (e2e)", () => {
         leviers: ["Surface en aire protégée"],
         phases: ["Idée", "Étude", "Opération"],
         regions: [],
+        isListed: true,
       };
 
       await serviceManagementApi.services.createContext(testServiceId, serviceContextOne);
