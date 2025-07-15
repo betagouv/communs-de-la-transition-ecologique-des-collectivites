@@ -1,0 +1,1 @@
+ALTER TABLE "service_context" ADD COLUMN "is_listed" boolean DEFAULT true NOT NULL;

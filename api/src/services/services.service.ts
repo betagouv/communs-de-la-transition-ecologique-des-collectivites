@@ -4,8 +4,8 @@ import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@logging/logger.service";
 import { projets, services } from "@database/schema";
-import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
-import { ServicesContextService } from "@/services/services-context.service";
+import { ServicesByProjectIdResponse } from "./dto/service.dto";
+import { ServicesContextService } from "./services-context.service";
 import { CompetenceCodes, IdType, Leviers } from "@/shared/types";
 
 @Injectable()

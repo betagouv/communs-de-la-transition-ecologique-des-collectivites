@@ -33,6 +33,7 @@ interface CsvContextRecord {
   leviers: string;
   status: string;
   extraFields: string;
+  isListed?: string;
 }
 
 type ParsedServiceContext = CreateServiceContextRequest & { serviceName: string };
@@ -114,6 +115,7 @@ function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItems
     redirectionLabel: makeNullIfEmptyString(record.redirectionLabel),
     extendLabel: makeNullIfEmptyString(record.extendLabel),
     iframeUrl: makeNullIfEmptyString(record.iframeUrl),
+    isListed: record.isListed === "FALSE" ? false : Boolean(record.isListed),
     extraFields: parseExtraField(record.extraFields),
     // todo add regions parsing logic
     regions: [],

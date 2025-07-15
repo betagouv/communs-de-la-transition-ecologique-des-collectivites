@@ -30,18 +30,7 @@ export class ServicesContextService {
       .innerJoin(services, eq(services.id, serviceContext.serviceId))
       .orderBy(services.name);
 
-    return allServicesContexts.map(({ services, service_context }) => ({
-      ...services,
-      description: service_context.description ?? services.description,
-      sousTitre: service_context.sousTitre ?? services.sousTitre,
-      logoUrl: service_context.logoUrl ?? services.logoUrl,
-      redirectionUrl: service_context.redirectionUrl ?? services.redirectionUrl,
-      redirectionLabel: service_context.redirectionLabel ?? services.redirectionLabel,
-      extendLabel: service_context.extendLabel ?? services.extendLabel,
-      iframeUrl: service_context.iframeUrl ?? services.iframeUrl,
-      // workaround to a specific jsonb array bug in drizzle https://github.com/drizzle-team/drizzle-orm/issues/2913
-      extraFields: (service_context.extraFields ?? []) as ExtraFieldConfig[],
-    }));
+    return this.mapToServiceResponse(allServicesContexts);
   }
 
   async create(
@@ -156,7 +145,8 @@ export class ServicesContextService {
     const filteredResults = allServiceContexts
       .filter((result) => this.filterByCompetencesAndLeviers(result, competences, leviers))
       .filter((result) => this.filterByPhasesArray(result, phases))
-      .filter((result) => this.filterByRegionsForContext(result));
+      .filter((result) => this.filterByRegionsForContext(result))
+      .filter(({ service_context }) => service_context.isListed);
 
     return this.mapToServiceResponse(filteredResults);
   }
@@ -238,6 +228,7 @@ export class ServicesContextService {
       extendLabel: service_context.extendLabel ?? services.extendLabel,
       iframeUrl: service_context.iframeUrl ?? services.iframeUrl,
       name: service_context.name ?? services.name,
+      isListed: service_context.isListed ?? services.isListed,
       // workaround to a specific jsonb array bug in drizzle https://github.com/drizzle-team/drizzle-orm/issues/2913
       extraFields: (service_context.extraFields ?? []) as ExtraFieldConfig[],
     }));

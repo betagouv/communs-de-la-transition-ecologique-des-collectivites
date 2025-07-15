@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsIn, IsOptional, IsString, IsUrl, ValidateIf } from "class-validator";
+import { IsArray, IsEnum, IsIn, IsOptional, IsString, IsUrl, ValidateIf, IsBoolean } from "class-validator";
 import { ProjetPhase, projetPhasesEnum, serviceContext } from "@database/schema";
 import { InferInsertModel } from "drizzle-orm";
 import { CompetenceCodes, Leviers } from "@/shared/types";
@@ -147,4 +147,12 @@ export class CreateServiceContextRequest implements Omit<InferInsertModel<typeof
   @IsArray()
   @IsOptional()
   extraFields?: { name: string; label: string }[] | null;
+
+  @ApiProperty({
+    description: "Whether the service context will be associated with projects",
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  isListed?: boolean;
 }
