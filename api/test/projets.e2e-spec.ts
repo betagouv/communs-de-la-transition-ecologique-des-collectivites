@@ -573,6 +573,9 @@ describe("Projets (e2e)", () => {
         mecId: "test-external-id",
         recocoId: null,
         tetId: null,
+        sosPontsId: null,
+        urbanVitalizId: null,
+        fondVertId: null,
         collectivites: [
           {
             codeInsee: mockedDefaultCollectivite.code,
