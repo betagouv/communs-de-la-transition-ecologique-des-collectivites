@@ -183,6 +183,13 @@
       "when": 1752573731718,
       "tag": "0025_loving_dark_beast",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1752744376266,
+      "tag": "0026_sour_vermin",
+      "breakpoints": true
     }
   ]
 }
