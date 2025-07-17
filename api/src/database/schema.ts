@@ -61,6 +61,9 @@ export const projets = pgTable("projets", {
   mecId: text("mec_id").unique(),
   tetId: text("tet_id").unique(),
   recocoId: text("recoco_id").unique(),
+  urbanVitalizId: text("urban_vitaliz_id").unique(),
+  sosPontsId: text("sos_ponts_id").unique(),
+  fondVertId: text("fond_vert_id").unique(),
 });
 
 export const collectivites = pgTable(

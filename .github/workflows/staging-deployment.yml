@@ -100,6 +100,9 @@ jobs:
           MEC_API_KEY: ${{ secrets.MEC_API_KEY }}
           TET_API_KEY: ${{ secrets.TET_API_KEY }}
           RECOCO_API_KEY: ${{ secrets.RECOCO_API_KEY }}
+          URBAN_VITALIZ_API_KEY: ${{ secrets.URBAN_VITALIZ_API_KEY }}
+          SOS_PONTS_API_KEY: ${{ secrets.SOS_PONTS_API_KEY }}
+          FOND_VERT_API_KEY: ${{ secrets.FOND_VERT_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SERVICE_MANAGEMENT_API_KEY: ${{ secrets.SERVICE_MANAGEMENT_API_KEY }}
           DATABASE_URL: postgres://postgres:mypassword@localhost:5433/e2e_test_db

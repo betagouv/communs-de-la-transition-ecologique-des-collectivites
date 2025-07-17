@@ -92,6 +92,9 @@ describe("ProjetFindService", () => {
     ),
     tetId: null,
     recocoId: null,
+    sosPontsId: null,
+    urbanVitalizId: null,
+    fondVertId: null,
   };
 
   describe("findAll", () => {

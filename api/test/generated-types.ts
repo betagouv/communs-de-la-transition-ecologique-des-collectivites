@@ -509,6 +509,8 @@ export interface components {
              *     ]
              */
             extraFields?: components["schemas"]["ExtraFieldConfig"][] | null;
+            /** @description Whether the service context will be associated with projects */
+            isListed?: boolean;
         };
         CreateServiceContextResponse: {
             id: string;
