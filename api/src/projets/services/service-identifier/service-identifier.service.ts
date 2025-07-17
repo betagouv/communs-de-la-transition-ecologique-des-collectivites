@@ -11,6 +11,12 @@ export class ServiceIdentifierService {
         return "tetId";
       case process.env.RECOCO_API_KEY:
         return "recocoId";
+      case process.env.URBAN_VITALIZ_API_KEY:
+        return "urbanVitalizId";
+      case process.env.SOS_PONTS_API_KEY:
+        return "sosPontsId";
+      case process.env.FOND_VERT_API_KEY:
+        return "fondVertId";
       default:
         throw new UnauthorizedException("Invalid API key");
     }

@@ -91,6 +91,60 @@ describe("Projets (e2e)", () => {
       });
     });
 
+    it("should create a valid projet with UrbanVitaliz api key", async () => {
+      const urbanVitalizClient = createApiClient(process.env.URBAN_VITALIZ_API_KEY);
+
+      const { data, error } = await urbanVitalizClient.projets.create({
+        ...validProjet,
+        externalId: "UrbanVitaliz-service-id",
+      });
+      expect(error).toBeUndefined();
+      expect(data).toHaveProperty("id");
+
+      const { data: updatedProjet } = await api.projets.getOne(data!.id);
+
+      expect(updatedProjet).toMatchObject({
+        competences: ["90-411", "90-311"],
+        urbanVitalizId: "UrbanVitaliz-service-id",
+      });
+    });
+
+    it("should create a valid projet with SosPonts api key", async () => {
+      const sosPontsClient = createApiClient(process.env.SOS_PONTS_API_KEY);
+
+      const { data, error } = await sosPontsClient.projets.create({
+        ...validProjet,
+        externalId: "SosPonts-service-id",
+      });
+      expect(error).toBeUndefined();
+      expect(data).toHaveProperty("id");
+
+      const { data: updatedProjet } = await api.projets.getOne(data!.id);
+
+      expect(updatedProjet).toMatchObject({
+        competences: ["90-411", "90-311"],
+        sosPontsId: "SosPonts-service-id",
+      });
+    });
+
+    it("should create a valid projet with FondVert api key", async () => {
+      const fondVertClient = createApiClient(process.env.FOND_VERT_API_KEY);
+
+      const { data, error } = await fondVertClient.projets.create({
+        ...validProjet,
+        externalId: "FondVert-service-id",
+      });
+      expect(error).toBeUndefined();
+      expect(data).toHaveProperty("id");
+
+      const { data: updatedProjet } = await api.projets.getOne(data!.id);
+
+      expect(updatedProjet).toMatchObject({
+        competences: ["90-411", "90-311"],
+        fondVertId: "FondVert-service-id",
+      });
+    });
+
     it("should update competence when not provided", async () => {
       const mecClient = createApiClient(process.env.MEC_API_KEY);
 

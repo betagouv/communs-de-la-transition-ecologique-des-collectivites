@@ -26,6 +26,9 @@ export class ApiKeyGuard implements CanActivate {
       [this.configService.get<string>("MEC_API_KEY")!]: "MEC",
       [this.configService.get<string>("TET_API_KEY")!]: "TeT",
       [this.configService.get<string>("RECOCO_API_KEY")!]: "Recoco",
+      [this.configService.get<string>("URBAN_VITALIZ_API_KEY")!]: "UrbanVitaliz",
+      [this.configService.get<string>("SOS_PONTS_API_KEY")!]: "SosPonts",
+      [this.configService.get<string>("FOND_VERT_API_KEY")!]: "FondVert",
     };
   }
 
