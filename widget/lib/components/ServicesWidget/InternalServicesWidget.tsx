@@ -4,6 +4,7 @@ import { Service } from "./Service.tsx";
 import styles from "./InternalServicesWidget.module.css";
 import { Service as ServiceType, ServicesWidgetProps } from "./types.ts";
 import { useServicesWidgetData } from "./useServicesWidgetData.ts";
+import NoServiceFound from "./NoServiceFound.tsx";
 
 export const InternalServicesWidget = (props: ServicesWidgetProps) => {
   const {
@@ -16,11 +17,9 @@ export const InternalServicesWidget = (props: ServicesWidgetProps) => {
 
   const { projectId, idType = "communId", isStagingEnv, debug } = props;
 
-  // do not display anything while we don't know if there are any services or there are no services
+  // do not display anything while we don't know if there are any services
   // and if we don't have related info for the project (only in mode projet)
   if (isLoading) return null;
-
-  if (servicesData?.length === 0) return <div>No service displayed</div>;
 
   //todo see with Mathieu Lejeune a proper error handling design
   if (error) return <div>Error: {error.message}</div>;
@@ -46,6 +45,7 @@ export const InternalServicesWidget = (props: ServicesWidgetProps) => {
         role="list"
         aria-label="Liste des services disponibles"
       >
+        {servicesData?.length === 0 && <NoServiceFound />}
         {(servicesData ?? []).map((service: ServiceType) => (
           <div key={`${service.name}-${service.description}`} role="listitem">
             <Service
