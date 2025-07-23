@@ -87,7 +87,7 @@ export class GeoService {
     };
 
     // we process communes and epci in 2 stage because the unique constraint from the DB
-    // change for communes and epci, needing a different conflict targeting
+    // change for communes and epci, needing a different conflict target
     for (let i = 0; i < communes.length; i += BATCH_SIZE) {
       const batch = communes.slice(i, i + BATCH_SIZE);
 
