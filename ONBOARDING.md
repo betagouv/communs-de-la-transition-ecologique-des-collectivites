@@ -2,10 +2,12 @@
 
 ## Contexte / Intro :
 
-Pour une overview générale de ce qu’est Les communs, 2 ressources pertinentes :
+Pour une overview générale rapide de ce qu’est Les communs, 3 ressources pertinentes :
 
 - [slides du comité d’investissement de juin 2025](https://docs.google.com/presentation/d/1WFPPXCrX-OJswVqj3dFu_2OlhYHjX2Lnidyl4wXok-8/edit?slide=id.g33d28688783_0_1490#slide=id.g33d28688783_0_1490) qui retracent l’histoire et la roadmap à venir des Communs
 - [doc readme du repo](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/blob/main/README.md) qui dispatch ensuite vers les docs utiles
+- [fiche produit beta gouv](https://beta.gouv.fr/startups/communs-de-la-transition-ecologique-des-collectivites.html)
+
 
 ## Onboarding technique
 
@@ -76,13 +78,22 @@ Le script est censé être résilient sur les updates annuelles (certaines infos
 </details>
 
 <details>
-<summary>Run e2e test locally</summary>  
+<summary>Run e2e test locally (for api)</summary>  
 
 Les tests e2e de l’api ont besoin de python pour s’executer. (nous avons un script python pour gérer l’appel au LLM Anthropic) Il faut donc avoir python d’installer dans son env de travail. Personelement j’utilisais [un environnement virtuel](https://www.w3schools.com/python/python_virtualenv.asp).  Le fait d’utiliser du python est de la dette technique car nous avons importé directement le code que Louis avait produit dans ces analyses de data. Il conviendrait de changer ce bout de code pour du typescript surtout que les SDK node/Typescript des différents LLM sont tous dispos
 </details>
 
+<details>
+<summary>Publish a new widget version package to npm</summary>  
+
+Simplement suivre la [procédure documentée dans le readme du widget](widget/README.md#publishing)
+</details>
+
 ### **Liens utiles :**
 
+- [repo](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/tree/main)
+- [backlog github](https://github.com/orgs/betagouv/projects/129/views/1)
+- [swagger staging](https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/api)
 - [vaultWarden](https://doc.incubateur.net/communaute/les-outils-de-la-communaute/autres-services/vaultwarden) : c’est le lien vers la doc, il faut que Denis t’invite sur le vaultWarden pour l’administrer et y avoir accès. On l’utilise principalement pour partager de manière sécure les clefs api des services tiers
 - [matomo dev/staging](https://stats.beta.gouv.fr/index.php?module=CoreHome&action=index&idSite=201&period=day&date=yesterday#?period=day&date=2025-05-26&idSite=201&category=Dashboard_Dashboard&subcategory=1) et [matomo prod](https://stats.beta.gouv.fr/index.php?module=CoreHome&action=index&idSite=217&period=day&date=yesterday#?period=day&date=2025-05-26&idSite=217&category=Dashboard_Dashboard&subcategory=1) (on a aussi un site ID pour le widget grist)
 - [scalingo dev](https://dashboard.scalingo.com/apps/osc-fr1/les-communs-transition-ecologique-api-staging) et [scalingo prod](https://dashboard.scalingo.com/apps/osc-fr1/les-communs-transition-ecologique-api-prod)
@@ -90,42 +101,60 @@ Les tests e2e de l’api ont besoin de python pour s’executer. (nous avons un 
 - [lien vers la demo du widget](https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/sandbox/)
 - [page statistique](https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/statistics/)
 
-### Roadmap technique
+### **Accès à demander:**
+Il faut demander à Denis les accès à : 
+- Scalingo (les liens ci-dessus)
+- Matomo (les sites Id ci-dessus)
+- Vaultwarden (pour qu'il donne les accès au vault les communs)
+- accès github au repo et au board
+- orga npm betagouv pour le package du widget
+
+Il faut demander à Jean les accès à :
+- les pages pertinentes de son notion 
+- les présentations 
+
+
+### Roadmap technique (wip)
+
+Outre la roadmap de feature, j'ai mis ici les aspects techniques qui je pense mériterait d'être travaillé. Ca reste mon opinion et challengeable.
+- mise en place renovate
+- faire remonter les erreurs de qualif dans sentry
+- avoir de l’alerting mattermost sur les erreurs dans Sentry
+- introduire versioning dans l’API
+- switcher des scripts python vers le sdk typescript d’anthropic
+- surveiller la pertinence des services proposé
+- reconciliation projet dupplication
+- mention de l’iframe Facilitact qui pète
+- Améliorer la CI (plusieurs petites améliorations possibles)
+- Mettre en place renovate
+
+### Utilisation LLM 
+
+Nous utilisons les LLM pour classifier les projets et leur assigner des leviers et des compétences en fonction de leur description. 
+
+Un gros travail de documentation et d'analyse a été fait par Louis (notre ancien data analyste) Ce travail est disponible sur [le notion de Jean](https://www.notion.so/13ebde078be0805e9669ee108021b8b4?v=65885a228f6142eab388eb91d41fc188) 
 
 ### Suivi intégration service
 
+Nous intégrons les services au fur et à mesure pour qu'ils soient présent dans le widget. Un travail de recencesement a été fait.  
+
+La liste est disponible ici (Notion de Jean) : https://www.notion.so/10dbde078be080b89a7aeb14caa9a952?v=fffbde078be081649899000ce0132ace&source=copy_link
+
+Pour le moment nous avons contacté principalement les P1 pour les intégrations avancées en iframe. Sur les intégrations simples (juste du contenu et un lien) nous avons pris la liberté de faire le premier jet.
+
+Un deuxième doc existe ou je fais le suivi de l'intégration technique pour les services avec iframe : https://docs.google.com/spreadsheets/d/1YkBWNYhoo9KpUg8OIkdbfenXkFMjxHYW89qDnIGAe0c/edit?gid=0#gid=0
+
+
 ### Divers
-
-**Liens pertinents :**
-
-- [ ]  passer à travers les urls
 
 **Plusieurs canaux ou se faire inviter sur mattermost :**
 
 
-
-**Point à couvrir :**
-
-- ajouter comment ouvrir un tunnel se connecter à la DB
-- présentation des équipes de dev et des différents points de contact dev dans les plateformes + services
-
-A faire :
+Reste à faire dans la doc :
 
 - [ ]  Changer la clef API pour Anthropic
 - [ ]  Passer à travers les sujets de la roadmap et mettre le détail dans les tickets + prioriser le backlog
-- [ ]  Lister tous les accès
-- [ ]  Lister toutes les urls pertinentes (voir dans mes favoris)
 - [ ]  refaire un tour de roue sur les services avec lesquels j’ai discuté pour laisser des instructions claires de ou on en est.
-- [ ]  Documenter le rate limiting
 - [ ]  Passer à travers le backlog et faire le ménage dans les metada
-- [ ]  donner accès au package npm
 
-**Roadmap technique :**
 
-- faire remonter les erreurs de qualif dans sentry
-- avoir de l’alerting mattermost sur les erreurs dans Sentry
-- introduire versionning dans l’API
-- switcher des scripts python vers le sdk typescript d’anthropic
-- pertinence algo matching
-- reconciliation projet dupplication
-- mention de l’iframe Facilitact qui pète

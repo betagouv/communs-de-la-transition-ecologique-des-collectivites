@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.3.3
+
+### Minor Changes
+
+- add fallback screen / msg when no service are displayed
+
 ## 0.3.2
 
 ### Minor Changes
