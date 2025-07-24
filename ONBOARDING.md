@@ -144,6 +144,9 @@ Pour le moment nous avons contacté principalement les P1 pour les intégrations
 
 Un deuxième doc existe ou je fais le suivi de l'intégration technique pour les services avec iframe : https://docs.google.com/spreadsheets/d/1YkBWNYhoo9KpUg8OIkdbfenXkFMjxHYW89qDnIGAe0c/edit?gid=0#gid=0
 
+L'intégration des services est aussi matérialisé dans le backlog dans une colonne spécifique ou je mettais à jour l'avancement. Mais je ne trouve pas le format adéquat (le backlog ne se prete pas à un suivi qui représente l'avancement d'une tache qui a plusieurs stades d'avancement)
+
+Je conseille de faire le suivi global dans le gsheet et de créer des taches adhoc dans le backlog pour matérialiser le travail sur une tache spécifique
 
 ### Divers
 
