@@ -101,3 +101,10 @@ localhost (pour nos tests)
 
 - https://monespacecollectivite.anct.gouv.fr
 - https://app.territoiresentransitions.fr
+
+A l'inverse si les plateformes hôtes du widget ont des CSP, elles doivent autoriser les domaines suivant pour que les iframe s'affichent correctement :
+
+- https://benefriches-staging.osc-fr1.scalingo.io/
+- https://facili-tacct.incubateur.ademe.dev/
+- https://lvao.ademe.fr/
+- https://quefairedemesdechets.ademe.fr/
