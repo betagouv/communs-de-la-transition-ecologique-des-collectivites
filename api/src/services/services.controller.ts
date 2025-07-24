@@ -86,7 +86,7 @@ export class ServicesController {
     @Query(new ValidationPipe())
     query: GetServicesByContextQuery,
   ) {
-    return this.serviceContextService.getServiceContextByContext(
+    return this.serviceContextService.findMatchingServicesContext(
       // if competences or leviers are omitted
       // that means we remove this criteria by passing null to the matching algorithm
       query.competences ?? null,
