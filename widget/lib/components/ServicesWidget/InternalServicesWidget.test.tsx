@@ -73,6 +73,46 @@ describe("LesCommuns", () => {
     expect(screen.getByText("Description for service 2")).toBeInTheDocument();
   });
 
+  it("displays no service found message when no services are returned", async () => {
+    server.use(
+      http.get("http://localhost:3000/services/project/:projectId", () => {
+        return HttpResponse.json([]);
+      }),
+    );
+
+    render(<ServicesWidget projectId="123" />);
+
+    await screen.findByText("Aucun service pertinent identifié");
+    expect(
+      screen.getByText(
+        "Nous travaillons à ajouter de nouveaux services pour couvrir plus de thématiques et de projets.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("displays no service found message when no services are returned for context search", async () => {
+    const context = {
+      competences: ["90-11" as CompetenceCode],
+      leviers: ["Gestion des haies" as Levier],
+      phases: ["Idée" as ProjetPhase],
+    };
+
+    server.use(
+      http.get("http://localhost:3000/services/search/context", () => {
+        return HttpResponse.json([]);
+      }),
+    );
+
+    render(<ServicesWidget context={context} />);
+
+    await screen.findByText("Aucun service pertinent identifié");
+    expect(
+      screen.getByText(
+        "Nous travaillons à ajouter de nouveaux services pour couvrir plus de thématiques et de projets.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("should display extra field input when project has no extra field associated yet", async () => {
     render(<ServicesWidget projectId="123" />);
 
