@@ -248,6 +248,12 @@ const fetchServicesByContext = async (
     });
   }
 
+  if (context?.regions?.length) {
+    context.regions.forEach((region) => {
+      params.append("regions", region);
+    });
+  }
+
   const url = `${apiUrl}/services/search/context?${params.toString()}`;
   const response = await fetch(url);
 
