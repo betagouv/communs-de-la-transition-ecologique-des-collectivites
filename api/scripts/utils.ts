@@ -1,7 +1,7 @@
 export function parseFieldToArray(
   field: string,
   validList: readonly string[],
-  mode: "competence" | "levier" | "phases",
+  mode: "competence" | "levier" | "phases" | "region",
   invalidItemsFile: string[],
 ): string[] | null {
   if (field === "NULL") {

@@ -23,5 +23,4 @@ export const REGION_CODES = {
 } as const;
 
 export type RegionCode = keyof typeof REGION_CODES;
-
 export const regionCodes = Object.keys(REGION_CODES) as RegionCode[];
