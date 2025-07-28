@@ -2,6 +2,7 @@ import { createApiClient } from "./helpers/api-client";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
 import { CompetenceCode, Levier, Leviers } from "@/shared/types";
 import { ProjetPhase } from "@database/schema";
+import { ILE_DE_FRANCE_REGION_CODE, VAL_DE_LOIRE_REGION_CODE } from "@test/mocks/mockCollectivites";
 
 describe("Services (e2e)", () => {
   const serviceManagementApi = createApiClient(process.env.SERVICE_MANAGEMENT_API_KEY);
@@ -119,7 +120,7 @@ describe("Services (e2e)", () => {
         competences: ["90-411", "90-311"],
         leviers: ["Bio-carburants", "Covoiturage"],
         phases: ["Idée", "Étude"],
-        regions: [],
+        regions: [ILE_DE_FRANCE_REGION_CODE],
         isListed: true,
       };
 
@@ -141,6 +142,7 @@ describe("Services (e2e)", () => {
         phases: ["Étude", "Opération", "Idée"],
         competences: ["all"],
         leviers: ["all"],
+        regions: ["all"],
       });
 
       expect(data!.length).toBe(2);
@@ -150,6 +152,7 @@ describe("Services (e2e)", () => {
       const { data, error } = await clientPublicApi.services.getByContext({
         phases: ["Opération"],
         competences: ["all"],
+        regions: ["all"],
       });
 
       expect(error).toBeUndefined();
@@ -161,6 +164,7 @@ describe("Services (e2e)", () => {
       const { data, error } = await clientPublicApi.services.getByContext({
         leviers: ["Bio-carburants"] as Leviers,
         phases: ["Étude", "Opération", "Idée"],
+        regions: ["all"],
       });
 
       expect(error).toBeUndefined();
@@ -172,6 +176,19 @@ describe("Services (e2e)", () => {
       const { data, error } = await clientPublicApi.services.getByContext({
         competences: ["90-71"],
         phases: ["Étude", "Opération", "Idée"],
+        regions: ["all"],
+      });
+
+      expect(error).toBeUndefined();
+      expect(data!.length).toBe(1);
+      expect(data![0].description).toBe("serviceContextTwo Description");
+    });
+
+    it("should return services with corresponding regions", async () => {
+      const { data, error } = await clientPublicApi.services.getByContext({
+        competences: ["all"],
+        phases: ["Étude", "Opération", "Idée"],
+        regions: [VAL_DE_LOIRE_REGION_CODE],
       });
 
       expect(error).toBeUndefined();
@@ -184,6 +201,7 @@ describe("Services (e2e)", () => {
         competences: ["90-314"],
         leviers: ["Efficacité et sobriété logistique"],
         phases: ["Étude", "Opération", "Idée"],
+        regions: ["all"],
       });
 
       expect(error).toBeUndefined();
@@ -195,6 +213,7 @@ describe("Services (e2e)", () => {
         competences: ["90-10000" as CompetenceCode],
         phases: ["Étude", "Opération", "Idée"],
         leviers: ["all"],
+        regions: ["all"],
       });
 
       expect(error).toBeDefined();
@@ -206,6 +225,7 @@ describe("Services (e2e)", () => {
         leviers: ["Invalid-Levier" as Levier],
         competences: ["all"],
         phases: ["Étude", "Opération", "Idée"],
+        regions: ["all"],
       });
 
       expect(error).toBeDefined();
@@ -217,6 +237,7 @@ describe("Services (e2e)", () => {
         phases: ["Invalid-Phase" as ProjetPhase],
         competences: ["all"],
         leviers: ["all"],
+        regions: ["all"],
       });
 
       expect(error).toBeDefined();

@@ -7,6 +7,7 @@ import { projets, services } from "@database/schema";
 import { ServicesByProjectIdResponse } from "./dto/service.dto";
 import { ServicesContextService } from "./services-context.service";
 import { CompetenceCodes, IdType, Leviers } from "@/shared/types";
+import { RegionCode } from "@/shared/const/region-codes";
 
 @Injectable()
 export class ServicesService {
@@ -72,11 +73,15 @@ export class ServicesService {
 
     const projectCollectivites = project.collectivites.map((relation) => relation.collectivite);
 
+    const codeRegionsFromProject = projectCollectivites.flatMap(
+      (collectivite) => (collectivite.codeRegions as RegionCode[]) ?? [],
+    );
+
     return this.serviceContextService.findMatchingServicesContext(
       project.competences as CompetenceCodes,
       project.leviers as Leviers,
       project.phase,
-      projectCollectivites,
+      codeRegionsFromProject,
     );
   }
 }

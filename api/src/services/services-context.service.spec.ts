@@ -6,7 +6,7 @@ import { CreateServiceContextRequest } from "./dto/create-service-context.dto";
 import { ConflictException, NotFoundException } from "@nestjs/common";
 import { ServicesService } from "./services.service";
 import { CreateServiceRequest } from "@/services/dto/create-service.dto";
-import { ILE_DE_FRANCE_REGION_CODE, mockCollectivites, VAL_DE_LOIRE_REGION_CODE } from "@test/mocks/mockCollectivites";
+import { ILE_DE_FRANCE_REGION_CODE, VAL_DE_LOIRE_REGION_CODE } from "@test/mocks/mockCollectivites";
 
 describe("ServiceContextService", () => {
   let serviceContextService: ServicesContextService;
@@ -43,7 +43,9 @@ describe("ServiceContextService", () => {
       isListed: true,
     };
     it("should return empty array when no competences , leviers and project phases provided", async () => {
-      const result = await serviceContextService.findMatchingServicesContext(null, null, null, mockCollectivites);
+      const result = await serviceContextService.findMatchingServicesContext(null, null, null, [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
       expect(result).toEqual([]);
     });
 
@@ -69,7 +71,7 @@ describe("ServiceContextService", () => {
         ["90-411"],
         ["Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -106,7 +108,7 @@ describe("ServiceContextService", () => {
         ["90-411"],
         ["Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -136,7 +138,7 @@ describe("ServiceContextService", () => {
         ["90-411"],
         ["Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -171,7 +173,7 @@ describe("ServiceContextService", () => {
         ["90-411", "90-311"],
         null,
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -219,7 +221,7 @@ describe("ServiceContextService", () => {
         ["90-411", "90-311"],
         null,
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -257,7 +259,7 @@ describe("ServiceContextService", () => {
         ["90-411", "90-311"],
         null,
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -276,12 +278,9 @@ describe("ServiceContextService", () => {
         extraFields: [],
       });
 
-      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
       expect(otherServiceContexts).toHaveLength(1);
     });
 
@@ -298,12 +297,9 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -327,7 +323,7 @@ describe("ServiceContextService", () => {
         null,
         ["Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(0);
@@ -348,12 +344,9 @@ describe("ServiceContextService", () => {
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any competence
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        null,
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -376,7 +369,7 @@ describe("ServiceContextService", () => {
         null,
         ["Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -395,12 +388,9 @@ describe("ServiceContextService", () => {
         extraFields: [],
       });
 
-      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
       expect(otherServiceContexts).toHaveLength(1);
     });
 
@@ -422,7 +412,7 @@ describe("ServiceContextService", () => {
         ["90-411", "90-311"],
         null,
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -459,7 +449,7 @@ describe("ServiceContextService", () => {
         null,
         ["Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -494,12 +484,9 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-41"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-41"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -517,12 +504,9 @@ describe("ServiceContextService", () => {
         extraFields: [],
       });
 
-      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const otherServiceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
       expect(otherServiceContexts).toHaveLength(1);
     });
 
@@ -539,12 +523,9 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        null,
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, null, [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -569,7 +550,7 @@ describe("ServiceContextService", () => {
         ["90-411"],
         ["Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(0);
@@ -594,7 +575,7 @@ describe("ServiceContextService", () => {
         ["90-411"],
         ["Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(0);
@@ -617,7 +598,7 @@ describe("ServiceContextService", () => {
         ["90-411"],
         ["Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -645,12 +626,9 @@ describe("ServiceContextService", () => {
       await serviceContextService.create(service.id, createContextDto);
 
       // Should match any etape
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-41"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-41"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -683,12 +661,9 @@ describe("ServiceContextService", () => {
 
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        null,
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, null, [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -707,12 +682,9 @@ describe("ServiceContextService", () => {
 
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        null,
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -731,12 +703,9 @@ describe("ServiceContextService", () => {
 
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        null,
-        ["Bio-carburants"],
-        null,
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, ["Bio-carburants"], null, [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -769,7 +738,7 @@ describe("ServiceContextService", () => {
         ["90-51", "90-518"],
         ["Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(2);
@@ -803,7 +772,7 @@ describe("ServiceContextService", () => {
         ["90-41", "90-518"],
         null,
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(2);
@@ -837,7 +806,7 @@ describe("ServiceContextService", () => {
         null,
         ["Covoiturage", "Bio-carburants"],
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(2);
@@ -857,12 +826,9 @@ describe("ServiceContextService", () => {
 
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        null,
-        null,
-        null,
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(null, null, null, [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -880,12 +846,9 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-851"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-851"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0]).toEqual({
@@ -921,7 +884,7 @@ describe("ServiceContextService", () => {
         ["90-851", "90-852"],
         null,
         "Idée",
-        mockCollectivites,
+        [ILE_DE_FRANCE_REGION_CODE],
       );
 
       expect(serviceContexts).toHaveLength(1);
@@ -954,12 +917,9 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-85"],
-        null,
-        null,
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-85"], null, null, [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -975,12 +935,9 @@ describe("ServiceContextService", () => {
         isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        null,
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, null, [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
       expect(serviceContexts).toHaveLength(1);
     });
 
@@ -996,12 +953,9 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0].name).toBe(service.name);
@@ -1014,17 +968,14 @@ describe("ServiceContextService", () => {
         competences: ["90-411"],
         phases: [],
         leviers: [],
-        regions: [ILE_DE_FRANCE_REGION_CODE], // Île-de-France (matches mockCollectivites)
+        regions: [ILE_DE_FRANCE_REGION_CODE], // Île-de-France (matches [ILE_DE_FRANCE_REGION_CODE])
         isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0].name).toBe(service.name);
@@ -1037,17 +988,14 @@ describe("ServiceContextService", () => {
         competences: ["90-411"],
         phases: [],
         leviers: [],
-        regions: [VAL_DE_LOIRE_REGION_CODE], // Centre-Val de Loire (does not match mockCollectivites which has "11")
+        regions: [VAL_DE_LOIRE_REGION_CODE], // Centre-Val de Loire (does not match [ILE_DE_FRANCE_REGION_CODE] which has "11")
         isListed: true,
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(0);
     });
@@ -1064,12 +1012,9 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        "Idée",
-        mockCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0].name).toBe(service.name);
@@ -1087,29 +1032,10 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const multipleCollectivites = [
-        ...mockCollectivites,
-        {
-          id: "collectivite-2",
-          nom: "Tours",
-          type: "Commune" as const,
-          codeInsee: "37261",
-          codeDepartements: ["37"],
-          codeRegions: [VAL_DE_LOIRE_REGION_CODE], // Centre-Val de Loire
-          codeEpci: "243700754",
-          siren: "213726140",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          isListed: false,
-        },
-      ];
-
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        "Idée",
-        multipleCollectivites,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, "Idée", [
+        ILE_DE_FRANCE_REGION_CODE,
+        VAL_DE_LOIRE_REGION_CODE,
+      ]);
 
       expect(serviceContexts).toHaveLength(1);
       expect(serviceContexts[0].name).toBe(service.name);
@@ -1127,27 +1053,7 @@ describe("ServiceContextService", () => {
       };
       await serviceContextService.create(service.id, createContextDto);
 
-      const collectivitesWithoutRegions = [
-        {
-          id: "collectivite-no-regions",
-          nom: "No Regions",
-          type: "Commune" as const,
-          codeInsee: "12345",
-          codeDepartements: ["12"],
-          codeRegions: [], // No regions
-          codeEpci: "123456789",
-          siren: "123456789",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ];
-
-      const serviceContexts = await serviceContextService.findMatchingServicesContext(
-        ["90-411"],
-        null,
-        "Idée",
-        collectivitesWithoutRegions,
-      );
+      const serviceContexts = await serviceContextService.findMatchingServicesContext(["90-411"], null, "Idée", []);
 
       expect(serviceContexts).toHaveLength(0);
     });

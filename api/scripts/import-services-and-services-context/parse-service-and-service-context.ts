@@ -124,7 +124,7 @@ function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItems
     iframeUrl: makeNullIfEmptyString(record.iframeUrl),
     isListed: record.isListed === "FALSE" ? false : Boolean(record.isListed),
     extraFields: parseExtraField(record.extraFields),
-    // todo add regions parsing logic
+    // regions codes cannot be null during import
     regions: parsedRegions! as RegionCode[],
   };
 }

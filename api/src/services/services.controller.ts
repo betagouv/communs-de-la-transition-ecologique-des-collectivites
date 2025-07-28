@@ -92,6 +92,7 @@ export class ServicesController {
       query.competences ?? null,
       query.leviers ?? null,
       query.phases,
+      query.regions,
     );
   }
 

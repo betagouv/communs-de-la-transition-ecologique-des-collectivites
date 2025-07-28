@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { collectivites, ProjetPhase, serviceContext, services } from "@database/schema";
+import { ProjetPhase, serviceContext, services } from "@database/schema";
 import { and, eq, InferSelectModel, sql } from "drizzle-orm";
 import { CompetenceCodes, Leviers } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
@@ -8,13 +8,13 @@ import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/ser
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { ExtraFieldConfig } from "./dto/extra-fields-config.dto";
 import { RegionCode } from "@/shared/const/region-codes";
+
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 
 interface JoinResult {
   services: InferSelectModel<typeof services>;
   service_context: InferSelectModel<typeof serviceContext>;
 }
-type Collectivite = InferSelectModel<typeof collectivites>;
 
 @Injectable()
 export class ServicesContextService {
@@ -91,7 +91,7 @@ export class ServicesContextService {
     competences: CompetenceCodes | null,
     leviers: Leviers | null,
     phase: ProjetPhase | ProjetPhase[] | null,
-    projetCollectivites: Collectivite[] = [],
+    regionCodes: RegionCode[] = [],
   ): Promise<ServicesByProjectIdResponse[]> {
     // If no criteria provided, return empty array
     if (!competences?.length && !leviers?.length && !phase) {
@@ -106,15 +106,15 @@ export class ServicesContextService {
       .where(
         and(
           eq(services.isListed, true),
-          // At least one of competences, leviers, or phases must not be null
-          sql`NOT (${serviceContext.competences} IS NULL AND ${serviceContext.leviers} IS NULL AND ${serviceContext.phases} IS NULL)`,
+          // At least one of competences or leviers must not be null as this is the main criteria to display the service
+          sql`NOT (${serviceContext.competences} IS NULL AND ${serviceContext.leviers} IS NULL)`,
         ),
       );
 
     const filteredResults = allServiceContexts
       .filter((result) => this.filterByCompetencesAndLeviers(result, competences, leviers))
       .filter((result) => this.filterByPhases(result, phase))
-      .filter((result) => this.filterByRegions(result, projetCollectivites))
+      .filter((result) => this.filterByRegions(result, regionCodes))
       .filter(({ service_context }) => service_context.isListed);
 
     return this.mapToServiceResponse(filteredResults);
@@ -156,14 +156,11 @@ export class ServicesContextService {
     return phases.some((phase) => service_context.phases?.includes(phase));
   }
 
-  private filterByRegions({ service_context }: JoinResult, projetCollectivites: Collectivite[]) {
-    // For context-based queries, we don't filter by regions since we don't have project collectivites
+  private filterByRegions({ service_context }: JoinResult, regionCodes: RegionCode[]) {
     // Service contexts with empty regions array match all regions
     if (service_context.regions?.length === 0) return true;
 
-    const codeRegionsFromProject = projetCollectivites.flatMap((collectivite) => collectivite.codeRegions ?? []);
-
-    return codeRegionsFromProject.some((regionCode) => service_context.regions?.includes(regionCode as RegionCode));
+    return regionCodes.some((regionCode) => service_context.regions?.includes(regionCode));
   }
 
   private mapToServiceResponse(results: JoinResult[]): ServicesByProjectIdResponse[] {

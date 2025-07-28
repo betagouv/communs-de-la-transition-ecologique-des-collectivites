@@ -324,8 +324,8 @@ importers:
   widget-sandbox:
     dependencies:
       '@betagouv/les-communs-widget':
-        specifier: 0.3.2
-        version: 0.3.2(@codegouvfr/react-dsfr@1.23.3)(@types/react@19.1.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: 0.3.4
+        version: 0.3.4(@codegouvfr/react-dsfr@1.23.3)(@types/react@19.1.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@codegouvfr/react-dsfr':
         specifier: ^1.22.5
         version: 1.23.3
@@ -614,8 +614,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@betagouv/les-communs-widget@0.3.2':
-    resolution: {integrity: sha512-Ssz04BYWkB9mgxbjXGRoLyIUomROR2pf4/z92W3y624PPHvQsc1u6ifFrgOHVVlfVzkg70Ov5XxtewL/DrtJyA==}
+  '@betagouv/les-communs-widget@0.3.4':
+    resolution: {integrity: sha512-98Jru9OK/4lT7XK9tlYqDKGkSP2O9INUavvMjWCtcy+STaqLgbqLDPYbxI3uxb6mMKq9vjPWNcQg9plPSEZaug==}
     peerDependencies:
       '@codegouvfr/react-dsfr': ^1.14.6
       react: ^18.0.0 || ^19.0.0
@@ -6933,7 +6933,7 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@betagouv/les-communs-widget@0.3.2(@codegouvfr/react-dsfr@1.23.3)(@types/react@19.1.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@betagouv/les-communs-widget@0.3.4(@codegouvfr/react-dsfr@1.23.3)(@types/react@19.1.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@codegouvfr/react-dsfr': 1.23.3
       '@emotion/react': 11.14.0(@types/react@19.1.2)(react@19.1.0)
