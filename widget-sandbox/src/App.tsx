@@ -11,6 +11,7 @@ function App() {
     competences: ["all"],
     leviers: ["all"],
     phases: ["Opération", "Idée", "Étude"],
+    regions: ["all"],
   });
 
   return (

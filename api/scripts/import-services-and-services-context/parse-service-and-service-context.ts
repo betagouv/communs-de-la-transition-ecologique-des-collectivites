@@ -7,6 +7,7 @@ import { CreateServiceRequest } from "@/services/dto/create-service.dto";
 import { CreateServiceContextRequest } from "@/services/dto/create-service-context.dto";
 import { competencesFromM57Referentials } from "@/shared/const/competences-list";
 import { makeNullIfEmptyString, parseExtraField, parseFieldToArray } from "../utils";
+import { REGION_CODES, RegionCode } from "@/shared/const/region-codes";
 
 interface CsvRecord {
   name: string;
@@ -30,6 +31,7 @@ interface CsvContextRecord {
   extendLabel?: string;
   iframeUrl?: string;
   competences: string;
+  regions: string;
   leviers: string;
   status: string;
   extraFields: string;
@@ -88,8 +90,8 @@ export async function parseServiceAndServiceContextsCSVFiles(
 
 function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItemsFile: string[]): ParsedServiceContext {
   const parsedLeviers = record.leviers ? parseFieldToArray(record.leviers, leviers, "levier", invalidItemsFile) : [];
-  const competenceCodes = getCompetencesCodeFromLabels(record.competences);
 
+  const competenceCodes = getCompetencesCodeFromLabels(record.competences);
   const parsedCompetences = competenceCodes
     ? parseFieldToArray(
         competenceCodes,
@@ -97,6 +99,11 @@ function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItems
         "competence",
         invalidItemsFile,
       )
+    : [];
+
+  const regionCodes = getRegionsFromLabels(record.regions);
+  const parsedRegions = regionCodes
+    ? parseFieldToArray(regionCodes, Object.keys(REGION_CODES) as RegionCode[], "region", invalidItemsFile)
     : [];
 
   const parsedStatus = record.status
@@ -117,8 +124,8 @@ function parseServiceContextFromCsvRecord(record: CsvContextRecord, invalidItems
     iframeUrl: makeNullIfEmptyString(record.iframeUrl),
     isListed: record.isListed === "FALSE" ? false : Boolean(record.isListed),
     extraFields: parseExtraField(record.extraFields),
-    // todo add regions parsing logic
-    regions: [],
+    // regions codes cannot be null during import
+    regions: parsedRegions! as RegionCode[],
   };
 }
 
@@ -130,17 +137,22 @@ const competenceLabelToCode = Object.entries(competencesFromM57Referentials).red
   {},
 );
 
-function getCompetencesCodeFromLabels(competences: string) {
+const regionsNamesToCode = Object.entries(REGION_CODES).reduce<Record<string, RegionCode>>((acc, [code, label]) => {
+  acc[label.trim()] = code as RegionCode;
+  return acc;
+}, {});
+
+// Split on commas that are not inside quotes
+// - (?=...) is a positive lookahead that checks what follows the comma
+// - (?:[^"]*"[^"]*")* matches any number of pairs of quotes and their content
+// - [^"]*$ ensures we're not inside a quoted string by checking there's an even number of quotes until the end
+const splitRegex = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/;
+
+const getCompetencesCodeFromLabels = (competences: string) => {
   if (!competences) return "";
 
-  const splitedCompetences = competences
-    // Split on commas that are not inside quotes
-    // - (?=...) is a positive lookahead that checks what follows the comma
-    // - (?:[^"]*"[^"]*")* matches any number of pairs of quotes and their content
-    // - [^"]*$ ensures we're not inside a quoted string by checking there's an even number of quotes until the end
-    .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
-
-  const cleanedCompetences = splitedCompetences
+  const cleanedCompetences = competences
+    .split(splitRegex)
     .map((label) => {
       // Remove any quotes and trim whitespace
       const trimedLabel = label.trim().replace(/^["']|["']$/g, "");
@@ -153,4 +165,23 @@ function getCompetencesCodeFromLabels(competences: string) {
     .join();
 
   return cleanedCompetences;
-}
+};
+
+const getRegionsFromLabels = (regions: string) => {
+  if (!regions) return "";
+
+  const cleanedRegions = regions
+    .split(splitRegex)
+    .map((label) => {
+      // Remove any quotes and trim whitespace
+      const trimedLabel = label.trim().replace(/^["']|["']$/g, "");
+      const code = regionsNamesToCode[trimedLabel];
+      if (!code) {
+        console.log(`No code found for label: "${trimedLabel}"`);
+      }
+      return code ?? trimedLabel;
+    })
+    .join();
+
+  return cleanedRegions;
+};

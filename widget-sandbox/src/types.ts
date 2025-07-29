@@ -1,10 +1,10 @@
-import { CompetenceCodes, Leviers, ProjetPhases } from "@betagouv/les-communs-widget";
-// Types basés sur ceux du widget
+import { CompetenceCodes, Leviers, ProjetPhases, RegionCodes } from "@betagouv/les-communs-widget";
 
 export interface ContextFilters {
   competences: CompetenceCodes;
   leviers: Leviers;
   phases: ProjetPhases;
+  regions: RegionCodes;
 }
 
 export interface FilterProps {

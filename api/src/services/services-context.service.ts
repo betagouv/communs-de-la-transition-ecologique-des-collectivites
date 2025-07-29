@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { collectivites, ProjetPhase, serviceContext, services } from "@database/schema";
+import { ProjetPhase, serviceContext, services } from "@database/schema";
 import { and, eq, InferSelectModel, sql } from "drizzle-orm";
 import { CompetenceCodes, Leviers } from "@/shared/types";
 import { CustomLogger } from "@logging/logger.service";
@@ -8,13 +8,13 @@ import { CreateServiceContextRequest, CreateServiceContextResponse } from "@/ser
 import { ServicesByProjectIdResponse } from "@/services/dto/service.dto";
 import { ExtraFieldConfig } from "./dto/extra-fields-config.dto";
 import { RegionCode } from "@/shared/const/region-codes";
+
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 
 interface JoinResult {
   services: InferSelectModel<typeof services>;
   service_context: InferSelectModel<typeof serviceContext>;
 }
-type Collectivite = InferSelectModel<typeof collectivites>;
 
 @Injectable()
 export class ServicesContextService {
@@ -87,15 +87,14 @@ export class ServicesContextService {
     return newServiceContext;
   }
 
-  //todo might be useful to mutualize both methods between findMatchingServicesContext and getServiceContextByContext
   async findMatchingServicesContext(
     competences: CompetenceCodes | null,
     leviers: Leviers | null,
-    projetPhase: ProjetPhase | null,
-    projetCollectivites: Collectivite[],
+    phase: ProjetPhase | ProjetPhase[] | null,
+    regionCodes: RegionCode[] = [],
   ): Promise<ServicesByProjectIdResponse[]> {
     // If no criteria provided, return empty array
-    if (!competences?.length && !leviers?.length && !projetPhase) {
+    if (!competences?.length && !leviers?.length && !phase) {
       return [];
     }
 
@@ -107,47 +106,15 @@ export class ServicesContextService {
       .where(
         and(
           eq(services.isListed, true),
-          // At least one of competences, leviers, or phases must not be null
-          sql`NOT (${serviceContext.competences} IS NULL AND ${serviceContext.leviers} IS NULL AND ${serviceContext.phases} IS NULL)`,
+          // At least one of competences or leviers must not be null as this is the main criteria to display the service
+          sql`NOT (${serviceContext.competences} IS NULL AND ${serviceContext.leviers} IS NULL)`,
         ),
       );
 
     const filteredResults = allServiceContexts
       .filter((result) => this.filterByCompetencesAndLeviers(result, competences, leviers))
-      .filter((result) => this.filterByPhase(result, projetPhase))
-      .filter((result) => this.filterByRegions(result, projetCollectivites))
-      .filter(({ service_context }) => service_context.isListed);
-
-    return this.mapToServiceResponse(filteredResults);
-  }
-
-  async getServiceContextByContext(
-    competences: CompetenceCodes | null,
-    leviers: Leviers | null,
-    phases: ProjetPhase[] | null,
-  ): Promise<ServicesByProjectIdResponse[]> {
-    // If no criteria provided, return empty array
-    if (!competences?.length && !leviers?.length && !phases?.length) {
-      return [];
-    }
-
-    // Get all service contexts for listed services
-    const allServiceContexts: JoinResult[] = await this.dbService.database
-      .select()
-      .from(serviceContext)
-      .innerJoin(services, eq(services.id, serviceContext.serviceId))
-      .where(
-        and(
-          eq(services.isListed, true),
-          // At least one of competences, leviers, or phases must not be null
-          sql`NOT (${serviceContext.competences} IS NULL AND ${serviceContext.leviers} IS NULL AND ${serviceContext.phases} IS NULL)`,
-        ),
-      );
-
-    const filteredResults = allServiceContexts
-      .filter((result) => this.filterByCompetencesAndLeviers(result, competences, leviers))
-      .filter((result) => this.filterByPhasesArray(result, phases))
-      .filter((result) => this.filterByRegionsForContext(result))
+      .filter((result) => this.filterByPhases(result, phase))
+      .filter((result) => this.filterByRegions(result, regionCodes))
       .filter(({ service_context }) => service_context.isListed);
 
     return this.mapToServiceResponse(filteredResults);
@@ -172,25 +139,9 @@ export class ServicesContextService {
     );
   }
 
-  private filterByPhase({ service_context }: JoinResult, projetPhase: ProjetPhase | null) {
-    if (
-      // service context with empty array match all possible values
-      (projetPhase && service_context.phases?.length === 0) ||
-      // todo github issue to challenge this modelisation : https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/206
-      // some service_context might have null value for phases because phase is not relevant for them. In that case we match them all;
-      service_context.phases === null
-    ) {
-      return true;
-    }
-    // if a project has no phase that means we haven't managed to determine
-    // which phase it correspond to during import (i.e fiche action from tet which can be either operation or etude)
-    // for those ones we take the risk to display all services context associated to the competences/leviers regardless of the phase
-    if (projetPhase === null) return true;
-
-    return service_context.phases?.includes(projetPhase);
-  }
-
-  private filterByPhasesArray({ service_context }: JoinResult, phases: ProjetPhase[] | null) {
+  private filterByPhases({ service_context }: JoinResult, phase: ProjetPhase | ProjetPhase[] | null) {
+    // we transform phase into array to make sure we can applys ame logic for both project and context approach
+    const phases = Array.isArray(phase) ? phase : phase === null ? phase : [phase];
     if (
       // service context with empty array match all possible values
       (phases && phases.length > 0 && service_context.phases?.length === 0) ||
@@ -205,18 +156,11 @@ export class ServicesContextService {
     return phases.some((phase) => service_context.phases?.includes(phase));
   }
 
-  private filterByRegions({ service_context }: JoinResult, projetCollectivites: Collectivite[]) {
+  private filterByRegions({ service_context }: JoinResult, regionCodes: RegionCode[]) {
+    // Service contexts with empty regions array match all regions
     if (service_context.regions?.length === 0) return true;
 
-    const codeRegionsFromProject = projetCollectivites.flatMap((collectivite) => collectivite.codeRegions ?? []);
-
-    return codeRegionsFromProject.some((regionCode) => service_context.regions?.includes(regionCode as RegionCode));
-  }
-
-  private filterByRegionsForContext({ service_context }: JoinResult) {
-    // For context-based queries, we don't filter by regions since we don't have project collectivites
-    // Service contexts with empty regions array match all regions
-    return service_context.regions?.length === 0 || true;
+    return regionCodes.some((regionCode) => service_context.regions?.includes(regionCode));
   }
 
   private mapToServiceResponse(results: JoinResult[]): ServicesByProjectIdResponse[] {

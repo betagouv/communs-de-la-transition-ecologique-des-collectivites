@@ -3,6 +3,7 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import { CompetencesFilter } from "./CompetencesFilter";
 import { LeviersFilter } from "./LeviersFilter";
 import { PhasesFilter } from "./PhasesFilter";
+import { RegionsFilter } from "./RegionsFilter";
 import { FilterProps, ContextFilters as ContextFiltersType } from "../types";
 
 interface ContextFiltersProps extends FilterProps {
@@ -32,15 +33,27 @@ export const ContextFilters = ({ filters, onFiltersChange, debugMode, onDebugMod
     });
   };
 
+  const handleRegionsChange = (regions: ContextFiltersType["regions"]) => {
+    onFiltersChange({
+      ...filters,
+      regions,
+    });
+  };
+
   const handleReset = () => {
     onFiltersChange({
       competences: ["all"],
       leviers: ["all"],
       phases: ["Opération", "Idée", "Étude"],
+      regions: ["all"],
     });
   };
 
-  const hasActiveFilters = filters.competences.length > 0 || filters.leviers.length > 0 || filters.phases.length > 0;
+  const hasActiveFilters =
+    filters.competences.length > 0 ||
+    filters.leviers.length > 0 ||
+    filters.phases.length > 0 ||
+    filters.regions.length > 0;
 
   return (
     <div className={fr.cx("fr-container", "fr-mb-4w")}>
@@ -60,8 +73,9 @@ export const ContextFilters = ({ filters, onFiltersChange, debugMode, onDebugMod
             </div>
           </div>
           <p className={fr.cx("fr-card__desc", "fr-text--sm", "fr-mb-2w")}>
-            Sélectionnez les compétences, leviers et phases pour personnaliser les services affichés. Cet encart ne fait
-            pas partie du widget, mais permet de visualiser l&#39;affichage de services en fonction du contexte choisi.
+            Sélectionnez les compétences, leviers, phases et régions pour personnaliser les services affichés. Cet
+            encart ne fait pas partie du widget, mais permet de visualiser l&#39;affichage de services en fonction du
+            contexte choisi.
           </p>
         </div>
 
@@ -75,7 +89,14 @@ export const ContextFilters = ({ filters, onFiltersChange, debugMode, onDebugMod
               <LeviersFilter value={filters.leviers} onChange={handleLeviersChange} />
             </div>
           </div>
-          <PhasesFilter value={filters.phases} onChange={handlePhasesChange} />
+          <div className={fr.cx("fr-grid-row", "fr-grid-row--gutters")}>
+            <div className={fr.cx("fr-col-12", "fr-col-md-6")}>
+              <PhasesFilter value={filters.phases} onChange={handlePhasesChange} />
+            </div>
+            <div className={fr.cx("fr-col-12", "fr-col-md-6")}>
+              <RegionsFilter value={filters.regions} onChange={handleRegionsChange} />
+            </div>
+          </div>
 
           {hasActiveFilters && (
             <div className={fr.cx("fr-mt-3w", "fr-alert", "fr-alert--info")}>
@@ -90,6 +111,9 @@ export const ContextFilters = ({ filters, onFiltersChange, debugMode, onDebugMod
                 </p>
                 <p className={fr.cx("fr-text--sm")}>
                   <strong>Phases :</strong> {filters.phases.length > 0 ? filters.phases.join(", ") : "Aucune"}
+                </p>
+                <p className={fr.cx("fr-text--sm")}>
+                  <strong>Régions :</strong> {filters.regions.length > 0 ? filters.regions.join(", ") : "Aucune"}
                 </p>
               </div>
             </div>

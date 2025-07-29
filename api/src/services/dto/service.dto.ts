@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsIn, IsOptional } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsEnum, IsIn, IsOptional } from "class-validator";
 import { Transform } from "class-transformer";
 import { ProjetPhase, projetPhasesEnum, serviceContext, services } from "@database/schema";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -7,6 +7,7 @@ import { ExtraFieldConfig } from "@/services/dto/extra-fields-config.dto";
 import { CompetenceCode, CompetenceCodes, Levier, Leviers } from "@/shared/types";
 import { competenceCodes } from "@/shared/const/competences-list";
 import { leviers } from "@/shared/const/leviers";
+import { RegionCode, regionCodes } from "@/shared/const/region-codes";
 
 type ServiceBaseFields = Pick<
   InferSelectModel<typeof services>,
@@ -72,6 +73,7 @@ export class GetServicesByContextQuery {
   })
   @Transform(({ value }) => formatValue<CompetenceCode>(value, competenceCodes))
   @IsArray()
+  @ArrayNotEmpty()
   @IsIn([...competenceCodes, "all"], { each: true })
   @IsOptional()
   competences?: CompetenceCodes;
@@ -86,6 +88,7 @@ export class GetServicesByContextQuery {
   })
   @Transform(({ value }) => formatValue<Levier>(value, leviers))
   @IsArray()
+  @ArrayNotEmpty()
   @IsIn([...leviers, "all"], { each: true })
   @IsOptional()
   leviers?: Leviers;
@@ -101,4 +104,18 @@ export class GetServicesByContextQuery {
   @IsArray()
   @IsEnum(projetPhasesEnum.enumValues, { each: true })
   phases!: ProjetPhase[];
+
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    required: true,
+    enum: [...regionCodes, "all"],
+    description: "Array of region codes",
+    example: ["11"],
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @Transform(({ value }) => formatValue<RegionCode>(value, regionCodes))
+  @IsIn([...regionCodes, "all"], { each: true })
+  regions!: RegionCode[];
 }

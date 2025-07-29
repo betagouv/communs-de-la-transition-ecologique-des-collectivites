@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.3.4
+
+### Minor Changes
+
+- support regions in context mode
+
 ## 0.3.3
 
 ### Minor Changes
