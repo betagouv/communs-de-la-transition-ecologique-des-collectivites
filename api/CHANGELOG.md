@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.23](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.22...v0.0.23) (2025-07-30)
+
+
+### Features
+
+* add debug mode button for widget sandbox ([#223](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/223)) ([0492831](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/04928316cd57392de8a70da6579cfb70d19e516d))
+* add more api keys for services ([#225](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/225)) ([6768e25](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6768e2526418b2366ea1f4f0eb98b8df17cc89dc))
+
 ## [0.0.22](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.21...v0.0.22) (2025-07-15)
 
 ## [0.0.21](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.20...v0.0.21) (2025-07-15)
