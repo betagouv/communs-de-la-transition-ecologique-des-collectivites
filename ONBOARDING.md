@@ -120,6 +120,7 @@ Outre la roadmap de feature, j'ai mis ici les aspects techniques qui je pense m�
 - mise en place renovate
 - faire remonter les erreurs de qualif dans sentry
 - avoir de l’alerting mattermost sur les erreurs dans Sentry
+- log drain / monitoring
 - introduire versioning dans l’API
 - switcher des scripts python vers le sdk typescript d’anthropic
 - surveiller la pertinence des services proposé
