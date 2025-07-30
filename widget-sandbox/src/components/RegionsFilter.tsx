@@ -12,6 +12,16 @@ export const RegionsFilter = ({ value, onChange }: RegionsFilterProps) => {
     onChange(selectedOptions);
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      onChange(["all"]);
+    } else {
+      onChange([]);
+    }
+  };
+
+  const allSelected = value.includes("all");
+
   const regionOptions = Object.entries(regionCodes).map(([code, name]) => ({
     value: code,
     label: name,
@@ -30,6 +40,7 @@ export const RegionsFilter = ({ value, onChange }: RegionsFilterProps) => {
         value={value}
         onChange={handleChange}
         size={5}
+        disabled={allSelected}
       >
         {regionOptions.map(({ value: regionCode, label }) => (
           <option key={regionCode} value={regionCode}>
@@ -37,6 +48,18 @@ export const RegionsFilter = ({ value, onChange }: RegionsFilterProps) => {
           </option>
         ))}
       </select>
+      <div className={fr.cx("fr-checkbox-group", "fr-mt-2w")}>
+        <input
+          type="checkbox"
+          id="regions-select-all"
+          className="fr-checkbox"
+          checked={allSelected}
+          onChange={(e) => handleSelectAll(e.target.checked)}
+        />
+        <label className={fr.cx("fr-label", "fr-text--sm")} htmlFor="regions-select-all">
+          Sélectionner toutes les régions
+        </label>
+      </div>
     </div>
   );
 };

@@ -56,7 +56,7 @@ export const ContextFilters = ({ filters, onFiltersChange, debugMode, onDebugMod
     filters.regions.length > 0;
 
   return (
-    <div className={fr.cx("fr-container", "fr-mb-4w")}>
+    <div className={fr.cx("fr-mb-4w")}>
       <div className={fr.cx("fr-card", "fr-p-4w")}>
         <div className={fr.cx("fr-card__header")}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
