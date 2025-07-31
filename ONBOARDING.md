@@ -116,18 +116,8 @@ Il faut demander à Jean les accès à :
 
 ### Roadmap technique (wip)
 
-Outre la roadmap de feature, j'ai mis ici les aspects techniques qui je pense mériterait d'être travaillé. Ca reste mon opinion et challengeable.
-- mise en place renovate
-- faire remonter les erreurs de qualif dans sentry
-- avoir de l’alerting mattermost sur les erreurs dans Sentry
-- log drain / monitoring
-- introduire versioning dans l’API
-- switcher des scripts python vers le sdk typescript d’anthropic
-- surveiller la pertinence des services proposé
-- reconciliation projet dupplication
-- mention de l’iframe Facilitact qui pète
-- Améliorer la CI (plusieurs petites améliorations possibles)
-- Mettre en place renovate
+Voir les tickets techniques : https://github.com/orgs/betagouv/projects/129/views/1?filterQuery=task-type%3A%22Technical+Task%22
+
 
 ### Utilisation LLM 
 
@@ -152,13 +142,14 @@ Je conseille de faire le suivi global dans le gsheet et de créer des taches adh
 ### Divers
 
 **Plusieurs canaux ou se faire inviter sur mattermost :**
-
+- notifs sentry : https://mattermost.incubateur.net/betagouv/channels/startup-communs-te-tech-notifs-public-sentry
+- channel de l'équipe des communs : https://mattermost.incubateur.net/betagouv/channels/communs-de-la-transition-ecologique-des-collectivites
+- channel des discussions TET x MEC (un peu doublon avec celui ci-dessous) :  https://mattermost.incubateur.net/betagouv/channels/tet-x-mec
+- channel de discussion avec toutes les plateformes : https://mattermost.incubateur.net/betagouv/channels/tmp-communs-collaborations
 
 Reste à faire dans la doc :
 
 - [ ]  Changer la clef API pour Anthropic
-- [ ]  Passer à travers les sujets de la roadmap et mettre le détail dans les tickets + prioriser le backlog
 - [ ]  refaire un tour de roue sur les services avec lesquels j’ai discuté pour laisser des instructions claires de ou on en est.
-- [ ]  Passer à travers le backlog et faire le ménage dans les metada
 
 

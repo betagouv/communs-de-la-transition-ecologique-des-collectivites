@@ -17,6 +17,7 @@ import { UpdateProjetsService } from "@projets/services/update-projets/update-pr
 import { existsSync } from "fs";
 import { Levier, ServiceType } from "@/shared/types";
 import { ProjetQualificationResponse } from "@/projet-qualification/dto/projet-qualification.dto";
+import { SentryExceptionCaptured } from "@sentry/nestjs";
 
 @Processor("project-qualification")
 export class ProjetQualificationService extends WorkerHost {
@@ -28,11 +29,13 @@ export class ProjetQualificationService extends WorkerHost {
     super();
   }
 
+  @SentryExceptionCaptured()
   async process(job: Job<{ projetId: string }>) {
     const { projetId } = job.data;
     this.logger.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
     try {
       const projet = await this.projetGetService.findOne(projetId);
+
       // we only trigger the job from the create service when there is a description or a name
       // but since it's async, and the descritption might have been removed at the time the job is processed we recheck in this logic too
       if (projet.description || projet.nom) {
@@ -129,7 +132,6 @@ export class ProjetQualificationService extends WorkerHost {
   async analyzeProjet<T>(context: string, type: "TE" | "competences"): Promise<T> {
     return new Promise((resolve, reject) => {
       const escapedDescription = context.replace(/'/g, "'\\''");
-
       const pythonScript = path.join(__dirname, "llm-scripts", "competences-and-leviers-qualification.py");
 
       if (!existsSync(pythonScript)) {
