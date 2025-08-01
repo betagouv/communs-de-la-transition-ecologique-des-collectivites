@@ -5,7 +5,7 @@
 Pour une overview générale rapide de ce qu’est Les communs, 3 ressources pertinentes :
 
 - [slides du comité d’investissement de juin 2025](https://docs.google.com/presentation/d/1WFPPXCrX-OJswVqj3dFu_2OlhYHjX2Lnidyl4wXok-8/edit?slide=id.g33d28688783_0_1490#slide=id.g33d28688783_0_1490) qui retracent l’histoire et la roadmap à venir des Communs
-- [doc readme du repo](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/blob/main/README.md) qui dispatch ensuite vers les docs utiles
+- [doc readme du repo](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/blob/main/README.md) qui dispatche ensuite vers les docs utiles
 - [fiche produit beta gouv](https://beta.gouv.fr/startups/communs-de-la-transition-ecologique-des-collectivites.html)
 
 
@@ -13,7 +13,7 @@ Pour une overview générale rapide de ce qu’est Les communs, 3 ressources per
 
 Le monorepo est accessible ici : https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/tree/main
 
-Plusieurs briques principales détaillées ci-dessous dans le schema et reprise dans la doc du repo
+Plusieurs briques principales détaillées ci-dessous dans le schema et reprises dans la doc du repo
 
 ![image.png](archi-macro.png)
 
@@ -102,7 +102,7 @@ Simplement suivre la [procédure documentée dans le readme du widget](widget/RE
 - [page statistique](https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/statistics/)
 
 ### **Accès à demander:**
-Il faut demander à Denis les accès à : 
+Il faut demander à Denis B. (CTO Beta.gouv) les accès à : 
 - Scalingo (les liens ci-dessus)
 - Matomo (les sites Id ci-dessus)
 - Vaultwarden (pour qu'il donne les accès au vault les communs)
@@ -127,7 +127,7 @@ Un gros travail de documentation et d'analyse a été fait par Louis (notre anci
 
 ### Suivi intégration service
 
-Nous intégrons les services au fur et à mesure pour qu'ils soient présent dans le widget. Un travail de recencesement a été fait.  
+Nous intégrons les services au fur et à mesure pour qu'ils soient présents dans le widget. Un travail de recencesement a été fait.  
 
 La liste est disponible ici (Notion de Jean) : https://www.notion.so/10dbde078be080b89a7aeb14caa9a952?v=fffbde078be081649899000ce0132ace&source=copy_link
 
