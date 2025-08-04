@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.26](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.25...v0.0.26) (2025-08-04)
+
+
+### Features
+
+* remove MATOMO_SITE_ID_PROD in favor of existing matomo_site_id ([#243](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/243)) ([a5e39b0](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/a5e39b03b5c9dc472cf914a8247f7834e37c036c))
+
+
+### Bug Fixes
+
+* only trigger sentry error on real error in job queue ([#242](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/242)) ([c1fa288](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/c1fa28815fe9b6d8a7e4f159ee677e755c666c3a))
+
 ## [0.0.25](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.24...v0.0.25) (2025-08-04)
 
 ## [0.0.24](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.23...v0.0.24) (2025-08-04)
