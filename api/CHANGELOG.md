@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.25](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.24...v0.0.25) (2025-08-04)
+
 ## [0.0.24](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.23...v0.0.24) (2025-08-04)
 
 
