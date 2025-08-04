@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.24](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.23...v0.0.24) (2025-08-04)
+
+
+### Features
+
+* make dev env the default env ([#233](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/233)) ([4d8313e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/4d8313e2e2119863e8142e157310df98463ae83b))
+* queue job errors uploaded on sentry ([#239](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/239)) ([6101c7d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6101c7dba854e1f58b3242c44710b817c6603bd9))
+
 ## [0.0.23](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.22...v0.0.23) (2025-07-30)
 
 
