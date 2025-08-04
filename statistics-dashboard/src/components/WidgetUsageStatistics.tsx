@@ -1,11 +1,11 @@
 import { StatisticsCards } from "./StatisticsCards";
 import { InteractionsChart } from "./InteractionsChart";
 import { PlatformFilter } from "./PlatformFilter";
-import type { DashboardData } from "../types";
+import type { WidgetUsageData } from "../types";
 import { fr } from "@codegouvfr/react-dsfr";
 
 interface WidgetUsageStatisticsProps {
-  data: DashboardData;
+  data: WidgetUsageData;
   selectedPlatform: string;
   onPlatformChange: (platform: string) => void;
 }

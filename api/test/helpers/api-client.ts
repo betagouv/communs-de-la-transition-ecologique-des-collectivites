@@ -74,5 +74,20 @@ export const createApiClient = (apiKey?: string) => {
           },
         }),
     },
+    analytics: {
+      getGlobalStats: (params?: paths["/analytics/api-usage"]["get"]["parameters"]["query"]) =>
+        client.GET("/analytics/api-usage", {
+          params: {
+            query: params!,
+          },
+        }),
+
+      getWidgetUsage: (params?: paths["/analytics/widget-usage"]["get"]["parameters"]["query"]) =>
+        client.GET("/analytics/widget-usage", {
+          params: {
+            query: params!,
+          },
+        }),
+    },
   };
 };

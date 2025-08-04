@@ -192,14 +192,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/analytics/dashboard": {
+    "/analytics/widget-usage": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["AnalyticsController_getDashboardData"];
+        get: operations["AnalyticsController_getWidgetUsageData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/api-usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get global API usage statistics */
+        get: operations["AnalyticsController_getGlobalStats"];
         put?: never;
         post?: never;
         delete?: never;
@@ -994,7 +1011,7 @@ export interface operations {
             };
         };
     };
-    AnalyticsController_getDashboardData: {
+    AnalyticsController_getWidgetUsageData: {
         parameters: {
             query: {
                 period: "day" | "week" | "month" | "year" | "range";
@@ -1012,6 +1029,34 @@ export interface operations {
                 headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["DashboardData"];
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    AnalyticsController_getGlobalStats: {
+        parameters: {
+            query: {
+                startDate: string;
+                endDate: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Global API usage statistics */
+            200: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": Record<string, never>;
                 };
             };
             /** @description Error response */

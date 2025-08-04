@@ -1,4 +1,7 @@
-export interface DashboardData {
+// todo those types could be removed once we use the open api definition to create the api client
+// didn't do it as the first pass on this page
+
+export interface WidgetUsageData {
   navigationToService: number;
   serviceIframeDisplays: number;
   servicesDisplayedPerProject: number;
@@ -12,4 +15,10 @@ export interface DashboardData {
 export interface ChartDataPoint {
   date: string;
   interactions: number;
+}
+
+export interface ApiUsageData {
+  projetsCount: number;
+  apiCallsCount: number;
+  servicesCount: number;
 }

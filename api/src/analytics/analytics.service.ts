@@ -4,7 +4,7 @@ import {
   ChartDataPoint,
   DashboardData,
   MatomoApiResponse,
-  MatomoStatsRequest,
+  GetWidgetUsageDataQuery,
   TrackEventRequest,
 } from "@/analytics/analytics.dto";
 
@@ -45,7 +45,7 @@ export class AnalyticsService {
     return "tracking successful";
   }
 
-  async getDashboardData({ period, date, hostingPlatform }: MatomoStatsRequest): Promise<DashboardData> {
+  async getDashboardData({ period, date, hostingPlatform }: GetWidgetUsageDataQuery): Promise<DashboardData> {
     try {
       const events = await this.getEvents(period, date ?? "last6");
 

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString, IsEnum } from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class TrackEventRequest {
   @ApiProperty()
@@ -31,7 +31,7 @@ export enum MatomoPeriod {
   RANGE = "range",
 }
 
-export class MatomoStatsRequest {
+export class GetWidgetUsageDataQuery {
   @ApiProperty({ enum: MatomoPeriod, default: MatomoPeriod.MONTH })
   @IsEnum(MatomoPeriod)
   @IsNotEmpty()
@@ -113,4 +113,27 @@ export class DashboardData {
 
   @ApiProperty()
   hostingPlatforms!: string[];
+}
+
+export class GetGlobalStatsQuery {
+  @ApiProperty({ required: false, description: "Start date (defaults to 6 months ago)" })
+  @IsString()
+  @IsOptional()
+  startDate?: string;
+
+  @ApiProperty({ required: false, description: "End date (defaults to now)" })
+  @IsString()
+  @IsOptional()
+  endDate?: string;
+}
+
+export class GlobalStatsResponse {
+  @ApiProperty({ description: "Total number of API calls in the specified period" })
+  apiCallsCount!: number;
+
+  @ApiProperty({ description: "Total number of projects in the database" })
+  projetsCount!: number;
+
+  @ApiProperty({ description: "Total number of service context in the database" })
+  servicesCount!: number;
 }

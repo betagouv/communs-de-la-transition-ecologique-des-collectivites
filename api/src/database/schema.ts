@@ -169,6 +169,21 @@ export const serviceExtraFields = pgTable("service_extra_fields", {
   value: text("value").notNull(),
 });
 
+export const apiRequests = pgTable("api_requests", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+
+  // Request details
+  method: text("method").notNull(),
+  endpoint: text("endpoint").notNull(),
+  fullUrl: text("full_url").notNull(),
+  statusCode: integer("status_code").notNull(),
+  responseTimeInMs: integer("response_time").notNull(),
+  serviceName: text("service_name"),
+});
+
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
 export const projetsRelations = relations(projets, ({ many }) => ({
   collectivites: many(projetsToCollectivites),
