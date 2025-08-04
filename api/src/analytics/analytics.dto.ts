@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString, IsEnum } from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class TrackEventRequest {
   @ApiProperty()
@@ -31,7 +31,7 @@ export enum MatomoPeriod {
   RANGE = "range",
 }
 
-export class MatomoStatsRequest {
+export class GetWidgetUsageDataQuery {
   @ApiProperty({ enum: MatomoPeriod, default: MatomoPeriod.MONTH })
   @IsEnum(MatomoPeriod)
   @IsNotEmpty()
@@ -113,4 +113,14 @@ export class DashboardData {
 
   @ApiProperty()
   hostingPlatforms!: string[];
+}
+
+export class GetGlobalStatsQuery {
+  @ApiProperty({ required: true })
+  @IsString()
+  startDate!: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  endDate!: string;
 }

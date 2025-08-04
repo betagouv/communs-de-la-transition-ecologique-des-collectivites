@@ -18,6 +18,7 @@ import { UpdateProjetsService } from "@projets/services/update-projets/update-pr
 import { ProjectPublicInfoResponse } from "@projets/dto/project-public-info.dto";
 import { IdType, idTypes } from "@/shared/types";
 import { ProjectId, ProjectIdType } from "@/shared/decorator/projetId-decorator";
+import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 
 @ApiBearerAuth()
 @Controller("projets")
@@ -32,6 +33,7 @@ export class ProjetsController {
 
   @ApiOperation({ summary: "Get all Projets" })
   @Get()
+  @TrackApiUsage()
   @ApiEndpointResponses({
     successStatus: 200,
     response: ProjetResponse,
@@ -41,6 +43,7 @@ export class ProjetsController {
     return this.projetFindService.findAll();
   }
 
+  @TrackApiUsage()
   @ApiOperation({ summary: "Get specific Projet by id" })
   @ApiEndpointResponses({ successStatus: 200, response: ProjetResponse })
   @Get(":id")
@@ -82,6 +85,7 @@ export class ProjetsController {
     return this.extraFieldsService.createExtraFields(id, extraFieldsDto, idType);
   }
 
+  @TrackApiUsage()
   @Post()
   @ApiEndpointResponses({
     successStatus: 201,
