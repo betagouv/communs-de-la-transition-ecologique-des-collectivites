@@ -17,7 +17,7 @@ import { UpdateProjetsService } from "@projets/services/update-projets/update-pr
 import { existsSync } from "fs";
 import { Levier, ServiceType } from "@/shared/types";
 import { ProjetQualificationResponse } from "@/projet-qualification/dto/projet-qualification.dto";
-import { SentryExceptionCaptured } from "@sentry/nestjs";
+import * as Sentry from "@sentry/node";
 
 @Processor("project-qualification")
 export class ProjetQualificationService extends WorkerHost {
@@ -29,7 +29,6 @@ export class ProjetQualificationService extends WorkerHost {
     super();
   }
 
-  @SentryExceptionCaptured()
   async process(job: Job<{ projetId: string }>) {
     const { projetId } = job.data;
     this.logger.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
@@ -60,6 +59,8 @@ export class ProjetQualificationService extends WorkerHost {
         },
       });
 
+      Sentry.captureException(error);
+
       throw new InternalServerErrorException(`Error qualifying project ${projetId} for job ${job.name}`);
     }
   }
@@ -88,7 +89,6 @@ export class ProjetQualificationService extends WorkerHost {
 
   private async analyzeAndUpdateCompetences(context: string, projetId: string): Promise<void> {
     const result = await this.analyzeProjet<CompetencesResult>(context, "competences");
-
     if (result.competences.length === 0) {
       this.logger.log(`No competences found for project ${projetId} with context ${context}`);
       return;
@@ -116,7 +116,7 @@ export class ProjetQualificationService extends WorkerHost {
     }
 
     if (result.errorMessage) {
-      throw new Error(`Error while qualifying competences - error : ${result.errorMessage}`);
+      throw new InternalServerErrorException(`Error while qualifying competences - error : ${result.errorMessage}`);
     }
 
     const competences = result.competences
