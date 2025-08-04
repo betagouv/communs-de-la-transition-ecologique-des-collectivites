@@ -22,7 +22,6 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { method, originalUrl, ip, body } = request;
 
-    // Check if this route should be tracked
     const shouldTrackApiUsage = this.reflector.get<boolean>(TRACK_API_USAGE_KEY, context.getHandler());
 
     this.logger.log("Incoming Request", {
@@ -37,7 +36,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap({
-        next: async () => {
+        next: () => {
           const response = ctx.getResponse<Response>();
           const duration = Date.now() - startTime;
           const statusCode = response.statusCode;
@@ -51,10 +50,9 @@ export class RequestLoggingInterceptor implements NestInterceptor {
             serviceType: request.serviceType,
           });
 
-          // Persist to database if tracked
           if (shouldTrackApiUsage) {
             try {
-              await this.apiUsageService.recordRequest({
+              void this.apiUsageService.recordRequest({
                 method,
                 endpoint: this.normalizeEndpoint(originalUrl),
                 fullUrl: originalUrl,
@@ -70,13 +68,8 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       }),
     );
   }
-  //todo should I really normalize endpoint ? Is there no better way to handle it without regex and just getting the corresponding declared route ?
   private normalizeEndpoint(url: string): string {
-    // Convert /projets/123e4567-e89b-12d3-a456-426614174000 to /projets/:id
-    // Convert /projets/123456 to /projets/:id (for numeric IDs)
-    return url
-      .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
-      .replace(/\/\d+/g, "/:id")
-      .split("?")[0]; // Remove query params
+    // Convert /projets/123e4567-e89b-12d3-a456-426614174000 to /projets/:id - we use uuid v7 in the db
+    return url.replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id").split("?")[0]; // Remove query params
   }
 }

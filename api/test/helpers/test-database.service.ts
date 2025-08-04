@@ -15,6 +15,7 @@ export class TestDatabaseService extends DatabaseService {
           TRUNCATE TABLE projets CASCADE;
           TRUNCATE TABLE collectivites CASCADE;
           TRUNCATE TABLE services CASCADE;
+          TRUNCATE TABLE api_requests CASCADE;
          `);
   }
 }
