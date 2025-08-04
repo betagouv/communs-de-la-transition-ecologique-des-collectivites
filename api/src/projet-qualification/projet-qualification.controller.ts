@@ -6,6 +6,7 @@ import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator"
 import { ProjetQualificationRequest, ProjetQualificationResponse } from "./dto/projet-qualification.dto";
 import { ProjetQualificationService } from "@/projet-qualification/projet-qualification.service";
 import { QualificationRateLimitGuard } from "@/projet-qualification/projet-qualification-rate-limit-guard";
+import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 
 @ApiBearerAuth()
 @ApiTags("Qualification")
@@ -14,6 +15,8 @@ import { QualificationRateLimitGuard } from "@/projet-qualification/projet-quali
 export class ProjetQualificationController {
   constructor(private readonly qualificationApiService: ProjetQualificationService) {}
 
+  // this is a post because we do not want to be limited by the query params length to pass the description
+  @TrackApiUsage()
   @Post("competences")
   @ApiOperation({
     summary: "Qualifier les compétences d'un projet",
