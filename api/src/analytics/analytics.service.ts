@@ -136,7 +136,7 @@ export class AnalyticsService {
   }
 
   private async makeMatomoApiRequest(params: Record<string, string>): Promise<MatomoApiResponse> {
-    const siteId = this.configService.getOrThrow<string>("MATOMO_SITE_ID_PROD");
+    const siteId = this.configService.getOrThrow<string>("MATOMO_SITE_ID");
     const apiToken = this.configService.getOrThrow<string>("MATOMO_API_TOKEN");
 
     const searchParams = new URLSearchParams({
