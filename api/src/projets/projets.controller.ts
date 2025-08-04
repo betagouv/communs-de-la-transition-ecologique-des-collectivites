@@ -110,6 +110,7 @@ export class ProjetsController {
     return this.projetCreateService.createBulk(createProjetsDto, extractApiKey(request));
   }
 
+  @TrackApiUsage()
   @ApiOperation({ summary: "Update a specific Projet" })
   @Patch(":id")
   @ApiEndpointResponses({

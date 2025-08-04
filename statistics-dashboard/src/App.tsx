@@ -3,11 +3,12 @@ import { Header } from "@codegouvfr/react-dsfr/Header";
 import { fr } from "@codegouvfr/react-dsfr";
 import { WidgetUsageStatistics } from "./components/WidgetUsageStatistics";
 import { DatabaseUsageStatistics } from "./components/DatabaseUsageStatistics";
-import type { DashboardData } from "./types";
-import { getDashboardData } from "./utils/getDashboardData.ts";
+import type { ApiUsageData, WidgetUsageData } from "./types";
+import { getApiUsageData, getWidgetUsageData } from "./utils/getDashboardData.ts";
 
 function App() {
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [widgetUsageData, setWidgetUsageData] = useState<WidgetUsageData | null>(null);
+  const [apiUsageData, setApiUsageData] = useState<ApiUsageData | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,8 +18,10 @@ function App() {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await getDashboardData(selectedPlatform);
-        setDashboardData(data);
+        const data = await getWidgetUsageData(selectedPlatform);
+        setWidgetUsageData(data);
+        const apiUsageData = await getApiUsageData();
+        setApiUsageData(apiUsageData);
       } catch (err) {
         console.error("Failed to load dashboard data:", err);
         setError("Erreur lors du chargement des données");
@@ -58,15 +61,15 @@ function App() {
             </div>
           )}
 
-          {dashboardData && !isLoading && (
+          {widgetUsageData && !isLoading && (
             <WidgetUsageStatistics
-              data={dashboardData}
+              data={widgetUsageData}
               selectedPlatform={selectedPlatform}
               onPlatformChange={setSelectedPlatform}
             />
           )}
 
-          <DatabaseUsageStatistics />
+          {apiUsageData && <DatabaseUsageStatistics data={apiUsageData} />}
         </div>
       </div>
     </div>

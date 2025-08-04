@@ -1,11 +1,11 @@
-import type { DashboardData } from "../types";
+import type { WidgetUsageData } from "../types";
 import styles from "./StatisticsCards.module.css";
 import classNames from "classnames";
 import Tile from "@codegouvfr/react-dsfr/Tile";
 import { fr } from "@codegouvfr/react-dsfr";
 
 interface StatisticsCardsProps {
-  data: DashboardData;
+  data: WidgetUsageData;
 }
 
 export function StatisticsCards({ data }: StatisticsCardsProps) {

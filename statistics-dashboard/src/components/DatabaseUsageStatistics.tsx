@@ -2,17 +2,10 @@ import { fr } from "@codegouvfr/react-dsfr";
 import Tile from "@codegouvfr/react-dsfr/Tile";
 import styles from "./StatisticsCards.module.css";
 import classNames from "classnames";
-
-// Types temporaires - à définir selon les besoins futurs
-interface DatabaseStats {
-  totalProjects?: number;
-  totalServices?: number;
-  activeUsers?: number;
-  apiCalls?: number;
-}
+import { ApiUsageData } from "../types.ts";
 
 interface DatabaseUsageStatisticsProps {
-  data?: DatabaseStats;
+  data?: ApiUsageData;
   isLoading?: boolean;
 }
 
@@ -21,18 +14,18 @@ export function DatabaseUsageStatistics({ data, isLoading = false }: DatabaseUsa
   const placeholderStats = [
     {
       title: "Nombre total de projets",
-      value: data?.totalProjects ?? "24K",
+      value: data?.projetsCount ?? "24K",
       description: "Projets stockés dans la base de données",
     },
     {
       title: "Services référencés",
-      value: data?.totalServices ?? "53",
+      value: data?.servicesCount,
       description: "Nombre de services disponibles",
     },
     {
-      title: "Appels API (à venir)",
-      value: data?.apiCalls ?? "-",
-      description: "Nombre d'appels API ce mois",
+      title: "Appels API",
+      value: data?.apiCallsCount ?? "-",
+      description: "Nombre d'appels API sur les 6 derniers mois (les données sont enregistrées depuis début aout)",
       isUnderDev: true,
     },
   ];

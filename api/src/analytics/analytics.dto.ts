@@ -116,11 +116,24 @@ export class DashboardData {
 }
 
 export class GetGlobalStatsQuery {
-  @ApiProperty({ required: true })
+  @ApiProperty({ required: false, description: "Start date (defaults to 6 months ago)" })
   @IsString()
-  startDate!: string;
+  @IsOptional()
+  startDate?: string;
 
-  @ApiProperty({ required: true })
+  @ApiProperty({ required: false, description: "End date (defaults to now)" })
   @IsString()
-  endDate!: string;
+  @IsOptional()
+  endDate?: string;
+}
+
+export class GlobalStatsResponse {
+  @ApiProperty({ description: "Total number of API calls in the specified period" })
+  apiCallsCount!: number;
+
+  @ApiProperty({ description: "Total number of projects in the database" })
+  projetsCount!: number;
+
+  @ApiProperty({ description: "Total number of service context in the database" })
+  servicesCount!: number;
 }

@@ -46,7 +46,8 @@ export class CorsMiddleware implements NestMiddleware {
       "/services/project/:projectId",
       "/services/search/context",
       "/analytics/trackEvent",
-      "/analytics/dashboard",
+      "/analytics/widget-usage",
+      "/analytics/api-usage",
     ];
     const isAllowedRoute = corsEnabledRoutes.some((route) => {
       const pathWithoutQuery = req.originalUrl.split("?")[0];

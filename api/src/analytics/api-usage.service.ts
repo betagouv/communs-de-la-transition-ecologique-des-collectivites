@@ -1,42 +1,31 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@/database/database.service";
-import { apiRequests } from "@/database/schema";
-import { and, gte, lte, sql } from "drizzle-orm";
-import { GetGlobalStatsQuery } from "@/analytics/analytics.dto";
+import { apiRequests, projets, serviceContext } from "@/database/schema";
+import { and, count, gte, lte } from "drizzle-orm";
+import { GetGlobalStatsQuery, GlobalStatsResponse } from "@/analytics/analytics.dto";
 
 @Injectable()
 export class ApiUsageService {
   constructor(private db: DatabaseService) {}
 
-  async getGlobalStats(filter: GetGlobalStatsQuery) {
-    const { startDate, endDate } = filter;
+  async getGlobalStats({ startDate, endDate }: GetGlobalStatsQuery): Promise<GlobalStatsResponse> {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-    const startDateFormatted = new Date(startDate);
-    const endDateFormatted = new Date(endDate);
+    const startDateFormatted = startDate ? new Date(startDate) : sixMonthsAgo;
+    const endDateFormatted = endDate ? new Date(endDate) : new Date();
 
-    const conditions = [];
-
-    if (startDate) {
-      conditions.push(gte(apiRequests.createdAt, startDateFormatted));
-    }
-    if (endDate) {
-      conditions.push(lte(apiRequests.createdAt, endDateFormatted));
-    }
-
-    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
-
+    const conditions = [gte(apiRequests.createdAt, startDateFormatted), lte(apiRequests.createdAt, endDateFormatted)];
     const [result] = await this.db.database
-      .select({
-        totalRequests: sql<number>`COUNT(*)::int`,
-        avgResponseTime: sql<number>`ROUND(AVG(${apiRequests.responseTimeInMs})::numeric, 2)::float`,
-        successRate: sql<number>`ROUND((COUNT(CASE WHEN ${apiRequests.statusCode} < 400 THEN 1 END) * 100.0 / COUNT(*))::numeric, 2)::float`,
-        uniqueEndpoints: sql<number>`COUNT(DISTINCT ${apiRequests.endpoint})::int`,
-        uniqueApiKeys: sql<number>`COUNT(DISTINCT ${apiRequests.serviceName})::int`,
-      })
+      .select({ apiCallsCount: count() })
       .from(apiRequests)
-      .where(whereCondition);
+      .where(and(...conditions));
 
-    return result;
+    const [totalProjects] = await this.db.database.select({ projetsCount: count() }).from(projets);
+
+    const [totalServiceContext] = await this.db.database.select({ servicesCount: count() }).from(serviceContext);
+
+    return { ...totalProjects, ...result, ...totalServiceContext };
   }
 
   async recordRequest(data: {
