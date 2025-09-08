@@ -20,7 +20,7 @@ jobs:
           ssh-key: ${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }} # needed to bypass protection rules on main branch as per
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
 
