@@ -16,19 +16,19 @@
     "predev": "react-dsfr update-icons"
   },
   "dependencies": {
-    "@codegouvfr/react-dsfr": "^1.22.5",
+    "@codegouvfr/react-dsfr": "^1.26.0",
     "classnames": "^2.5.1",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
     "recharts": "^2.15.0"
   },
   "devDependencies": {
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^4.4.1",
-    "eslint": "^9.25.1",
-    "prettier": "^3.5.3",
-    "typescript": "^5.8.3",
+    "eslint": "^9.35.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
     "vite": "^6.3.2"
   }
 }

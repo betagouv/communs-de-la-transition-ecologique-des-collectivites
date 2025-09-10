@@ -44,25 +44,25 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "@iframe-resizer/react": "^5.4.5",
-    "@tanstack/react-query": "^5.74.4",
+    "@iframe-resizer/react": "^5.5.6",
+    "@tanstack/react-query": "^5.87.4",
     "classnames": "^2.5.1",
-    "openapi-fetch": "^0.13.5",
-    "tss-react": "^4.9.16"
+    "openapi-fetch": "^0.14.0",
+    "tss-react": "^4.9.19"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.29.2",
-    "@testing-library/jest-dom": "^6.6.3",
+    "@changesets/cli": "^2.29.7",
+    "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "jsdom": "^26.1.0",
-    "msw": "^2.7.5",
-    "openapi-typescript": "^7.6.1",
+    "msw": "^2.11.2",
+    "openapi-typescript": "^7.9.1",
     "path": "^0.12.7",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "vite-plugin-dts": "^4.5.3",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "vite-plugin-dts": "^4.5.4",
     "vite-plugin-lib-inject-css": "^2.2.2",
-    "vitest": "^3.1.2"
+    "vitest": "^3.2.4"
   }
 }
