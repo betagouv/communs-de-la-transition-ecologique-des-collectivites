@@ -90,6 +90,28 @@ Liste des leviers  :
 	48.	Bio-carburants : Utilisation de carburants issus de la biomasse pour remplacer les carburants fossiles.
 	49.	Efficacité des aéronefs : Amélioration de l'efficacité énergétique des avions pour réduire les émissions du secteur aérien.
 	50.	SAF : Utilisation de carburants d'aviation durables (Sustainable Aviation Fuel) pour réduire l'impact environnemental des vols.
+    51.	Confort thermique des transports collectifs et des mobilités actives : Actions visant à améliorer le confort thermique des usagers des transports en commun et des mobilités actives pour favoriser leur usage.
+    52.	Réduction de la vulnérabilité des infrastructures et services de transport : Mesures pour protéger et adapter les infrastructures de transport face aux aléas climatiques.
+    53.	Intégration du confort d’été dans la rénovation et la construction des bâtiments : Prise en compte des performances estivales (rafraîchissement passif, isolation adaptée) lors de la conception et rénovation des bâtiments.
+    54.	Réseaux de froid : Développement et résilience des infrastructures de froid (stockage, transport d'aliments, médical) face aux besoins énergétiques et climatiques.
+    55.	Réduction de la vulnérabilité du système énergétique au changement climatique : Actions pour sécuriser et adapter la production, le transport et la distribution d'énergie face aux impacts climatiques.
+    56.	Adaptation des filières et des exploitations agricoles : Mesures pour adapter les pratiques agricoles et les filières aux nouvelles conditions climatiques.
+    57.	Performance des services publics de l’eau potable et de l’assainissement : Amélioration de la qualité, de la continuité et de la résilience des services d'eau potable et d'assainissement.
+    58.	Prévention des éboulements et glissement de terrain : Mesures de prévention et protection contre les mouvements de terrain et l'érosion.
+    59.	Prévention des inondations par débordement de cours d'eau, notamment via restauration des milieux aquatiques : Actions visant à réduire les risques d'inondation liés aux cours d'eau, incluant la restauration écologique.
+    60.	Prévention des inondations par ruissellement : Mesures de gestion des eaux de ruissellement urbain et rural pour limiter les inondations.
+    61.	Renaturation des villes et réduction de l'effet d'îlot de chaleur urbain : Actions de renaturation urbaine pour atténuer les îlots de chaleur et améliorer la qualité de vie.
+    62.	Conditionnement du développement urbain et économique à la ressource en eau : Intégration de la disponibilité et de la pérennité de la ressource en eau dans les décisions d'aménagement et d'économie.
+    63.	Renforcement de la résilience des services de santé : Mesures pour garantir le fonctionnement et l'accessibilité des services de santé en cas de crises climatiques.
+    64.	Préparation des services de secours : Renforcement de la capacité opérationnelle et logistique des services de secours face aux événements climatiques extrêmes.
+    65.	Résilience des services de communication : Garantir la continuité des réseaux et services de communication essentiels lors d'aléas.
+    66.	Protection et mise à l'abri des personnes vulnérables : Actions ciblées pour protéger et abriter les populations vulnérables lors d'événements extrêmes.
+    67.	Evolution de l’offre touristique de montagne : Adaptation des activités et infrastructures touristiques de montagne aux changements climatiques.
+    68.	Evolution de l’offre touristique littorale : Adaptation des activités et infrastructures touristiques littorales aux enjeux comme l'érosion et l'élévation du niveau de la mer.
+    69.	Continuité des activités économiques : Mesures pour maintenir l'activité économique locale face aux perturbations climatiques.
+    70.	Prévention des dégâts causés par le retrait-gonflement des argiles : Actions de prévention et adaptation des constructions et infrastructures aux mouvements des sols argileux.
+    71.	Intégration de l’élévation du niveau des mers dans l’aménagement du littoral : Prise en compte de la montée du niveau marin dans les politiques d'aménagement et de protection du littoral.
+    72.	Préservation des sites culturels et patrimoniaux : Mesures pour protéger les biens culturels et patrimoniaux des risques climatiques et environnementaux.
 </leviers>
 
 Liste des acronymes :
