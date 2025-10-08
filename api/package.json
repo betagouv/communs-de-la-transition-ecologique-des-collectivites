@@ -58,7 +58,7 @@
     "@nestjs/swagger": "^11.1.5",
     "@nestjs/throttler": "^6.4.0",
     "@sentry/cli": "^2.43.0",
-    "@sentry/nestjs": "^9.13.0",
+    "@sentry/nestjs": "^10.18.0",
     "@sentry/node": "^10.1.0",
     "bullmq": "^5.1.1",
     "class-transformer": "^0.5.1",
