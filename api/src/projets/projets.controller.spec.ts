@@ -93,7 +93,7 @@ describe("ProjetsController", () => {
 
       expect(result).toEqual(expectedResponse);
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(ProjetCreateService.create).toHaveBeenCalledWith(validProjet, "MEC_test_api_key");
+      expect(ProjetCreateService.create).toHaveBeenCalledWith(validProjet, process.env.MEC_API_KEY!);
     });
   });
 

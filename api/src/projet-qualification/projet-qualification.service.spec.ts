@@ -51,7 +51,7 @@ describe("ProjetQualificationService", () => {
         description: "rénovation du chauffage d'une école primaire",
         competences: null,
       });
-      const createdProjet = await createService.create(createDto, "MEC_test_api_key");
+      const createdProjet = await createService.create(createDto, process.env.MEC_API_KEY!);
 
       const mockCompetencesResult: CompetencesResult = {
         projet: "Test projet",
@@ -85,7 +85,7 @@ describe("ProjetQualificationService", () => {
         description: "rénovation du chauffage d'une école primaire",
         leviers: null,
       });
-      const createdProjet = await createService.create(createDto, "MEC_test_api_key");
+      const createdProjet = await createService.create(createDto, process.env.MEC_API_KEY!);
 
       const mockCompetencesResult: LeviersResult = {
         projet: "Test projet",
@@ -116,7 +116,7 @@ describe("ProjetQualificationService", () => {
       const createDto = mockProjetPayload({
         description: "rénovation du chauffage d'une école primaire",
       });
-      const createdProjet = await createService.create(createDto, "MEC_test_api_key");
+      const createdProjet = await createService.create(createDto, process.env.MEC_API_KEY!);
 
       jest.spyOn<any, any>(qualificationService, "analyzeProjet").mockRejectedValueOnce(new Error("Test error"));
 
