@@ -109,8 +109,8 @@ describe("ProjetFindService", () => {
         externalId: "test-service-id-2",
       });
 
-      await createProjetsService.create(createDto1, "MEC_test_api_key");
-      await createProjetsService.create(createDto2, "MEC_test_api_key");
+      await createProjetsService.create(createDto1, process.env.MEC_API_KEY!);
+      await createProjetsService.create(createDto2, process.env.MEC_API_KEY!);
 
       const { collectivites, externalId, ...expectedFieldsProjet1 } = createDto1;
 
@@ -144,7 +144,7 @@ describe("ProjetFindService", () => {
         externalId: "test-service-id",
       });
 
-      const createdProjet = await createProjetsService.create(createDto, "MEC_test_api_key");
+      const createdProjet = await createProjetsService.create(createDto, process.env.MEC_API_KEY!);
       const result = await getProjetsService.findOne(createdProjet.id);
       const { externalId, collectivites, ...expectedFields } = createDto;
 
@@ -161,7 +161,7 @@ describe("ProjetFindService", () => {
         externalId: "test-service-id",
       });
 
-      const createdProjet = await createProjetsService.create(createDto, "MEC_test_api_key");
+      const createdProjet = await createProjetsService.create(createDto, process.env.MEC_API_KEY!);
       const result = await getProjetsService.findOne(createdProjet.id);
       const { externalId, collectivites, ...expectedFields } = createDto;
 
@@ -185,7 +185,7 @@ describe("ProjetFindService", () => {
         externalId: "test-service-id",
       });
 
-      const createdProjetId = (await createProjetsService.create(createDto, "MEC_test_api_key")).id;
+      const createdProjetId = (await createProjetsService.create(createDto, process.env.MEC_API_KEY!)).id;
       const createdProjet = await getProjetsService.getPublicInfo(createdProjetId, "communId");
       const { description, phase } = createDto;
 

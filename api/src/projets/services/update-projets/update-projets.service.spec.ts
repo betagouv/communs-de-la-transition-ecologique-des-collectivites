@@ -21,7 +21,7 @@ describe("ProjetUpdateService", () => {
   let module: TestingModule;
   let ProjetId: string;
 
-  const MEC_API_KEY = "MEC_test_api_key";
+  const MEC_API_KEY = process.env.MEC_API_KEY!;
   const EXTERNAL_ID = "test-service-id";
   const mockedCollectivites: CollectiviteReference = { type: "Commune", code: "01001" };
 

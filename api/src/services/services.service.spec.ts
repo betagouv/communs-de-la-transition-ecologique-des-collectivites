@@ -77,7 +77,7 @@ describe("ServicesService", () => {
     it("should return no service for project without services", async () => {
       const createDto = mockProjetPayload();
 
-      const project = await createProjectService.create(createDto, "MEC_test_api_key");
+      const project = await createProjectService.create(createDto, process.env.MEC_API_KEY!);
 
       const result = await service.getServicesByProjectId(project.id, "communId");
       expect(result).toStrictEqual([]);
@@ -89,7 +89,7 @@ describe("ServicesService", () => {
 
     it("should return a specific service associated to a tet project through tet id", async () => {
       const createDto = mockProjetPayload({ externalId: "test-external-id", competences: ["90-851"] });
-      await createProjectService.create(createDto, "TET_test_api_key");
+      await createProjectService.create(createDto, process.env.TET_API_KEY!);
       const createdService = await service.create(serviceDTO);
 
       const createServiceContextDto: CreateServiceContextRequest = {
