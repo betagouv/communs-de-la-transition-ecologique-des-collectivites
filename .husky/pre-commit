@@ -3,4 +3,4 @@
 # Run validation (lint/type check / prettier)
 npm run validate
 # Run talisman to check for any secret leakages
-talisman --githook pre-commit
+npx node-talisman --githook pre-commit
