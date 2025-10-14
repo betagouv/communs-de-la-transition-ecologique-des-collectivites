@@ -16,7 +16,7 @@ Etape 2 : Associations de leviers selon une liste établie.
 Associer des leviers, si c’est pertinent, à la description du projet
 - Il est possible qu’un projet soit lié à la transition écologique sans correspondre à aucun levier de la liste fournie.
 - Un projet peut ne pas être en lien direct avec la transition écologique, ou sa description peut être insuffisamment précise pour le déterminer, mais des leviers pertinents peuvent tout de même y être associés.
-- les leviers possibles sont au nombre de 49, la liste complète des leviers sera donnée par la suite.
+- les leviers possibles sont au nombre de 72, la liste complète des leviers sera donnée par la suite.
 
 Pour chaque levier associé, attribuer un score compris entre 0 et 1, reflétant la pertinence du levier par rapport au projet selon les critères suivants :
 	•	0.9 - 1.0 : Le levier est hautement pertinent et directement lié aux actions ou impacts principaux du projet.
@@ -963,6 +963,28 @@ leviers = [
   "Bio-carburants",
   "Efficacité des aéronefs",
   "SAF",
+  "Confort thermique des transports collectifs et des mobilités actives",
+  "Réduction de la vulnérabilité des infrastructures et services de transport",
+  "Intégration du confort d’été dans la rénovation et la construction des bâtiments",
+  "Réseaux de froid",
+  "Réduction de la vulnérabilité du système énergétique au changement climatique",
+  "Adaptation des filières et des exploitations agricoles",
+  "Performance des services publics de l’eau potable et de l’assainissement",
+  "Prévention des éboulements et glissement de terrain",
+  "Prévention des inondations par débordement de cours d'eau, notamment via restauration des milieux aquatiques",
+  "Prévention des inondations par ruissellement",
+  "Renaturation des villes et réduction de l'effet d'îlot de chaleur urbain",
+  "Conditionnement du développement urbain et économique à la ressource en eau",
+  "Renforcement de la résilience des services de santé",
+  "Préparation des services de secours",
+  "Résilience des services de communication",
+  "Protection et mise à l'abri des personnes vulnérables",
+  "Evolution de l’offre touristique de montagne",
+  "Evolution de l’offre touristique littorale",
+  "Continuité des activités économiques",
+  "Prévention des dégâts causés par le retrait-gonflement des argiles",
+  "Intégration de l’élévation du niveau des mers dans l’aménagement du littoral",
+  "Préservation des sites culturels et patrimoniaux",
 ]
 
 corrections_leviers = {
