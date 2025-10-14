@@ -24,6 +24,17 @@ dist-ssr
 *.sln
 *.sw?
 
+# Dev tools
+.serena
+
+# Local files (personal configs, scripts, notes)
+*.local
+*.local.*
+
+# Scratch work (experiments, temporary files)
+scratch/
+.scratch/
+
 # Yalc
 .yalc
 yalc.lock
