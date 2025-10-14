@@ -2,28 +2,29 @@ import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import { CustomLogger } from "@logging/logger.service";
 import { InternalServerErrorException } from "@nestjs/common";
-import path from "path";
-import { spawn } from "child_process";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import {
   COMPETENCE_SCORE_TRESHOLD,
-  CompetencesResult,
   LEVIER_SCORE_TRESHOLD,
-  LeviersResult,
   PROJECT_QUALIFICATION_COMPETENCES_JOB,
   PROJECT_QUALIFICATION_LEVIERS_JOB,
 } from "@/projet-qualification/const";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
-import { existsSync } from "fs";
-import { Levier, ServiceType } from "@/shared/types";
+import { ServiceType } from "@/shared/types";
 import { ProjetQualificationResponse } from "@/projet-qualification/dto/projet-qualification.dto";
 import * as Sentry from "@sentry/node";
+import { AnthropicService } from "@/projet-qualification/llm/anthropic.service";
+import { LeviersValidationService } from "@/projet-qualification/llm/validation/leviers-validation.service";
+import { CompetencesValidationService } from "@/projet-qualification/llm/validation/competences-validation.service";
 
 @Processor("project-qualification")
 export class ProjetQualificationService extends WorkerHost {
   constructor(
     private readonly projetUpdateService: UpdateProjetsService,
     private readonly projetGetService: GetProjetsService,
+    private readonly anthropicService: AnthropicService,
+    private readonly leviersValidationService: LeviersValidationService,
+    private readonly competencesValidationService: CompetencesValidationService,
     private logger: CustomLogger,
   ) {
     super();
@@ -66,103 +67,92 @@ export class ProjetQualificationService extends WorkerHost {
   }
 
   private async analyzeAndUpdateLeviers(context: string, projetId: string): Promise<void> {
-    const result = await this.analyzeProjet<LeviersResult>(context, "TE");
+    this.logger.log(`Starting leviers analysis for project ${projetId}`);
 
-    if (Object.keys(result.leviers).length === 0) {
+    // Call Anthropic service to analyze leviers
+    const analysisResult = await this.anthropicService.analyzeLeviers(context);
+
+    if (analysisResult.errorMessage) {
+      throw new Error(`Error while qualifying leviers for ${projetId} - error : ${analysisResult.errorMessage}`);
+    }
+
+    // Validate and correct leviers using validation service
+    const validatedLeviers = this.leviersValidationService.validateAndCorrect(
+      analysisResult.json,
+      LEVIER_SCORE_TRESHOLD,
+    );
+
+    if (validatedLeviers.length === 0) {
       this.logger.log(`No levier found for project ${projetId} with context ${context}`);
       return;
     }
 
-    if (result.errorMessage) {
-      throw new Error(`Error while qualifying leviers for ${projetId} - error : ${result.errorMessage}`);
-    }
+    // Update project with validated leviers
+    await this.projetUpdateService.update(projetId, { leviers: validatedLeviers });
 
-    const keptLeviers = Object.entries(result.leviers)
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      .filter(([_, score]) => score > LEVIER_SCORE_TRESHOLD)
-      .map(([name]) => name as Levier);
-
-    await this.projetUpdateService.update(projetId, { leviers: keptLeviers });
-
-    this.logger.log(`Successfully qualified project ${projetId} with leviers ${keptLeviers.join()}`);
+    this.logger.log(`Successfully qualified project ${projetId} with leviers ${validatedLeviers.join()}`);
   }
 
   private async analyzeAndUpdateCompetences(context: string, projetId: string): Promise<void> {
-    const result = await this.analyzeProjet<CompetencesResult>(context, "competences");
-    if (result.competences.length === 0) {
+    this.logger.log(`Starting competences analysis for project ${projetId}`);
+
+    // Call Anthropic service to analyze competences
+    const analysisResult = await this.anthropicService.analyzeCompetences(context);
+
+    if (analysisResult.errorMessage) {
+      throw new Error(`Error while qualifying competences for ${projetId} - error : ${analysisResult.errorMessage}`);
+    }
+
+    // Validate and correct competences using validation service
+    const validatedCompetences = this.competencesValidationService.validateAndCorrect(
+      analysisResult.json,
+      COMPETENCE_SCORE_TRESHOLD,
+    );
+
+    if (validatedCompetences.length === 0) {
       this.logger.log(`No competences found for project ${projetId} with context ${context}`);
       return;
     }
 
-    if (result.errorMessage) {
-      throw new Error(`Error while qualifying competences for ${projetId} - error : ${result.errorMessage}`);
-    }
+    const competencesCodes = validatedCompetences.map((c) => c.code);
 
-    const competencesCodes = result.competences
-      .filter((competence) => competence.score > COMPETENCE_SCORE_TRESHOLD)
-      .map((competence) => competence.code);
-
-    // this will throw if projet is not found
+    // Update project with validated competences
     await this.projetUpdateService.update(projetId, { competences: competencesCodes });
 
     this.logger.log(`Successfully qualified project ${projetId} with competences code ${competencesCodes.join()}`);
   }
 
   async analyzeCompetences(context: string, serviceType: ServiceType): Promise<ProjetQualificationResponse> {
-    const result = await this.analyzeProjet<CompetencesResult>(context, "competences");
+    this.logger.log(`Analyzing competences for ${serviceType} context`);
 
-    if (result.competences.length === 0) {
+    // Call Anthropic service to analyze competences
+    const analysisResult = await this.anthropicService.analyzeCompetences(context);
+
+    if (analysisResult.errorMessage) {
+      throw new InternalServerErrorException(
+        `Error while qualifying competences - error : ${analysisResult.errorMessage}`,
+      );
+    }
+
+    // Validate and correct competences using validation service
+    const validatedCompetences = this.competencesValidationService.validateAndCorrect(
+      analysisResult.json,
+      COMPETENCE_SCORE_TRESHOLD,
+    );
+
+    if (validatedCompetences.length === 0) {
       this.logger.log(`No competences found for project with context ${context} for ${serviceType}`);
     }
 
-    if (result.errorMessage) {
-      throw new InternalServerErrorException(`Error while qualifying competences - error : ${result.errorMessage}`);
-    }
-
-    const competences = result.competences
-      .filter((competence) => competence.score > COMPETENCE_SCORE_TRESHOLD)
-      .map((competence) => ({ code: competence.code, score: competence.score, nom: competence.competence }));
+    const competences = validatedCompetences.map((c) => ({
+      code: c.code,
+      score: c.score,
+      nom: c.competence,
+    }));
 
     return {
       projet: context,
       competences,
     };
-  }
-
-  async analyzeProjet<T>(context: string, type: "TE" | "competences"): Promise<T> {
-    return new Promise((resolve, reject) => {
-      const escapedDescription = context.replace(/'/g, "'\\''");
-      const pythonScript = path.join(__dirname, "llm-scripts", "competences-and-leviers-qualification.py");
-
-      if (!existsSync(pythonScript)) {
-        throw new Error(`Le script Python n'existe pas : ${pythonScript}`);
-      }
-
-      const pythonProcess = spawn("python3", [pythonScript, `'${escapedDescription}'`, "--type", type]);
-
-      let outputString = "";
-      let errorString = "";
-
-      pythonProcess.stdout.on("data", (data: Buffer) => {
-        outputString += data.toString();
-      });
-
-      pythonProcess.stderr.on("data", (data: Buffer) => {
-        errorString += data.toString();
-      });
-
-      pythonProcess.on("close", (code) => {
-        if (code !== 0) {
-          reject(new Error(`Process exited with code ${code}. Error: ${errorString}`));
-          return;
-        }
-        try {
-          const jsonResult = JSON.parse(outputString) as T;
-          resolve(jsonResult);
-        } catch (e) {
-          reject(new Error(`Failed to parse JSON output: ${e instanceof Error ? e.message : String(e)}`));
-        }
-      });
-    });
   }
 }

@@ -1,3 +1,13 @@
 fileignoreconfig:
 - filename: pnpm-lock.yaml
+  checksum: 88f8fa7470c9f35eb5573b76804fbaa96d4f4cb30c4dc16783928dbff1259f5a
+- filename: api/src/projet-qualification/llm/anthropic.service.ts
+  checksum: 49861c58c2eb0ffaa2f3ae06856d0ac2039e67375073422be85c8cbbe9402036
+  comments: "False positive: ConfigService.get() calls and test environment handling for API key, not actual secrets"
+- filename: api/src/projet-qualification/llm/prompts/leviers.prompts.ts
+  checksum: 8f6014d4e8a41e936fa32bfa0c199a06c97330b33ab6c6d2e8a8f24bc99e4e5b
+  comments: "False positive: French text in prompts triggering secret detection"
+- filename: api/src/projet-qualification/llm/validation/competences-validation.service.ts
+  checksum: 0f3d8259a68ec9255a0655170abfa833dde7d7ae606886db020e71c9ce10640f
+  comments: "False positive: Competence corrections mapping object literals, not secrets"
 version: "1.0"
