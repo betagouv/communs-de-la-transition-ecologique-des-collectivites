@@ -2,4 +2,19 @@ fileignoreconfig:
 - filename: pnpm-lock.yaml
 - filename: api/README.md
   checksum: 9c4ec1309eea835caba8bb3cc9e3d0bd8453e0e772057a7a6130dd82bb61dd9d
+- filename: api/.env.template
+  checksum: be3262f64d948910da3edb2d53285ff2eb4bd1bc4b9dde2bcc04477c3207247b
+  comments: "Template file with placeholder values, not actual secrets"
+- filename: api/src/projet-qualification/llm/anthropic.service.ts
+  checksum: 49861c58c2eb0ffaa2f3ae06856d0ac2039e67375073422be85c8cbbe9402036
+  comments: "False positive: ConfigService.get() calls and test environment handling for API key, not actual secrets"
+- filename: api/src/projet-qualification/llm/prompts/competences.prompts.ts
+  checksum: 42b8b18ce6179c9ca15303c9a67fed459a0c06324ec54e4dcefab60907baff8b
+  comments: "False positive: French text in few-shot examples triggering secret detection on maritime transport text"
+- filename: api/src/projet-qualification/llm/prompts/leviers.prompts.ts
+  checksum: 8f6014d4e8a41e936fa32bfa0c199a06c97330b33ab6c6d2e8a8f24bc99e4e5b
+  comments: "False positive: French text in prompts triggering secret detection"
+- filename: api/src/projet-qualification/llm/validation/competences-validation.service.ts
+  checksum: 0f3d8259a68ec9255a0655170abfa833dde7d7ae606886db020e71c9ce10640f
+  comments: "False positive: Competence corrections mapping object literals, not secrets"
 version: "1.0"

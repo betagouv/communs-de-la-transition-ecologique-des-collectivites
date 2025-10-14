@@ -50,6 +50,7 @@
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org betagouv --project communs-de-la-transition-eco-api ./dist && sentry-cli --url https://sentry.incubateur.net/ sourcemaps upload --org betagouv --project communs-de-la-transition-eco-api ./dist"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0",
     "@bull-board/api": "^6.9.6",
     "@bull-board/express": "^6.9.6",
     "@bull-board/nestjs": "^6.9.6",
