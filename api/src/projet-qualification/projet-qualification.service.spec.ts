@@ -6,15 +6,14 @@ import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { collectivites } from "@database/schema";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
-import {
-  CompetencesResult,
-  LeviersResult,
-  PROJECT_QUALIFICATION_COMPETENCES_JOB,
-  PROJECT_QUALIFICATION_LEVIERS_JOB,
-} from "./const";
+import { CompetencesResult, PROJECT_QUALIFICATION_COMPETENCES_JOB, PROJECT_QUALIFICATION_LEVIERS_JOB } from "./const";
 import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
 import { CompetenceCode } from "@/shared/types";
 import { ProjetQualificationResponse } from "@/projet-qualification/dto/projet-qualification.dto";
+import { AnthropicService } from "@/projet-qualification/llm/anthropic.service";
+import { CompetencesValidationService } from "@/projet-qualification/llm/validation/competences-validation.service";
+import { LeviersValidationService } from "@/projet-qualification/llm/validation/leviers-validation.service";
+import { LeviersLLMResponse } from "@/projet-qualification/llm/prompts/types";
 
 describe("ProjetQualificationService", () => {
   let createService: CreateProjetsService;
@@ -22,6 +21,9 @@ describe("ProjetQualificationService", () => {
   let testDbService: TestDatabaseService;
   let module: TestingModule;
   let qualificationService: ProjetQualificationService;
+  let anthropicService: AnthropicService;
+  let competencesValidationService: CompetencesValidationService;
+  let leviersValidationService: LeviersValidationService;
 
   beforeAll(async () => {
     const { module: internalModule, testDbService: tds } = await testModule();
@@ -30,6 +32,9 @@ describe("ProjetQualificationService", () => {
     createService = module.get<CreateProjetsService>(CreateProjetsService);
     findService = module.get<GetProjetsService>(GetProjetsService);
     qualificationService = module.get<ProjetQualificationService>(ProjetQualificationService);
+    anthropicService = module.get<AnthropicService>(AnthropicService);
+    competencesValidationService = module.get<CompetencesValidationService>(CompetencesValidationService);
+    leviersValidationService = module.get<LeviersValidationService>(LeviersValidationService);
   });
 
   afterAll(async () => {
@@ -66,7 +71,18 @@ describe("ProjetQualificationService", () => {
         errorMessage: "",
       };
 
-      jest.spyOn<any, any>(qualificationService, "analyzeProjet").mockResolvedValueOnce(mockCompetencesResult);
+      // Mock the new service architecture
+      jest.spyOn(anthropicService, "analyzeCompetences").mockResolvedValueOnce({
+        json: mockCompetencesResult,
+        errorMessage: undefined,
+      });
+      jest.spyOn(competencesValidationService, "validateAndCorrect").mockReturnValueOnce([
+        {
+          code: "90-75" as CompetenceCode,
+          competence: "Politique de l'énergie",
+          score: 0.9,
+        },
+      ]);
 
       const mockJob = {
         name: PROJECT_QUALIFICATION_COMPETENCES_JOB,
@@ -87,18 +103,22 @@ describe("ProjetQualificationService", () => {
       });
       const createdProjet = await createService.create(createDto, process.env.MEC_API_KEY!);
 
-      const mockCompetencesResult: LeviersResult = {
+      const mockLeviersLLMResponse: LeviersLLMResponse = {
         projet: "Test projet",
-        classification: null,
-        raisonnement: null,
+        classification: "Le projet a un lien avec la transition écologique",
         leviers: {
           "Elevage durable": 0.6,
           "Sobriété foncière": 0.9,
         },
-        errorMessage: "",
       };
 
-      jest.spyOn<any, any>(qualificationService, "analyzeProjet").mockResolvedValueOnce(mockCompetencesResult);
+      // Mock the new service architecture
+      jest.spyOn(anthropicService, "analyzeLeviers").mockResolvedValueOnce({
+        json: mockLeviersLLMResponse,
+        raisonnement: "",
+        errorMessage: undefined,
+      });
+      jest.spyOn(leviersValidationService, "validateAndCorrect").mockReturnValueOnce(["Sobriété foncière"]);
 
       const mockJob = {
         name: PROJECT_QUALIFICATION_LEVIERS_JOB,
@@ -112,13 +132,14 @@ describe("ProjetQualificationService", () => {
       expect(updatedProjet.leviers).toEqual(["Sobriété foncière"]);
     });
 
-    it("should handle errors in analyzeProjet", async () => {
+    it("should handle errors in Anthropic service", async () => {
       const createDto = mockProjetPayload({
         description: "rénovation du chauffage d'une école primaire",
       });
       const createdProjet = await createService.create(createDto, process.env.MEC_API_KEY!);
 
-      jest.spyOn<any, any>(qualificationService, "analyzeProjet").mockRejectedValueOnce(new Error("Test error"));
+      // Mock Anthropic service to reject
+      jest.spyOn(anthropicService, "analyzeCompetences").mockRejectedValueOnce(new Error("Test error"));
 
       const mockJob = {
         name: PROJECT_QUALIFICATION_COMPETENCES_JOB,
@@ -157,7 +178,23 @@ describe("ProjetQualificationService", () => {
       };
       const context = "Nom et description du projet";
 
-      jest.spyOn<any, any>(qualificationService, "analyzeProjet").mockResolvedValueOnce(mockCompetencesResult);
+      // Mock the new service architecture
+      jest.spyOn(anthropicService, "analyzeCompetences").mockResolvedValueOnce({
+        json: mockCompetencesResult,
+        errorMessage: undefined,
+      });
+      jest.spyOn(competencesValidationService, "validateAndCorrect").mockReturnValueOnce([
+        {
+          code: "90-75" as CompetenceCode,
+          competence: "Politique de l'énergie",
+          score: 0.9,
+        },
+        {
+          code: "90-41" as CompetenceCode,
+          competence: "Santé",
+          score: 0.8,
+        },
+      ]);
 
       const result = await qualificationService.analyzeCompetences(context, "MEC");
 
