@@ -50,17 +50,83 @@ Once you have your API up, the swagger will be available on http://localhost:300
 
 ## Testing
 
-```bash
-pnpm test
+We follow a three-tier test strategy:
+
+### Test Pyramid
+
+```
+           ┌─────────────┐
+           │  E2E Tests  │  ← Slowest, most expensive, full system
+           │  (HTTP API) │     Docker + Database + API
+           └─────────────┘
+                 │
+           ┌─────────────────┐
+           │ Integration Tests│ ← Medium speed, external deps
+           │  (Service Layer) │   Real LLM/DB but no HTTP
+           └─────────────────┘
+                 │
+           ┌───────────────────────┐
+           │    Unit Tests         │ ← Fast, isolated, mocked
+           │ (Pure Logic/Mocks)    │   No external dependencies
+           └───────────────────────┘
 ```
 
-To run end-to-end tests:
+### Running Tests
+
+**Unit tests** (fast, no external dependencies):
+
+```bash
+pnpm test:unit
+```
+
+**Integration tests** (requires `ANTHROPIC_API_KEY`, Python3 + anthropic module, Docker):
+
+```bash
+pnpm test:integration
+```
+
+**E2E tests** (full HTTP API with Docker):
 
 ```bash
 pnpm test:e2e
 ```
 
-_Note:_ Ensure that the PostgreSQL database is running via Docker when running tests.
+**All tests** (complete test suite):
+
+```bash
+pnpm test:all
+```
+
+**Quick validation** (unit + script tests, default for `pnpm test`):
+
+```bash
+pnpm test
+```
+
+### Watch Mode
+
+```bash
+pnpm test:watch              # Unit tests only
+pnpm test:watch:integration  # Integration tests only
+```
+
+### Coverage
+
+```bash
+pnpm test:cov  # Unit test coverage only
+```
+
+### Test Types Explained
+
+| Type            | Speed    | External Deps    | When to Run   | Cost           |
+| --------------- | -------- | ---------------- | ------------- | -------------- |
+| **Unit**        | ~seconds | None (mocked)    | Every save    | Free           |
+| **Integration** | ~minutes | LLM API, TestDB  | Before commit | API credits    |
+| **E2E**         | ~minutes | Docker, DB, HTTP | Before merge  | Infrastructure |
+
+**Integration tests** use TestContainers for automatic database setup/teardown, while **E2E tests** use Docker Compose with a dedicated configuration.
+
+_Note:_ Integration and E2E tests require different database setups and can run in parallel without conflicts.
 
 ## Continuous Integration
 
