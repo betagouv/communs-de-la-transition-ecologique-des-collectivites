@@ -26,7 +26,7 @@ describe("ProjetQualificationService - Integration Tests", () => {
 
   afterAll(async () => {
     await teardownTestModule(testDbService, module);
-  });
+  }, 10000);
 
   describe("analyzeCompetences - Real LLM calls", () => {
     it("should correctly identify competences for école primaire renovation", async () => {
