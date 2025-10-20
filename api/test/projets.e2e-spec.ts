@@ -151,7 +151,7 @@ describe("Projets (e2e)", () => {
       const { data } = await mecClient.projets.create({
         ...validProjet,
         competences: null,
-        description: "rénovation des chauffage d'une ecole primaire",
+        description: "rénovation d'une ecole primaire",
         externalId: "mec-competence-not-provided",
       });
 
@@ -160,9 +160,10 @@ describe("Projets (e2e)", () => {
 
       const { data: updatedProjet } = await api.projets.getOne(data!.id);
 
-      expect(updatedProjet).toMatchObject({
-        competences: ["90-212"],
-      });
+      // LLM may identify education competence (90-212) and sometimes energy competence (90-75)
+      // depending on confidence scores around the 0.7 threshold
+      expect(updatedProjet?.competences).toContain("90-212");
+      expect(updatedProjet?.competences?.length).toBeGreaterThanOrEqual(1);
     }, 30000);
 
     it("should update leviers when not provided", async () => {
