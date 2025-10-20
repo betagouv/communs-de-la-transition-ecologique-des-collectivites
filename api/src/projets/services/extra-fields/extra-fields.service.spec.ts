@@ -25,7 +25,7 @@ describe("ExtraFieldService", () => {
 
   afterAll(async () => {
     await teardownTestModule(testDbService, module);
-  });
+  }, 10000);
 
   beforeEach(async () => {
     await testDbService.cleanDatabase();

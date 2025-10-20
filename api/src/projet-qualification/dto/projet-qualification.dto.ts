@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString } from "class-validator";
 import { competenceCodes, competenceNames } from "@/shared/const/competences-list";
-import { CompetenceCode, CompetenceName } from "@/shared/types";
+import { leviers } from "@/shared/const/leviers";
+import { CompetenceCode, CompetenceName, Levier } from "@/shared/types";
 
 export class ProjetQualificationRequest {
   @ApiProperty({
@@ -55,4 +56,47 @@ export class ProjetQualificationResponse {
     type: [CompetenceDto],
   })
   competences!: CompetenceDto[];
+}
+
+export class LevierDto {
+  @ApiProperty({
+    enum: leviers,
+    description: "Nom du levier d'action",
+    type: String,
+  })
+  nom!: Levier;
+
+  @ApiProperty({
+    description: "Score de pertinence entre 0 et 1",
+    example: 0.85,
+  })
+  score!: number;
+}
+
+export class ProjetLeviersResponse {
+  @ApiProperty({
+    description: "Description du projet analysé",
+    example: "Création d'une ressourcerie communale pour le réemploi",
+  })
+  projet!: string;
+
+  @ApiProperty({
+    description: "Classification du projet par rapport à la transition écologique",
+    example: "Le projet a un lien avec la transition écologique",
+    nullable: true,
+  })
+  classification!: string | null;
+
+  @ApiProperty({
+    description: "Liste des leviers d'action identifiés",
+    type: [LevierDto],
+  })
+  leviers!: LevierDto[];
+
+  @ApiProperty({
+    description: "Raisonnement de l'analyse",
+    example: "Le projet favorise l'économie circulaire et la réduction des déchets",
+    nullable: true,
+  })
+  raisonnement!: string | null;
 }
