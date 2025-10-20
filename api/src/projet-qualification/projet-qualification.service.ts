@@ -16,7 +16,10 @@ import {
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { existsSync } from "fs";
 import { Levier, ServiceType } from "@/shared/types";
-import { ProjetQualificationResponse } from "@/projet-qualification/dto/projet-qualification.dto";
+import {
+  ProjetLeviersResponse,
+  ProjetQualificationResponse,
+} from "@/projet-qualification/dto/projet-qualification.dto";
 import * as Sentry from "@sentry/node";
 
 @Processor("project-qualification")
@@ -126,6 +129,30 @@ export class ProjetQualificationService extends WorkerHost {
     return {
       projet: context,
       competences,
+    };
+  }
+
+  async analyzeLeviers(context: string): Promise<ProjetLeviersResponse> {
+    const result = await this.analyzeProjet<LeviersResult>(context, "TE");
+
+    if (Object.keys(result.leviers).length === 0) {
+      this.logger.log(`No leviers found for project with context ${context}`);
+    }
+
+    if (result.errorMessage) {
+      throw new InternalServerErrorException(`Error while qualifying leviers - error : ${result.errorMessage}`);
+    }
+
+    const leviers = Object.entries(result.leviers)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .filter(([_, score]) => score > LEVIER_SCORE_TRESHOLD)
+      .map(([nom, score]) => ({ nom: nom as Levier, score }));
+
+    return {
+      projet: context,
+      classification: result.classification,
+      leviers,
+      raisonnement: result.raisonnement,
     };
   }
 

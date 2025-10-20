@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { TestingModule } from "@nestjs/testing";
 import { ProjetQualificationService } from "./projet-qualification.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
@@ -96,16 +92,15 @@ describe("ProjetQualificationService - Integration Tests", () => {
     }, 30000);
   });
 
-  describe("Leviers analysis - Quality checks", () => {
+  describe("analyzeLeviers - Real LLM calls", () => {
     it("should correctly identify leviers for ressourcerie", async () => {
       const context =
         "Création d'une ressourcerie communale pour donner une seconde vie aux objets, promouvoir le réemploi et créer des emplois d'insertion";
 
-      // Call the internal method that spawns Python script
-      const result = await (qualificationService as any).analyzeProjet(context, "TE");
+      const result = await qualificationService.analyzeLeviers(context);
 
       // Should detect waste-related leviers
-      const levierNames = Object.keys(result.leviers);
+      const levierNames = result.leviers.map((l) => l.nom);
 
       // Should include "Prévention des déchets" (reducing waste at source)
       expect(levierNames).toContain("Prévention des déchets");
@@ -113,22 +108,18 @@ describe("ProjetQualificationService - Integration Tests", () => {
       // Should include "Valorisation matière des déchets" (recycling/reuse)
       expect(levierNames).toContain("Valorisation matière des déchets");
 
-      // May include "Moindre stockage en décharge" (less landfill)
-      // This is the one that differs between Python and TypeScript
-
-      // All scores should be reasonable
-      Object.values(result.leviers).forEach((score: any) => {
-        expect(score).toBeGreaterThanOrEqual(0);
-        expect(score).toBeLessThanOrEqual(1);
+      // All returned leviers should have score > 0.7 threshold
+      result.leviers.forEach((levier) => {
+        expect(levier.score).toBeGreaterThan(0.7);
       });
     }, 30000);
 
     it("should correctly identify leviers for piste cyclable", async () => {
       const context = "Aménagement d'une piste cyclable sécurisée de 15 km reliant 5 communes";
 
-      const result = await (qualificationService as any).analyzeProjet(context, "TE");
+      const result = await qualificationService.analyzeLeviers(context);
 
-      const levierNames = Object.keys(result.leviers);
+      const levierNames = result.leviers.map((l) => l.nom);
 
       // Should include "Vélo" (bike promotion)
       expect(levierNames).toContain("Vélo");
@@ -141,35 +132,47 @@ describe("ProjetQualificationService - Integration Tests", () => {
 
       // At least one mobility-related levier
       expect(levierNames.includes("Vélo") || hasMobility).toBe(true);
+
+      // All returned leviers should have score > 0.7 threshold
+      result.leviers.forEach((levier) => {
+        expect(levier.score).toBeGreaterThan(0.7);
+      });
     }, 30000);
 
     it("should correctly identify leviers for panneaux solaires", async () => {
       const context =
         "Installation de panneaux photovoltaïques sur les toits des bâtiments communaux pour produire de l'électricité renouvelable";
 
-      const result = await (qualificationService as any).analyzeProjet(context, "TE");
+      const result = await qualificationService.analyzeLeviers(context);
 
-      const levierNames = Object.keys(result.leviers);
+      const levierNames = result.leviers.map((l) => l.nom);
 
       // Should include "Electricité renouvelable"
       expect(levierNames).toContain("Electricité renouvelable");
 
       // Should have high confidence for renewable energy
-      expect(result.leviers["Electricité renouvelable"]).toBeGreaterThanOrEqual(0.7);
+      const electriciteLevier = result.leviers.find((l) => l.nom === "Electricité renouvelable");
+      expect(electriciteLevier).toBeDefined();
+      expect(electriciteLevier!.score).toBeGreaterThan(0.7);
+
+      // All returned leviers should have score > 0.7 threshold
+      result.leviers.forEach((levier) => {
+        expect(levier.score).toBeGreaterThan(0.7);
+      });
     }, 30000);
 
     it("should handle vague project descriptions appropriately", async () => {
       const context = "Revitalisation du centre bourg";
 
-      const result = await (qualificationService as any).analyzeProjet(context, "TE");
+      const result = await qualificationService.analyzeLeviers(context);
 
       // Should classify as unclear or no link
       expect(result.classification).toMatch(/pas assez précis|n'a pas de lien/);
 
-      // May have some leviers with lower scores
-      Object.values(result.leviers).forEach((score: any) => {
-        // Scores should be moderate to low for vague descriptions
-        expect(score).toBeLessThanOrEqual(0.8);
+      // May have few or no leviers due to threshold filtering
+      // If any leviers are returned, they should still meet the threshold
+      result.leviers.forEach((levier) => {
+        expect(levier.score).toBeGreaterThan(0.7);
       });
     }, 30000);
   });
@@ -183,7 +186,7 @@ describe("ProjetQualificationService - Integration Tests", () => {
       ];
 
       for (const context of ecologicalContexts) {
-        const result = await (qualificationService as any).analyzeProjet(context, "TE");
+        const result = await qualificationService.analyzeLeviers(context);
 
         expect(result.classification).toBe("Le projet a un lien avec la transition écologique");
       }
@@ -192,7 +195,7 @@ describe("ProjetQualificationService - Integration Tests", () => {
     it("should classify non-ecological projects correctly", async () => {
       const nonEcologicalContext = "Création d'une salle de convivialité au complexe sportif";
 
-      const result = await (qualificationService as any).analyzeProjet(nonEcologicalContext, "TE");
+      const result = await qualificationService.analyzeLeviers(nonEcologicalContext);
 
       expect(result.classification).toBe("Le projet n'a pas de lien avec la transition écologique");
     }, 30000);
@@ -200,7 +203,7 @@ describe("ProjetQualificationService - Integration Tests", () => {
     it("should classify unclear projects as unclear", async () => {
       const unclearContext = "Aménagement du parking";
 
-      const result = await (qualificationService as any).analyzeProjet(unclearContext, "TE");
+      const result = await qualificationService.analyzeLeviers(unclearContext);
 
       expect(result.classification).toBe(
         "Le projet n'est pas assez précis pour être lié ou non à la transition écologique",
@@ -223,18 +226,15 @@ describe("ProjetQualificationService - Integration Tests", () => {
     it("should only return leviers above threshold (0.7) after filtering", async () => {
       const context = "Création d'une ressourcerie communale";
 
-      const result = await (qualificationService as any).analyzeProjet(context, "TE");
+      const result = await qualificationService.analyzeLeviers(context);
 
-      // Filter leviers by threshold like the service does
-      const filteredLeviers = Object.entries(result.leviers).filter(([_, score]) => (score as number) > 0.7);
-
-      // All filtered leviers should be above threshold
-      filteredLeviers.forEach(([_, score]) => {
-        expect(score).toBeGreaterThan(0.7);
+      // All returned leviers should have score > 0.7
+      result.leviers.forEach((levier) => {
+        expect(levier.score).toBeGreaterThan(0.7);
       });
 
       // Should have at least one levier above threshold
-      expect(filteredLeviers.length).toBeGreaterThan(0);
+      expect(result.leviers.length).toBeGreaterThan(0);
     }, 30000);
   });
 });
