@@ -82,19 +82,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
 
-      - name: Unit tests
+      - name: Unit, Integration, E2E tests
         run: pnpm run test:ci
-        env:
-          MEC_API_KEY: ${{ secrets.MEC_API_KEY }}
-          TET_API_KEY: ${{ secrets.TET_API_KEY }}
-          RECOCO_API_KEY: ${{ secrets.RECOCO_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_URL: redis://localhost:6379
-          QUEUE_BOARD_PWD: AdminIsWatchingYou
-
-      - name: Integrated tests
-        run: pnpm run test:e2e
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
           MEC_API_KEY: ${{ secrets.MEC_API_KEY }}
