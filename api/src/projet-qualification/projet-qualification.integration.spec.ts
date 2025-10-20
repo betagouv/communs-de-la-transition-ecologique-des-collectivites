@@ -38,21 +38,17 @@ describe("ProjetQualificationService - Integration Tests", () => {
 
       const result = await qualificationService.analyzeCompetences(context, "MEC");
 
-      // Should detect education AND energy competences
+      // Should detect education competence (energy competence has low confidence score)
       const competenceCodes = result.competences.map((c) => c.code);
 
       // Should include education (90-21x range for enseignement premier degré)
       const hasEducation = competenceCodes.some((code) => code.startsWith("90-21"));
 
-      // Should include energy (90-75 for politique de l'énergie)
-      const hasEnergy = competenceCodes.some((code) => code === "90-75");
-
       expect(hasEducation).toBe(true);
-      expect(hasEnergy).toBe(true);
 
-      // Should have reasonable scores (> 0.5 threshold)
+      // Should have reasonable scores (> 0.7 threshold)
       result.competences.forEach((c) => {
-        expect(c.score).toBeGreaterThan(0.5);
+        expect(c.score).toBeGreaterThan(0.7);
       });
     }, 30000); // 30s timeout for LLM call
 
@@ -213,14 +209,14 @@ describe("ProjetQualificationService - Integration Tests", () => {
   });
 
   describe("Score threshold validation", () => {
-    it("should only return competences above threshold (0.5)", async () => {
+    it("should only return competences above threshold (0.7)", async () => {
       const context = "rénovation du chauffage d'une école primaire";
 
       const result = await qualificationService.analyzeCompetences(context, "MEC");
 
-      // All returned competences should have score > 0.5
+      // All returned competences should have score > 0.7
       result.competences.forEach((c) => {
-        expect(c.score).toBeGreaterThan(0.5);
+        expect(c.score).toBeGreaterThan(0.7);
       });
     }, 30000);
 
