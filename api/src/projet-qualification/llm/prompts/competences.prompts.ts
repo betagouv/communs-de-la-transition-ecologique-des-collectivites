@@ -1,9 +1,8 @@
 /**
- * Competences prompts and data - EXACT copy from Python implementation
- * Source: api/src/projet-qualification/llm-scripts/prompts_leviers_competences.py
- * Lines: 1386-1618 (system_prompt_competences_V2, user_prompt_competences_V2, few_shot_exs_competences_V2)
+ * Competences prompts and data
+ * Migrated from Python implementation (originally in llm-scripts/prompts_leviers_competences.py)
  *
- * DO NOT modify prompt text - must match Python version EXACTLY
+ * Note: Prompt text should remain stable for consistent LLM behavior
  */
 
 /**
