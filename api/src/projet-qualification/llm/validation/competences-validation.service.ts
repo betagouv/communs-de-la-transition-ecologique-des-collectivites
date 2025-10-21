@@ -4,6 +4,7 @@ import { CompetenceCode } from "@/shared/types";
 import { COMPETENCES_HIERARCHY } from "../prompts/competences.prompts";
 import { CompetencesLLMResponse } from "../prompts/types";
 import { competencesFromM57Referentials } from "@/shared/const/competences-list";
+import { CompetenceDto } from "@/projet-qualification/dto/projet-qualification.dto";
 
 /**
  * Competences corrections mapping - from Python implementation
@@ -55,15 +56,6 @@ const CORRECTIONS_COMPETENCES: Record<string, string> = {
 };
 
 /**
- * Result of competence validation with code assignment
- */
-export interface ValidatedCompetence {
-  code: CompetenceCode;
-  competence: string;
-  score: number;
-}
-
-/**
  * Service for validating and correcting competences analysis results
  * Implements Python's post_treatment_competences_V2 logic
  */
@@ -87,12 +79,12 @@ export class CompetencesValidationService {
    * @param response Raw LLM response
    * @returns Validated competences with codes (sorted by score descending)
    */
-  validateAndCorrect(response: CompetencesLLMResponse): ValidatedCompetence[] {
+  validateAndCorrect(response: CompetencesLLMResponse): CompetenceDto[] {
     this.logger.log("Validating and correcting competences");
     this.logger.log(`LLM returned ${response.competences.length} competences`);
     this.logger.log(`M57 referential has ${this.descToCode.size} entries`);
 
-    const validatedCompetences: ValidatedCompetence[] = [];
+    const validatedCompetences: CompetenceDto[] = [];
 
     for (const item of response.competences) {
       this.logger.log(`Processing: code="${item.code}", desc="${item.competence}", score=${item.score}`);
@@ -106,7 +98,7 @@ export class CompetencesValidationService {
         const correctDesc = competencesFromM57Referentials[llmCode as CompetenceCode];
         validatedCompetences.push({
           code: llmCode as CompetenceCode,
-          competence: correctDesc,
+          nom: correctDesc,
           score: item.score,
         });
         this.logger.log(`Validated competence: code="${llmCode}" → "${correctDesc}"`);
@@ -125,7 +117,7 @@ export class CompetencesValidationService {
           const correctCode = this.descToCode.get(competenceDesc)!;
           validatedCompetences.push({
             code: correctCode,
-            competence: competenceDesc,
+            nom: competenceDesc,
             score: item.score,
           });
           this.logger.log(`Validated competence: desc="${competenceDesc}" → code ${correctCode}`);

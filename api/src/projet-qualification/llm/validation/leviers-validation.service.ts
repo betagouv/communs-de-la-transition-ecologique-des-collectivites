@@ -3,6 +3,7 @@ import { CustomLogger } from "@logging/logger.service";
 import { Levier } from "@/shared/types";
 import { leviers as LEVIERS_LIST } from "@/shared/const/leviers";
 import { LeviersLLMResponse } from "../prompts/types";
+import { LevierDto } from "@/projet-qualification/dto/projet-qualification.dto";
 
 /**
  * Leviers corrections mapping - from Python implementation
@@ -123,9 +124,9 @@ export class LeviersValidationService {
    * Applies corrections, filters invalid leviers, and sorts by score
    * @param response Raw LLM response
    * @param scoreThreshold Minimum score to keep (default 0.7)
-   * @returns Corrected and filtered list of leviers
+   * @returns Corrected and filtered list of leviers with their scores
    */
-  validateAndCorrect(response: LeviersLLMResponse, scoreThreshold = 0.7): Levier[] {
+  validateAndCorrect(response: LeviersLLMResponse, scoreThreshold = 0.7): LevierDto[] {
     this.logger.log("Validating and correcting leviers");
 
     const correctedLeviers: Record<string, number> = {};
@@ -150,7 +151,7 @@ export class LeviersValidationService {
     const filteredLeviers = Object.entries(correctedLeviers)
       .filter(([, score]) => score > scoreThreshold)
       .sort(([, scoreA], [, scoreB]) => scoreB - scoreA)
-      .map(([name]) => name as Levier);
+      .map(([name, score]) => ({ nom: name as Levier, score }));
 
     this.logger.log(`Validated ${filteredLeviers.length} leviers above threshold ${scoreThreshold}`);
 

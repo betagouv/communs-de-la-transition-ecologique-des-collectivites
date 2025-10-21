@@ -6,12 +6,11 @@ import { GetProjetsService } from "@projets/services/get-projets/get-projets.ser
 import {
   COMPETENCE_SCORE_TRESHOLD,
   LEVIER_SCORE_TRESHOLD,
-  LeviersResult,
   PROJECT_QUALIFICATION_COMPETENCES_JOB,
   PROJECT_QUALIFICATION_LEVIERS_JOB,
 } from "@/projet-qualification/const";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
-import { Levier, ServiceType } from "@/shared/types";
+import { ServiceType } from "@/shared/types";
 import {
   ProjetLeviersResponse,
   ProjetQualificationResponse,
@@ -92,9 +91,12 @@ export class ProjetQualificationService extends WorkerHost {
     }
 
     // Update project with validated leviers
-    await this.projetUpdateService.update(projetId, { leviers: validatedLeviers });
+    const levierNames = validatedLeviers.map((levier) => levier.nom);
+    await this.projetUpdateService.update(projetId, { leviers: levierNames });
 
-    this.logger.log(`Successfully qualified project ${projetId} with leviers ${validatedLeviers.join()}`);
+    this.logger.log(
+      `Successfully qualified project ${projetId} with leviers ${validatedLeviers.map((l) => l.nom).join()}`,
+    );
   }
 
   private async analyzeAndUpdateCompetences(context: string, projetId: string): Promise<void> {
@@ -144,13 +146,7 @@ export class ProjetQualificationService extends WorkerHost {
     }
 
     // Filter competences by score threshold (matching Python implementation on STAGING)
-    const competences = validatedCompetences
-      .filter((c) => c.score > COMPETENCE_SCORE_TRESHOLD)
-      .map((c) => ({
-        code: c.code,
-        score: c.score,
-        nom: c.competence,
-      }));
+    const competences = validatedCompetences.filter((c) => c.score > COMPETENCE_SCORE_TRESHOLD);
 
     return {
       projet: context,
@@ -167,13 +163,14 @@ export class ProjetQualificationService extends WorkerHost {
       throw new InternalServerErrorException(`Error while qualifying leviers - error: ${analysisResult.errorMessage}`);
     }
 
-    // Filter leviers by score threshold
-    const leviers = Object.entries(analysisResult.json.leviers)
-      .filter(([_, score]) => score > LEVIER_SCORE_TRESHOLD)
-      .map(([nom, score]) => ({ nom: nom as Levier, score }));
+    // Validate and correct leviers using validation service
+    const validatedLeviers = this.leviersValidationService.validateAndCorrect(
+      analysisResult.json,
+      LEVIER_SCORE_TRESHOLD,
+    );
 
     // If no leviers found, log it
-    if (leviers.length === 0) {
+    if (validatedLeviers.length === 0) {
       this.logger.log(`No leviers found for project with context ${context}`);
     }
 
@@ -181,7 +178,7 @@ export class ProjetQualificationService extends WorkerHost {
     return {
       projet: context,
       classification: analysisResult.json.classification,
-      leviers,
+      leviers: validatedLeviers,
       raisonnement: analysisResult.raisonnement,
     };
   }
