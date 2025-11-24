@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.28](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.27...v0.0.28) (2025-11-24)
+
+
+### Bug Fixes
+
+* **deploy:** remove Python buildpack after TypeScript migration ([0082aeb](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/0082aebe0dfb718238f1448827b71e576c8c55e6))
+* **deploy:** update Node.js engines to fix Scalingo corepack issue ([2b7d6e0](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2b7d6e0d9a0f03197b410c7bd2f1de3af98eab8e))
+
 ## [0.0.27](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.26...v0.0.27) (2025-11-24)
 
 
