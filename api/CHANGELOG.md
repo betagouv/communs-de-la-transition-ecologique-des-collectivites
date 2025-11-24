@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.0.27](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.26...v0.0.27) (2025-11-24)
+
+
+### Features
+
+* ajout leviers thématique FNV "Mieux s'adapter" ([bea8580](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/bea858018fec93f53cb7b5574530d2fbfa0d9450))
+* **projet-qualification:** add 23 new climate adaptation levers ([c9bcfaf](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/c9bcfaf3e75608a489a99e87133e9e8d5a17b527))
+* **projet-qualification:** add analyzeLeviers method with integration test coverage ([815839c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/815839c7b0119ddf0796d2387f6fa0ac5d91945d))
+
+
+### Bug Fixes
+
+* **test:** add 10s timeout to afterAll hooks for CI stability ([fa51fc2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/fa51fc2bdbe126972cd4bb036957c637fddc88d9))
+
 ## [0.0.26](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.25...v0.0.26) (2025-08-04)
 
 
