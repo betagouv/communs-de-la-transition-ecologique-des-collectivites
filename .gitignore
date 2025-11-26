@@ -26,6 +26,7 @@ dist-ssr
 
 # Dev tools
 .serena
+claudedocs/
 
 # Local files (personal configs, scripts, notes)
 *.local

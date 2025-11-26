@@ -19,4 +19,7 @@ fileignoreconfig:
 - filename: api/src/projet-qualification/llm/validation/competences-validation.service.ts
   checksum: 0f3d8259a68ec9255a0655170abfa833dde7d7ae606886db020e71c9ce10640f
   comments: "False positive: Competence corrections mapping object literals, not secrets"
+- filename: api/test/qualification.e2e-spec.ts
+  checksum: 1a45eabdceb14af75183c5477f52e4aad8c17e7d99a15d2a0508387bf775afc7
+  comments: "False positive: Test file checking authentication with 'API key' in error message assertions, not actual secrets"
 version: "1.0"
