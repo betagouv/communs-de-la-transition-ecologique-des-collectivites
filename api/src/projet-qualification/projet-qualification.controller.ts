@@ -3,7 +3,11 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
-import { ProjetQualificationRequest, ProjetQualificationResponse } from "./dto/projet-qualification.dto";
+import {
+  ProjetQualificationRequest,
+  ProjetQualificationResponse,
+  ProjetLeviersResponse,
+} from "./dto/projet-qualification.dto";
 import { ProjetQualificationService } from "@/projet-qualification/projet-qualification.service";
 import { QualificationRateLimitGuard } from "@/projet-qualification/projet-qualification-rate-limit-guard";
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
@@ -33,5 +37,23 @@ export class ProjetQualificationController {
   ): Promise<ProjetQualificationResponse> {
     const nameAndDescription = `${qualificationRequest.nom} - ${qualificationRequest.description}`;
     return await this.qualificationApiService.analyzeCompetences(nameAndDescription, request.serviceType!);
+  }
+
+  // this is a post because we do not want to be limited by the query params length to pass the description
+  @TrackApiUsage()
+  @Post("leviers")
+  @ApiOperation({
+    summary: "Qualifier les leviers d'action d'un projet",
+    description:
+      "Qualifie la description d'un projet pour identifier les leviers d'action pertinents pour la transition écologique",
+  })
+  @ApiEndpointResponses({
+    successStatus: 200,
+    response: ProjetLeviersResponse,
+    description: "Qualification des leviers réussie",
+  })
+  async analyzeLeviers(@Body() qualificationRequest: ProjetQualificationRequest): Promise<ProjetLeviersResponse> {
+    const nameAndDescription = `${qualificationRequest.nom} - ${qualificationRequest.description}`;
+    return await this.qualificationApiService.analyzeLeviers(nameAndDescription);
   }
 }

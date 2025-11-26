@@ -148,7 +148,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a new service context for a specific service to match some projects  */
+        /** Create a new service context for a specific service to match some projects */
         post: operations["ServicesController_createServiceContext"];
         delete?: never;
         options?: never;
@@ -170,6 +170,26 @@ export interface paths {
          * @description Qualifie la description d'un projet pour identifier les compétences pertinentes des collectivités
          */
         post: operations["ProjetQualificationController_analyzeCompetences"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/qualification/leviers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Qualifier les leviers d'action d'un projet
+         * @description Qualifie la description d'un projet pour identifier les leviers d'action pertinents pour la transition écologique
+         */
+        post: operations["ProjetQualificationController_analyzeLeviers"];
         delete?: never;
         options?: never;
         head?: never;
@@ -567,6 +587,37 @@ export interface components {
             projet: string;
             /** @description Liste des compétences identifiées */
             competences: components["schemas"]["CompetenceDto"][];
+        };
+        LevierDto: {
+            /**
+             * @description Nom du levier d'action
+             * @enum {string}
+             */
+            nom: "Gestion des forêts et produits bois" | "Changements de pratiques de fertilisation azotée" | "Elevage durable" | "Gestion des haies" | "Bâtiments & Machines agricoles" | "Gestion des prairies" | "Pratiques stockantes" | "Sobriété foncière" | "Surface en aire protégée" | "Résorption des points noirs prioritaires de continuité écologique" | "Restauration des habitats naturels" | "Réduction de l'usage des produits phytosanitaires" | "Développement de l'agriculture biologique et de HVE" | "Respect d'Egalim pour la restauration collective" | "Sobriété des bâtiments (résidentiel)" | "Changement chaudières fioul + rénovation (résidentiel)" | "Changement chaudières gaz + rénovation (résidentiel)" | "Rénovation (hors changement chaudières)" | "Sobriété des bâtiments (tertiaire)" | "Changement chaudières fioul + rénovation (tertiaire)" | "Changement chaudières gaz + rénovation (tertiaire)" | "Gaz fluorés résidentiel" | "Gaz fluorés tertiaire" | "Captage de méthane dans les ISDND" | "Prévention des déchets" | "Valorisation matière des déchets" | "Moindre stockage en décharge" | "Augmentation du taux de collecte" | "Sobriété dans l'utilisation de la ressource en eau" | "Protection des zones de captage d'eau" | "Désimperméabilisation des sols" | "Electricité renouvelable" | "Biogaz" | "Réseaux de chaleur décarbonés" | "Top 50 sites industriels" | "Industrie diffuse" | "Fret décarboné et multimodalité" | "Efficacité et sobriété logistique" | "Réduction des déplacements" | "Covoiturage" | "Vélo" | "Transports en commun" | "Véhicules électriques" | "Efficacité énergétique des véhicules privés" | "Bus et cars décarbonés" | "2 roues (élec&efficacité)" | "Nucléaire" | "Bio-carburants" | "Efficacité des aéronefs" | "SAF" | "Confort thermique des transports collectifs et des mobilités actives" | "Réduction de la vulnérabilité des infrastructures et services de transport" | "Intégration du confort d’été dans la rénovation et la construction des bâtiments" | "Réseaux de froid" | "Réduction de la vulnérabilité du système énergétique au changement climatique" | "Adaptation des filières et des exploitations agricoles" | "Performance des services publics de l’eau potable et de l’assainissement" | "Prévention des éboulements et glissement de terrain" | "Prévention des inondations par débordement de cours d'eau, notamment via restauration des milieux aquatiques" | "Prévention des inondations par ruissellement" | "Renaturation des villes et réduction de l'effet d'îlot de chaleur urbain" | "Conditionnement du développement urbain et économique à la ressource en eau" | "Renforcement de la résilience des services de santé" | "Préparation des services de secours" | "Résilience des services de communication" | "Protection et mise à l'abri des personnes vulnérables" | "Evolution de l’offre touristique de montagne" | "Evolution de l’offre touristique littorale" | "Continuité des activités économiques" | "Prévention des dégâts causés par le retrait-gonflement des argiles" | "Intégration de l’élévation du niveau des mers dans l’aménagement du littoral" | "Préservation des sites culturels et patrimoniaux";
+            /**
+             * @description Score de pertinence entre 0 et 1
+             * @example 0.85
+             */
+            score: number;
+        };
+        ProjetLeviersResponse: {
+            /**
+             * @description Description du projet analysé
+             * @example Création d'une ressourcerie communale pour le réemploi
+             */
+            projet: string;
+            /**
+             * @description Classification du projet par rapport à la transition écologique
+             * @example Le projet a un lien avec la transition écologique
+             */
+            classification: Record<string, never> | null;
+            /** @description Liste des leviers d'action identifiés */
+            leviers: components["schemas"]["LevierDto"][];
+            /**
+             * @description Raisonnement de l'analyse
+             * @example Le projet favorise l'économie circulaire et la réduction des déchets
+             */
+            raisonnement: Record<string, never> | null;
         };
         TrackEventRequest: {
             name: string;
@@ -979,6 +1030,35 @@ export interface operations {
                 headers: Record<string, unknown>;
                 content: {
                     "application/json": components["schemas"]["ProjetQualificationResponse"];
+                };
+            };
+            /** @description Error response */
+            default: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ProjetQualificationController_analyzeLeviers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjetQualificationRequest"];
+            };
+        };
+        responses: {
+            /** @description Qualification des leviers réussie */
+            200: {
+                headers: Record<string, unknown>;
+                content: {
+                    "application/json": components["schemas"]["ProjetLeviersResponse"];
                 };
             };
             /** @description Error response */
