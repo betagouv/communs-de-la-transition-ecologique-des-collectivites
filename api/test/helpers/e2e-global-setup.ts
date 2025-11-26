@@ -9,9 +9,8 @@ import { AppModule } from "@/app.module";
 import { setupApp } from "@/setup-app";
 
 declare global {
-  // eslint-disable-next-line no-var
   var testApp: INestApplication;
-  // eslint-disable-next-line no-var
+
   var testDbService: TestDatabaseService;
 }
 

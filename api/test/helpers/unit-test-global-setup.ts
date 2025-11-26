@@ -4,9 +4,8 @@ import { GenericContainer, StartedTestContainer } from "testcontainers";
 import { execSync } from "child_process";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __TESTCONTAINER__: StartedPostgreSqlContainer;
-  // eslint-disable-next-line no-var
+
   var __REDIS_TESTCONTAINER__: StartedTestContainer;
 }
 

@@ -93,7 +93,7 @@ export class AnthropicService {
 
       // Extract text content from response
       const textContent = message.content.find((block) => block.type === "text");
-      if (!textContent || textContent.type !== "text") {
+      if (textContent?.type !== "text") {
         throw new Error("No text content in Anthropic response");
       }
 
@@ -173,7 +173,7 @@ export class AnthropicService {
 
       // Extract text content from response
       const textContent = message.content.find((block) => block.type === "text");
-      if (!textContent || textContent.type !== "text") {
+      if (textContent?.type !== "text") {
         throw new Error("No text content in Anthropic response");
       }
 

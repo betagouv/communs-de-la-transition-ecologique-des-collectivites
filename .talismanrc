@@ -1,12 +1,14 @@
 fileignoreconfig:
 - filename: pnpm-lock.yaml
+  checksum: b71e6e613f136c87aee3546d5748d0051350ffd5286b24a25a1c76953657ce75
+  comments: "Package lock file with SHA512 checksums (not secrets)"
 - filename: api/README.md
   checksum: 9c4ec1309eea835caba8bb3cc9e3d0bd8453e0e772057a7a6130dd82bb61dd9d
 - filename: api/.env.template
   checksum: be3262f64d948910da3edb2d53285ff2eb4bd1bc4b9dde2bcc04477c3207247b
   comments: "Template file with placeholder values, not actual secrets"
 - filename: api/src/projet-qualification/llm/anthropic.service.ts
-  checksum: 49861c58c2eb0ffaa2f3ae06856d0ac2039e67375073422be85c8cbbe9402036
+  checksum: 2d609015cfbf01a3fb76cd1b9c0dc597c87aeaf949284702aaaf2f1d2bfd4a52
   comments: "False positive: ConfigService.get() calls and test environment handling for API key, not actual secrets"
 - filename: api/src/projet-qualification/llm/prompts/competences.prompts.ts
   checksum: 42b8b18ce6179c9ca15303c9a67fed459a0c06324ec54e4dcefab60907baff8b
