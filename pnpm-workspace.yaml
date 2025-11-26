@@ -12,3 +12,7 @@ overrides:
   form-data@<2.5.4: '>=2.5.4'
   js-yaml@>=4.0.0 <4.1.1: '>=4.1.1'
   body-parser@>=2.2.0 <2.2.1: '>=2.2.1'
+
+# Security: Require packages to be at least 7 days old before installation
+# This reduces the risk of supply chain attacks by delaying installation of newly published versions
+minimumReleaseAge: 10080
