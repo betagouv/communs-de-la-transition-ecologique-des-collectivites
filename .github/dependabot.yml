@@ -4,7 +4,9 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"  # Location of package.json
     schedule:
-      interval: "daily"
+      interval: daily
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 10
     groups:
       # Only group minor and patch dependencies
@@ -23,5 +25,6 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: daily
+    cooldown:
+      default-days: 7
