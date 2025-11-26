@@ -2,9 +2,8 @@ import { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { StartedTestContainer } from "testcontainers";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __TESTCONTAINER__: StartedPostgreSqlContainer;
-  // eslint-disable-next-line no-var
+
   var __REDIS_TESTCONTAINER__: StartedTestContainer;
 }
 
