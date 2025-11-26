@@ -89,5 +89,12 @@ export const createApiClient = (apiKey?: string) => {
           },
         }),
     },
+    qualification: {
+      competences: (data: components["schemas"]["ProjetQualificationRequest"]) =>
+        client.POST("/qualification/competences", { body: data }),
+
+      leviers: (data: components["schemas"]["ProjetQualificationRequest"]) =>
+        client.POST("/qualification/leviers", { body: data }),
+    },
   };
 };

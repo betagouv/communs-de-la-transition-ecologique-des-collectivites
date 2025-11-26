@@ -216,4 +216,61 @@ describe("ProjetQualificationService", () => {
       });
     });
   });
+
+  describe("analyze leviers", () => {
+    it("should qualify leviers successfully", async () => {
+      const mockAnthropicResult: LeviersAnalysisResult = {
+        json: {
+          projet: "Test projet",
+          leviers: {
+            "Electricité renouvelable": 0.95,
+            "Elevage durable": 0.4,
+            "Sobriété foncière": 0.85,
+          },
+          classification: "Le projet a un lien avec la transition écologique",
+        },
+        errorMessage: "",
+        raisonnement: "Le projet contribue à la production d'énergie renouvelable",
+      };
+      const context = "Nom et description du projet";
+
+      // Mock Anthropic service to return analysis result
+      jest.spyOn(anthropicService, "analyzeLeviers").mockResolvedValueOnce(mockAnthropicResult);
+
+      // Mock validation service to return validated leviers (filtered by threshold > 0.7)
+      const mockLeviers: LevierDto[] = [
+        {
+          nom: "Electricité renouvelable",
+          score: 0.95,
+        },
+        {
+          nom: "Sobriété foncière",
+          score: 0.85,
+        },
+      ];
+
+      jest.spyOn(leviersValidationService, "validateAndCorrect").mockReturnValueOnce(mockLeviers);
+
+      const result = await qualificationService.analyzeLeviers(context);
+
+      expect(result).toEqual({
+        projet: context,
+        classification: "Le projet a un lien avec la transition écologique",
+        leviers: [
+          { nom: "Electricité renouvelable", score: 0.95 },
+          { nom: "Sobriété foncière", score: 0.85 },
+        ],
+        raisonnement: "Le projet contribue à la production d'énergie renouvelable",
+      });
+    });
+
+    it("should handle errors in leviers analysis", async () => {
+      const context = "Nom et description du projet";
+
+      // Mock Anthropic service to throw an error
+      jest.spyOn(anthropicService, "analyzeLeviers").mockRejectedValueOnce(new Error("API error"));
+
+      await expect(qualificationService.analyzeLeviers(context)).rejects.toThrow();
+    });
+  });
 });

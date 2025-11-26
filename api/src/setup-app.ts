@@ -30,7 +30,7 @@ export function setupApp(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle("API Documentation")
     .setDescription("API description")
-    .setVersion("1.1")
+    .setVersion("1.2")
     .addBearerAuth()
     .build();
 
