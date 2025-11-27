@@ -12,6 +12,10 @@ import { createApiClient } from "@test/helpers/api-client";
 describe("Qualification (e2e)", () => {
   const api = createApiClient(process.env.MEC_API_KEY);
 
+  afterEach(async () => {
+    await global.testDbService.cleanDatabase();
+  });
+
   describe("POST /qualification/competences", () => {
     it("should qualify competences for a valid project", async () => {
       const requestBody = {
