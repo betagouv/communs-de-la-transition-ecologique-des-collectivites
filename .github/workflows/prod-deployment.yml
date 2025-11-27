@@ -29,20 +29,25 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
+        working-directory: .
         run: pnpm install
 
       - name: Setup Git hooks
+        working-directory: .
         run: pnpm prepare
 
       - name: Configure Git #change the user/email
+        working-directory: .
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
       - name: Generate new version
-        run: HUSKY=0 pnpm run release #do not need precommit check there
+        working-directory: .
+        run: HUSKY=0 pnpm --filter api run release #do not need precommit check there
 
       - name: Push changes and tags
+        working-directory: .
         run: |
           git push --follow-tags origin main
 
