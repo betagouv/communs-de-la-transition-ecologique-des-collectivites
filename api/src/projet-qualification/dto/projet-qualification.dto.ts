@@ -92,11 +92,4 @@ export class ProjetLeviersResponse {
     type: [LevierDto],
   })
   leviers!: LevierDto[];
-
-  @ApiProperty({
-    description: "Raisonnement de l'analyse",
-    example: "Le projet favorise l'économie circulaire et la réduction des déchets",
-    nullable: true,
-  })
-  raisonnement!: string | null;
 }
