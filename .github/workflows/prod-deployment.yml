@@ -32,6 +32,7 @@ jobs:
         run: pnpm install
 
       - name: Setup Git hooks
+        working-directory: .
         run: pnpm prepare
 
       - name: Configure Git #change the user/email

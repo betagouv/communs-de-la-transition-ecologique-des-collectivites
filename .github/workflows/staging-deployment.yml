@@ -60,6 +60,7 @@ jobs:
         run: pnpm install
 
       - name: Setup Git hooks
+        working-directory: .
         run: pnpm prepare
 
       - name: Run linter
