@@ -12,6 +12,10 @@ import { createApiClient } from "@test/helpers/api-client";
 describe("Qualification (e2e)", () => {
   const api = createApiClient(process.env.MEC_API_KEY);
 
+  afterEach(async () => {
+    await global.testDbService.cleanDatabase();
+  });
+
   describe("POST /qualification/competences", () => {
     it("should qualify competences for a valid project", async () => {
       const requestBody = {
@@ -24,7 +28,7 @@ describe("Qualification (e2e)", () => {
       expect(error).toBeUndefined();
       expect(data).toBeDefined();
       expect(data?.projet).toBe(`${requestBody.nom} - ${requestBody.description}`);
-      expect(data?.competences).toBeInstanceOf(Array);
+      expect(Array.isArray(data?.competences)).toBe(true);
       expect(data!.competences.length).toBeGreaterThan(0);
 
       // All competences should have required fields
@@ -74,7 +78,7 @@ describe("Qualification (e2e)", () => {
       expect(error).toBeUndefined();
       expect(data).toBeDefined();
       expect(data?.projet).toBe(`${requestBody.nom} - ${requestBody.description}`);
-      expect(data?.leviers).toBeInstanceOf(Array);
+      expect(Array.isArray(data?.leviers)).toBe(true);
       expect(data!.leviers.length).toBeGreaterThan(0);
 
       // Should have classification
