@@ -113,12 +113,32 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
 
+      - name: Prepare package.json for Scalingo
+        run: |
+          set -e
+          echo "🔧 Patching package.json for Scalingo buildpack compatibility..."
+
+          # Temporary patch: Remove npm/yarn engine restrictions for Scalingo
+          # Local protection via engine-strict + engines fields is maintained in git
+          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json')); delete pkg.engines.npm; delete pkg.engines.yarn; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2));"
+
+          # Configure git for CI commit
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          # Commit the patch (will be pushed to Scalingo only, not to GitHub)
+          git add package.json
+          git commit -m "chore(deploy): remove npm/yarn engines for Scalingo buildpack [ci skip]"
+
+          echo "✅ package.json patched for deployment"
+
       - name: Deploy to Scalingo (Staging)
         run: |
           set -e  # Exit on any error
           echo "🚀 Deploying to Scalingo staging environment..."
 
           # Push to Scalingo and capture output
+          # Note: This pushes the patched package.json to Scalingo only (not to GitHub origin)
           if git push git@ssh.osc-fr1.scalingo.com:les-communs-transition-ecologique-api-staging.git main 2>&1 | tee deploy.log; then
             echo "✅ Git push completed"
 
