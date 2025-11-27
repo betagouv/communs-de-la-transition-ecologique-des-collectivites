@@ -85,9 +85,6 @@ describe("Qualification (e2e)", () => {
       expect(data?.classification).toBeDefined();
       expect(data?.classification).toMatch(/lien|pas de lien|pas assez précis/);
 
-      // Should have reasoning
-      expect(data?.raisonnement).toBeDefined();
-
       // All leviers should have required fields and meet threshold
       data!.leviers.forEach((levier) => {
         expect(levier).toHaveProperty("nom");

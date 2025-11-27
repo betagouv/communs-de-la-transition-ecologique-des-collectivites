@@ -121,7 +121,7 @@ describe("ProjetQualificationService", () => {
           classification: "Le projet a un lien avec la transition écologique",
         },
         errorMessage: "",
-        raisonnement: "Explication du lien avec la transition écologique",
+        raisonnement: "Raisonnement interne non exposé à l'API",
       };
       jest.spyOn(anthropicService, "analyzeLeviers").mockResolvedValueOnce(mockAnthropicResult);
 
@@ -230,7 +230,7 @@ describe("ProjetQualificationService", () => {
           classification: "Le projet a un lien avec la transition écologique",
         },
         errorMessage: "",
-        raisonnement: "Le projet contribue à la production d'énergie renouvelable",
+        raisonnement: "Raisonnement interne non exposé à l'API",
       };
       const context = "Nom et description du projet";
 
@@ -260,7 +260,6 @@ describe("ProjetQualificationService", () => {
           { nom: "Electricité renouvelable", score: 0.95 },
           { nom: "Sobriété foncière", score: 0.85 },
         ],
-        raisonnement: "Le projet contribue à la production d'énergie renouvelable",
       });
     });
 

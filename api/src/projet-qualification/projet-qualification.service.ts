@@ -179,7 +179,6 @@ export class ProjetQualificationService extends WorkerHost {
       projet: context,
       classification: analysisResult.json.classification,
       leviers: validatedLeviers,
-      raisonnement: analysisResult.raisonnement,
     };
   }
 }
