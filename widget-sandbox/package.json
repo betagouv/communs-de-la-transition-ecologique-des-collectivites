@@ -18,5 +18,11 @@
     "@codegouvfr/react-dsfr": "^1.22.5",
     "react": "19.1.0",
     "react-dom": "19.1.0"
+  },
+  "engines": {
+    "npm": "use-pnpm-instead",
+    "yarn": "use-pnpm-instead",
+    "pnpm": "10.x",
+    "node": "22.x"
   }
 }

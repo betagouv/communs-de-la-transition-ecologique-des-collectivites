@@ -26,7 +26,9 @@
     "test:api": "pnpm --filter api test",
     "test:widget": "pnpm --filter widget test",
     "validate": "pnpm -r validate",
-    "prepare": "husky"
+    "prepare": "husky",
+    "check-hooks": "test -f .git/hooks/pre-commit || (echo '⚠️  Git hooks not installed! Run: pnpm prepare' && exit 1)",
+    "check-package-manager": "node -e \"const fs = require('fs'); if (fs.existsSync('package-lock.json')) { console.error('❌ npm detected! Remove package-lock.json and use pnpm'); process.exit(1); } if (fs.existsSync('yarn.lock')) { console.error('❌ yarn detected! Remove yarn.lock and use pnpm'); process.exit(1); } console.log('✅ Package manager check passed')\""
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
@@ -51,6 +53,8 @@
     "vite": "^7.2.4"
   },
   "engines": {
+    "npm": "use-pnpm-instead",
+    "yarn": "use-pnpm-instead",
     "pnpm": "10.x",
     "node": "22.x"
   },

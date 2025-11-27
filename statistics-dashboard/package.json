@@ -28,5 +28,11 @@
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
     "vite": "^6.3.2"
+  },
+  "engines": {
+    "npm": "use-pnpm-instead",
+    "yarn": "use-pnpm-instead",
+    "pnpm": "10.x",
+    "node": "22.x"
   }
 }
