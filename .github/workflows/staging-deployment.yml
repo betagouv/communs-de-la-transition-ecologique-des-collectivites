@@ -57,6 +57,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
+        working-directory: .
         run: pnpm install
 
       - name: Setup Git hooks
@@ -64,18 +65,22 @@ jobs:
         run: pnpm prepare
 
       - name: Run linter
-        run: pnpm run lint
+        working-directory: .
+        run: pnpm --filter api run lint
 
       - name: Type check
-        run: pnpm run type-check
+        working-directory: .
+        run: pnpm --filter api run type-check
 
       - name: Run database migrations
-        run: pnpm run db:migrate:drizzle
+        working-directory: .
+        run: pnpm --filter api run db:migrate:drizzle
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
 
       - name: Unit, Integration, E2E tests
-        run: pnpm run test:ci
+        working-directory: .
+        run: pnpm --filter api run test:ci
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
           MEC_API_KEY: ${{ secrets.MEC_API_KEY }}
