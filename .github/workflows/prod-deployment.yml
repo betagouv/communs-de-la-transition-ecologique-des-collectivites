@@ -18,9 +18,9 @@ jobs:
           fetch-depth: 0
           ssh-key: ${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }} # needed to bypass protection rules on main branch as per
 
-      - name: Install pnpm
+      - name: Enable Corepack
         shell: bash
-        run: npm install -g pnpm@10.0.0
+        run: corepack enable
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -30,6 +30,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Setup Git hooks
+        run: pnpm prepare
 
       - name: Configure Git #change the user/email
         run: |

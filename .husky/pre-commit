@@ -1,6 +1,19 @@
 #!/usr/bin/env sh
 
+# Check for forbidden lockfiles (enforce pnpm-only usage)
+if [ -f "package-lock.json" ] || [ -f "yarn.lock" ]; then
+  echo "❌ Error: npm/yarn lockfiles detected. This project uses pnpm exclusively."
+  echo ""
+  echo "Please remove the lockfile(s) and use pnpm:"
+  echo "  rm -f package-lock.json yarn.lock"
+  echo "  pnpm install"
+  echo ""
+  echo "If you need to enable corepack:"
+  echo "  corepack enable"
+  exit 1
+fi
+
 # Run validation (lint/type check / prettier)
-npm run validate
+pnpm run validate
 # Run talisman to check for any secret leakages
 npx node-talisman --githook pre-commit

@@ -20,8 +20,8 @@
     "./style.css": "./dist/style.css"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && vite build",
-    "dev": "vite",
+    "build": "react-dsfr update-icons && tsc -p tsconfig.build.json && vite build",
+    "dev": "react-dsfr update-icons && vite",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
@@ -31,11 +31,8 @@
     "validate": "npm run type-check && npm run lint && npm run format:check",
     "generate-api-type": "openapi-typescript http://localhost:3000/openapi.json -o lib/generated-types.ts",
     "update-version": "changeset version",
-    "release": "npm publish",
-    "prerelease": "pnpm build & pnpm validate && pnpm test",
-    "preview": "vite preview",
-    "prebuild": "react-dsfr update-icons",
-    "predev": "react-dsfr update-icons"
+    "release": "pnpm build && pnpm validate && pnpm test && npm publish",
+    "preview": "vite preview"
   },
   "peerDependencies": {
     "@codegouvfr/react-dsfr": "^1.14.6",
@@ -64,5 +61,11 @@
     "vite-plugin-dts": "^4.5.3",
     "vite-plugin-lib-inject-css": "^2.2.2",
     "vitest": "^3.1.2"
+  },
+  "engines": {
+    "npm": "use-pnpm-instead",
+    "yarn": "use-pnpm-instead",
+    "pnpm": "10.x",
+    "node": "22.x"
   }
 }
