@@ -1,0 +1,4 @@
+# Scalingo Node.js buildpack configuration
+# Ignore npm and yarn engine restrictions while keeping pnpm requirement
+engines.npm=ignore
+engines.yarn=ignore

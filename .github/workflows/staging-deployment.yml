@@ -115,5 +115,21 @@ jobs:
 
       - name: Deploy to Scalingo (Staging)
         run: |
-          # Push the staging branch to Scalingo's main branch
-          git push git@ssh.osc-fr1.scalingo.com:les-communs-transition-ecologique-api-staging.git main
+          set -e  # Exit on any error
+          echo "🚀 Deploying to Scalingo staging environment..."
+
+          # Push to Scalingo and capture output
+          if git push git@ssh.osc-fr1.scalingo.com:les-communs-transition-ecologique-api-staging.git main 2>&1 | tee deploy.log; then
+            echo "✅ Git push completed"
+
+            # Check if deployment succeeded by looking for error indicators in output
+            if grep -q "Build failed\|Error deploying\|Invalid return code" deploy.log; then
+              echo "❌ Deployment failed! Check logs above for details."
+              exit 1
+            fi
+
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Git push failed!"
+            exit 1
+          fi
