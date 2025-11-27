@@ -114,6 +114,7 @@ jobs:
           ssh-keyscan -H ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
 
       - name: Prepare package.json for Scalingo
+        working-directory: .
         run: |
           set -e
           echo "🔧 Patching package.json files for Scalingo buildpack compatibility..."
