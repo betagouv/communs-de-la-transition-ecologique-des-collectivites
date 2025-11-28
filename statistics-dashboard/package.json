@@ -27,7 +27,7 @@
     "eslint": "^9.25.1",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
-    "vite": "^6.3.2"
+    "vite": "^7.2.4"
   },
   "engines": {
     "npm": "use-pnpm-instead",
