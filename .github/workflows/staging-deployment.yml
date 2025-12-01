@@ -143,19 +143,23 @@ jobs:
           set -e  # Exit on any error
           echo "🚀 Deploying to Scalingo staging environment..."
 
-          # Push to Scalingo and capture output
-          # Note: This pushes the patched package.json to Scalingo only (not to GitHub origin)
-          if git push git@ssh.osc-fr1.scalingo.com:les-communs-transition-ecologique-api-staging.git main 2>&1 | tee deploy.log; then
-            echo "✅ Git push completed"
+          # Force push required: ephemeral commit overwrites previous deployment
+          # Each deployment creates a new patch commit that must replace the previous one
+          git push --force git@ssh.osc-fr1.scalingo.com:les-communs-transition-ecologique-api-staging.git main 2>&1 | tee deploy.log
+          PUSH_STATUS=${PIPESTATUS[0]}
 
-            # Check if deployment succeeded by looking for error indicators in output
-            if grep -q "Build failed\|Error deploying\|Invalid return code" deploy.log; then
-              echo "❌ Deployment failed! Check logs above for details."
-              exit 1
-            fi
-
-            echo "✅ Deployment successful!"
-          else
-            echo "❌ Git push failed!"
+          if [ $PUSH_STATUS -ne 0 ]; then
+            echo "❌ Git push failed with exit code $PUSH_STATUS"
+            cat deploy.log
             exit 1
           fi
+
+          echo "✅ Git push completed"
+
+          # Check if deployment succeeded by looking for error indicators in output
+          if grep -qE "Build failed|Error deploying|Invalid return code" deploy.log; then
+            echo "❌ Deployment failed during build! Check logs above."
+            exit 1
+          fi
+
+          echo "✅ Deployment successful!"
