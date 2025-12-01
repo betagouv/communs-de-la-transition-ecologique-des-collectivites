@@ -57,10 +57,51 @@ jobs:
           echo "${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           # Explicitly scan for all key types to avoid issues with the host key not being found
-          ssh-keyscan -H -t rsa,ecdsa,ed25519 ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts 
+          ssh-keyscan -H -t rsa,ecdsa,ed25519 ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
+
+      - name: Prepare package.json for Scalingo
+        working-directory: .
+        run: |
+          set -e
+          echo "🔧 Patching package.json files for Scalingo buildpack compatibility..."
+
+          # Temporary patch: Remove npm/yarn engine restrictions for Scalingo
+          # Local protection via engine-strict + engines fields is maintained in git
+
+          # Patch root package.json
+          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json')); delete pkg.engines.npm; delete pkg.engines.yarn; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2));"
+
+          # Patch api/package.json (the one Scalingo actually uses)
+          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('api/package.json')); delete pkg.engines.npm; delete pkg.engines.yarn; fs.writeFileSync('api/package.json', JSON.stringify(pkg,null,2));"
+
+          # Commit the patch (will be pushed to Scalingo only, not to GitHub)
+          git add package.json api/package.json
+          git commit -m "chore(deploy): remove npm/yarn engines for Scalingo buildpack [ci skip]"
+
+          echo "✅ Both package.json files patched for deployment"
 
       - name: Deploy to Scalingo Production
         run: |
-          # Push the prod branch to Scalingo's main branch
-          # Add verbose flag to see more details about the SSH connection
-          GIT_SSH_COMMAND="ssh -v" git push git@ssh.osc-fr1.scalingo.com:les-communs-transition-ecologique-api-prod.git main
+          set -e  # Exit on any error
+          echo "🚀 Deploying to Scalingo production environment..."
+
+          # Force push required: ephemeral commit overwrites previous deployment
+          # Each deployment creates a new patch commit that must replace the previous one
+          git push --force git@ssh.osc-fr1.scalingo.com:les-communs-transition-ecologique-api-prod.git main 2>&1 | tee deploy.log
+          PUSH_STATUS=${PIPESTATUS[0]}
+
+          if [ $PUSH_STATUS -ne 0 ]; then
+            echo "❌ Git push failed with exit code $PUSH_STATUS"
+            cat deploy.log
+            exit 1
+          fi
+
+          echo "✅ Git push completed"
+
+          # Check if deployment succeeded by looking for error indicators in output
+          if grep -qE "Build failed|Error deploying|Invalid return code" deploy.log; then
+            echo "❌ Deployment failed during build! Check logs above."
+            exit 1
+          fi
+
+          echo "✅ Deployment successful!"
