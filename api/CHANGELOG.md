@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.0](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.28...v0.1.0) (2025-12-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** Developers must use pnpm exclusively. Using npm or
+yarn will result in blocked commits and installation errors from any
+directory in the project, including workspace subdirectories.
+
+* **deps:** enhance supply chain security with multi-layered pnpm enforcement ([febe3a4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/febe3a4c4375409576f393ed81ef86d521178f6a))
+
+
+### Features
+
+* **api:** add /qualification/leviers endpoint ([629890d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/629890d6e0f97fd2827f33c40c9153ea32b65fe9))
+* **api:** remove raisonnement field from leviers API response ([1ae1208](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/1ae1208d0218ceeb0b0dd2990b61ebdf07f8693d))
+* **security:** add 7-day minimum release age for packages ([54b34b5](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/54b34b5fecc107bf4329a2def3c3cf35bce0b772))
+
+
+### Bug Fixes
+
+* **ci:** patch BOTH package.json files for Scalingo deployment ([01fae9e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/01fae9e81e17f7674203ddff15ad74689b891daa)), closes [#301](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/301)
+* **ci:** patch package.json during deployment to fix Scalingo buildpack ([50b211e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/50b211e200ed79b708fd57f7765823e7e1ce21ff)), closes [#300](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/300)
+* **ci:** resolve Scalingo deployment failures and add error detection ([1d404bb](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/1d404bb9413bb3b40abf89618076414717837f1f))
+* **ci:** resolve silent deployment failures with force push and PIPESTATUS ([84cc9bc](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/84cc9bcb7e69242ebebf99535f1b1f0bc4adee8b))
+* **ci:** run install and prepare from root directory ([24d365a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/24d365ae951c0f8f2c95c8e9e32bec6eb7ab9a3b)), closes [#296](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/296) [#296](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/296)
+* **ci:** run pnpm prepare from root directory in GitHub Actions ([a2d515a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/a2d515adeec15c0b60f11096f40da5da13696b6f)), closes [#296](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/296)
+* **ci:** set working-directory to root for package.json patching step ([c82dfa7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/c82dfa7cba1f15f12db66e54faa24a33713e1585))
+* **tests:** replace toBeInstanceOf(Array) with Array.isArray() ([0f38b19](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/0f38b19a591f642ab0beb1189f7d7b60e6cc58d3))
+* **tests:** resolve E2E pool lifecycle and test isolation issues ([251826c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/251826cf8a83885ffd0474407648af0c43aba73b))
+* use onlyBuiltDependencies instead of ignore-scripts ([3379ddc](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3379ddcf8b6d119da70512d396988bc7be8d805d)), closes [#296](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/296) [#298](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/298)
+
 ## [0.0.28](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.0.27...v0.0.28) (2025-11-24)
 
 
