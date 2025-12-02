@@ -52,11 +52,12 @@ jobs:
           git push --follow-tags origin main
 
       - name: Setup SSH
+        working-directory: .
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
+          ssh-keyscan -H -t rsa,ecdsa,ed25519 ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
 
       - name: Prepare package.json for Scalingo
         working-directory: .
