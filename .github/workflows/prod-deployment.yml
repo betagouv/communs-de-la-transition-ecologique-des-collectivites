@@ -82,6 +82,7 @@ jobs:
           echo "✅ Both package.json files patched for deployment"
 
       - name: Deploy to Scalingo Production
+        working-directory: .
         run: |
           set -e  # Exit on any error
           echo "🚀 Deploying to Scalingo production environment..."
