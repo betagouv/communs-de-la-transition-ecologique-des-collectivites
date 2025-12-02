@@ -74,6 +74,9 @@ jobs:
           # Patch api/package.json (the one Scalingo actually uses)
           node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('api/package.json')); delete pkg.engines.npm; delete pkg.engines.yarn; fs.writeFileSync('api/package.json', JSON.stringify(pkg,null,2));"
 
+          # Format the patched files with prettier to pass pre-commit validation
+          pnpm prettier --write package.json api/package.json
+
           # Commit the patch (will be pushed to Scalingo only, not to GitHub)
           git add package.json api/package.json
           git commit -m "chore(deploy): remove npm/yarn engines for Scalingo buildpack [ci skip]"
