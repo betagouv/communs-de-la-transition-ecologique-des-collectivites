@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.3...v0.1.4) (2025-12-02)
+
+
+### Bug Fixes
+
+* **ci:** remove explicit key types from ssh-keyscan in production deployment ([6e52a65](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6e52a657e2f51c93da2f8e8a16bfc7f04e045006))
+
 ## [0.1.3](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.2...v0.1.3) (2025-12-02)
 
 
