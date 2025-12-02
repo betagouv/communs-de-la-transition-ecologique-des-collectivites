@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.1...v0.1.2) (2025-12-02)
+
+
+### Bug Fixes
+
+* **ci:** add prettier formatting after package.json patching in deployments ([736af43](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/736af43ad9e0714db000bccaba793e3144531b25))
+* **ci:** bypass pre-commit hooks for ephemeral deployment commits ([74d24f4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/74d24f4e5bbecce88b500414275a48bc1576c6fb))
+
 ## [0.1.1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.0...v0.1.1) (2025-12-02)
 
 
