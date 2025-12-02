@@ -82,7 +82,7 @@ export class CreateServiceRequest implements InferInsertModel<typeof services> {
   redirectionUrl!: string;
 
   @ApiProperty({
-    example: "Découvrez la boussole",
+    example: "Découvrez la Boussole de la Transition Écologique",
     description: "label of the redirection",
     required: false,
     nullable: true,

@@ -17,12 +17,12 @@ export const fakeServiceData: ServicesByProjectIdResponse[] = [
   },
   {
     id: "2",
-    name: "La boussole de la transition écologique",
+    name: "Boussole de la Transition Écologique",
     description:
       "Accompagner le porteur de projet tout au long de sa réflexion, le plus en amont possible, pour améliorer son projet quelle qu'en soit sa nature, en prenant en compte les impacts environnementaux.",
     logoUrl: "https://www.boussole-te.ecologie.gouv.fr//IMG/svg/img_boussole.svg",
     redirectionUrl: "https://www.boussole-te.ecologie.gouv.fr/",
-    redirectionLabel: "Améliorez votre projet grâce à la boussole",
+    redirectionLabel: "Découvrez la Boussole de la Transition Écologique",
     sousTitre: "",
     iframeUrl: null,
     extendLabel: null,
