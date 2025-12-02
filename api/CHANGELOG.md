@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.5](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.4...v0.1.5) (2025-12-02)
+
+
+### Bug Fixes
+
+* **ci:** add working-directory override to Setup SSH step ([68609ad](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/68609ade1f2cae84feb9125c04d20296a634b13e)), closes [#313](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/313) [#313](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/313) [#312](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/312)
+
 ## [0.1.4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.3...v0.1.4) (2025-12-02)
 
 
