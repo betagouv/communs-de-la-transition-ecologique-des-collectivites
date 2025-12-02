@@ -128,6 +128,9 @@ jobs:
           # Patch api/package.json (the one Scalingo actually uses)
           node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('api/package.json')); delete pkg.engines.npm; delete pkg.engines.yarn; fs.writeFileSync('api/package.json', JSON.stringify(pkg,null,2));"
 
+          # Format the patched files with prettier to pass pre-commit validation
+          pnpm prettier --write package.json api/package.json
+
           # Configure git for CI commit
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
