@@ -23,7 +23,7 @@ fileignoreconfig:
   checksum: 1a45eabdceb14af75183c5477f52e4aad8c17e7d99a15d2a0508387bf775afc7
   comments: "False positive: Test file checking authentication with 'API key' in error message assertions, not actual secrets"
 - filename: .github/workflows/prod-deployment.yml
-  checksum: 329215f80ec28fc736e842b3ba76b8611e4e4cbddc440cf94d04e18db41c590c
+  checksum: 564319e4b958be3ea8fd11ece48ad38ee016599ee67930941cf7ac07b97dc1b1
   comments: "False positive: ssh-keyscan command for Scalingo deployment, not a secret"
 - filename: .github/workflows/staging-deployment.yml
   checksum: ac5690298c57f1ba2d82f7f6a2b75ed3fe1262e7e3402a5041229f6cab917b9a
