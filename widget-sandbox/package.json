@@ -1,7 +1,7 @@
 {
   "name": "@les-communs/widget-sandbox",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "build": "react-dsfr update-icons && tsc -b && vite build",
@@ -14,10 +14,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@betagouv/les-communs-widget": "0.3.4",
+    "@betagouv/les-communs-widget": "workspace:*",
     "@codegouvfr/react-dsfr": "^1.22.5",
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
   },
   "engines": {
     "npm": "use-pnpm-instead",
