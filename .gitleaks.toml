@@ -1,0 +1,13 @@
+# Gitleaks configuration for Les Communs project
+# Extends default gitleaks rules with precise allowlist for documentation placeholders
+
+[extend]
+useDefault = true
+
+# Allowlist for documentation placeholder values
+# Using stopwords to target only the extracted secret value, not the entire match
+[[allowlists]]
+description = "Ignore placeholder API key in documentation examples"
+stopwords = [
+  'YOUR_API_KEY',
+]
