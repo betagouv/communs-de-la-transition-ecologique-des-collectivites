@@ -1,5 +1,11 @@
 # @betagouv/les-communs-widget
 
+## 0.3.5
+
+### Patch Changes
+
+- Update React peer dependencies to 19.2.0 for compatibility with latest React features and fixes
+
 ## 0.3.4
 
 ### Minor Changes
