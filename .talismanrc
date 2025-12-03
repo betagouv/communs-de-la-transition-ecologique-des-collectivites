@@ -1,6 +1,6 @@
 fileignoreconfig:
 - filename: pnpm-lock.yaml
-  checksum: 90bcfe93bd3fecf8850993515b0b71c88ee2bf98c48d51b2fc91b1d2aa1d950f
+  checksum: 8e3945edb58f74278615a23eb34cc621cada316caeaca066159bbd0ba1f01ffa
   comments: "Package lock file with SHA512 checksums (not secrets)"
 - filename: api/README.md
   checksum: 9c4ec1309eea835caba8bb3cc9e3d0bd8453e0e772057a7a6130dd82bb61dd9d
