@@ -73,7 +73,7 @@
     "dotenv": "^16.5.0",
     "drizzle-kit": "^0.31.0",
     "drizzle-orm": "^0.42.0",
-    "express": "^5.1.0",
+    "express": "^5.2.0",
     "express-basic-auth": "^1.2.1",
     "path-to-regexp": "^8.2.0",
     "pg": "^8.14.1",
