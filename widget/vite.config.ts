@@ -9,10 +9,17 @@ export default defineConfig({
   server: {
     port: 5174,
   },
+  resolve: {
+    alias: {
+      react: resolve(__dirname, "./node_modules/react"),
+      "react-dom": resolve(__dirname, "./node_modules/react-dom"),
+    },
+  },
   test: {
     environment: "jsdom",
     globals: true,
     setupFiles: "./lib/test/setup.ts",
+    pool: "forks",
   },
   plugins: [
     react(),
