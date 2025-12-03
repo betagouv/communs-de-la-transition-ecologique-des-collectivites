@@ -27,6 +27,12 @@ dist-ssr
 # Dev tools
 .serena
 claudedocs/
+.playwright-mcp/
+
+# Environment files (keep .env.template)
+.env.local
+.env.development
+.env.production
 
 # Local files (personal configs, scripts, notes)
 *.local
