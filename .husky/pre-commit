@@ -15,5 +15,5 @@ fi
 
 # Run validation (lint/type check / prettier)
 pnpm run validate
-# Run talisman to check for any secret leakages
-npx node-talisman --githook pre-commit
+# Run gitleaks to check for any secret leakages
+npx gitleaks-secret-scanner
