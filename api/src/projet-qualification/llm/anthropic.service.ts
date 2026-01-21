@@ -61,7 +61,7 @@ export class AnthropicService {
       // IMPORTANT: Must use separate content blocks like Python, not concatenated string
       const message = await this.client.messages.create({
         model: model ?? this.defaultModel,
-        max_tokens: 1024,
+        max_tokens: 2048,
         temperature: 0.3,
         system: [
           {
@@ -135,7 +135,7 @@ export class AnthropicService {
       // Call Anthropic with 3-part message structure matching Python
       const message = await this.client.messages.create({
         model: model ?? this.defaultModel,
-        max_tokens: 1024,
+        max_tokens: 2048,
         temperature: 0.5,
         system: [
           {
