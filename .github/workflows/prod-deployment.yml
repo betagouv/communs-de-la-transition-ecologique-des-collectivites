@@ -4,6 +4,10 @@ name: Production Deployment
 on:
   workflow_dispatch:
 
+# Permissions needed for pushing version tags and commits to main
+permissions:
+  contents: write
+
 defaults:
   run:
     working-directory: api
@@ -16,7 +20,8 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ssh-key: ${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }} # needed to bypass protection rules on main branch as per
+          # Using default GITHUB_TOKEN with contents: write permission
+          # The Scalingo SSH key is only for Scalingo, not GitHub
 
       - name: Enable Corepack
         shell: bash
