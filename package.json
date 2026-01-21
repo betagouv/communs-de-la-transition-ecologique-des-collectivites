@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm build:api && pnpm build:widget-sandbox && pnpm build:statistics-dashboard",
+    "build": "pnpm build:widget && pnpm build:widget-sandbox && pnpm build:statistics-dashboard && pnpm build:api",
     "start": "pnpm --filter api start",
     "build:api": "pnpm --filter api build",
     "build:widget": "pnpm --filter widget build",
