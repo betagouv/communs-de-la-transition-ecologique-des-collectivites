@@ -42,7 +42,7 @@ export class AnthropicService {
     });
 
     // Default model from env or fallback to haiku
-    this.defaultModel = this.configService.get<AnthropicModel>("ANTHROPIC_MODEL") ?? "claude-3-5-haiku-20241022";
+    this.defaultModel = this.configService.get<AnthropicModel>("ANTHROPIC_MODEL") ?? "claude-haiku-4-5-20251001";
 
     this.logger.log(`Anthropic service initialized with model: ${this.defaultModel}`);
   }
