@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.6...v0.1.7) (2026-01-22)
+
+
+### Features
+
+* **api:** migrate to Claude Haiku 4.5 model ([#360](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/360)) ([0e50cb8](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/0e50cb8a2930f119ed757ad385b0ebde27b7e920)), closes [#358](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/358)
+* **deps:** upgrade widget testing dependencies to latest majors ([#323](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/323)) ([c5c4d31](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/c5c4d31b29aca89219fd2f5f3cafb0cc3c5a20ec)), closes [#290](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/290) [#292](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/292) [#290](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/290) [#292](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/292)
+* **security:** migrate from node-talisman to gitleaks for secret scanning ([#324](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/324)) ([c04c409](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/c04c40990f8241e2743e41f8d8d2f661306601dc))
+* **services:** rename Boussole du CGDD to Boussole de la Transition Écologique ([9ee2ba2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/9ee2ba29aeb7d1bec76ff280aef46ed8c9771bbc))
+
+
+### Bug Fixes
+
+* **api:** ajouter --url à sentry-cli inject pour cohérence ([#361](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/361)) ([7679803](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/7679803208d20f1d94407d75a42f98e03fce0e7d))
+* **build:** corriger l'ordre de build pour Scalingo ([#362](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/362)) ([59cd060](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/59cd060984d51fb781406c1d267710ff48f55fa6))
+* **build:** use full package name for widget pnpm filter ([#363](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/363)) ([f8fc8a4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f8fc8a4476ba4b6453d4d80f26636d27cb46ac07))
+* **ci:** use ADMIN_PAT for branch protection bypass ([#366](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/366)) ([4780a86](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/4780a86d99ed13d19fb681e57545e238edf3f0a8))
+* **ci:** use GITHUB_TOKEN instead of Scalingo SSH key for checkout ([#365](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/365)) ([a71c7c9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/a71c7c93fe2961583328a84ea2e38739012e81e6))
+* **llm:** increase max_tokens to 2048 for Claude 4.5 Haiku ([#364](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/364)) ([79d0575](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/79d0575f2fe360fbe806e440fcc1c46c16759d8a)), closes [#358](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/358)
+
 ## [0.1.6](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.5...v0.1.6) (2025-12-02)
 
 
