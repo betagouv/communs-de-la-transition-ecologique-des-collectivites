@@ -12,8 +12,8 @@ export function Home() {
       <div className={fr.cx("fr-grid-row", "fr-grid-row--gutters", "fr-mt-6w")}>
         <div className={fr.cx("fr-col-12", "fr-col-md-6", "fr-col-lg-4")}>
           <Card
-            title="Cartographie des projets"
-            desc="Visualisez les projets de transition écologique sur l'ensemble du territoire national et découvrez les initiatives près de chez vous."
+            title="Cartographie des services numériques"
+            desc="Explorez l'écosystème des services numériques dédiés à la transition écologique des collectivités : découvrez les acteurs, leurs offres et comment ils interagissent."
             linkProps={{
               href: "/ressources/cartographie",
             }}
@@ -25,19 +25,7 @@ export function Home() {
                 </li>
               </ul>
             }
-            endDetail="Carte interactive"
-          />
-        </div>
-
-        <div className={fr.cx("fr-col-12", "fr-col-md-6", "fr-col-lg-4")}>
-          <Card
-            title="Documentation API"
-            desc="Consultez la documentation technique de l'API Collectivités pour intégrer les données de projets dans vos applications."
-            linkProps={{
-              href: "/api",
-            }}
-            enlargeLink
-            endDetail="Swagger / OpenAPI"
+            endDetail="Écosystème"
           />
         </div>
 
@@ -57,6 +45,18 @@ export function Home() {
               </ul>
             }
             endDetail="Glossaire"
+          />
+        </div>
+
+        <div className={fr.cx("fr-col-12", "fr-col-md-6", "fr-col-lg-4")}>
+          <Card
+            title="Documentation API"
+            desc="Consultez la documentation technique de l'API Collectivités pour intégrer les données de projets dans vos applications."
+            linkProps={{
+              href: "/api",
+            }}
+            enlargeLink
+            endDetail="Swagger / OpenAPI"
           />
         </div>
 
