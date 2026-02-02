@@ -4,9 +4,10 @@ import { Breadcrumb } from "@codegouvfr/react-dsfr/Breadcrumb";
 
 /**
  * Notion embed URL for the vocabulary page.
- * Uses the /ebd/ path format which provides a cleaner embed view.
+ * Generated via Notion's official "Share > Publish > Embed this page > Copy code" feature.
+ * Note: The double slash after /ebd// is intentional and required by Notion's embed format.
  */
-const NOTION_EMBED_URL = "https://communs-te.notion.site/ebd/2bcbde078be0808dae9ad77f218ca7df";
+const NOTION_EMBED_URL = "https://communs-te.notion.site/ebd//2bcbde078be0808dae9ad77f218ca7df";
 
 /** Original Notion page URL for the "View on Notion" link */
 const NOTION_PAGE_URL =
