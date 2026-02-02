@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.8...v0.1.9) (2026-02-02)
+
+
+### Features
+
+* **ressources:** ajouter la page vocabulaire métier ([#369](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/369)) ([ffc850e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ffc850eb440a5069b405bcbafb12d743e5ec15b1))
+
+
+### Bug Fixes
+
+* **ressources:** afficher l'iframe pendant le chargement ([#371](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/371)) ([ef5ebe1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ef5ebe10c22cfb80aeaeee77acb521b85316c071))
+* **ressources:** améliorations page d'accueil et proxy cartographie ([#372](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/372)) ([f8618c2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f8618c2b0090c77b62aef87584942e9e90d7a5d1))
+* **ressources:** corriger l'URL d'embed Notion ([#370](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/370)) ([3bfb3c9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3bfb3c9f27f9b0658d89dfdc2a64a40ca925949d))
+
 ## [0.1.8](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.7...v0.1.8) (2026-02-02)
 
 
