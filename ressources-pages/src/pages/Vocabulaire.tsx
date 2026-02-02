@@ -33,12 +33,17 @@ export function Vocabulaire() {
           <div
             className={fr.cx("fr-p-4w")}
             style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
               minHeight: "400px",
               backgroundColor: "var(--background-alt-grey)",
               borderRadius: "8px",
+              zIndex: 1,
             }}
           >
             <p className={fr.cx("fr-text--lg")}>Chargement du vocabulaire...</p>
@@ -48,14 +53,12 @@ export function Vocabulaire() {
           src={NOTION_EMBED_URL}
           title="Vocabulaire métier - Glossaire de la transition écologique"
           style={{
-            display: isLoading ? "none" : "block",
             width: "100%",
             height: "calc(100vh - 350px)",
             minHeight: "600px",
             border: "1px solid var(--border-default-grey)",
             borderRadius: "8px",
           }}
-          loading="lazy"
           allowFullScreen
           onLoad={() => setIsLoading(false)}
         />
