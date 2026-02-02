@@ -77,8 +77,8 @@ export class RessourcesProxyMiddleware implements NestMiddleware {
         error: (err, req, res) => {
           this.logger.error(`[Proxy Error] ${req.url}: ${err.message}`);
           (res as Response).status(502).json({
-            error: "Cartographie temporarily unavailable",
-            message: "Please try again later",
+            error: "Cartographie temporairement indisponible",
+            message: "Veuillez réessayer plus tard",
           });
         },
       },

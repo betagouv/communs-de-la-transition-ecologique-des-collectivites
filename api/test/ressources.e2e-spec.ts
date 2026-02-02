@@ -19,6 +19,8 @@ describe("Ressources (e2e)", () => {
 
       const html = await response.text();
       expect(html).toContain("<!DOCTYPE html>");
+      // Verify it's specifically the ressources-pages content
+      expect(html).toContain("API Collectivités");
     });
 
     it("should serve the ressources landing page for SPA routes", async () => {
@@ -27,6 +29,10 @@ describe("Ressources (e2e)", () => {
       // Should return index.html for SPA fallback (not 404)
       expect(response.status).toBe(200);
       expect(response.headers.get("content-type")).toContain("text/html");
+
+      const html = await response.text();
+      // Verify SPA fallback serves the same ressources-pages content
+      expect(html).toContain("API Collectivités");
     });
   });
 
