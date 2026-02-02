@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.8](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.7...v0.1.8) (2026-02-02)
+
+
+### Features
+
+* **ressources:** ajouter l'espace ressources avec proxy cartographie ([#367](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/367)) ([bf85d2e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/bf85d2eac578532eeb3316a641b8a3cabd6578db))
+
+
+### Bug Fixes
+
+* **ressources:** réécrire les chemins d'assets dans le HTML proxié ([#368](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/368)) ([9dc97e7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/9dc97e70a46aa6efdc8bb4b79b5533d3fcfedb54))
+
 ## [0.1.7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.6...v0.1.7) (2026-01-22)
 
 
