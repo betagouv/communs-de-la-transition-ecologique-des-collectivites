@@ -3,6 +3,13 @@ import { ConfigService } from "@nestjs/config";
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { createProxyMiddleware, responseInterceptor, Options } from "http-proxy-middleware";
 
+/**
+ * Hardcoded URL for the cartography service hosted on Netlify.
+ * This is intentionally not configurable via environment variables because:
+ * 1. The cartography is a fixed external resource that doesn't change between environments
+ * 2. Simplifies deployment configuration and reduces risk of misconfiguration
+ * 3. The URL is public and doesn't contain sensitive information
+ */
 const CARTOGRAPHIE_URL = "https://communs-te.netlify.app";
 
 @Injectable()
@@ -54,6 +61,8 @@ export class RessourcesProxyMiddleware implements NestMiddleware {
           if (contentType.includes("text/html") && matomoScript) {
             let html = responseBuffer.toString("utf8");
 
+            // Note: String.replace() only replaces the first occurrence, which is the desired
+            // behavior here since we only want to inject Matomo once per HTML document.
             if (html.includes("</head>")) {
               html = html.replace("</head>", `${matomoScript}</head>`);
             } else if (html.includes("</body>")) {
