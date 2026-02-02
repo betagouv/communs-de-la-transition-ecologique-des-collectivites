@@ -22,7 +22,8 @@ describe("Ressources (e2e)", () => {
       expect(response.headers.get("content-type")).toContain("text/html");
 
       const html = await response.text();
-      expect(html).toContain("<!DOCTYPE html>");
+      // Note: Vite outputs lowercase <!doctype html>
+      expect(html.toLowerCase()).toContain("<!doctype html>");
       // Verify it's specifically the ressources-pages content
       expect(html).toContain("API Collectivités");
     });
@@ -48,7 +49,7 @@ describe("Ressources (e2e)", () => {
       expect(response.headers.get("content-type")).toContain("text/html");
 
       const html = await response.text();
-      expect(html).toContain("<!DOCTYPE html>");
+      expect(html.toLowerCase()).toContain("<!doctype html>");
     });
 
     it("should inject Matomo script if MATOMO_RESSOURCES_SITE_ID is configured", async () => {

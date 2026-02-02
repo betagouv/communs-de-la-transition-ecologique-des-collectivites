@@ -10,7 +10,6 @@ import { throttlerConfig } from "./security/throttler.config";
 import { ServicesModule } from "./services/services.module";
 import { SentryModule } from "@sentry/nestjs/setup";
 import { CorsMiddleware } from "./middleware/cors.middleware";
-import { RessourcesProxyMiddleware } from "./middleware/ressources-proxy.middleware";
 import { GeoModule } from "@/geo/geo.module";
 import { ProjetsModule } from "@projets/projets.module";
 import { currentEnv } from "@/shared/utils/currentEnv";
@@ -70,7 +69,5 @@ import { AnalyticsModule } from "@/analytics/analytics.module";
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(CorsMiddleware).forRoutes("*");
-    // Proxy must be registered separately to handle /ressources/cartographie before static serving
-    consumer.apply(RessourcesProxyMiddleware).forRoutes("/ressources/cartographie", "/ressources/cartographie/*");
   }
 }
