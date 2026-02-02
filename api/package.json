@@ -75,6 +75,7 @@
     "drizzle-orm": "^0.42.0",
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",
+    "http-proxy-middleware": "^3.0.3",
     "path-to-regexp": "^8.2.0",
     "pg": "^8.14.1",
     "reflect-metadata": "^0.2.2",

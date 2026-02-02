@@ -2,11 +2,13 @@ import "tsconfig-paths/register";
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
 import { execSync } from "child_process";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { DatabaseService } from "@database/database.service";
 import { AppModule } from "@/app.module";
 import { setupApp } from "@/setup-app";
+import { serveRessources } from "@/serve-ressources";
 
 declare global {
   var testApp: INestApplication;
@@ -35,9 +37,10 @@ export default async function globalSetup() {
     .useClass(TestDatabaseService)
     .compile();
 
-  const app = moduleFixture.createNestApplication();
+  const app = moduleFixture.createNestApplication<NestExpressApplication>();
 
   setupApp(app);
+  serveRessources(app);
   await app.init();
   await app.listen(3000);
 

@@ -1,0 +1,37 @@
+{
+  "name": "@les-communs/ressources-pages",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "build": "react-dsfr update-icons && tsc -b && vite build",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "dev": "react-dsfr update-icons && vite",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit -p tsconfig.app.json",
+    "validate": "pnpm type-check && pnpm lint && pnpm format:check",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@codegouvfr/react-dsfr": "^1.22.5",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-router-dom": "^7.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "eslint": "^9.25.1",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.2"
+  },
+  "engines": {
+    "npm": "use-pnpm-instead",
+    "yarn": "use-pnpm-instead",
+    "pnpm": "10.x",
+    "node": "22.x"
+  }
+}

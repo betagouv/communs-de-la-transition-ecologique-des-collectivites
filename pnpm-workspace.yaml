@@ -3,6 +3,7 @@ packages:
   - widget
   - widget-sandbox
   - statistics-dashboard
+  - ressources-pages
 overrides:
   tough-cookie@<4.1.3: '>=4.1.3'
   esbuild@<=0.24.2: '>=0.25.0'
