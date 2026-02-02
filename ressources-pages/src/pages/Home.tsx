@@ -14,19 +14,18 @@ export function Home() {
           <Card
             title="Cartographie des projets"
             desc="Visualisez les projets de transition écologique sur l'ensemble du territoire national et découvrez les initiatives près de chez vous."
-            imageUrl="/ressources/images/cartographie-preview.png"
-            imageAlt="Aperçu de la cartographie des projets"
             linkProps={{
               href: "/ressources/cartographie",
             }}
             enlargeLink
-            footer={
+            start={
               <ul className={fr.cx("fr-badges-group")}>
                 <li>
                   <span className={fr.cx("fr-badge", "fr-badge--green-emeraude")}>Nouveau</span>
                 </li>
               </ul>
             }
+            endDetail="Carte interactive"
           />
         </div>
 
@@ -34,12 +33,11 @@ export function Home() {
           <Card
             title="Documentation API"
             desc="Consultez la documentation technique de l'API Collectivités pour intégrer les données de projets dans vos applications."
-            imageUrl="/ressources/images/api-preview.png"
-            imageAlt="Documentation de l'API"
             linkProps={{
               href: "/api",
             }}
             enlargeLink
+            endDetail="Swagger / OpenAPI"
           />
         </div>
 
@@ -47,12 +45,11 @@ export function Home() {
           <Card
             title="Statistiques d'usage"
             desc="Consultez les statistiques d'utilisation de la plateforme et l'évolution des projets de transition écologique."
-            imageUrl="/ressources/images/stats-preview.png"
-            imageAlt="Tableau de bord statistiques"
             linkProps={{
               href: "/statistics",
             }}
             enlargeLink
+            endDetail="Tableau de bord"
           />
         </div>
       </div>

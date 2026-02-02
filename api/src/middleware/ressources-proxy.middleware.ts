@@ -3,20 +3,15 @@ import { ConfigService } from "@nestjs/config";
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { createProxyMiddleware, responseInterceptor, Options } from "http-proxy-middleware";
 
+const CARTOGRAPHIE_URL = "https://communs-te.netlify.app";
+
 @Injectable()
 export class RessourcesProxyMiddleware implements NestMiddleware {
   private readonly logger = new Logger(RessourcesProxyMiddleware.name);
-  private proxy: RequestHandler | null = null;
+  private proxy: RequestHandler;
 
   constructor(private configService: ConfigService) {
-    const target = this.configService.get<string>("CARTOGRAPHIE_PROXY_URL");
-
-    if (!target) {
-      this.logger.warn("CARTOGRAPHIE_PROXY_URL not configured - proxy disabled");
-      return;
-    }
-
-    const matomoSiteId = this.configService.get<string>("MATOMO_SITE_ID");
+    const matomoSiteId = this.configService.get<string>("MATOMO_RESSOURCES_SITE_ID");
     const matomoUrl = this.configService.get<string>("MATOMO_URL", "https://stats.beta.gouv.fr");
 
     const matomoScript = matomoSiteId
@@ -37,8 +32,12 @@ export class RessourcesProxyMiddleware implements NestMiddleware {
 <!-- End Matomo Analytics -->`
       : "";
 
+    if (!matomoSiteId) {
+      this.logger.warn("MATOMO_RESSOURCES_SITE_ID not configured - analytics disabled for ressources");
+    }
+
     const options: Options = {
-      target,
+      target: CARTOGRAPHIE_URL,
       changeOrigin: true,
       selfHandleResponse: true,
       pathRewrite: {
@@ -46,7 +45,7 @@ export class RessourcesProxyMiddleware implements NestMiddleware {
       },
       on: {
         proxyReq: (_proxyReq, req) => {
-          this.logger.debug(`[Proxy] ${req.method} ${req.url} → ${target}`);
+          this.logger.debug(`[Proxy] ${req.method} ${req.url} → ${CARTOGRAPHIE_URL}`);
         },
         /* eslint-disable @typescript-eslint/no-misused-promises, @typescript-eslint/require-await */
         proxyRes: responseInterceptor(async (responseBuffer, proxyRes) => {
@@ -77,14 +76,10 @@ export class RessourcesProxyMiddleware implements NestMiddleware {
     };
 
     this.proxy = createProxyMiddleware(options);
-    this.logger.log(`Cartographie proxy configured → ${target}`);
+    this.logger.log(`Cartographie proxy configured → ${CARTOGRAPHIE_URL}`);
   }
 
   use(req: Request, res: Response, next: NextFunction) {
-    if (!this.proxy) {
-      return next();
-    }
-
     if (req.path.startsWith("/ressources/cartographie")) {
       return this.proxy(req, res, next);
     }
