@@ -5,6 +5,10 @@
  * 1. Static file serving from ressources-pages/dist
  * 2. Proxy middleware for /ressources/cartographie
  * 3. SPA fallback routing
+ *
+ * Prerequisites:
+ * - ressources-pages must be built (pnpm build:ressources-pages)
+ * - The cartography service (communs-te.netlify.app) must be accessible
  */
 
 describe("Ressources (e2e)", () => {

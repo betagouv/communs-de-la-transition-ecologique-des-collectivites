@@ -72,6 +72,10 @@ jobs:
         working-directory: .
         run: pnpm --filter api run type-check
 
+      - name: Build ressources-pages (required for E2E tests)
+        working-directory: .
+        run: pnpm build:ressources-pages
+
       - name: Run database migrations
         working-directory: .
         run: pnpm --filter api run db:migrate:drizzle
