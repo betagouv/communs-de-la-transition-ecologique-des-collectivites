@@ -69,10 +69,28 @@ export const serveRessources = (app: NestExpressApplication) => {
         if (contentType.includes("text/html")) {
           let html = responseBuffer.toString("utf8");
 
-          // Rewrite asset paths from /assets/ to /ressources/cartographie/assets/
-          // This is necessary because the proxied HTML uses absolute paths that
-          // would otherwise resolve to the API root instead of the proxy path
-          html = html.replace(/(src|href|data-src)="\/assets\//g, '$1="/ressources/cartographie/assets/');
+          // Rewrite absolute paths in the proxied HTML to go through the proxy
+          // Without this, paths like "/assets/main.js" would resolve to the API root
+          // instead of the cartography service
+          const rewritePath = (path: string) => `/ressources/cartographie${path}`;
+          const shouldRewrite = (path: string) =>
+            path.startsWith("/") &&
+            !path.startsWith("//") &&
+            !path.startsWith("/ressources/cartographie/") &&
+            !path.startsWith("/http");
+
+          // 1. Rewrite HTML attributes (src, href, data-src, action, poster)
+          html = html.replace(
+            /(src|href|data-src|action|poster)="(\/[^"]+)"/g,
+            (match: string, attr: string, path: string) =>
+              shouldRewrite(path) ? `${attr}="${rewritePath(path)}"` : match,
+          );
+
+          // 2. Rewrite JS string literals (for fetch, import, etc.)
+          // Handles double quotes, single quotes, and template literals
+          html = html.replace(/(fetch|import)\(["'`](\/[^"'`]+)["'`]\)/g, (match: string, fn: string, path: string) =>
+            shouldRewrite(path) ? `${fn}("${rewritePath(path)}")` : match,
+          );
 
           // Inject Matomo script if configured
           if (matomoScript) {

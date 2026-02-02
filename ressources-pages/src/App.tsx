@@ -22,16 +22,7 @@ function App() {
         }}
         serviceTitle="API Collectivités"
         serviceTagline="Ressources pour la transition écologique"
-        quickAccessItems={[
-          {
-            iconId: "fr-icon-arrow-left-line",
-            linkProps: {
-              href: "/api",
-            },
-            text: "Documentation API",
-          },
-          headerFooterDisplayItem,
-        ]}
+        quickAccessItems={[headerFooterDisplayItem]}
       />
 
       <main>

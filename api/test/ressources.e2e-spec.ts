@@ -52,14 +52,19 @@ describe("Ressources (e2e)", () => {
       expect(html.toLowerCase()).toContain("<!doctype html>");
     });
 
-    it("should rewrite asset paths in proxied HTML", async () => {
+    it("should rewrite absolute paths in proxied HTML", async () => {
       const response = await fetch(`${baseUrl}/ressources/cartographie`);
       const html = await response.text();
 
-      // Verify no raw /assets/ paths remain (they should be rewritten)
-      expect(html).not.toMatch(/(?:src|href)="\/assets\//);
-      // Verify rewritten paths exist
-      expect(html).toContain('="/ressources/cartographie/assets/');
+      // Verify no raw absolute paths remain in HTML attributes (they should be rewritten)
+      expect(html).not.toMatch(/(src|href|data-src)="\/(?!ressources\/cartographie\/)[^"]+"/);
+
+      // Verify rewritten paths exist for assets
+      expect(html).toContain('="/ressources/cartographie/');
+
+      // Verify external URLs and protocol-relative URLs are NOT rewritten
+      expect(html).not.toMatch(/="\/ressources\/cartographie\/https?:/);
+      expect(html).not.toMatch(/="\/ressources\/cartographie\/\//);
     });
 
     it("should inject Matomo script if MATOMO_RESSOURCES_SITE_ID is configured", async () => {
