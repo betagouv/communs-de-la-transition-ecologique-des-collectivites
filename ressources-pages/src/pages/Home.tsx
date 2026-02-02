@@ -43,6 +43,25 @@ export function Home() {
 
         <div className={fr.cx("fr-col-12", "fr-col-md-6", "fr-col-lg-4")}>
           <Card
+            title="Vocabulaire métier"
+            desc="Consultez le glossaire des termes utilisés dans le domaine de la transition écologique des collectivités."
+            linkProps={{
+              href: "/ressources/vocabulaire",
+            }}
+            enlargeLink
+            start={
+              <ul className={fr.cx("fr-badges-group")}>
+                <li>
+                  <span className={fr.cx("fr-badge", "fr-badge--green-emeraude")}>Nouveau</span>
+                </li>
+              </ul>
+            }
+            endDetail="Glossaire"
+          />
+        </div>
+
+        <div className={fr.cx("fr-col-12", "fr-col-md-6", "fr-col-lg-4")}>
+          <Card
             title="Statistiques d'usage"
             desc="Consultez les statistiques d'utilisation de la plateforme et l'évolution des projets de transition écologique."
             linkProps={{
