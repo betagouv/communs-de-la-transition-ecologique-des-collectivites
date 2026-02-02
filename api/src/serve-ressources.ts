@@ -66,15 +66,23 @@ export const serveRessources = (app: NestExpressApplication) => {
       proxyRes: responseInterceptor(async (responseBuffer, proxyRes) => {
         const contentType = proxyRes.headers["content-type"] ?? "";
 
-        if (contentType.includes("text/html") && matomoScript) {
+        if (contentType.includes("text/html")) {
           let html = responseBuffer.toString("utf8");
 
-          // Note: String.replace() only replaces the first occurrence, which is the desired
-          // behavior here since we only want to inject Matomo once per HTML document.
-          if (html.includes("</head>")) {
-            html = html.replace("</head>", `${matomoScript}</head>`);
-          } else if (html.includes("</body>")) {
-            html = html.replace("</body>", `${matomoScript}</body>`);
+          // Rewrite asset paths from /assets/ to /ressources/cartographie/assets/
+          // This is necessary because the proxied HTML uses absolute paths that
+          // would otherwise resolve to the API root instead of the proxy path
+          html = html.replace(/(src|href)="\/assets\//g, '$1="/ressources/cartographie/assets/');
+
+          // Inject Matomo script if configured
+          if (matomoScript) {
+            // Note: String.replace() only replaces the first occurrence, which is the desired
+            // behavior here since we only want to inject Matomo once per HTML document.
+            if (html.includes("</head>")) {
+              html = html.replace("</head>", `${matomoScript}</head>`);
+            } else if (html.includes("</body>")) {
+              html = html.replace("</body>", `${matomoScript}</body>`);
+            }
           }
 
           return html;
