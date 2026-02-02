@@ -72,7 +72,7 @@ export const serveRessources = (app: NestExpressApplication) => {
           // Rewrite asset paths from /assets/ to /ressources/cartographie/assets/
           // This is necessary because the proxied HTML uses absolute paths that
           // would otherwise resolve to the API root instead of the proxy path
-          html = html.replace(/(src|href)="\/assets\//g, '$1="/ressources/cartographie/assets/');
+          html = html.replace(/(src|href|data-src)="\/assets\//g, '$1="/ressources/cartographie/assets/');
 
           // Inject Matomo script if configured
           if (matomoScript) {
