@@ -67,6 +67,30 @@ describe("Ressources (e2e)", () => {
       expect(html).not.toMatch(/="\/ressources\/cartographie\/\//);
     });
 
+    it("should rewrite absolute paths in proxied JavaScript files", async () => {
+      // First, get the HTML to find a JS file path
+      const htmlResponse = await fetch(`${baseUrl}/ressources/cartographie`);
+      const html = await htmlResponse.text();
+
+      // Extract a JS file path from the HTML
+      const jsMatch = /src="(\/ressources\/cartographie\/assets\/[^"]+\.js)"/.exec(html);
+      if (!jsMatch) {
+        console.log("Skipping JS rewrite test - no JS file found in HTML");
+        return;
+      }
+
+      // Fetch the JS file through the proxy
+      const jsResponse = await fetch(`${baseUrl}${jsMatch[1]}`);
+      expect(jsResponse.status).toBe(200);
+
+      const js = await jsResponse.text();
+
+      // Verify that absolute paths in the JS are rewritten
+      // Should not contain raw "/something" paths (except protocol-relative "//")
+      const rawPathMatches = js.match(/"\/(?!\/|ressources\/cartographie\/|http)[^"]+"/g) ?? [];
+      expect(rawPathMatches).toEqual([]);
+    });
+
     it("should inject Matomo script if MATOMO_RESSOURCES_SITE_ID is configured", async () => {
       // Skip test if Matomo is not configured in test environment
       if (!process.env.MATOMO_RESSOURCES_SITE_ID) {

@@ -66,28 +66,26 @@ export const serveRessources = (app: NestExpressApplication) => {
       proxyRes: responseInterceptor(async (responseBuffer, proxyRes) => {
         const contentType = proxyRes.headers["content-type"] ?? "";
 
+        // Helper functions for path rewriting
+        const rewritePath = (path: string) => `/ressources/cartographie${path}`;
+        const shouldRewrite = (path: string) =>
+          path.startsWith("/") &&
+          !path.startsWith("//") &&
+          !path.startsWith("/ressources/cartographie/") &&
+          !path.startsWith("/http");
+
+        // Rewrite paths in HTML content
         if (contentType.includes("text/html")) {
           let html = responseBuffer.toString("utf8");
 
-          // Rewrite absolute paths in the proxied HTML to go through the proxy
-          // Without this, paths like "/assets/main.js" would resolve to the API root
-          // instead of the cartography service
-          const rewritePath = (path: string) => `/ressources/cartographie${path}`;
-          const shouldRewrite = (path: string) =>
-            path.startsWith("/") &&
-            !path.startsWith("//") &&
-            !path.startsWith("/ressources/cartographie/") &&
-            !path.startsWith("/http");
-
-          // 1. Rewrite HTML attributes (src, href, data-src, action, poster)
+          // Rewrite HTML attributes (src, href, data-src, action, poster)
           html = html.replace(
             /(src|href|data-src|action|poster)="(\/[^"]+)"/g,
             (match: string, attr: string, path: string) =>
               shouldRewrite(path) ? `${attr}="${rewritePath(path)}"` : match,
           );
 
-          // 2. Rewrite JS string literals (for fetch, import, etc.)
-          // Handles double quotes, single quotes, and template literals
+          // Rewrite JS string literals in inline scripts (for fetch, import, etc.)
           html = html.replace(/(fetch|import)\(["'`](\/[^"'`]+)["'`]\)/g, (match: string, fn: string, path: string) =>
             shouldRewrite(path) ? `${fn}("${rewritePath(path)}")` : match,
           );
@@ -104,6 +102,19 @@ export const serveRessources = (app: NestExpressApplication) => {
           }
 
           return html;
+        }
+
+        // Rewrite paths in JavaScript files
+        if (contentType.includes("javascript")) {
+          let js = responseBuffer.toString("utf8");
+
+          // Rewrite string literals containing absolute paths
+          // Matches: "/path", '/path', `/path`
+          js = js.replace(/(["'`])(\/[^"'`\s]+)\1/g, (match: string, quote: string, path: string) =>
+            shouldRewrite(path) ? `${quote}${rewritePath(path)}${quote}` : match,
+          );
+
+          return js;
         }
 
         return responseBuffer;
