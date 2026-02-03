@@ -19,6 +19,7 @@ import { BullBoardModule } from "@bull-board/nestjs";
 import basicAuth from "express-basic-auth";
 import { ExpressAdapter } from "@bull-board/express";
 import { AnalyticsModule } from "@/analytics/analytics.module";
+import { MatomoModule } from "@/matomo";
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { AnalyticsModule } from "@/analytics/analytics.module";
     GeoModule,
     ProjetQualificationModule,
     AnalyticsModule,
+    MatomoModule,
   ],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
 })
