@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.12](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.11...v0.1.12) (2026-02-03)
+
+
+### Bug Fixes
+
+* **ci:** corriger le script prepare pour le déploiement Scalingo ([#375](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/375)) ([524b6f9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/524b6f99225de6035384ee58cc685a58fd6ad484))
+
 ## [0.1.11](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.10...v0.1.11) (2026-02-03)
 
 
