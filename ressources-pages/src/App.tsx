@@ -4,6 +4,7 @@ import { Footer } from "@codegouvfr/react-dsfr/Footer";
 import { headerFooterDisplayItem } from "@codegouvfr/react-dsfr/Display";
 import { Home } from "./pages/Home";
 import { Vocabulaire } from "./pages/Vocabulaire";
+import { Confidentialite } from "./pages/Confidentialite";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/vocabulaire" element={<Vocabulaire />} />
+          <Route path="/confidentialite" element={<Confidentialite />} />
         </Routes>
       </main>
 
@@ -45,7 +47,15 @@ function App() {
           href: "/ressources",
           title: "Accueil - API Collectivités",
         }}
-        bottomItems={[headerFooterDisplayItem]}
+        bottomItems={[
+          {
+            text: "Données personnelles et cookies",
+            linkProps: {
+              href: "/ressources/confidentialite",
+            },
+          },
+          headerFooterDisplayItem,
+        ]}
         license={
           <>
             Sauf mention contraire, tous les contenus de ce site sont sous{" "}
