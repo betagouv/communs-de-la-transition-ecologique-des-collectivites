@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.11](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.10...v0.1.11) (2026-02-03)
+
+
+### Features
+
+* **matomo:** ajouter le tracking sur toutes les pages statiques ([#374](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/374)) ([850199a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/850199a98f678ce4d42ee00882cad3e31d5f2978))
+
 ## [0.1.10](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.9...v0.1.10) (2026-02-02)
 
 
