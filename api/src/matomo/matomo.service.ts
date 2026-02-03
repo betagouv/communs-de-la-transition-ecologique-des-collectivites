@@ -26,8 +26,15 @@ export class MatomoService {
     }
 
     // Inline script for contexts like Swagger that use customJsStr
+    // - disableCookies: required for CNIL compliance without consent banner
+    // - optUserOut check: respects user opt-out preference stored in localStorage
+    // See: https://doc.incubateur.net/communaute/les-outils-de-la-communaute/autres-services/matomo
     this.inlineScript = `
 var _paq = window._paq = window._paq || [];
+_paq.push(['disableCookies']);
+if (localStorage.getItem('matomo-opt-out') === 'true') {
+  _paq.push(['optUserOut']);
+}
 _paq.push(['trackPageView']);
 _paq.push(['enableLinkTracking']);
 (function() {
@@ -39,9 +46,13 @@ _paq.push(['enableLinkTracking']);
 })();`;
 
     this.matomoScript = `
-<!-- Matomo Analytics -->
+<!-- Matomo Analytics (CNIL exempt - no cookies, opt-out supported) -->
 <script>
   var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
+  if (localStorage.getItem('matomo-opt-out') === 'true') {
+    _paq.push(['optUserOut']);
+  }
   _paq.push(['trackPageView']);
   _paq.push(['enableLinkTracking']);
   (function() {
@@ -54,7 +65,7 @@ _paq.push(['enableLinkTracking']);
 </script>
 <!-- End Matomo Analytics -->`;
 
-    this.logger.log(`Matomo analytics enabled with site ID: ${siteId}`);
+    this.logger.log(`Matomo analytics enabled with site ID: ${siteId} (cookies disabled for CNIL compliance)`);
   }
 
   /**
