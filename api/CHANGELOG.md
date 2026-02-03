@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.13](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.12...v0.1.13) (2026-02-03)
+
+
+### Bug Fixes
+
+* **api:** déplacer openapi-fetch vers dependencies ([#376](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/376)) ([3842052](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3842052bea716abf3a6575afe1a3edca06ce63c8))
+
 ## [0.1.12](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.11...v0.1.12) (2026-02-03)
 
 
