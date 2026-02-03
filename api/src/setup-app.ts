@@ -3,6 +3,7 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { RequestLoggingInterceptor } from "@/logging/request-logging.interceptor";
 import { GlobalExceptionFilter } from "@/exceptions/global-exception-filter";
 import { CustomLogger } from "@/logging/logger.service";
+import { MatomoService } from "@/matomo";
 import { json } from "express";
 
 export function setupApp(app: INestApplication) {
@@ -34,12 +35,18 @@ export function setupApp(app: INestApplication) {
     .addBearerAuth()
     .build();
 
+  // Get Matomo service for analytics injection into Swagger UI
+  const matomoService = app.get(MatomoService);
+
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, documentFactory, {
     jsonDocumentUrl: "openapi.json",
     swaggerOptions: {
       persistAuthorization: true,
     },
+    customSiteTitle: "API Collectivités - Documentation",
+    // Inject Matomo analytics script into Swagger UI
+    customJsStr: matomoService.isTrackingEnabled() ? [matomoService.getInlineScript()] : undefined,
   });
 
   return app;

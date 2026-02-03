@@ -4,8 +4,8 @@ import * as path from "path";
 import * as fs from "fs";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { createProxyMiddleware, responseInterceptor, Options } from "http-proxy-middleware";
+import { MatomoService } from "@/matomo";
 
 const logger = new Logger("ServeRessources");
 
@@ -22,33 +22,8 @@ export const serveRessources = (app: NestExpressApplication) => {
   const projectRoot = path.join(process.cwd(), "..");
   const ressourcesPath = path.join(projectRoot, "ressources-pages", "dist");
 
-  // Get config for Matomo injection
-  const configService = app.get(ConfigService);
-  const matomoSiteId = configService.get<string>("MATOMO_RESSOURCES_SITE_ID");
-  const matomoUrl = configService.get<string>("MATOMO_URL", "https://stats.beta.gouv.fr");
-
-  // Build Matomo script if configured
-  const matomoScript = matomoSiteId
-    ? `
-<!-- Matomo Analytics -->
-<script>
-  var _paq = window._paq = window._paq || [];
-  _paq.push(['trackPageView']);
-  _paq.push(['enableLinkTracking']);
-  (function() {
-    var u="${matomoUrl}/";
-    _paq.push(['setTrackerUrl', u+'matomo.php']);
-    _paq.push(['setSiteId', '${matomoSiteId}']);
-    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
-  })();
-</script>
-<!-- End Matomo Analytics -->`
-    : "";
-
-  if (!matomoSiteId) {
-    logger.warn("MATOMO_RESSOURCES_SITE_ID not configured - analytics disabled for ressources");
-  }
+  // Get Matomo service for injection
+  const matomoService = app.get(MatomoService);
 
   // 1. Set up proxy for /ressources/cartographie FIRST (before static files)
   const proxyOptions: Options = {
@@ -90,16 +65,8 @@ export const serveRessources = (app: NestExpressApplication) => {
             shouldRewrite(path) ? `${fn}("${rewritePath(path)}")` : match,
           );
 
-          // Inject Matomo script if configured
-          if (matomoScript) {
-            // Note: String.replace() only replaces the first occurrence, which is the desired
-            // behavior here since we only want to inject Matomo once per HTML document.
-            if (html.includes("</head>")) {
-              html = html.replace("</head>", `${matomoScript}</head>`);
-            } else if (html.includes("</body>")) {
-              html = html.replace("</body>", `${matomoScript}</body>`);
-            }
-          }
+          // Inject Matomo script using centralized service
+          html = matomoService.injectIntoHtml(html);
 
           return html;
         }
@@ -110,9 +77,13 @@ export const serveRessources = (app: NestExpressApplication) => {
 
           // Rewrite string literals containing absolute paths
           // Matches: "/path", '/path', `/path`
-          js = js.replace(/(["'`])(\/[^"'`\s]+)\1/g, (match: string, quote: string, path: string) =>
-            shouldRewrite(path) ? `${quote}${rewritePath(path)}${quote}` : match,
-          );
+          js = js.replace(/["'`](\/[^"'`\s]+)["'`]/g, (match: string, path: string) => {
+            if (shouldRewrite(path)) {
+              const quote = match[0];
+              return `${quote}${rewritePath(path)}${quote}`;
+            }
+            return match;
+          });
 
           return js;
         }
@@ -141,26 +112,34 @@ export const serveRessources = (app: NestExpressApplication) => {
   app.use(
     "/ressources",
     express.static(ressourcesPath, {
-      index: false, // Handle index manually for SPA routing
+      index: false, // Handle index manually for SPA routing and Matomo injection
       fallthrough: true,
     }),
   );
 
-  // 3. SPA fallback - serve index.html for non-file routes
+  // 3. SPA fallback - serve index.html with Matomo injection for non-file routes
   app.use("/ressources", (req: Request, res: Response, next: NextFunction) => {
     // Don't serve index.html for /cartographie (handled by proxy above)
     if (req.path.startsWith("/cartographie")) {
       return next();
     }
 
-    // Serve index.html for SPA routes
+    // Serve index.html with Matomo injection for SPA routes
     const indexPath = path.join(ressourcesPath, "index.html");
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      next();
+    if (!fs.existsSync(indexPath)) {
+      return next();
     }
+
+    fs.readFile(indexPath, "utf8", (err, html) => {
+      if (err) {
+        logger.error(`Failed to read ${indexPath}: ${err.message}`);
+        return next(err);
+      }
+
+      const htmlWithMatomo = matomoService.injectIntoHtml(html);
+      res.type("html").send(htmlWithMatomo);
+    });
   });
 
-  logger.log(`Serving ressources pages from ${ressourcesPath}`);
+  logger.log(`Serving ressources pages from ${ressourcesPath} with Matomo injection`);
 };
