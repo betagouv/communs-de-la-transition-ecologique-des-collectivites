@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.14](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.13...v0.1.14) (2026-02-04)
+
+
+### Features
+
+* **matomo:** conformité CNIL sans bannière de consentement ([#377](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/377)) ([d242ae1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d242ae15b432c6726b6729896c24b026b8ad78e9))
+
 ## [0.1.13](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.12...v0.1.13) (2026-02-03)
 
 
