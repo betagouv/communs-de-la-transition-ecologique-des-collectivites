@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.15](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.14...v0.1.15) (2026-02-05)
+
+
+### Features
+
+* **ressources:** remplacer l'iframe Notion par du contenu statique pour la page Vocabulaire ([#378](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/378)) ([99b11cc](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/99b11cc7e243e7cf05f626286242b172d7c9a8f5))
+
 ## [0.1.14](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.13...v0.1.14) (2026-02-04)
 
 
