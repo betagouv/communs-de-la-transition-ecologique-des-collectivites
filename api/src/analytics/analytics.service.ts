@@ -65,6 +65,11 @@ export class AnalyticsService {
         let monthInteractions = 0;
 
         monthEvents.forEach((event, index) => {
+          // Skip events from non-production sources (valid hostnames contain a dot)
+          if (!event.Events_EventCategory.includes(".")) {
+            return;
+          }
+
           if (!allHostingPlatforms.includes(event.Events_EventCategory)) {
             allHostingPlatforms.push(event.Events_EventCategory);
           }
