@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.16](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.15...v0.1.16) (2026-02-09)
+
+
+### Bug Fixes
+
+* **statistics:** corriger l'erreur CORS sur la page /statistics/ ([#379](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/379)) ([d4aa7bb](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d4aa7bb85eeb60240bcc73a5ab58720d36b1b0f8))
+
 ## [0.1.15](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.14...v0.1.15) (2026-02-05)
 
 
