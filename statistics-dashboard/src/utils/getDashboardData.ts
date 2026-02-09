@@ -1,6 +1,6 @@
 import type { ApiUsageData, WidgetUsageData } from "../types";
 
-const apiUrl = `${import.meta.env.VITE_STATISTIC_PAGE_API_BASE_URL}/analytics`;
+const apiUrl = `${import.meta.env.VITE_STATISTIC_PAGE_API_BASE_URL ?? ""}/analytics`;
 
 export const getWidgetUsageData = async (platform = "all"): Promise<WidgetUsageData> => {
   try {
