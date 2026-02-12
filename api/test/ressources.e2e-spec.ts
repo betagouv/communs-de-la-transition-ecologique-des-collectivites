@@ -105,4 +105,51 @@ describe("Ressources (e2e)", () => {
       expect(html).toContain(process.env.MATOMO_RESSOURCES_SITE_ID);
     });
   });
+
+  describe("GET /ressources/analyses-convergence", () => {
+    it("should proxy requests to the analyses-convergence service", async () => {
+      const response = await fetch(`${baseUrl}/ressources/analyses-convergence`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toContain("text/html");
+
+      const html = await response.text();
+      expect(html.toLowerCase()).toContain("<!doctype html>");
+    });
+
+    it("should rewrite absolute paths in proxied HTML", async () => {
+      const response = await fetch(`${baseUrl}/ressources/analyses-convergence`);
+      const html = await response.text();
+
+      // Verify no raw absolute paths remain in HTML attributes (they should be rewritten)
+      expect(html).not.toMatch(/(src|href|data-src)="\/(?!ressources\/analyses-convergence\/)[^"]+"/);
+
+      // Verify rewritten paths exist for navigation links
+      expect(html).toContain('="/ressources/analyses-convergence/');
+
+      // Verify external URLs and protocol-relative URLs are NOT rewritten
+      expect(html).not.toMatch(/="\/ressources\/analyses-convergence\/https?:/);
+      expect(html).not.toMatch(/="\/ressources\/analyses-convergence\/\//);
+    });
+
+    it("should serve subpages through the proxy", async () => {
+      const response = await fetch(`${baseUrl}/ressources/analyses-convergence/analyse-projets/analyse`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toContain("text/html");
+    });
+
+    it("should inject Matomo script if MATOMO_RESSOURCES_SITE_ID is configured", async () => {
+      if (!process.env.MATOMO_RESSOURCES_SITE_ID) {
+        console.log("Skipping Matomo injection test - MATOMO_RESSOURCES_SITE_ID not configured");
+        return;
+      }
+
+      const response = await fetch(`${baseUrl}/ressources/analyses-convergence`);
+      const html = await response.text();
+
+      expect(html).toContain("<!-- Matomo Analytics -->");
+      expect(html).toContain(process.env.MATOMO_RESSOURCES_SITE_ID);
+    });
+  });
 });
