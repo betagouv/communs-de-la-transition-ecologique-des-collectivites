@@ -10,44 +10,49 @@ import { MatomoService } from "@/matomo";
 const logger = new Logger("ServeRessources");
 
 /**
- * Hardcoded URL for the cartography service hosted on Netlify.
- * This is intentionally not configurable via environment variables because:
- * 1. The cartography is a fixed external resource that doesn't change between environments
+ * Hardcoded URLs for external services hosted on Netlify.
+ * Intentionally not configurable via environment variables because:
+ * 1. These are fixed external resources that don't change between environments
  * 2. Simplifies deployment configuration and reduces risk of misconfiguration
- * 3. The URL is public and doesn't contain sensitive information
+ * 3. The URLs are public and don't contain sensitive information
  */
 const CARTOGRAPHIE_URL = "https://communs-te.netlify.app";
+const ANALYSES_CONVERGENCE_URL = "https://analyses-convergence.netlify.app";
 
-export const serveRessources = (app: NestExpressApplication) => {
-  const projectRoot = path.join(process.cwd(), "..");
-  const ressourcesPath = path.join(projectRoot, "ressources-pages", "dist");
+/**
+ * Creates a reverse proxy middleware for an external resource under /ressources/.
+ * Handles path rewriting in HTML/JS responses and Matomo injection.
+ */
+const createRessourceProxy = (
+  app: NestExpressApplication,
+  options: {
+    basePath: string;
+    targetUrl: string;
+    matomoService: MatomoService;
+    errorLabel: string;
+  },
+) => {
+  const { basePath, targetUrl, matomoService, errorLabel } = options;
 
-  // Get Matomo service for injection
-  const matomoService = app.get(MatomoService);
-
-  // 1. Set up proxy for /ressources/cartographie FIRST (before static files)
   const proxyOptions: Options = {
-    target: CARTOGRAPHIE_URL,
+    target: targetUrl,
     changeOrigin: true,
     selfHandleResponse: true,
     pathRewrite: {
-      "^/ressources/cartographie": "",
+      [`^${basePath}`]: "",
     },
     on: {
       proxyReq: (_proxyReq, req) => {
-        logger.debug(`[Proxy] ${req.method} ${req.url} → ${CARTOGRAPHIE_URL}`);
+        logger.debug(`[Proxy] ${req.method} ${req.url} → ${targetUrl}`);
       },
       /* eslint-disable @typescript-eslint/no-misused-promises, @typescript-eslint/require-await */
       proxyRes: responseInterceptor(async (responseBuffer, proxyRes) => {
         const contentType = proxyRes.headers["content-type"] ?? "";
 
         // Helper functions for path rewriting
-        const rewritePath = (path: string) => `/ressources/cartographie${path}`;
-        const shouldRewrite = (path: string) =>
-          path.startsWith("/") &&
-          !path.startsWith("//") &&
-          !path.startsWith("/ressources/cartographie/") &&
-          !path.startsWith("/http");
+        const rewritePath = (p: string) => `${basePath}${p}`;
+        const shouldRewrite = (p: string) =>
+          p.startsWith("/") && !p.startsWith("//") && !p.startsWith(`${basePath}/`) && !p.startsWith("/http");
 
         // Rewrite paths in HTML content
         if (contentType.includes("text/html")) {
@@ -56,13 +61,12 @@ export const serveRessources = (app: NestExpressApplication) => {
           // Rewrite HTML attributes (src, href, data-src, action, poster)
           html = html.replace(
             /(src|href|data-src|action|poster)="(\/[^"]+)"/g,
-            (match: string, attr: string, path: string) =>
-              shouldRewrite(path) ? `${attr}="${rewritePath(path)}"` : match,
+            (match: string, attr: string, p: string) => (shouldRewrite(p) ? `${attr}="${rewritePath(p)}"` : match),
           );
 
           // Rewrite JS string literals in inline scripts (for fetch, import, etc.)
-          html = html.replace(/(fetch|import)\(["'`](\/[^"'`]+)["'`]\)/g, (match: string, fn: string, path: string) =>
-            shouldRewrite(path) ? `${fn}("${rewritePath(path)}")` : match,
+          html = html.replace(/(fetch|import)\(["'`](\/[^"'`]+)["'`]\)/g, (match: string, fn: string, p: string) =>
+            shouldRewrite(p) ? `${fn}("${rewritePath(p)}")` : match,
           );
 
           // Inject Matomo script using centralized service
@@ -77,10 +81,10 @@ export const serveRessources = (app: NestExpressApplication) => {
 
           // Rewrite string literals containing absolute paths
           // Matches: "/path", '/path', `/path`
-          js = js.replace(/["'`](\/[^"'`\s]+)["'`]/g, (match: string, path: string) => {
-            if (shouldRewrite(path)) {
+          js = js.replace(/["'`](\/[^"'`\s]+)["'`]/g, (match: string, p: string) => {
+            if (shouldRewrite(p)) {
               const quote = match[0];
-              return `${quote}${rewritePath(path)}${quote}`;
+              return `${quote}${rewritePath(p)}${quote}`;
             }
             return match;
           });
@@ -93,15 +97,41 @@ export const serveRessources = (app: NestExpressApplication) => {
       error: (err, req, res) => {
         logger.error(`[Proxy Error] ${req.url}: ${err.message}`);
         (res as Response).status(502).json({
-          error: "Cartographie temporairement indisponible",
+          error: `${errorLabel} temporairement indisponible`,
           message: "Veuillez réessayer plus tard",
         });
       },
     },
   };
 
-  app.use("/ressources/cartographie", createProxyMiddleware(proxyOptions));
-  logger.log(`Cartographie proxy configured → ${CARTOGRAPHIE_URL}`);
+  app.use(basePath, createProxyMiddleware(proxyOptions));
+  logger.log(`${errorLabel} proxy configured → ${targetUrl}`);
+};
+
+/** Paths handled by proxy middleware (excluded from SPA fallback) */
+const PROXIED_PATHS = ["/cartographie", "/analyses-convergence"];
+
+export const serveRessources = (app: NestExpressApplication) => {
+  const projectRoot = path.join(process.cwd(), "..");
+  const ressourcesPath = path.join(projectRoot, "ressources-pages", "dist");
+
+  // Get Matomo service for injection
+  const matomoService = app.get(MatomoService);
+
+  // 1. Set up proxies FIRST (before static files)
+  createRessourceProxy(app, {
+    basePath: "/ressources/cartographie",
+    targetUrl: CARTOGRAPHIE_URL,
+    matomoService,
+    errorLabel: "Cartographie",
+  });
+
+  createRessourceProxy(app, {
+    basePath: "/ressources/analyses-convergence",
+    targetUrl: ANALYSES_CONVERGENCE_URL,
+    matomoService,
+    errorLabel: "Analyses convergence",
+  });
 
   // 2. Serve static assets (only if dist exists)
   if (!fs.existsSync(ressourcesPath)) {
@@ -119,8 +149,8 @@ export const serveRessources = (app: NestExpressApplication) => {
 
   // 3. SPA fallback - serve index.html with Matomo injection for non-file routes
   app.use("/ressources", (req: Request, res: Response, next: NextFunction) => {
-    // Don't serve index.html for /cartographie (handled by proxy above)
-    if (req.path.startsWith("/cartographie")) {
+    // Don't serve index.html for proxied paths (handled above)
+    if (PROXIED_PATHS.some((p) => req.path.startsWith(p))) {
       return next();
     }
 
