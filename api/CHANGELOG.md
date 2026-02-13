@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.18](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.17...v0.1.18) (2026-02-13)
+
+
+### Features
+
+* **ressources:** ajouter le proxy pour analyses-convergence ([34f27f7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/34f27f716bb745c0c78ad9edd69ec11f9f925246))
+
+
+### Bug Fixes
+
+* supporter les attributs HTML avec guillemets simples dans le proxy ([f9d4d1a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f9d4d1ad8c42f2fabbc5a9bba115ee3b863df711))
+
 ## [0.1.17](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.16...v0.1.17) (2026-02-09)
 
 
