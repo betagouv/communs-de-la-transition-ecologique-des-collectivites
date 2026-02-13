@@ -58,10 +58,11 @@ const createRessourceProxy = (
         if (contentType.includes("text/html")) {
           let html = responseBuffer.toString("utf8");
 
-          // Rewrite HTML attributes (src, href, data-src, action, poster)
+          // Rewrite HTML attributes (src, href, data-src, action, poster) with double or single quotes
           html = html.replace(
-            /(src|href|data-src|action|poster)="(\/[^"]+)"/g,
-            (match: string, attr: string, p: string) => (shouldRewrite(p) ? `${attr}="${rewritePath(p)}"` : match),
+            /(src|href|data-src|action|poster)=(["'])(\/[^"']+)\2/g,
+            (match: string, attr: string, quote: string, p: string) =>
+              shouldRewrite(p) ? `${attr}=${quote}${rewritePath(p)}${quote}` : match,
           );
 
           // Rewrite JS string literals in inline scripts (for fetch, import, etc.)

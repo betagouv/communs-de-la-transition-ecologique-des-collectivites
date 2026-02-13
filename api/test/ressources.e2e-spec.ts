@@ -57,14 +57,14 @@ describe("Ressources (e2e)", () => {
       const html = await response.text();
 
       // Verify no raw absolute paths remain in HTML attributes (they should be rewritten)
-      expect(html).not.toMatch(/(src|href|data-src)="\/(?!ressources\/cartographie\/)[^"]+"/);
+      expect(html).not.toMatch(/(src|href|data-src)=["']\/(?!ressources\/cartographie\/)[^"']+["']/);
 
       // Verify rewritten paths exist for assets
-      expect(html).toContain('="/ressources/cartographie/');
+      expect(html).toMatch(/=["']\/ressources\/cartographie\//);
 
       // Verify external URLs and protocol-relative URLs are NOT rewritten
-      expect(html).not.toMatch(/="\/ressources\/cartographie\/https?:/);
-      expect(html).not.toMatch(/="\/ressources\/cartographie\/\//);
+      expect(html).not.toMatch(/=["']\/ressources\/cartographie\/https?:/);
+      expect(html).not.toMatch(/=["']\/ressources\/cartographie\/\//);
     });
 
     it("should rewrite absolute paths in proxied JavaScript files", async () => {
@@ -122,14 +122,14 @@ describe("Ressources (e2e)", () => {
       const html = await response.text();
 
       // Verify no raw absolute paths remain in HTML attributes (they should be rewritten)
-      expect(html).not.toMatch(/(src|href|data-src)="\/(?!ressources\/analyses-convergence\/)[^"]+"/);
+      expect(html).not.toMatch(/(src|href|data-src)=["']\/(?!ressources\/analyses-convergence\/)[^"']+["']/);
 
       // Verify rewritten paths exist for navigation links
-      expect(html).toContain('="/ressources/analyses-convergence/');
+      expect(html).toMatch(/=["']\/ressources\/analyses-convergence\//);
 
       // Verify external URLs and protocol-relative URLs are NOT rewritten
-      expect(html).not.toMatch(/="\/ressources\/analyses-convergence\/https?:/);
-      expect(html).not.toMatch(/="\/ressources\/analyses-convergence\/\//);
+      expect(html).not.toMatch(/=["']\/ressources\/analyses-convergence\/https?:/);
+      expect(html).not.toMatch(/=["']\/ressources\/analyses-convergence\/\//);
     });
 
     it("should serve subpages through the proxy", async () => {
