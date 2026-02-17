@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.19](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.18...v0.1.19) (2026-02-17)
+
+
+### Bug Fixes
+
+* **ressources:** corriger la réécriture des chemins dans le proxy ([fd90aa5](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/fd90aa5a757b26599d5e2cc860678289e2e68ca9))
+
 ## [0.1.18](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.17...v0.1.18) (2026-02-13)
 
 
