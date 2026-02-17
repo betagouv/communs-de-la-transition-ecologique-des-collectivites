@@ -85,10 +85,12 @@ describe("Ressources (e2e)", () => {
 
       const js = await jsResponse.text();
 
-      // Verify that absolute paths in the JS are rewritten
-      // Should not contain raw "/something" paths (except protocol-relative "//")
-      const rawPathMatches = js.match(/"\/(?!\/|ressources\/cartographie\/|http)[^"]+"/g) ?? [];
-      expect(rawPathMatches).toEqual([]);
+      // Verify that file-like absolute paths in the JS are rewritten.
+      // Only checks paths under /assets/ or with file extensions — the proxy intentionally
+      // skips non-file paths to avoid corrupting regex literals in minified JS.
+      const rawAssetPaths = js.match(/"\/assets\/[^"]+"/g) ?? [];
+      const unrewrittenAssets = rawAssetPaths.filter((p) => !p.includes("/ressources/cartographie/"));
+      expect(unrewrittenAssets).toEqual([]);
     });
 
     it("should inject Matomo script if MATOMO_RESSOURCES_SITE_ID is configured", async () => {

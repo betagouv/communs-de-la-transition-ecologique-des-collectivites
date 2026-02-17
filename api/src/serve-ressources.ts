@@ -80,10 +80,13 @@ const createRessourceProxy = (
         if (contentType.includes("javascript")) {
           let js = responseBuffer.toString("utf8");
 
-          // Rewrite string literals containing absolute paths
-          // Matches: "/path", '/path', `/path`
+          // Rewrite string literals containing absolute paths that look like asset/file references.
+          // Only rewrites paths starting with /assets/ or ending with a file extension,
+          // to avoid corrupting regex literals in minified JS (e.g. /"/gi would become /"/ressources/.../gi).
+          const isLikelyFilePath = (p: string) => p.startsWith("/assets/") || /\/[^/]+\.\w{2,5}$/.test(p);
+
           js = js.replace(/["'`](\/[^"'`\s]+)["'`]/g, (match: string, p: string) => {
-            if (shouldRewrite(p)) {
+            if (shouldRewrite(p) && isLikelyFilePath(p)) {
               const quote = match[0];
               return `${quote}${rewritePath(p)}${quote}`;
             }
@@ -91,6 +94,17 @@ const createRessourceProxy = (
           });
 
           return js;
+        }
+
+        // Rewrite url() paths in CSS files (fonts, images, etc.)
+        if (contentType.includes("text/css")) {
+          let css = responseBuffer.toString("utf8");
+
+          css = css.replace(/url\((\/[^)]+)\)/g, (match: string, p: string) =>
+            shouldRewrite(p) ? `url(${rewritePath(p)})` : match,
+          );
+
+          return css;
         }
 
         return responseBuffer;
