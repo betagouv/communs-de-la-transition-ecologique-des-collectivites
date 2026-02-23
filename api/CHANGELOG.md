@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.20](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.19...v0.1.20) (2026-02-23)
+
+
+### Features
+
+* **ressources:** refonte page vocabulaire selon maquette Figma ([eab719b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/eab719b0cbcd3f974c50c56a4be04cc2816a1162))
+
 ## [0.1.19](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.18...v0.1.19) (2026-02-17)
 
 
