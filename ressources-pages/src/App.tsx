@@ -22,7 +22,7 @@ function App() {
           title: "Accueil - API Collectivités",
         }}
         serviceTitle="API Collectivités"
-        serviceTagline="Ressources pour la transition écologique"
+        serviceTagline=""
         quickAccessItems={[headerFooterDisplayItem]}
       />
 
