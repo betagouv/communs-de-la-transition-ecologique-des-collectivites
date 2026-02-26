@@ -4,9 +4,10 @@ import { Card } from "@codegouvfr/react-dsfr/Card";
 export function Home() {
   return (
     <div className={fr.cx("fr-container", "fr-py-8w")}>
-      <h1>Ressources pour les collectivités</h1>
+      <h1>API Collectivités</h1>
       <p className={fr.cx("fr-text--lead")}>
-        Découvrez les outils et ressources pour accompagner la transition écologique de votre territoire.
+        Outils et réflexions en cours pour construire l&apos;interopérabilité des services numériques de transition
+        écologique.
       </p>
 
       <div className={fr.cx("fr-grid-row", "fr-grid-row--gutters", "fr-mt-6w")}>
