@@ -19,13 +19,6 @@ export function Home() {
               href: "/ressources/cartographie",
             }}
             enlargeLink
-            start={
-              <ul className={fr.cx("fr-badges-group")}>
-                <li>
-                  <span className={fr.cx("fr-badge", "fr-badge--green-emeraude")}>Nouveau</span>
-                </li>
-              </ul>
-            }
             endDetail="Écosystème"
           />
         </div>
@@ -38,21 +31,14 @@ export function Home() {
               href: "/ressources/vocabulaire",
             }}
             enlargeLink
-            start={
-              <ul className={fr.cx("fr-badges-group")}>
-                <li>
-                  <span className={fr.cx("fr-badge", "fr-badge--green-emeraude")}>Nouveau</span>
-                </li>
-              </ul>
-            }
             endDetail="Glossaire"
           />
         </div>
 
         <div className={fr.cx("fr-col-12", "fr-col-md-6", "fr-col-lg-4")}>
           <Card
-            title="Documentation API"
-            desc="Consultez la documentation technique de l'API Collectivités pour intégrer les données de projets dans vos applications."
+            title="API Projets"
+            desc="Documentation de l'API Projets Collectivités pour intégrer et partager les données de projets entre services."
             linkProps={{
               href: "/api",
             }}
