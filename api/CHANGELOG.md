@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.22](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.21...v0.1.22) (2026-02-26)
+
+
+### Features
+
+* retirer badges nouveau, renommer carte API Projets ([ae8cb93](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ae8cb938ba3e37ba1de09b8f5c71c96c5ccbcf07))
+* revoir titre et sous-titre de l'espace ressources ([78b6faa](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/78b6faa4ac84534665bfc3270a74f6259bf9d524))
+
 ## [0.1.21](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.20...v0.1.21) (2026-02-26)
 
 ## [0.1.20](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.19...v0.1.20) (2026-02-23)
