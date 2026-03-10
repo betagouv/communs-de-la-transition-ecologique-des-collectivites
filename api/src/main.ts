@@ -6,6 +6,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { serveDemoWidget } from "@/serve-demo-widget";
 import { serveStatisticsDashboard } from "@/serve-statistics-dashboard";
 import { serveRessources } from "@/serve-ressources";
+import { setupReferentielDoc } from "@/referentiel/referentiel-doc.setup";
 
 async function bootstrap() {
   // Initialize Sentry - this not following their doc here : https://docs.sentry.io/platforms/javascript/guides/nestjs/
@@ -19,6 +20,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   setupApp(app);
+  setupReferentielDoc(app);
   serveDemoWidget(app);
   serveStatisticsDashboard(app);
   serveRessources(app);

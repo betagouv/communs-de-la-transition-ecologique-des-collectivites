@@ -222,3 +222,6 @@ export const serviceExtraFieldsRelations = relations(serviceExtraFields, ({ one 
     references: [projets.id],
   }),
 }));
+
+// Re-export referentiel schema so DatabaseService picks up all tables
+export * from "./referentiel-schema";
