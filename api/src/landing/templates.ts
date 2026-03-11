@@ -200,6 +200,9 @@ curl "https://collectivites.api.beta.gouv.fr/v1/communes?q=Paris"
 # Détail d'une commune par code INSEE
 curl "https://collectivites.api.beta.gouv.fr/v1/communes/75056"
 
+# Détail avec les compétences des groupements associés
+curl "https://collectivites.api.beta.gouv.fr/v1/communes/75056?includeCompetences=true"
+
 # Rechercher des groupements
 curl "https://collectivites.api.beta.gouv.fr/v1/groupements?q=Nantes"
 
