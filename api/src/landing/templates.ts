@@ -143,7 +143,7 @@ export const referentielPage = (): string =>
 
       <h1>API Référentiel Collectivités</h1>
       <p class="fr-text--lead">
-        API publique de référence sur les collectivités territoriales françaises.
+        API publique sur les collectivités territoriales françaises.
         Données issues de Banatic (DGCL), ZLV et geo.api.gouv.fr.
       </p>
 
