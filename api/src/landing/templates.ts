@@ -189,6 +189,11 @@ export const referentielPage = (): string =>
               <td><code>/v1/competences</code></td>
               <td>Liste des 123 compétences Banatic en 10 catégories</td>
             </tr>
+            <tr>
+              <td><code>GET</code></td>
+              <td><code>/v1/recherche</code></td>
+              <td>Recherche transversale par nom (communes et groupements)</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -207,7 +212,10 @@ curl "https://collectivites.api.beta.gouv.fr/v1/communes/75056?includeCompetence
 curl "https://collectivites.api.beta.gouv.fr/v1/groupements?q=Nantes"
 
 # Liste des compétences
-curl "https://collectivites.api.beta.gouv.fr/v1/competences"</code></pre>
+curl "https://collectivites.api.beta.gouv.fr/v1/competences"
+
+# Recherche transversale (communes + groupements)
+curl "https://collectivites.api.beta.gouv.fr/v1/recherche?q=Lyon"</code></pre>
 
       <div class="fr-mt-4w">
         <a class="fr-btn" href="/api/referentiel">
