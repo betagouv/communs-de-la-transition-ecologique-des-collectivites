@@ -323,9 +323,11 @@ function parseSharedStrings(xml: string): string[] {
  * Decode common XML entities in text content.
  */
 function decodeXmlEntities(text: string): string {
-  // &amp; must be replaced LAST to avoid double-unescaping
-  // (e.g. "&amp;lt;" → "&lt;" → "<" if &amp; were first)
+  // Decode numeric entities (&#039; &#x27; etc.) first, then named entities.
+  // &amp; must be replaced LAST to avoid double-unescaping.
   return text
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
