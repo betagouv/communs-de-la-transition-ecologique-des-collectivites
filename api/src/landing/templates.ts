@@ -82,10 +82,10 @@ export const homePage = (): string =>
             <div class="fr-card__body">
               <div class="fr-card__content">
                 <h2 class="fr-card__title">
-                  <a href="/referentiel">API Référentiel Collectivités</a>
+                  <a href="/referentiel">API Référentiel Collectivités</a> <span class="fr-badge fr-badge--info fr-badge--no-icon fr-badge--sm">Alpha</span>
                 </h2>
                 <p class="fr-card__desc">
-                  Données de référence sur les collectivités territoriales : communes, intercommunalités,
+                  Données sur les collectivités territoriales : communes, intercommunalités,
                   groupements et compétences. Sources : Banatic (DGCL), ZLV, geo.api.gouv.fr.
                 </p>
               </div>
@@ -141,7 +141,7 @@ export const referentielPage = (): string =>
         </ol>
       </nav>
 
-      <h1>API Référentiel Collectivités</h1>
+      <h1>API Référentiel Collectivités <span class="fr-badge fr-badge--info fr-badge--no-icon">Alpha</span></h1>
       <p class="fr-text--lead">
         API publique sur les collectivités territoriales françaises.
         Données issues de Banatic (DGCL), ZLV et geo.api.gouv.fr.
@@ -149,7 +149,8 @@ export const referentielPage = (): string =>
 
       <div class="fr-callout fr-my-4w">
         <p class="fr-callout__text">
-          Cette API est en accès libre, sans authentification requise.
+          Cette API est en phase alpha : les endpoints et formats de réponse peuvent évoluer.
+          Accès libre, sans authentification requise.
         </p>
       </div>
 
