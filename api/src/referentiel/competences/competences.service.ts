@@ -10,6 +10,13 @@ import { GroupementResponse } from "../groupements/dto/groupement.response";
 export class CompetencesService {
   constructor(private readonly dbService: DatabaseService) {}
 
+  async findAllCategories(): Promise<{ code: string; nom: string }[]> {
+    return this.dbService.database
+      .select({ code: refCompetenceCategories.code, nom: refCompetenceCategories.nom })
+      .from(refCompetenceCategories)
+      .orderBy(refCompetenceCategories.code);
+  }
+
   async findAll(categorie?: string): Promise<CompetenceResponse[]> {
     const conditions = categorie ? eq(refCompetences.codeCategorie, categorie) : undefined;
 
