@@ -134,15 +134,15 @@ async function downloadExport(regionOrFrance: string, destPath: string): Promise
 
 /**
  * Extract sharedStrings.xml as a string from the XLSX ZIP archive.
- * sharedStrings.xml is small enough to fit in memory (~10-20 MB).
+ * Returns null if the file doesn't exist or is empty (the XLSX may use inline strings instead).
  */
-async function extractSharedStringsXml(filePath: string): Promise<string> {
+async function extractSharedStringsXml(filePath: string): Promise<string | null> {
   const buffer = fs.readFileSync(filePath);
   const directory = await unzipper.Open.buffer(buffer);
 
   const sharedStringsFile = directory.files.find((f) => f.path === "xl/sharedStrings.xml");
-  if (!sharedStringsFile) {
-    throw new Error(`No xl/sharedStrings.xml found in ${filePath}`);
+  if (!sharedStringsFile || sharedStringsFile.uncompressedSize === 0) {
+    return null;
   }
 
   const buf = await sharedStringsFile.buffer();
@@ -249,17 +249,24 @@ function parseSingleRow(rowXml: string, sharedStrings: string[]): ParsedRow | nu
     const typeMatch = attrs.match(/t="([^"]*)"/);
     const cellType = typeMatch ? typeMatch[1] : "";
 
-    const vMatch = fullTag.match(/<v>([^<]*)<\/v>/);
-    if (!vMatch) continue;
-
-    const rawValue = vMatch[1];
     let value: string;
 
-    if (cellType === "s") {
-      const ssIndex = parseInt(rawValue, 10);
-      value = ssIndex >= 0 && ssIndex < sharedStrings.length ? sharedStrings[ssIndex] : "";
+    if (cellType === "inlineStr") {
+      // Inline string: <c t="inlineStr"><is><t>value</t></is></c>
+      const isMatch = fullTag.match(/<is>\s*<t[^>]*>([\s\S]*?)<\/t>\s*<\/is>/);
+      if (!isMatch) continue;
+      value = decodeXmlEntities(isMatch[1]);
     } else {
-      value = decodeXmlEntities(rawValue);
+      // Shared string or plain value: <c ...><v>value</v></c>
+      const vMatch = fullTag.match(/<v>([^<]*)<\/v>/);
+      if (!vMatch) continue;
+      const rawValue = vMatch[1];
+      if (cellType === "s") {
+        const ssIndex = parseInt(rawValue, 10);
+        value = ssIndex >= 0 && ssIndex < sharedStrings.length ? sharedStrings[ssIndex] : "";
+      } else {
+        value = decodeXmlEntities(rawValue);
+      }
     }
 
     cells.push({ colIndex, value });
@@ -630,16 +637,15 @@ export async function fetchBanaticGroupements(dataDir: string): Promise<{
   const tmpPath = "/tmp/banatic-france.xlsx";
   await downloadExport("France", tmpPath);
 
-  // Step 2: Extract shared strings from XLSX (small file, fits in memory)
+  // Step 2: Extract shared strings from XLSX (may be empty if inline strings are used)
   console.log("[banatic] Extracting shared strings from XLSX...");
   const sharedStringsXml = await extractSharedStringsXml(tmpPath);
+  const sharedStrings = sharedStringsXml ? parseSharedStrings(sharedStringsXml) : [];
+  console.log(
+    `[banatic] Found ${sharedStrings.length} shared strings (inline strings used: ${sharedStrings.length === 0})`,
+  );
 
-  // Step 3: Parse shared strings
-  console.log("[banatic] Parsing shared strings...");
-  const sharedStrings = parseSharedStrings(sharedStringsXml);
-  console.log(`[banatic] Found ${sharedStrings.length} shared strings`);
-
-  // Step 4: Stream-parse worksheet rows (sheet1.xml can exceed 512MB)
+  // Step 3: Stream-parse worksheet rows (sheet1.xml can exceed 512MB)
   console.log("[banatic] Streaming worksheet rows...");
   const rows = await streamParseWorksheetRows(tmpPath, sharedStrings);
   console.log(`[banatic] Parsed ${rows.length} rows from worksheet`);
@@ -833,7 +839,7 @@ async function fetchRegionalPerimetres(regionCode: string): Promise<BanaticRawPe
     await downloadExport(regionCode, tmpPath);
 
     const sharedStringsXml = await extractSharedStringsXml(tmpPath);
-    const sharedStrings = parseSharedStrings(sharedStringsXml);
+    const sharedStrings = sharedStringsXml ? parseSharedStrings(sharedStringsXml) : [];
     const rows = await streamParseWorksheetRows(tmpPath, sharedStrings);
 
     if (rows.length === 0) {
