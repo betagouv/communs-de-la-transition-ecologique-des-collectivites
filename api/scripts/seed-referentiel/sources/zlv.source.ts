@@ -5,9 +5,9 @@ import { parse } from "csv-parse";
 import { Readable } from "stream";
 
 // Direct resource URL for the "Référentiel des collectivités territoriales" CSV
-// from the dataset "Référentiel de l'organisation administrative de l'État"
-// https://www.data.gouv.fr/fr/datasets/referentiel-de-lorganisation-administrative-de-letat/
-const ZLV_CSV_URL = "https://www.data.gouv.fr/fr/datasets/r/73302880-e26e-4070-80fb-2fc1a0a6fdee";
+// from the dataset "Référentiel des établissements pouvant accéder aux données des logements vacants"
+// https://www.data.gouv.fr/datasets/referentiel-des-etablissements-pouvant-acceder-aux-donnees-des-logements-vacants-2025
+const ZLV_CSV_URL = "https://www.data.gouv.fr/api/1/datasets/r/8c494e8c-7fe6-4aa6-9d49-a7168d7260df";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
@@ -65,7 +65,7 @@ export async function fetchSiretMapping(): Promise<Map<string, string>> {
   return new Promise<Map<string, string>>((resolve, reject) => {
     const parser = parse({
       columns: true,
-      delimiter: ";",
+      delimiter: ",",
       skip_empty_lines: true,
       trim: true,
       relaxColumnCount: true,
