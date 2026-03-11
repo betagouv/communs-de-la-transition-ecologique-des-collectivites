@@ -133,30 +133,139 @@ async function downloadExport(regionOrFrance: string, destPath: string): Promise
 // ---------------------------------------------------------------------------
 
 /**
- * Extract specific XML files from the XLSX ZIP archive using unzipper.
- * Returns the raw XML content as strings.
+ * Extract sharedStrings.xml as a string from the XLSX ZIP archive.
+ * sharedStrings.xml is small enough to fit in memory (~10-20 MB).
  */
-async function extractXlsxXml(filePath: string): Promise<{ sharedStringsXml: string; worksheetXml: string }> {
+async function extractSharedStringsXml(filePath: string): Promise<string> {
   const buffer = fs.readFileSync(filePath);
   const directory = await unzipper.Open.buffer(buffer);
 
   const sharedStringsFile = directory.files.find((f) => f.path === "xl/sharedStrings.xml");
-  const worksheetFile = directory.files.find((f) => f.path === "xl/worksheets/sheet1.xml");
-
   if (!sharedStringsFile) {
     throw new Error(`No xl/sharedStrings.xml found in ${filePath}`);
   }
-  if (!worksheetFile) {
-    throw new Error(`No xl/worksheets/sheet1.xml found in ${filePath}`);
+
+  const buf = await sharedStringsFile.buffer();
+  return buf.toString("utf-8");
+}
+
+/**
+ * Stream-parse the worksheet XML (sheet1.xml) from an XLSX file.
+ * The worksheet can exceed 512MB when decompressed, so we must stream it.
+ *
+ * We pipe the decompressed entry through a text-based state machine that
+ * accumulates each `<row>...</row>` block, then parses it with regex.
+ */
+async function streamParseWorksheetRows(filePath: string, sharedStrings: string[]): Promise<ParsedRow[]> {
+  const rows: ParsedRow[] = [];
+
+  return new Promise<ParsedRow[]>((resolve, reject) => {
+    const readStream = fs.createReadStream(filePath).pipe(unzipper.Parse());
+
+    let worksheetFound = false;
+
+    readStream.on("entry", (entry: unzipper.Entry) => {
+      if (entry.path !== "xl/worksheets/sheet1.xml") {
+        entry.autodrain();
+        return;
+      }
+
+      worksheetFound = true;
+      let leftover = "";
+
+      entry.on("data", (chunk: Buffer) => {
+        leftover += chunk.toString("utf-8");
+
+        // Process complete <row>...</row> blocks
+        let endIdx: number;
+        while ((endIdx = leftover.indexOf("</row>")) !== -1) {
+          const blockEnd = endIdx + "</row>".length;
+          const block = leftover.substring(0, blockEnd);
+          leftover = leftover.substring(blockEnd);
+
+          // Find the <row> opening in this block
+          const rowStartIdx = block.lastIndexOf("<row");
+          if (rowStartIdx === -1) continue;
+
+          const rowContent = block.substring(rowStartIdx, blockEnd);
+          const parsed = parseSingleRow(rowContent, sharedStrings);
+          if (parsed) {
+            rows.push(parsed);
+          }
+        }
+      });
+
+      entry.on("end", () => {
+        // Process any remaining content
+        if (leftover.includes("<row")) {
+          const rowStartIdx = leftover.lastIndexOf("<row");
+          if (rowStartIdx !== -1) {
+            const rowContent = leftover.substring(rowStartIdx);
+            const parsed = parseSingleRow(rowContent, sharedStrings);
+            if (parsed) {
+              rows.push(parsed);
+            }
+          }
+        }
+
+        resolve(rows);
+      });
+
+      entry.on("error", reject);
+    });
+
+    readStream.on("close", () => {
+      if (!worksheetFound) {
+        reject(new Error(`No xl/worksheets/sheet1.xml found in ${filePath}`));
+      }
+    });
+
+    readStream.on("error", reject);
+  });
+}
+
+/**
+ * Parse a single `<row ...>...</row>` XML block into a ParsedRow.
+ */
+function parseSingleRow(rowXml: string, sharedStrings: string[]): ParsedRow | null {
+  const rowAttrMatch = rowXml.match(/<row[^>]*\s+r="(\d+)"/);
+  if (!rowAttrMatch) return null;
+
+  const rowNumber = parseInt(rowAttrMatch[1], 10);
+  const cells: ParsedCell[] = [];
+
+  const cellTagRegex = /<c\s([^>]*)>[\s\S]*?<\/c>|<c\s([^/]*)\/>/g;
+  let cellTagMatch: RegExpExecArray | null;
+
+  while ((cellTagMatch = cellTagRegex.exec(rowXml)) !== null) {
+    const fullTag = cellTagMatch[0];
+    const attrs = cellTagMatch[1] || cellTagMatch[2] || "";
+
+    const refMatch = attrs.match(/r="([A-Z]+\d+)"/);
+    if (!refMatch) continue;
+
+    const colIndex = cellRefToColumnIndex(refMatch[1]);
+
+    const typeMatch = attrs.match(/t="([^"]*)"/);
+    const cellType = typeMatch ? typeMatch[1] : "";
+
+    const vMatch = fullTag.match(/<v>([^<]*)<\/v>/);
+    if (!vMatch) continue;
+
+    const rawValue = vMatch[1];
+    let value: string;
+
+    if (cellType === "s") {
+      const ssIndex = parseInt(rawValue, 10);
+      value = ssIndex >= 0 && ssIndex < sharedStrings.length ? sharedStrings[ssIndex] : "";
+    } else {
+      value = decodeXmlEntities(rawValue);
+    }
+
+    cells.push({ colIndex, value });
   }
 
-  const sharedStringsBuffer = await sharedStringsFile.buffer();
-  const worksheetBuffer = await worksheetFile.buffer();
-
-  return {
-    sharedStringsXml: sharedStringsBuffer.toString("utf-8"),
-    worksheetXml: worksheetBuffer.toString("utf-8"),
-  };
+  return cells.length > 0 ? { rowNumber, cells } : null;
 }
 
 /**
@@ -229,83 +338,7 @@ interface ParsedRow {
   cells: ParsedCell[];
 }
 
-/**
- * Parse the worksheet XML into rows of cells.
- *
- * To handle large worksheets without excessive memory, we split the XML
- * by `</row>` boundaries and parse each row individually.
- *
- * Each cell `<c>` has:
- *   - `r` attribute: cell reference like "A1", "B2"
- *   - `t` attribute: type — "s" means shared string index, "n" or absent means numeric/inline
- *   - `<v>` child: the value (shared string index or direct value)
- */
-function parseWorksheetRows(xml: string, sharedStrings: string[]): ParsedRow[] {
-  const rows: ParsedRow[] = [];
-
-  // Split by </row> to process row-by-row, reducing peak memory for regex state
-  const rowChunks = xml.split("</row>");
-
-  for (const chunk of rowChunks) {
-    // Find the <row> opening tag in this chunk
-    const rowStartIdx = chunk.lastIndexOf("<row");
-    if (rowStartIdx === -1) continue;
-
-    const rowContent = chunk.substring(rowStartIdx);
-
-    // Extract row number from <row r="..."> attribute
-    const rowAttrMatch = rowContent.match(/<row[^>]*\s+r="(\d+)"/);
-    if (!rowAttrMatch) continue;
-
-    const rowNumber = parseInt(rowAttrMatch[1], 10);
-    const cells: ParsedCell[] = [];
-
-    // Extract all cells from this row using regex on the full <c> tag
-    const cellTagRegex = /<c\s([^>]*)>[\s\S]*?<\/c>|<c\s([^/]*)\/>/g;
-    let cellTagMatch: RegExpExecArray | null;
-
-    cellTagRegex.lastIndex = 0;
-    while ((cellTagMatch = cellTagRegex.exec(rowContent)) !== null) {
-      const fullTag = cellTagMatch[0];
-      const attrs = cellTagMatch[1] || cellTagMatch[2] || "";
-
-      // Extract r (reference) attribute
-      const refMatch = attrs.match(/r="([A-Z]+\d+)"/);
-      if (!refMatch) continue;
-
-      const ref = refMatch[1];
-      const colIndex = cellRefToColumnIndex(ref);
-
-      // Extract t (type) attribute
-      const typeMatch = attrs.match(/t="([^"]*)"/);
-      const cellType = typeMatch ? typeMatch[1] : "";
-
-      // Extract <v> value
-      const vMatch = fullTag.match(/<v>([^<]*)<\/v>/);
-      if (!vMatch) continue;
-
-      const rawValue = vMatch[1];
-      let value: string;
-
-      if (cellType === "s") {
-        // Shared string reference
-        const ssIndex = parseInt(rawValue, 10);
-        value = ssIndex >= 0 && ssIndex < sharedStrings.length ? sharedStrings[ssIndex] : "";
-      } else {
-        // Numeric or inline value
-        value = decodeXmlEntities(rawValue);
-      }
-
-      cells.push({ colIndex, value });
-    }
-
-    if (cells.length > 0) {
-      rows.push({ rowNumber, cells });
-    }
-  }
-
-  return rows;
-}
+// parseWorksheetRows has been replaced by streamParseWorksheetRows above
 
 /**
  * Get a cell value from a parsed row by column index.
@@ -597,18 +630,18 @@ export async function fetchBanaticGroupements(dataDir: string): Promise<{
   const tmpPath = "/tmp/banatic-france.xlsx";
   await downloadExport("France", tmpPath);
 
-  // Step 2: Extract XML from XLSX
-  console.log("[banatic] Extracting XML from XLSX...");
-  const { sharedStringsXml, worksheetXml } = await extractXlsxXml(tmpPath);
+  // Step 2: Extract shared strings from XLSX (small file, fits in memory)
+  console.log("[banatic] Extracting shared strings from XLSX...");
+  const sharedStringsXml = await extractSharedStringsXml(tmpPath);
 
   // Step 3: Parse shared strings
   console.log("[banatic] Parsing shared strings...");
   const sharedStrings = parseSharedStrings(sharedStringsXml);
   console.log(`[banatic] Found ${sharedStrings.length} shared strings`);
 
-  // Step 4: Parse worksheet rows
-  console.log("[banatic] Parsing worksheet rows...");
-  const rows = parseWorksheetRows(worksheetXml, sharedStrings);
+  // Step 4: Stream-parse worksheet rows (sheet1.xml can exceed 512MB)
+  console.log("[banatic] Streaming worksheet rows...");
+  const rows = await streamParseWorksheetRows(tmpPath, sharedStrings);
   console.log(`[banatic] Parsed ${rows.length} rows from worksheet`);
 
   if (rows.length === 0) {
@@ -799,10 +832,9 @@ async function fetchRegionalPerimetres(regionCode: string): Promise<BanaticRawPe
   try {
     await downloadExport(regionCode, tmpPath);
 
-    const { sharedStringsXml, worksheetXml } = await extractXlsxXml(tmpPath);
-
+    const sharedStringsXml = await extractSharedStringsXml(tmpPath);
     const sharedStrings = parseSharedStrings(sharedStringsXml);
-    const rows = parseWorksheetRows(worksheetXml, sharedStrings);
+    const rows = await streamParseWorksheetRows(tmpPath, sharedStrings);
 
     if (rows.length === 0) {
       return [];
