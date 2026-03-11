@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.24](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.23...v0.1.24) (2026-03-11)
+
+
+### Bug Fixes
+
+* **seed:** décoder les entités numériques HTML dans les données Banatic ([14e6802](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/14e680281b72128b6d8785485215703ef0c126b5)), closes [#039](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/039)
+
 ## [0.1.23](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.22...v0.1.23) (2026-03-11)
 
 
