@@ -82,7 +82,7 @@ export const homePage = (): string =>
             <div class="fr-card__body">
               <div class="fr-card__content">
                 <h2 class="fr-card__title">
-                  <a href="/referentiel">API Référentiel</a>
+                  <a href="/referentiel">API Référentiel Collectivités</a>
                 </h2>
                 <p class="fr-card__desc">
                   Données de référence sur les collectivités territoriales : communes, intercommunalités,
@@ -98,7 +98,7 @@ export const homePage = (): string =>
             <div class="fr-card__body">
               <div class="fr-card__content">
                 <h2 class="fr-card__title">
-                  <a href="/api-projets">API Projets</a>
+                  <a href="/api-projets">API Projets Collectivités</a>
                 </h2>
                 <p class="fr-card__desc">
                   Partage de projets de transition écologique entre plateformes partenaires.
@@ -125,38 +125,23 @@ export const homePage = (): string =>
           </div>
         </div>
 
-        <div class="fr-col-12 fr-col-md-6">
-          <div class="fr-card fr-enlarge-link">
-            <div class="fr-card__body">
-              <div class="fr-card__content">
-                <h2 class="fr-card__title">
-                  <a href="/api">Documentation Swagger</a>
-                </h2>
-                <p class="fr-card__desc">
-                  Documentation interactive complète de l'API Projets.
-                  Testez les endpoints directement depuis votre navigateur.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>`,
   );
 
 export const referentielPage = (): string =>
   layoutTemplate(
-    "API Référentiel - API Collectivités",
+    "API Référentiel Collectivités",
     `
     <div class="fr-container fr-my-6w">
       <nav role="navigation" class="fr-breadcrumb" aria-label="vous êtes ici :">
         <ol class="fr-breadcrumb__list">
           <li><a class="fr-breadcrumb__link" href="/">Accueil</a></li>
-          <li><a class="fr-breadcrumb__link" aria-current="page">API Référentiel</a></li>
+          <li><a class="fr-breadcrumb__link" aria-current="page">API Référentiel Collectivités</a></li>
         </ol>
       </nav>
 
-      <h1>API Référentiel</h1>
+      <h1>API Référentiel Collectivités</h1>
       <p class="fr-text--lead">
         API publique de référence sur les collectivités territoriales françaises.
         Données issues de Banatic (DGCL), ZLV et geo.api.gouv.fr.
@@ -231,17 +216,17 @@ curl "https://collectivites.api.beta.gouv.fr/v1/competences"</code></pre>
 
 export const apiProjetsPage = (): string =>
   layoutTemplate(
-    "API Projets - API Collectivités",
+    "API Projets Collectivités",
     `
     <div class="fr-container fr-my-6w">
       <nav role="navigation" class="fr-breadcrumb" aria-label="vous êtes ici :">
         <ol class="fr-breadcrumb__list">
           <li><a class="fr-breadcrumb__link" href="/">Accueil</a></li>
-          <li><a class="fr-breadcrumb__link" aria-current="page">API Projets</a></li>
+          <li><a class="fr-breadcrumb__link" aria-current="page">API Projets Collectivités</a></li>
         </ol>
       </nav>
 
-      <h1>API Projets</h1>
+      <h1>API Projets Collectivités</h1>
       <p class="fr-text--lead">
         API de partage de projets de transition écologique entre plateformes partenaires.
       </p>
