@@ -323,12 +323,14 @@ function parseSharedStrings(xml: string): string[] {
  * Decode common XML entities in text content.
  */
 function decodeXmlEntities(text: string): string {
+  // &amp; must be replaced LAST to avoid double-unescaping
+  // (e.g. "&amp;lt;" → "&lt;" → "<" if &amp; were first)
   return text
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'");
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
 }
 
 /**
