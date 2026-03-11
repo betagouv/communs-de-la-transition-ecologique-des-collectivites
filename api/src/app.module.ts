@@ -21,6 +21,7 @@ import { ExpressAdapter } from "@bull-board/express";
 import { AnalyticsModule } from "@/analytics/analytics.module";
 import { MatomoModule } from "@/matomo";
 import { ReferentielModule } from "@/referentiel/referentiel.module";
+import { HealthController } from "@/health/health.controller";
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { ReferentielModule } from "@/referentiel/referentiel.module";
     MatomoModule,
     ReferentielModule,
   ],
+  controllers: [HealthController],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
 })
 export class AppModule implements NestModule {
