@@ -1,5 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
 
+export class CompetenceSummary {
+  @ApiProperty({ example: "1505" })
+  code!: string;
+
+  @ApiProperty({ example: "Eau (production, traitement, stockage, transport, distribution)" })
+  nom!: string;
+}
+
 export class GroupementSummary {
   @ApiProperty({ example: "200065928" })
   siren!: string;
@@ -9,6 +17,11 @@ export class GroupementSummary {
 
   @ApiProperty({ example: "CA" })
   type!: string;
+}
+
+export class GroupementSummaryWithCompetences extends GroupementSummary {
+  @ApiProperty({ type: [CompetenceSummary], description: "Compétences exercées par ce groupement" })
+  competences!: CompetenceSummary[];
 }
 
 export class CommuneResponse {
@@ -38,6 +51,9 @@ export class CommuneResponse {
 }
 
 export class CommuneDetailResponse extends CommuneResponse {
-  @ApiProperty({ type: [GroupementSummary], description: "Groupements dont cette commune est membre" })
-  groupements!: GroupementSummary[];
+  @ApiProperty({
+    type: [GroupementSummaryWithCompetences],
+    description: "Groupements dont cette commune est membre (avec compétences si includeCompetences=true)",
+  })
+  groupements!: (GroupementSummary | GroupementSummaryWithCompetences)[];
 }
