@@ -3,7 +3,7 @@ import { ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CompetencesService } from "./competences.service";
 import { CompetenceGroupementsQueryDto } from "./dto/competence-query.dto";
-import { CompetenceResponse } from "./dto/competence.response";
+import { CompetenceCategorieResponse, CompetenceResponse } from "./dto/competence.response";
 import { GroupementResponse } from "../groupements/dto/groupement.response";
 
 @Controller("v1/competences")
@@ -17,6 +17,13 @@ export class CompetencesController {
   @ApiEndpointResponses({ successStatus: 200, response: CompetenceResponse, isArray: true })
   findAll(@Query("categorie") categorie?: string): Promise<CompetenceResponse[]> {
     return this.competencesService.findAll(categorie);
+  }
+
+  @Get("categories")
+  @ApiOperation({ summary: "Lister les catégories de compétences" })
+  @ApiEndpointResponses({ successStatus: 200, response: CompetenceCategorieResponse, isArray: true })
+  findAllCategories(): Promise<CompetenceCategorieResponse[]> {
+    return this.competencesService.findAllCategories();
   }
 
   @Get(":code")
