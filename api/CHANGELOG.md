@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.23](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.22...v0.1.23) (2026-03-11)
+
+
+### Features
+
+* **api:** ajouter ?includeCompetences=true sur GET /v1/communes/:code ([3c9df57](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3c9df573b93966da190adf49fce94ec9dbb6b54e))
+* **api:** ajouter l'API Référentiel Collectivités ([b0cc64b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/b0cc64b02c28a54873dae313485efae3ca3e75ef))
+* **api:** ajouter pages d'accueil et endpoint health check ([e27425f](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e27425f51713093bb1d0d4c09d9bbb6cb6d6b830))
+
+
+### Bug Fixes
+
+* **api:** ajouter l'endpoint GET /v1/competences/categories ([c4530b6](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/c4530b628ab4c4338095787fb2ae26f565cc5773))
+* **api:** corriger le nom de domaine dans les exemples curl ([8b6c8cf](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/8b6c8cfb456053113333a32401b892b73905e16e))
+* **seed:** corriger l'ordre de décodage des entités XML ([993b043](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/993b04379640ffbe19d92cdefc290857fc289665))
+* **seed:** corriger l'URL de la source ZLV (SIREN→SIRET) ([91ac890](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/91ac8909f72ab1dd47cb56077bf79a83ed340b7a))
+* **seed:** parser le XLSX Banatic en streaming pour éviter ERR_STRING_TOO_LONG ([cb01e05](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/cb01e05a590672da00e63c8fc1a4dbac5d608db0))
+* **seed:** supporter les inline strings dans le parsing XLSX Banatic ([dbc7a57](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/dbc7a57d4c0264d6bee2b165cfd5083458c867f4))
+* **seed:** traiter les lignes XLSX en streaming sans accumulation mémoire ([fb7bd16](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/fb7bd163e8378fd5e14f9d875934223fd90c7327))
+
 ## [0.1.22](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.21...v0.1.22) (2026-02-26)
 
 
