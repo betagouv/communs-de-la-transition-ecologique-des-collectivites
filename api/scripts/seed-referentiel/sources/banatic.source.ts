@@ -156,10 +156,19 @@ async function extractSharedStringsXml(filePath: string): Promise<string | null>
  * We pipe the decompressed entry through a text-based state machine that
  * accumulates each `<row>...</row>` block, then parses it with regex.
  */
-async function streamParseWorksheetRows(filePath: string, sharedStrings: string[]): Promise<ParsedRow[]> {
-  const rows: ParsedRow[] = [];
+/**
+ * Stream-parse the worksheet XML and invoke `onRow` for each parsed row.
+ * Rows are NOT accumulated in memory — the caller decides what to keep.
+ * Returns the total number of rows emitted.
+ */
+async function streamWorksheet(
+  filePath: string,
+  sharedStrings: string[],
+  onRow: (row: ParsedRow) => void,
+): Promise<number> {
+  let rowCount = 0;
 
-  return new Promise<ParsedRow[]>((resolve, reject) => {
+  return new Promise<number>((resolve, reject) => {
     const readStream = fs.createReadStream(filePath).pipe(unzipper.Parse());
 
     let worksheetFound = false;
@@ -183,14 +192,14 @@ async function streamParseWorksheetRows(filePath: string, sharedStrings: string[
           const block = leftover.substring(0, blockEnd);
           leftover = leftover.substring(blockEnd);
 
-          // Find the <row> opening in this block
           const rowStartIdx = block.lastIndexOf("<row");
           if (rowStartIdx === -1) continue;
 
           const rowContent = block.substring(rowStartIdx, blockEnd);
           const parsed = parseSingleRow(rowContent, sharedStrings);
           if (parsed) {
-            rows.push(parsed);
+            onRow(parsed);
+            rowCount++;
           }
         }
       });
@@ -203,12 +212,13 @@ async function streamParseWorksheetRows(filePath: string, sharedStrings: string[
             const rowContent = leftover.substring(rowStartIdx);
             const parsed = parseSingleRow(rowContent, sharedStrings);
             if (parsed) {
-              rows.push(parsed);
+              onRow(parsed);
+              rowCount++;
             }
           }
         }
 
-        resolve(rows);
+        resolve(rowCount);
       });
 
       entry.on("error", reject);
@@ -645,77 +655,72 @@ export async function fetchBanaticGroupements(dataDir: string): Promise<{
     `[banatic] Found ${sharedStrings.length} shared strings (inline strings used: ${sharedStrings.length === 0})`,
   );
 
-  // Step 3: Stream-parse worksheet rows (sheet1.xml can exceed 512MB)
-  console.log("[banatic] Streaming worksheet rows...");
-  const rows = await streamParseWorksheetRows(tmpPath, sharedStrings);
-  console.log(`[banatic] Parsed ${rows.length} rows from worksheet`);
-
-  if (rows.length === 0) {
-    throw new Error("[banatic] No rows found in worksheet");
-  }
-
-  // Step 5: Detect column positions from header row (row 1)
-  const headerRow = rows[0];
-  const columns = detectColumns(headerRow);
-
-  // Step 6: Load competence reference data for name→code mapping
+  // Step 3: Load competence reference data for name→code mapping
   const { competences: refCompetences } = await loadCompetenceReference(dataDir);
   const competenceNameToCode = buildCompetenceNameToCodeMap(refCompetences);
 
-  // Build the mapping from XLSX column index → competence code
-  const colIndexToCompetenceCode = new Map<number, string>();
-  let unmappedCompetences = 0;
+  // Step 4: Stream-parse worksheet — process each row on the fly (no accumulation)
+  console.log("[banatic] Streaming worksheet rows...");
 
-  for (const [colIndex, headerName] of columns.competenceColumns) {
-    const normalizedName = normalizeCompetenceName(headerName);
-    const code = competenceNameToCode.get(normalizedName);
-
-    if (code) {
-      colIndexToCompetenceCode.set(colIndex, code);
-    } else {
-      // Try partial matching: find the reference competence whose normalized
-      // name starts with or contains the header text, or vice versa
-      let found = false;
-      for (const [refNorm, refCode] of competenceNameToCode) {
-        if (refNorm.startsWith(normalizedName) || normalizedName.startsWith(refNorm)) {
-          colIndexToCompetenceCode.set(colIndex, refCode);
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        unmappedCompetences++;
-      }
-    }
-  }
-
-  if (unmappedCompetences > 0) {
-    console.warn(
-      `[banatic] Warning: ${unmappedCompetences} competence column(s) could not be mapped to reference codes`,
-    );
-  }
-  console.log(`[banatic] Mapped ${colIndexToCompetenceCode.size} competence columns to codes`);
-
-  // Step 7: Process data rows — aggregate by SIREN
+  let columns: ColumnMap | null = null;
+  let colIndexToCompetenceCode: Map<number, string> | null = null;
   const groupementsMap = new Map<string, RawGroupement>();
   const allCompetences: RawGroupementCompetence[] = [];
   const seenSirens = new Set<string>();
   let skippedNoSiren = 0;
   let processedRows = 0;
 
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
+  const totalRows = await streamWorksheet(tmpPath, sharedStrings, (row) => {
+    // First row = header → detect columns
+    if (columns === null) {
+      columns = detectColumns(row);
+
+      // Build the mapping from XLSX column index → competence code
+      colIndexToCompetenceCode = new Map<number, string>();
+      let unmappedCompetences = 0;
+
+      for (const [colIndex, headerName] of columns.competenceColumns) {
+        const normalizedName = normalizeCompetenceName(headerName);
+        const code = competenceNameToCode.get(normalizedName);
+
+        if (code) {
+          colIndexToCompetenceCode.set(colIndex, code);
+        } else {
+          let found = false;
+          for (const [refNorm, refCode] of competenceNameToCode) {
+            if (refNorm.startsWith(normalizedName) || normalizedName.startsWith(refNorm)) {
+              colIndexToCompetenceCode.set(colIndex, refCode);
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            unmappedCompetences++;
+          }
+        }
+      }
+
+      if (unmappedCompetences > 0) {
+        console.warn(
+          `[banatic] Warning: ${unmappedCompetences} competence column(s) could not be mapped to reference codes`,
+        );
+      }
+      console.log(`[banatic] Mapped ${colIndexToCompetenceCode.size} competence columns to codes`);
+      return;
+    }
+
+    // Data rows — aggregate by SIREN
     processedRows++;
 
     const siren = getCellValue(row, columns.siren).trim();
     if (!siren || siren.length < 9) {
       skippedNoSiren++;
-      continue;
+      return;
     }
 
     // Only take groupement data + competences from the first row for each SIREN
     if (seenSirens.has(siren)) {
-      continue;
+      return;
     }
     seenSirens.add(siren);
 
@@ -723,40 +728,32 @@ export async function fetchBanaticGroupements(dataDir: string): Promise<{
     const rawType = getCellValue(row, columns.type);
     const type = normalizeType(rawType);
 
-    // Parse nbMembres and population as numbers
     const nbMembresStr = getCellValue(row, columns.nbMembres);
     const populationStr = getCellValue(row, columns.population);
     const nbMembres = nbMembresStr ? parseInt(nbMembresStr, 10) : null;
     const population = populationStr ? parseInt(populationStr, 10) : null;
 
-    // Parse departement — could be a code or a code + name
     const departementRaw = getCellValue(row, columns.departement).trim();
-
-    // Parse date
     const dateCreationRaw = columns.dateCreation >= 0 ? getCellValue(row, columns.dateCreation) : "";
     const dateCreation = parseDateToIso(dateCreationRaw);
-
-    // Parse mode de financement
     const modeFinancement =
       columns.modeFinancement >= 0 ? getCellValue(row, columns.modeFinancement).trim() || null : null;
 
-    const groupement: RawGroupement = {
+    groupementsMap.set(siren, {
       siren,
-      siret: null, // Will be enriched later if available
+      siret: null,
       nom: getCellValue(row, columns.nom).trim(),
       type,
       population: population !== null && !isNaN(population) ? population : null,
       nbCommunes: nbMembres !== null && !isNaN(nbMembres) ? nbMembres : null,
       departements: departementRaw ? [departementRaw] : [],
-      regions: [], // Will be enriched from commune data by the import service
+      regions: [],
       modeFinancement,
       dateCreation,
-    };
-
-    groupementsMap.set(siren, groupement);
+    });
 
     // Extract competences for this groupement (check OUI/NON flags)
-    for (const [colIndex, compCode] of colIndexToCompetenceCode) {
+    for (const [colIndex, compCode] of colIndexToCompetenceCode!) {
       const cellValue = getCellValue(row, colIndex).trim().toUpperCase();
       if (cellValue === "OUI") {
         allCompetences.push({
@@ -765,11 +762,17 @@ export async function fetchBanaticGroupements(dataDir: string): Promise<{
         });
       }
     }
+  });
+
+  if (totalRows === 0) {
+    throw new Error("[banatic] No rows found in worksheet");
   }
 
   const groupements = Array.from(groupementsMap.values());
 
-  console.log(`[banatic] Processed ${processedRows} data rows, skipped ${skippedNoSiren} without SIREN`);
+  console.log(
+    `[banatic] Streamed ${totalRows} rows, processed ${processedRows} data rows, skipped ${skippedNoSiren} without SIREN`,
+  );
   console.log(`[banatic] Extracted ${groupements.length} unique groupements`);
   console.log(`[banatic] Extracted ${allCompetences.length} groupement-competence associations`);
 
@@ -840,39 +843,32 @@ async function fetchRegionalPerimetres(regionCode: string): Promise<BanaticRawPe
 
     const sharedStringsXml = await extractSharedStringsXml(tmpPath);
     const sharedStrings = sharedStringsXml ? parseSharedStrings(sharedStringsXml) : [];
-    const rows = await streamParseWorksheetRows(tmpPath, sharedStrings);
 
-    if (rows.length === 0) {
-      return [];
-    }
-
-    // Detect columns from header row
-    const columns = detectColumns(rows[0]);
+    let columns: ColumnMap | null = null;
     const perimetres: BanaticRawPerimetre[] = [];
 
-    // Process data rows
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
+    await streamWorksheet(tmpPath, sharedStrings, (row) => {
+      if (columns === null) {
+        columns = detectColumns(row);
+        return;
+      }
 
       const sirenGroupement = getCellValue(row, columns.siren).trim();
       if (!sirenGroupement || sirenGroupement.length < 9) {
-        continue;
+        return;
       }
 
-      // Only extract members of syndicat-type groupements
       const rawType = getCellValue(row, columns.type);
       const type = normalizeType(rawType);
       if (!SYNDICAT_TYPES.has(type)) {
-        continue;
+        return;
       }
 
-      // Extract member SIREN
       const sirenMembre = columns.sirenMembre >= 0 ? getCellValue(row, columns.sirenMembre).trim() : "";
       if (!sirenMembre || sirenMembre.length < 9) {
-        continue;
+        return;
       }
 
-      // Extract member category (may be absent)
       const categorieMembre =
         columns.categorieMembre >= 0 ? getCellValue(row, columns.categorieMembre).trim() || null : null;
 
@@ -881,7 +877,7 @@ async function fetchRegionalPerimetres(regionCode: string): Promise<BanaticRawPe
         sirenMembre,
         categorieMembre,
       });
-    }
+    });
 
     return perimetres;
   } finally {
