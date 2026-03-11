@@ -210,16 +210,16 @@ export const referentielPage = (): string =>
 
       <h2>Exemples</h2>
       <pre class="fr-p-2w" style="background: var(--background-alt-grey); border-radius: 4px; overflow-x: auto;"><code># Rechercher une commune
-curl "https://api-collectivites.beta.gouv.fr/v1/communes?q=Paris"
+curl "https://collectivites.api.beta.gouv.fr/v1/communes?q=Paris"
 
 # Détail d'une commune par code INSEE
-curl "https://api-collectivites.beta.gouv.fr/v1/communes/75056"
+curl "https://collectivites.api.beta.gouv.fr/v1/communes/75056"
 
 # Rechercher des groupements
-curl "https://api-collectivites.beta.gouv.fr/v1/groupements?q=Nantes"
+curl "https://collectivites.api.beta.gouv.fr/v1/groupements?q=Nantes"
 
 # Liste des compétences
-curl "https://api-collectivites.beta.gouv.fr/v1/competences"</code></pre>
+curl "https://collectivites.api.beta.gouv.fr/v1/competences"</code></pre>
 
       <div class="fr-mt-4w">
         <a class="fr-btn" href="/api/referentiel">
