@@ -6,11 +6,15 @@ import { DatabaseService } from "@database/database.service";
 import { sql } from "drizzle-orm";
 import { plansTransition, fichesAction, fichesActionToPlansTransition } from "@database/schema";
 import { refPerimetres } from "@database/referentiel-schema";
-import type { ParsedPlan, ParsedFicheAction, ImportStats } from "./types";
+import { CustomLogger } from "@logging/logger.service";
+import type { ParsedPlan, ParsedFicheAction, ImportStats } from "./tc-import.types";
 
 @Injectable()
 export class TcImportService {
-  constructor(private readonly dbService: DatabaseService) {}
+  constructor(
+    private readonly dbService: DatabaseService,
+    private readonly logger: CustomLogger,
+  ) {}
 
   async importAll(plans: ParsedPlan[], fiches: ParsedFicheAction[]): Promise<ImportStats> {
     const db = this.dbService.database;
@@ -24,8 +28,8 @@ export class TcImportService {
       communesResolved: 0,
     };
 
-    // 1. Resolve SIREN → codes INSEE communes via ref_perimetres
-    console.log("\nResolving SIREN → communes...");
+    // 1. Resolve SIREN -> codes INSEE communes via ref_perimetres
+    this.logger.log("Resolving SIREN -> communes...");
     const sirenSet = new Set<string>();
     for (const p of plans) {
       if (p.collectiviteResponsableSiren) sirenSet.add(p.collectiviteResponsableSiren);
@@ -35,7 +39,7 @@ export class TcImportService {
     }
 
     const sirenToCommunes = await this.resolveSirenToCommunes([...sirenSet]);
-    console.log(`  Resolved ${sirenToCommunes.size}/${sirenSet.size} SIRENs to commune codes`);
+    this.logger.log(`Resolved ${sirenToCommunes.size}/${sirenSet.size} SIRENs to commune codes`);
     stats.communesResolved = sirenToCommunes.size;
 
     // Apply communes to plans and fiches
@@ -51,7 +55,7 @@ export class TcImportService {
     }
 
     // 2. Upsert plans
-    console.log(`\nUpserting ${plans.length} plans...`);
+    this.logger.log(`Upserting ${plans.length} plans...`);
     const planIdByDemarcheId = new Map<number, string>();
 
     for (let i = 0; i < plans.length; i += 500) {
@@ -82,16 +86,15 @@ export class TcImportService {
           });
 
         planIdByDemarcheId.set(plan.tcDemarcheId, result.id);
-        // If createdAt ~= updatedAt, it was just inserted
         const isNew = Math.abs(result.createdAt.getTime() - result.updatedAt.getTime()) < 1000;
         if (isNew) stats.plansInserted++;
         else stats.plansUpdated++;
       }
-      console.log(`  ${Math.min(i + 500, plans.length)}/${plans.length}`);
+      this.logger.debug(`Plans: ${Math.min(i + 500, plans.length)}/${plans.length}`);
     }
 
     // 3. Upsert fiches action
-    console.log(`\nUpserting ${fiches.length} fiches action...`);
+    this.logger.log(`Upserting ${fiches.length} fiches action...`);
     const ficheIdByHash = new Map<string, string>();
 
     for (let i = 0; i < fiches.length; i += 1000) {
@@ -124,13 +127,13 @@ export class TcImportService {
         else stats.fichesUpdated++;
       }
       if ((i + 1000) % 5000 < 1000) {
-        console.log(`  ${Math.min(i + 1000, fiches.length)}/${fiches.length}`);
+        this.logger.debug(`Fiches: ${Math.min(i + 1000, fiches.length)}/${fiches.length}`);
       }
     }
-    console.log(`  ${fiches.length}/${fiches.length}`);
+    this.logger.debug(`Fiches: ${fiches.length}/${fiches.length}`);
 
-    // 4. Create N:N links (fiche_action ↔ plan_transition)
-    console.log("\nCreating fiche↔plan links...");
+    // 4. Create N:N links (fiche_action <-> plan_transition)
+    this.logger.log("Creating fiche<->plan links...");
     for (const fiche of fiches) {
       const ficheId = ficheIdByHash.get(fiche.tcHash);
       const planId = planIdByDemarcheId.get(fiche.tcDemarcheId);
@@ -142,7 +145,7 @@ export class TcImportService {
         .onConflictDoNothing();
       stats.linksCreated++;
     }
-    console.log(`  ${stats.linksCreated} links`);
+    this.logger.log(`${stats.linksCreated} links created/confirmed`);
 
     return stats;
   }
