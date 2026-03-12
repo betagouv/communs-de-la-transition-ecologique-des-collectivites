@@ -15,18 +15,18 @@ export class TestDatabaseService extends DatabaseService {
 
   async cleanDatabase(maxRetries = 3) {
     const tableOrder = [
-      // Plans/fiches tables
-      "fiches_action_to_plans_transition",
-      "fiches_action",
-      "plans_transition",
-      // Referentiel tables (children first)
-      "ref_groupement_competences",
-      "ref_perimetres",
-      "ref_groupements",
-      "ref_communes",
-      "ref_competences",
-      "ref_competence_categories",
-      // Core tables
+      // Plans/fiches tables (data_tc_plans schema)
+      "data_tc_plans.fiches_action_to_plans_transition",
+      "data_tc_plans.fiches_action",
+      "data_tc_plans.plans_transition",
+      // Referentiel tables (api_referentiel schema, children first)
+      "api_referentiel.groupement_competences",
+      "api_referentiel.perimetres",
+      "api_referentiel.groupements",
+      "api_referentiel.communes",
+      "api_referentiel.competences",
+      "api_referentiel.competence_categories",
+      // Core tables (public schema)
       "projets_to_collectivites",
       "projets",
       "collectivites",

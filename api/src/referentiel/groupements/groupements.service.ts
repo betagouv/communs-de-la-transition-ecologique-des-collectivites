@@ -74,8 +74,8 @@ export class GroupementsService {
 
     const results = await this.dbService.database.execute(sql`
       SELECT gc.siren_groupement, c.code, c.nom
-      FROM ref_groupement_competences gc
-      JOIN ref_competences c ON c.code = gc.code_competence
+      FROM api_referentiel.groupement_competences gc
+      JOIN api_referentiel.competences c ON c.code = gc.code_competence
       WHERE gc.siren_groupement IN (${placeholders})
       ORDER BY c.code
     `);
@@ -112,7 +112,7 @@ export class GroupementsService {
     const results = await this.dbService.database.execute(sql`
       SELECT *,
         word_similarity(normalize_search(${normalized}), normalize_search(nom)) AS score
-      FROM ref_groupements
+      FROM api_referentiel.groupements
       WHERE ${whereClause}
       ORDER BY score DESC, population DESC NULLS LAST
       LIMIT ${query.limit ?? 20}
@@ -133,7 +133,7 @@ export class GroupementsService {
     const whereClause = conditions.length > 0 ? sql`WHERE ${sql.join(conditions, sql` AND `)}` : sql``;
 
     const results = await this.dbService.database.execute(sql`
-      SELECT * FROM ref_groupements
+      SELECT * FROM api_referentiel.groupements
       ${whereClause}
       ORDER BY population DESC NULLS LAST
       LIMIT ${query.limit ?? 20}
@@ -161,15 +161,15 @@ export class GroupementsService {
     }
     if (query.competence) {
       conditions.push(sql`EXISTS (
-        SELECT 1 FROM ref_groupement_competences gc
-        WHERE gc.siren_groupement = ref_groupements.siren
+        SELECT 1 FROM api_referentiel.groupement_competences gc
+        WHERE gc.siren_groupement = api_referentiel.groupements.siren
         AND gc.code_competence = ${query.competence}
       )`);
     }
     if (query.commune) {
       conditions.push(sql`EXISTS (
-        SELECT 1 FROM ref_perimetres p
-        WHERE p.siren_groupement = ref_groupements.siren
+        SELECT 1 FROM api_referentiel.perimetres p
+        WHERE p.siren_groupement = api_referentiel.groupements.siren
         AND p.code_insee_commune = ${query.commune}
       )`);
     }

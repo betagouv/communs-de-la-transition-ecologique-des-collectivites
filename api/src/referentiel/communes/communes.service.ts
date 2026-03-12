@@ -92,11 +92,11 @@ export class CommunesService {
         g.siren AS groupement_siren,
         g.nom AS groupement_nom,
         g.type AS groupement_type
-      FROM ref_perimetres p
-      JOIN ref_groupements g ON g.siren = p.siren_groupement
-      JOIN ref_groupement_competences gc ON gc.siren_groupement = g.siren
-      JOIN ref_competences c ON c.code = gc.code_competence
-      JOIN ref_competence_categories cc ON cc.code = c.code_categorie
+      FROM api_referentiel.perimetres p
+      JOIN api_referentiel.groupements g ON g.siren = p.siren_groupement
+      JOIN api_referentiel.groupement_competences gc ON gc.siren_groupement = g.siren
+      JOIN api_referentiel.competences c ON c.code = gc.code_competence
+      JOIN api_referentiel.competence_categories cc ON cc.code = c.code_categorie
       WHERE p.code_insee_commune = ${codeInsee}
       ORDER BY cc.code, c.code
     `);
@@ -140,7 +140,7 @@ export class CommunesService {
         population,
         codes_postaux AS "codesPostaux",
         word_similarity(normalize_search(${normalized}), normalize_search(nom)) AS score
-      FROM ref_communes
+      FROM api_referentiel.communes
       WHERE ${whereClause}
       ORDER BY score DESC, population DESC NULLS LAST
       LIMIT ${query.limit ?? 20}
@@ -161,7 +161,7 @@ export class CommunesService {
         code_region AS "codeRegion",
         population,
         codes_postaux AS "codesPostaux"
-      FROM ref_communes
+      FROM api_referentiel.communes
       WHERE ${sql.identifier(field)} = ${value}
     `);
     return results.rows as unknown as CommuneResponse[];
@@ -189,7 +189,7 @@ export class CommunesService {
         code_region AS "codeRegion",
         population,
         codes_postaux AS "codesPostaux"
-      FROM ref_communes
+      FROM api_referentiel.communes
       ${whereClause}
       ORDER BY population DESC NULLS LAST
       LIMIT ${query.limit ?? 20}

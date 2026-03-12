@@ -1,12 +1,18 @@
-import { index, integer, pgTable, primaryKey, text, varchar, date } from "drizzle-orm/pg-core";
+import { index, integer, pgSchema, primaryKey, text, varchar, date } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+
+// ============================================================
+// Schema: api_referentiel — Reference data (Banatic, COG, etc.)
+// ============================================================
+
+export const apiReferentielSchema = pgSchema("api_referentiel");
 
 // ============================================================
 // Tables
 // ============================================================
 
-export const refCommunes = pgTable(
-  "ref_communes",
+export const refCommunes = apiReferentielSchema.table(
+  "communes",
   {
     codeInsee: varchar("code_insee", { length: 5 }).primaryKey(),
     siren: varchar("siren", { length: 9 }).notNull().unique(),
@@ -25,8 +31,8 @@ export const refCommunes = pgTable(
   ],
 );
 
-export const refGroupements = pgTable(
-  "ref_groupements",
+export const refGroupements = apiReferentielSchema.table(
+  "groupements",
   {
     siren: varchar("siren", { length: 9 }).primaryKey(),
     siret: varchar("siret", { length: 14 }),
@@ -42,8 +48,8 @@ export const refGroupements = pgTable(
   (t) => [index("ref_groupements_type_idx").on(t.type)],
 );
 
-export const refPerimetres = pgTable(
-  "ref_perimetres",
+export const refPerimetres = apiReferentielSchema.table(
+  "perimetres",
   {
     sirenGroupement: varchar("siren_groupement", { length: 9 })
       .notNull()
@@ -59,12 +65,12 @@ export const refPerimetres = pgTable(
   ],
 );
 
-export const refCompetenceCategories = pgTable("ref_competence_categories", {
+export const refCompetenceCategories = apiReferentielSchema.table("competence_categories", {
   code: varchar("code", { length: 10 }).primaryKey(),
   nom: text("nom").notNull(),
 });
 
-export const refCompetences = pgTable("ref_competences", {
+export const refCompetences = apiReferentielSchema.table("competences", {
   code: varchar("code", { length: 10 }).primaryKey(),
   nom: text("nom").notNull(),
   codeCategorie: varchar("code_categorie", { length: 10 })
@@ -72,8 +78,8 @@ export const refCompetences = pgTable("ref_competences", {
     .references(() => refCompetenceCategories.code),
 });
 
-export const refGroupementCompetences = pgTable(
-  "ref_groupement_competences",
+export const refGroupementCompetences = apiReferentielSchema.table(
+  "groupement_competences",
   {
     sirenGroupement: varchar("siren_groupement", { length: 9 })
       .notNull()

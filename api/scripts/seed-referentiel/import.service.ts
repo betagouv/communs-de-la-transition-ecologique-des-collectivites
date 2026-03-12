@@ -34,12 +34,12 @@ export class ImportService {
       // 1. Truncate all ref_* tables in FK-safe order (children first)
       console.log("Truncating tables...");
       const truncateStart = Date.now();
-      await tx.execute(sql`TRUNCATE ref_groupement_competences CASCADE`);
-      await tx.execute(sql`TRUNCATE ref_perimetres CASCADE`);
-      await tx.execute(sql`TRUNCATE ref_groupements CASCADE`);
-      await tx.execute(sql`TRUNCATE ref_communes CASCADE`);
-      await tx.execute(sql`TRUNCATE ref_competences CASCADE`);
-      await tx.execute(sql`TRUNCATE ref_competence_categories CASCADE`);
+      await tx.execute(sql`TRUNCATE api_referentiel.groupement_competences CASCADE`);
+      await tx.execute(sql`TRUNCATE api_referentiel.perimetres CASCADE`);
+      await tx.execute(sql`TRUNCATE api_referentiel.groupements CASCADE`);
+      await tx.execute(sql`TRUNCATE api_referentiel.communes CASCADE`);
+      await tx.execute(sql`TRUNCATE api_referentiel.competences CASCADE`);
+      await tx.execute(sql`TRUNCATE api_referentiel.competence_categories CASCADE`);
       console.log(`  Truncation done in ${Date.now() - truncateStart}ms`);
 
       // 2. Insert in FK-safe order (parents first)
