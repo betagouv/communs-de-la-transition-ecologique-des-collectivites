@@ -22,7 +22,7 @@ export class GetFichesService {
 
     // If filtering by planId, we need a join
     if (filters.planId) {
-      return this.findByPlan(filters.planId, filters, page, limit, offset);
+      return this.findByPlan(filters.planId, filters, limit, offset);
     }
 
     const conditions = [];
@@ -30,7 +30,8 @@ export class GetFichesService {
       conditions.push(eq(fichesAction.collectiviteResponsableSiren, filters.siren));
     }
     if (filters.search) {
-      conditions.push(ilike(fichesAction.nom, `%${filters.search}%`));
+      const escaped = filters.search.replace(/[%_\\]/g, "\\$&");
+      conditions.push(ilike(fichesAction.nom, `%${escaped}%`));
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -78,7 +79,6 @@ export class GetFichesService {
   private async findByPlan(
     planId: string,
     filters: { siren?: string; search?: string },
-    _page: number,
     limit: number,
     offset: number,
   ): Promise<{ data: FicheActionResponse[]; total: number }> {
@@ -89,7 +89,8 @@ export class GetFichesService {
       conditions.push(eq(fichesAction.collectiviteResponsableSiren, filters.siren));
     }
     if (filters.search) {
-      conditions.push(ilike(fichesAction.nom, `%${filters.search}%`));
+      const escaped = filters.search.replace(/[%_\\]/g, "\\$&");
+      conditions.push(ilike(fichesAction.nom, `%${escaped}%`));
     }
 
     const where = and(...conditions);
@@ -125,6 +126,7 @@ export class GetFichesService {
       classificationThematiques: row.classificationThematiques,
       tcSecteurs: row.tcSecteurs,
       tcTypesPorteur: row.tcTypesPorteur,
+      tcVolets: row.tcVolets,
       tcTypeAction: row.tcTypeAction,
       tcCibleAction: row.tcCibleAction,
       createdAt: row.createdAt,

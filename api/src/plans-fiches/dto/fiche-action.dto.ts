@@ -28,6 +28,9 @@ export class FicheActionResponse {
   @ApiProperty({ required: false, nullable: true, type: [String] })
   tcTypesPorteur!: string[] | null;
 
+  @ApiProperty({ required: false, nullable: true, type: [String] })
+  tcVolets!: string[] | null;
+
   @ApiProperty({ required: false, nullable: true, type: String })
   tcTypeAction!: string | null;
 

@@ -34,7 +34,9 @@ export class TestDatabaseService extends DatabaseService {
       "api_requests",
     ];
 
-    const truncateQueries = tableOrder.map((table) => `TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`).join("; ");
+    const truncateQueries = tableOrder
+      .map((table) => `TRUNCATE TABLE IF EXISTS "${table}" RESTART IDENTITY CASCADE`)
+      .join("; ");
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
