@@ -1275,8 +1275,8 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "competences_code_categorie_competence_categories_code_fk": {
-          "name": "competences_code_categorie_competence_categories_code_fk",
+        "ref_competences_code_categorie_ref_competence_categories_code_fk": {
+          "name": "ref_competences_code_categorie_ref_competence_categories_code_fk",
           "tableFrom": "competences",
           "tableTo": "competence_categories",
           "columnsFrom": [
@@ -1331,8 +1331,8 @@
         }
       },
       "foreignKeys": {
-        "groupement_competences_siren_groupement_groupements_siren_fk": {
-          "name": "groupement_competences_siren_groupement_groupements_siren_fk",
+        "ref_groupement_competences_siren_groupement_ref_groupements_siren_fk": {
+          "name": "ref_groupement_competences_siren_groupement_ref_groupements_siren_fk",
           "tableFrom": "groupement_competences",
           "tableTo": "groupements",
           "columnsFrom": [
@@ -1345,8 +1345,8 @@
           "onUpdate": "no action",
           "schemaTo": "api_referentiel"
         },
-        "groupement_competences_code_competence_competences_code_fk": {
-          "name": "groupement_competences_code_competence_competences_code_fk",
+        "ref_groupement_competences_code_competence_ref_competences_code_fk": {
+          "name": "ref_groupement_competences_code_competence_ref_competences_code_fk",
           "tableFrom": "groupement_competences",
           "tableTo": "competences",
           "columnsFrom": [
@@ -1504,8 +1504,8 @@
         }
       },
       "foreignKeys": {
-        "perimetres_siren_groupement_groupements_siren_fk": {
-          "name": "perimetres_siren_groupement_groupements_siren_fk",
+        "ref_perimetres_siren_groupement_ref_groupements_siren_fk": {
+          "name": "ref_perimetres_siren_groupement_ref_groupements_siren_fk",
           "tableFrom": "perimetres",
           "tableTo": "groupements",
           "columnsFrom": [
@@ -1518,8 +1518,8 @@
           "onUpdate": "no action",
           "schemaTo": "api_referentiel"
         },
-        "perimetres_code_insee_commune_communes_code_insee_fk": {
-          "name": "perimetres_code_insee_commune_communes_code_insee_fk",
+        "ref_perimetres_code_insee_commune_ref_communes_code_insee_fk": {
+          "name": "ref_perimetres_code_insee_commune_ref_communes_code_insee_fk",
           "tableFrom": "perimetres",
           "tableTo": "communes",
           "columnsFrom": [
@@ -1561,13 +1561,13 @@
       "name": "fiche_action_statut",
       "schema": "public",
       "values": [
-        "À venir",
+        "\u00c0 venir",
         "En cours",
         "En retard",
         "En pause",
-        "Bloqué",
-        "Abandonné",
-        "Terminé"
+        "Bloqu\u00e9",
+        "Abandonn\u00e9",
+        "Termin\u00e9"
       ]
     },
     "public.phase_statut": {
@@ -1577,18 +1577,18 @@
         "En cours",
         "En retard",
         "En pause",
-        "Bloqué",
-        "Abandonné",
-        "Terminé"
+        "Bloqu\u00e9",
+        "Abandonn\u00e9",
+        "Termin\u00e9"
       ]
     },
     "public.projet_phases": {
       "name": "projet_phases",
       "schema": "public",
       "values": [
-        "Idée",
-        "Étude",
-        "Opération"
+        "Id\u00e9e",
+        "\u00c9tude",
+        "Op\u00e9ration"
       ]
     }
   },
