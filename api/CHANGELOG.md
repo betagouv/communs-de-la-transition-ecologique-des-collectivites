@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.26](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.25...v0.1.26) (2026-03-12)
+
+
+### Features
+
+* ajouter le job CRON d'import TC opendata (BullMQ) ([b10b6bb](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/b10b6bb277df94fe6189e5ded3fde51b46ee80b1))
+* ajouter les plans de transition et fiches action (données TC opendata) ([b63db66](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/b63db669c2eba79da8afb6193e902c368a2cae0c))
+
+
+### Bug Fixes
+
+* corriger la CI et les problèmes remontés en review ([5212dfe](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/5212dfe135d9940561bfa75d5d470d2aee09ce51))
+* retirer IF EXISTS du TRUNCATE (syntaxe invalide en PG) ([f0cd2cb](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f0cd2cb8196cdd5a4066839b9189235b31b0daa5))
+
 ## [0.1.25](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.24...v0.1.25) (2026-03-12)
 
 ## [0.1.24](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.23...v0.1.24) (2026-03-11)
