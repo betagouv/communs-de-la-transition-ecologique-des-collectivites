@@ -5,7 +5,7 @@ import { currentEnv } from "@/shared/utils/currentEnv";
 dotenv.config({ path: `.env.${currentEnv}` });
 
 export default defineConfig({
-  schema: "./src/database/schema.ts",
+  schema: ["./src/database/schema.ts", "./src/database/referentiel-schema.ts"],
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {

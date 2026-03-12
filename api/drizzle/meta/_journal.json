@@ -197,6 +197,27 @@
       "when": 1754299304566,
       "tag": "0027_sudden_smasher",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1773156658796,
+      "tag": "0028_referentiel_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1773156700000,
+      "tag": "0029_pg_trgm_referentiel",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1773334313789,
+      "tag": "0030_plans_transition_fiches_action",
+      "breakpoints": true
     }
   ]
 }
