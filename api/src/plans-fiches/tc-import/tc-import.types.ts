@@ -28,15 +28,15 @@ export interface TcDemarcheCsv {
 // JSON programme actions
 export interface TcDemarcheActions {
   id: number;
-  typesDemarche: Array<{ libcourt: string }>;
+  typesDemarche: { libcourt: string }[];
   actions: TcAction[];
 }
 
 export interface TcAction {
   intitule: string;
-  secteurs: Array<{ secteur: { libelle: string } }>;
-  volets: Array<{ libelle: string }>;
-  typesPorteur: Array<{ libelle: string }>;
+  secteurs: { secteur: { libelle: string } }[];
+  volets: { libelle: string }[];
+  typesPorteur: { libelle: string }[];
 }
 
 // Fiches_Action.csv enrichment
