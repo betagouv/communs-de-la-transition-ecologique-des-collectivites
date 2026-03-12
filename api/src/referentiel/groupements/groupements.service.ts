@@ -1,17 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { sql, eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
-import {
-  refGroupements,
-  refPerimetres,
-  refCommunes,
-  refGroupementCompetences,
-  refCompetences,
-  refCompetenceCategories,
-} from "@database/schema";
+import { refGroupements, refPerimetres, refCommunes } from "@database/schema";
 import { GroupementQueryDto } from "./dto/groupement-query.dto";
 import { GroupementResponse, MembreResponse } from "./dto/groupement.response";
-import { CompetenceResponse } from "../competences/dto/competence.response";
+import { CompetenceSummary } from "../communes/dto/commune.response";
 
 @Injectable()
 export class GroupementsService {
@@ -39,7 +32,8 @@ export class GroupementsService {
       throw new NotFoundException(`Groupement ${siren} non trouvé`);
     }
 
-    return this.mapGroupement(groupement);
+    const competencesBySiren = await this.fetchCompetences([siren]);
+    return this.mapGroupement(groupement, competencesBySiren.get(siren) ?? []);
   }
 
   async getMembres(siren: string): Promise<MembreResponse[]> {
@@ -70,39 +64,39 @@ export class GroupementsService {
     }));
   }
 
-  async getCompetences(siren: string): Promise<CompetenceResponse[]> {
-    const groupement = await this.dbService.database.query.refGroupements.findFirst({
-      where: eq(refGroupements.siren, siren),
-    });
-    if (!groupement) {
-      throw new NotFoundException(`Groupement ${siren} non trouvé`);
+  async fetchCompetences(sirens: string[]): Promise<Map<string, CompetenceSummary[]>> {
+    if (sirens.length === 0) return new Map();
+
+    const placeholders = sql.join(
+      sirens.map((s) => sql`${s}`),
+      sql`, `,
+    );
+
+    const results = await this.dbService.database.execute(sql`
+      SELECT gc.siren_groupement, c.code, c.nom
+      FROM ref_groupement_competences gc
+      JOIN ref_competences c ON c.code = gc.code_competence
+      WHERE gc.siren_groupement IN (${placeholders})
+      ORDER BY c.code
+    `);
+
+    const competencesBySiren = new Map<string, CompetenceSummary[]>();
+    for (const row of results.rows) {
+      const siren = row.siren_groupement as string;
+      if (!competencesBySiren.has(siren)) {
+        competencesBySiren.set(siren, []);
+      }
+      competencesBySiren.get(siren)!.push({ code: row.code as string, nom: row.nom as string });
     }
-
-    const results = await this.dbService.database
-      .select({
-        code: refCompetences.code,
-        nom: refCompetences.nom,
-        categorieCode: refCompetenceCategories.code,
-        categorieNom: refCompetenceCategories.nom,
-      })
-      .from(refGroupementCompetences)
-      .innerJoin(refCompetences, eq(refGroupementCompetences.codeCompetence, refCompetences.code))
-      .innerJoin(refCompetenceCategories, eq(refCompetences.codeCategorie, refCompetenceCategories.code))
-      .where(eq(refGroupementCompetences.sirenGroupement, siren))
-      .orderBy(refCompetenceCategories.code, refCompetences.code);
-
-    return results.map((r) => ({
-      code: r.code,
-      nom: r.nom,
-      categorie: { code: r.categorieCode, nom: r.categorieNom },
-    }));
+    return competencesBySiren;
   }
 
   private async findBySiren(siren: string): Promise<GroupementResponse[]> {
     const results = await this.dbService.database.query.refGroupements.findMany({
       where: eq(refGroupements.siren, siren),
     });
-    return results.map((g) => this.mapGroupement(g));
+    const competencesBySiren = await this.fetchCompetences(results.map((g) => g.siren));
+    return results.map((g) => this.mapGroupement(g, competencesBySiren.get(g.siren) ?? []));
   }
 
   private async searchByName(q: string, query: GroupementQueryDto): Promise<GroupementResponse[]> {
@@ -125,7 +119,11 @@ export class GroupementsService {
       OFFSET ${query.offset ?? 0}
     `);
 
-    return results.rows.map((row: Record<string, unknown>) => this.mapRawGroupement(row));
+    const sirens = results.rows.map((row: Record<string, unknown>) => row.siren as string);
+    const competencesBySiren = await this.fetchCompetences(sirens);
+    return results.rows.map((row: Record<string, unknown>) =>
+      this.mapRawGroupement(row, competencesBySiren.get(row.siren as string) ?? []),
+    );
   }
 
   private async findWithFilters(query: GroupementQueryDto): Promise<GroupementResponse[]> {
@@ -142,7 +140,11 @@ export class GroupementsService {
       OFFSET ${query.offset ?? 0}
     `);
 
-    return results.rows.map((row: Record<string, unknown>) => this.mapRawGroupement(row));
+    const sirens = results.rows.map((row: Record<string, unknown>) => row.siren as string);
+    const competencesBySiren = await this.fetchCompetences(sirens);
+    return results.rows.map((row: Record<string, unknown>) =>
+      this.mapRawGroupement(row, competencesBySiren.get(row.siren as string) ?? []),
+    );
   }
 
   private addFilters(conditions: ReturnType<typeof sql>[], query: GroupementQueryDto): void {
@@ -173,7 +175,7 @@ export class GroupementsService {
     }
   }
 
-  private mapGroupement(g: typeof refGroupements.$inferSelect): GroupementResponse {
+  private mapGroupement(g: typeof refGroupements.$inferSelect, competences: CompetenceSummary[]): GroupementResponse {
     return {
       siren: g.siren,
       nom: g.nom,
@@ -184,10 +186,11 @@ export class GroupementsService {
       regions: g.regions ?? [],
       modeFinancement: g.modeFinancement ?? null,
       dateCreation: g.dateCreation ?? null,
+      competences,
     };
   }
 
-  private mapRawGroupement(row: Record<string, unknown>): GroupementResponse {
+  private mapRawGroupement(row: Record<string, unknown>, competences: CompetenceSummary[]): GroupementResponse {
     return {
       siren: row.siren as string,
       nom: row.nom as string,
@@ -198,6 +201,7 @@ export class GroupementsService {
       regions: (row.regions as string[]) ?? [],
       modeFinancement: (row.mode_financement as string) ?? null,
       dateCreation: (row.date_creation as string) ?? null,
+      competences,
     };
   }
 }

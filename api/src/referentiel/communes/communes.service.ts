@@ -3,17 +3,16 @@ import { sql, eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { refCommunes, refPerimetres, refGroupements } from "@database/schema";
 import { CommuneQueryDto } from "./dto/commune-query.dto";
-import {
-  CommuneResponse,
-  CommuneDetailResponse,
-  GroupementSummary,
-  GroupementSummaryWithCompetences,
-} from "./dto/commune.response";
+import { CommuneResponse, CommuneDetailResponse, GroupementSummaryWithCompetences } from "./dto/commune.response";
 import { CompetenceAvecGroupementResponse } from "../competences/dto/competence.response";
+import { GroupementsService } from "../groupements/groupements.service";
 
 @Injectable()
 export class CommunesService {
-  constructor(private readonly dbService: DatabaseService) {}
+  constructor(
+    private readonly dbService: DatabaseService,
+    private readonly groupementsService: GroupementsService,
+  ) {}
 
   async search(query: CommuneQueryDto): Promise<CommuneResponse[]> {
     // Direct lookup by code or siren
@@ -33,7 +32,7 @@ export class CommunesService {
     return this.findWithFilters(query);
   }
 
-  async findOne(codeInsee: string, includeCompetences = false): Promise<CommuneDetailResponse> {
+  async findOne(codeInsee: string): Promise<CommuneDetailResponse> {
     const commune = await this.dbService.database.query.refCommunes.findFirst({
       where: eq(refCommunes.codeInsee, codeInsee),
     });
@@ -53,39 +52,14 @@ export class CommunesService {
       .innerJoin(refGroupements, eq(refPerimetres.sirenGroupement, refGroupements.siren))
       .where(eq(refPerimetres.codeInseeCommune, codeInsee));
 
-    let groupementsResult: (GroupementSummary | GroupementSummaryWithCompetences)[] =
-      groupements as GroupementSummary[];
+    // Always include competences
+    const sirens = groupements.map((g) => g.siren);
+    const competencesBySiren = await this.groupementsService.fetchCompetences(sirens);
 
-    if (includeCompetences && groupements.length > 0) {
-      const sirens = groupements.map((g) => g.siren);
-      const placeholders = sql.join(
-        sirens.map((s) => sql`${s}`),
-        sql`, `,
-      );
-
-      const competenceRows = await this.dbService.database.execute(sql`
-        SELECT gc.siren_groupement, c.code, c.nom
-        FROM ref_groupement_competences gc
-        JOIN ref_competences c ON c.code = gc.code_competence
-        WHERE gc.siren_groupement IN (${placeholders})
-        ORDER BY c.code
-      `);
-
-      // Group competences by SIREN
-      const competencesBySiren = new Map<string, { code: string; nom: string }[]>();
-      for (const row of competenceRows.rows as Record<string, unknown>[]) {
-        const siren = row.siren_groupement as string;
-        if (!competencesBySiren.has(siren)) {
-          competencesBySiren.set(siren, []);
-        }
-        competencesBySiren.get(siren)!.push({ code: row.code as string, nom: row.nom as string });
-      }
-
-      groupementsResult = groupements.map((g) => ({
-        ...g,
-        competences: competencesBySiren.get(g.siren) ?? [],
-      }));
-    }
+    const groupementsResult: GroupementSummaryWithCompetences[] = groupements.map((g) => ({
+      ...g,
+      competences: competencesBySiren.get(g.siren) ?? [],
+    }));
 
     return {
       code: commune.codeInsee,

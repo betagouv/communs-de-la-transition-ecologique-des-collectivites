@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
-import { ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { CommunesService } from "./communes.service";
 import { CommuneQueryDto } from "./dto/commune-query.dto";
@@ -21,18 +21,9 @@ export class CommunesController {
   @Get(":codeInsee")
   @ApiOperation({ summary: "Détail d'une commune avec ses groupements" })
   @ApiParam({ name: "codeInsee", description: "Code INSEE (5 chiffres)", example: "22006" })
-  @ApiQuery({
-    name: "includeCompetences",
-    required: false,
-    description: "Inclure les compétences de chaque groupement",
-    type: Boolean,
-  })
   @ApiEndpointResponses({ successStatus: 200, response: CommuneDetailResponse })
-  findOne(
-    @Param("codeInsee") codeInsee: string,
-    @Query("includeCompetences") includeCompetences?: string,
-  ): Promise<CommuneDetailResponse> {
-    return this.communesService.findOne(codeInsee, includeCompetences === "true");
+  findOne(@Param("codeInsee") codeInsee: string): Promise<CommuneDetailResponse> {
+    return this.communesService.findOne(codeInsee);
   }
 
   @Get(":codeInsee/competences")
