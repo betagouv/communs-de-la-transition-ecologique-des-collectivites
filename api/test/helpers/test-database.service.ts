@@ -34,7 +34,17 @@ export class TestDatabaseService extends DatabaseService {
       "api_requests",
     ];
 
-    const truncateQueries = tableOrder.map((table) => `TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`).join("; ");
+    const truncateQueries = tableOrder
+      .map((table) => {
+        const qualifiedName = table.includes(".")
+          ? table
+              .split(".")
+              .map((part) => `"${part}"`)
+              .join(".")
+          : `"${table}"`;
+        return `TRUNCATE TABLE ${qualifiedName} RESTART IDENTITY CASCADE`;
+      })
+      .join("; ");
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
