@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.28](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.27...v0.1.28) (2026-03-12)
+
+
+### Bug Fixes
+
+* corriger les noms de FK dans le snapshot et le format TRUNCATE schema-qualifié ([22828dd](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/22828dd08d26c19ddfb2e5f0a6a6d7792502d9da))
+
 ## [0.1.27](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.26...v0.1.27) (2026-03-12)
 
 
