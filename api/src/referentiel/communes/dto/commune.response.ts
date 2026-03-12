@@ -53,7 +53,7 @@ export class CommuneResponse {
 export class CommuneDetailResponse extends CommuneResponse {
   @ApiProperty({
     type: [GroupementSummaryWithCompetences],
-    description: "Groupements dont cette commune est membre (avec compétences si includeCompetences=true)",
+    description: "Groupements dont cette commune est membre (avec compétences)",
   })
-  groupements!: (GroupementSummary | GroupementSummaryWithCompetences)[];
+  groupements!: GroupementSummaryWithCompetences[];
 }

@@ -122,7 +122,7 @@ describe("Referentiel", () => {
     });
 
     describe("findOne", () => {
-      it("should return commune detail with groupements", async () => {
+      it("should return commune detail with groupements and their competences", async () => {
         const detail = await communesService.findOne("01001");
 
         expect(detail.code).toBe("01001");
@@ -134,6 +134,16 @@ describe("Referentiel", () => {
         const sirenSet = new Set(detail.groupements.map((g) => g.siren));
         expect(sirenSet).toContain("200069193");
         expect(sirenSet).toContain("200066587");
+
+        // Competences are always included
+        detail.groupements.forEach((g) => {
+          expect(g).toHaveProperty("competences");
+          expect(Array.isArray(g.competences)).toBe(true);
+        });
+        const ccDombes = detail.groupements.find((g) => g.siren === "200069193")!;
+        const competenceCodes = ccDombes.competences.map((c) => c.code);
+        expect(competenceCodes).toContain("10-100");
+        expect(competenceCodes).toContain("20-100");
       });
 
       it("should throw NotFoundException for unknown commune", async () => {
@@ -239,10 +249,18 @@ describe("Referentiel", () => {
 
         expect(results).toHaveLength(2);
       });
+
+      it("should include competences in search results", async () => {
+        const results = await groupementsService.search({ competence: "20-100" });
+
+        expect(results).toHaveLength(1);
+        expect(results[0].competences).toBeDefined();
+        expect(results[0].competences.map((c) => c.code)).toContain("20-100");
+      });
     });
 
     describe("findOne", () => {
-      it("should return full groupement details", async () => {
+      it("should return full groupement details with competences", async () => {
         const result = await groupementsService.findOne("200069193");
 
         expect(result).toMatchObject({
@@ -256,6 +274,11 @@ describe("Referentiel", () => {
           modeFinancement: "FPU",
           dateCreation: "2017-01-01",
         });
+
+        expect(result.competences).toHaveLength(2);
+        const codes = result.competences.map((c) => c.code);
+        expect(codes).toContain("10-100");
+        expect(codes).toContain("20-100");
       });
 
       it("should throw NotFoundException for unknown siren", async () => {
@@ -289,28 +312,6 @@ describe("Referentiel", () => {
 
       it("should throw NotFoundException for unknown groupement", async () => {
         await expect(groupementsService.getMembres("999999999")).rejects.toThrow(NotFoundException);
-      });
-    });
-
-    describe("getCompetences", () => {
-      it("should return competences of the groupement", async () => {
-        const results = await groupementsService.getCompetences("200069193");
-
-        expect(results).toHaveLength(2);
-        const codes = results.map((r) => r.code);
-        expect(codes).toContain("10-100");
-        expect(codes).toContain("20-100");
-
-        results.forEach((r) => {
-          expect(r).toHaveProperty("code");
-          expect(r).toHaveProperty("nom");
-          expect(r.categorie).toHaveProperty("code");
-          expect(r.categorie).toHaveProperty("nom");
-        });
-      });
-
-      it("should throw NotFoundException for unknown groupement", async () => {
-        await expect(groupementsService.getCompetences("999999999")).rejects.toThrow(NotFoundException);
       });
     });
   });
@@ -364,38 +365,6 @@ describe("Referentiel", () => {
 
       it("should throw NotFoundException for unknown code", async () => {
         await expect(competencesService.findOne("99-999")).rejects.toThrow(NotFoundException);
-      });
-    });
-
-    describe("getGroupements", () => {
-      it("should return groupements having the competence", async () => {
-        const results = await competencesService.getGroupements("10-100", {});
-
-        expect(results).toHaveLength(1);
-        expect(results[0].siren).toBe("200069193");
-      });
-
-      it("should filter groupements by commune", async () => {
-        // Competence 10-200 is held by SIVU which covers 01001
-        const results = await competencesService.getGroupements("10-200", {
-          commune: "01001",
-        });
-
-        expect(results).toHaveLength(1);
-        expect(results[0].siren).toBe("200066587");
-      });
-
-      it("should filter groupements by type", async () => {
-        const results = await competencesService.getGroupements("10-200", {
-          type: "CC",
-        });
-
-        // Competence 10-200 is only on SIVU, not CC
-        expect(results).toHaveLength(0);
-      });
-
-      it("should throw NotFoundException for unknown competence", async () => {
-        await expect(competencesService.getGroupements("99-999", {})).rejects.toThrow(NotFoundException);
       });
     });
   });

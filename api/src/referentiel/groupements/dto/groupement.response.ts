@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { CompetenceSummary } from "../../communes/dto/commune.response";
 
 export class GroupementResponse {
   @ApiProperty({ description: "SIREN (9 chiffres)", example: "200065928" })
@@ -27,6 +28,9 @@ export class GroupementResponse {
 
   @ApiProperty({ example: "2017-01-01", nullable: true })
   dateCreation!: string | null;
+
+  @ApiProperty({ type: [CompetenceSummary], description: "Compétences exercées par ce groupement" })
+  competences!: CompetenceSummary[];
 }
 
 export class MembreResponse {
