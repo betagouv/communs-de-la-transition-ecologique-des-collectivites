@@ -15,6 +15,10 @@ export class TestDatabaseService extends DatabaseService {
 
   async cleanDatabase(maxRetries = 3) {
     const tableOrder = [
+      // Plans/fiches tables
+      "fiches_action_to_plans_transition",
+      "fiches_action",
+      "plans_transition",
       // Referentiel tables (children first)
       "ref_groupement_competences",
       "ref_perimetres",
