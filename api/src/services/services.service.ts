@@ -3,11 +3,12 @@ import { CreateServiceRequest, CreateServiceResponse } from "./dto/create-servic
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@logging/logger.service";
-import { projets, services } from "@database/schema";
+import { projets, collectivites, services } from "@database/schema";
 import { ServicesByProjectIdResponse } from "./dto/service.dto";
 import { ServicesContextService } from "./services-context.service";
 import { CompetenceCodes, IdType, Leviers } from "@/shared/types";
 import { RegionCode } from "@/shared/const/region-codes";
+import { InferSelectModel } from "drizzle-orm";
 
 @Injectable()
 export class ServicesService {
@@ -71,7 +72,12 @@ export class ServicesService {
       throw new NotFoundException(`Projet with ${idType} ${id} not found`);
     }
 
-    const projectCollectivites = project.collectivites.map((relation) => relation.collectivite);
+    // Type assertion needed because Drizzle's relational query inference
+    // hits TypeScript complexity limits with multi-schema setups
+    type Collectivite = InferSelectModel<typeof collectivites>;
+    const projectCollectivites = project.collectivites.map(
+      (relation: { collectivite: Collectivite }) => relation.collectivite,
+    );
 
     const codeRegionsFromProject = projectCollectivites.flatMap(
       (collectivite) => (collectivite.codeRegions as RegionCode[]) ?? [],

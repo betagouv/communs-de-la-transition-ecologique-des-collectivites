@@ -23,7 +23,9 @@ export class GetProjetsService {
   async findAll(): Promise<ProjetResponse[]> {
     this.logger.debug("Finding all projects");
 
-    const projets = await this.dbService.database.query.projets.findMany({
+    // Type assertion needed because Drizzle's relational query inference
+    // hits TypeScript complexity limits with multi-schema setups
+    const projets = (await this.dbService.database.query.projets.findMany({
       with: {
         collectivites: {
           with: {
@@ -31,7 +33,7 @@ export class GetProjetsService {
           },
         },
       },
-    });
+    })) as ProjetWithCollectivites[];
 
     return projets.map((projet) => {
       return this.mapFieldsToDTO(projet);
@@ -39,7 +41,7 @@ export class GetProjetsService {
   }
 
   async findOne(id: string): Promise<ProjetResponse> {
-    const projet = await this.dbService.database.query.projets.findFirst({
+    const projet = (await this.dbService.database.query.projets.findFirst({
       where: eq(projets.id, id),
       with: {
         collectivites: {
@@ -48,7 +50,7 @@ export class GetProjetsService {
           },
         },
       },
-    });
+    })) as ProjetWithCollectivites | undefined;
 
     if (!projet) {
       this.logger.warn("Projet not found", { projetId: id });
@@ -85,7 +87,7 @@ export class GetProjetsService {
     return {
       description: projet.description,
       phase: projet.phase,
-      collectivites: projet.collectivites.map((c) => c.collectivite),
+      collectivites: (projet as unknown as ProjetWithCollectivites).collectivites.map((c) => c.collectivite),
     };
   }
 

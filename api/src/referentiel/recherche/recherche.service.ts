@@ -27,7 +27,7 @@ export class RechercheService {
           'COM' AS type,
           'commune' AS famille,
           word_similarity(normalize_search(${normalized}), normalize_search(nom)) AS score
-        FROM ref_communes
+        FROM api_referentiel.communes
         WHERE word_similarity(normalize_search(${normalized}), normalize_search(nom)) > 0.3
         ORDER BY score DESC, population DESC NULLS LAST
         LIMIT ${limit}
@@ -43,7 +43,7 @@ export class RechercheService {
           type,
           'groupement' AS famille,
           word_similarity(normalize_search(${normalized}), normalize_search(nom)) AS score
-        FROM ref_groupements
+        FROM api_referentiel.groupements
         WHERE word_similarity(normalize_search(${normalized}), normalize_search(nom)) > 0.3
         ORDER BY score DESC, population DESC NULLS LAST
         LIMIT ${limit}
