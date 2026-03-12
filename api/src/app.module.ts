@@ -22,6 +22,7 @@ import { AnalyticsModule } from "@/analytics/analytics.module";
 import { MatomoModule } from "@/matomo";
 import { ReferentielModule } from "@/referentiel/referentiel.module";
 import { HealthController } from "@/health/health.controller";
+import { PlansFichesModule } from "@/plans-fiches/plans-fiches.module";
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { HealthController } from "@/health/health.controller";
     AnalyticsModule,
     MatomoModule,
     ReferentielModule,
+    PlansFichesModule,
   ],
   controllers: [HealthController],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
