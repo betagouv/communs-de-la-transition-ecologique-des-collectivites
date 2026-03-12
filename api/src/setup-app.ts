@@ -9,6 +9,7 @@ import { ProjetsModule } from "@projets/projets.module";
 import { ServicesModule } from "./services/services.module";
 import { ProjetQualificationModule } from "@/projet-qualification/projet-qualification.module";
 import { AnalyticsModule } from "@/analytics/analytics.module";
+import { PlansFichesModule } from "@/plans-fiches/plans-fiches.module";
 
 export function setupApp(app: INestApplication) {
   const logger = app.get(CustomLogger);
@@ -44,7 +45,7 @@ export function setupApp(app: INestApplication) {
 
   const documentFactory = () =>
     SwaggerModule.createDocument(app, config, {
-      include: [ProjetsModule, ServicesModule, ProjetQualificationModule, AnalyticsModule],
+      include: [ProjetsModule, ServicesModule, ProjetQualificationModule, AnalyticsModule, PlansFichesModule],
     });
   SwaggerModule.setup("api", app, documentFactory, {
     jsonDocumentUrl: "openapi.json",
