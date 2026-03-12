@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
+import { Controller, Get, Param, ParseUUIDPipe, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { Public } from "@/auth/public.decorator";
@@ -48,7 +48,7 @@ export class PlansFichesController {
   @ApiOperation({ summary: "Get a plan de transition with its fiches action" })
   @ApiParam({ name: "id", type: String, description: "Plan UUID" })
   @ApiEndpointResponses({ successStatus: 200, response: PlanTransitionDetailResponse })
-  async findOnePlan(@Param("id") id: string): Promise<PlanTransitionDetailResponse> {
+  async findOnePlan(@Param("id", ParseUUIDPipe) id: string): Promise<PlanTransitionDetailResponse> {
     return this.plansService.findOne(id);
   }
 
@@ -86,7 +86,7 @@ export class PlansFichesController {
   @ApiOperation({ summary: "Get a fiche action with its linked plans" })
   @ApiParam({ name: "id", type: String, description: "Fiche action UUID" })
   @ApiEndpointResponses({ successStatus: 200, response: FicheActionDetailResponse })
-  async findOneFiche(@Param("id") id: string): Promise<FicheActionDetailResponse> {
+  async findOneFiche(@Param("id", ParseUUIDPipe) id: string): Promise<FicheActionDetailResponse> {
     return this.fichesService.findOne(id);
   }
 }

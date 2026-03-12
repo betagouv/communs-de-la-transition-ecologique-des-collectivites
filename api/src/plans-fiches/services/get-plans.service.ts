@@ -24,7 +24,8 @@ export class GetPlansService {
       conditions.push(eq(plansTransition.collectiviteResponsableSiren, filters.siren));
     }
     if (filters.type) {
-      conditions.push(ilike(plansTransition.type, filters.type));
+      const escaped = filters.type.replace(/[%_\\]/g, "\\$&");
+      conditions.push(ilike(plansTransition.type, escaped));
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
