@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.27](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.26...v0.1.27) (2026-03-12)
+
+
+### Bug Fixes
+
+* ajouter PlansFichesModule au Swagger ([967bbcb](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/967bbcbc0cda45e22c14e9f6a50bd10696033ee4))
+
 ## [0.1.26](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.25...v0.1.26) (2026-03-12)
 
 
