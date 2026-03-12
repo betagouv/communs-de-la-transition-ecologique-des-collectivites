@@ -112,6 +112,90 @@ export const projetsToCollectivites = pgTable(
   ],
 );
 
+// --- Plans de transition & Fiches action (schema v0.2.0) ---
+
+const ficheActionStatuts = ["À venir", "En cours", "En retard", "En pause", "Bloqué", "Abandonné", "Terminé"] as const;
+export const ficheActionStatutEnum = pgEnum("fiche_action_statut", ficheActionStatuts);
+export type FicheActionStatut = (typeof ficheActionStatutEnum.enumValues)[number];
+
+export const plansTransition = pgTable(
+  "plans_transition",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+
+    nom: text("nom").notNull(),
+    type: text("type"),
+    description: text("description"),
+    periodeDebut: text("periode_debut"),
+    periodeFin: text("periode_fin"),
+    collectiviteResponsableSiren: text("collectivite_responsable_siren"),
+    territoireCommunes: text("territoire_communes").array(),
+
+    // TC source metadata
+    tcDemarcheId: integer("tc_demarche_id").unique(),
+    tcVersion: text("tc_version"),
+    tcEtat: text("tc_etat"),
+  },
+  (t) => [index("plans_transition_siren_idx").on(t.collectiviteResponsableSiren)],
+);
+
+export const fichesAction = pgTable(
+  "fiches_action",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+
+    nom: text("nom").notNull(),
+    description: text("description"),
+    statut: ficheActionStatutEnum(),
+    collectiviteResponsableSiren: text("collectivite_responsable_siren"),
+    territoireCommunes: text("territoire_communes").array(),
+    classificationThematiques: text("classification_thematiques").array(),
+
+    // TC source metadata
+    tcDemarcheId: integer("tc_demarche_id"),
+    tcHash: text("tc_hash").unique(),
+    tcSecteurs: text("tc_secteurs").array(),
+    tcTypesPorteur: text("tc_types_porteur").array(),
+    tcVolets: text("tc_volets").array(),
+    tcTypeAction: text("tc_type_action"),
+    tcCibleAction: text("tc_cible_action"),
+  },
+  (t) => [
+    index("fiches_action_siren_idx").on(t.collectiviteResponsableSiren),
+    index("fiches_action_tc_demarche_idx").on(t.tcDemarcheId),
+  ],
+);
+
+export const fichesActionToPlansTransition = pgTable(
+  "fiches_action_to_plans_transition",
+  {
+    ficheActionId: uuid("fiche_action_id")
+      .notNull()
+      .references(() => fichesAction.id),
+    planTransitionId: uuid("plan_transition_id")
+      .notNull()
+      .references(() => plansTransition.id),
+  },
+  (t) => [
+    primaryKey({ columns: [t.ficheActionId, t.planTransitionId] }),
+    index("plan_fiche_idx").on(t.planTransitionId, t.ficheActionId),
+  ],
+);
+
 export const services = pgTable("services", {
   id: uuid("id")
     .primaryKey()
@@ -202,6 +286,25 @@ export const projetsToCollectivitesRelations = relations(projetsToCollectivites,
   collectivite: one(collectivites, {
     fields: [projetsToCollectivites.collectiviteId],
     references: [collectivites.id],
+  }),
+}));
+
+export const plansTransitionRelations = relations(plansTransition, ({ many }) => ({
+  fichesAction: many(fichesActionToPlansTransition),
+}));
+
+export const fichesActionRelations = relations(fichesAction, ({ many }) => ({
+  plansTransition: many(fichesActionToPlansTransition),
+}));
+
+export const fichesActionToPlansTransitionRelations = relations(fichesActionToPlansTransition, ({ one }) => ({
+  ficheAction: one(fichesAction, {
+    fields: [fichesActionToPlansTransition.ficheActionId],
+    references: [fichesAction.id],
+  }),
+  planTransition: one(plansTransition, {
+    fields: [fichesActionToPlansTransition.planTransitionId],
+    references: [plansTransition.id],
   }),
 }));
 

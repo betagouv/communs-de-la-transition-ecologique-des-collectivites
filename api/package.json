@@ -40,6 +40,7 @@
     "seed:referentiel": "cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register scripts/seed-referentiel/seed-referentiel.ts",
     "seed:services": "cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register scripts/import-services-and-services-context/import-services-and-services-contexts.ts",
     "import:projects-tet": "cd scripts/import-projets-tet && cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register import-projets-tet.ts import-projets-tet-data.csv",
+    "import:tc-opendata": "cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register scripts/import-tc-opendata/import-tc-opendata.ts",
     "release": "commit-and-tag-version",
     "db:start": "docker compose up -d",
     "db:clean": "docker compose down -v",
