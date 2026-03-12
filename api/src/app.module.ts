@@ -20,6 +20,8 @@ import basicAuth from "express-basic-auth";
 import { ExpressAdapter } from "@bull-board/express";
 import { AnalyticsModule } from "@/analytics/analytics.module";
 import { MatomoModule } from "@/matomo";
+import { ReferentielModule } from "@/referentiel/referentiel.module";
+import { PlansFichesModule } from "@/plans-fiches/plans-fiches.module";
 
 @Module({
   imports: [
@@ -65,6 +67,8 @@ import { MatomoModule } from "@/matomo";
     ProjetQualificationModule,
     AnalyticsModule,
     MatomoModule,
+    ReferentielModule,
+    PlansFichesModule,
   ],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
 })
