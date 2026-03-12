@@ -14,7 +14,16 @@ export class TestDatabaseService extends DatabaseService {
   }
 
   async cleanDatabase(maxRetries = 3) {
-    const tableOrder = ["projets_to_collectivites", "projets", "collectivites", "services", "api_requests"];
+    const tableOrder = [
+      "fiches_action_to_plans_transition",
+      "fiches_action",
+      "plans_transition",
+      "projets_to_collectivites",
+      "projets",
+      "collectivites",
+      "services",
+      "api_requests",
+    ];
 
     const truncateQueries = tableOrder.map((table) => `TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`).join("; ");
 
