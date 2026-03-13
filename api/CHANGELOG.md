@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.29](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.28...v0.1.29) (2026-03-13)
+
+
+### Bug Fixes
+
+* corriger l'URL de génération de types OpenAPI après restructuration des préfixes ([ce0136f](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ce0136f87784f6cbaa2248a04d2e3fbcb80989db))
+
 ## [0.1.28](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.27...v0.1.28) (2026-03-12)
 
 
