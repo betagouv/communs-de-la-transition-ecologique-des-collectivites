@@ -5,7 +5,7 @@ import { RechercheService } from "./recherche.service";
 import { RechercheQueryDto } from "./dto/recherche-query.dto";
 import { RechercheResponse } from "./dto/recherche.response";
 
-@Controller("v1/recherche")
+@Controller("referentiel/v1/recherche")
 @ApiTags("Référentiel - Recherche")
 export class RechercheController {
   constructor(private readonly rechercheService: RechercheService) {}

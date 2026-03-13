@@ -7,6 +7,8 @@ import { serveDemoWidget } from "@/serve-demo-widget";
 import { serveStatisticsDashboard } from "@/serve-statistics-dashboard";
 import { serveRessources } from "@/serve-ressources";
 import { setupReferentielDoc } from "@/referentiel/referentiel-doc.setup";
+import { setupOpendataDoc } from "@/plans-fiches/opendata-doc.setup";
+import { setupSwaggerHub } from "@/swagger-hub";
 import { serveLandingPages } from "@/landing/landing-pages";
 
 async function bootstrap() {
@@ -22,6 +24,8 @@ async function bootstrap() {
 
   setupApp(app);
   setupReferentielDoc(app);
+  setupOpendataDoc(app);
+  setupSwaggerHub(app);
   serveDemoWidget(app);
   serveStatisticsDashboard(app);
   serveRessources(app);

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Logger } from "@nestjs/common";
 import { MatomoService } from "@/matomo";
-import { homePage, referentielPage, apiProjetsPage } from "./templates";
+import { homePage, referentielPage, opendataPage, apiProjetsPage } from "./templates";
 
 const logger = new Logger("LandingPages");
 
@@ -12,6 +12,7 @@ export const serveLandingPages = (app: NestExpressApplication) => {
   const routes: Record<string, () => string> = {
     "/": homePage,
     "/referentiel": referentielPage,
+    "/opendata": opendataPage,
     "/api-projets": apiProjetsPage,
   };
 
@@ -31,5 +32,5 @@ export const serveLandingPages = (app: NestExpressApplication) => {
     });
   }
 
-  logger.log("Landing pages configured for /, /referentiel, /api-projets");
+  logger.log("Landing pages configured for /, /referentiel, /opendata, /api-projets");
 };

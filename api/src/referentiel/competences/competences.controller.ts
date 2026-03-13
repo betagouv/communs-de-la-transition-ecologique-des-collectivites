@@ -4,7 +4,7 @@ import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator"
 import { CompetencesService } from "./competences.service";
 import { CompetenceCategorieResponse, CompetenceResponse } from "./dto/competence.response";
 
-@Controller("v1/groupements/competences")
+@Controller("referentiel/v1/groupements/competences")
 @ApiTags("Référentiel - Groupements")
 export class CompetencesController {
   constructor(private readonly competencesService: CompetencesService) {}

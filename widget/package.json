@@ -29,7 +29,7 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "type-check": "tsc --noEmit -p tsconfig.app.json",
     "validate": "npm run type-check && npm run lint && npm run format:check",
-    "generate-api-type": "openapi-typescript http://localhost:3000/openapi.json -o lib/generated-types.ts",
+    "generate-api-type": "openapi-typescript http://localhost:3000/api/projets/openapi.json -o lib/generated-types.ts",
     "update-version": "changeset version",
     "release": "pnpm build && pnpm validate && pnpm test && npm publish",
     "preview": "vite preview"

@@ -98,6 +98,22 @@ export const homePage = (): string =>
             <div class="fr-card__body">
               <div class="fr-card__content">
                 <h2 class="fr-card__title">
+                  <a href="/opendata">API Opendata — Plans climat (PCAET)</a> <span class="fr-badge fr-badge--info fr-badge--no-icon fr-badge--sm">Alpha</span>
+                </h2>
+                <p class="fr-card__desc">
+                  Plans Climat-Air-Énergie Territoriaux (PCAET) publiés et fiches action associées.
+                  Source : Territoires Climat (ADEME).
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fr-col-12 fr-col-md-6">
+          <div class="fr-card fr-enlarge-link">
+            <div class="fr-card__body">
+              <div class="fr-card__content">
+                <h2 class="fr-card__title">
                   <a href="/api-projets">API Projets Collectivités</a>
                 </h2>
                 <p class="fr-card__desc">
@@ -167,32 +183,32 @@ export const referentielPage = (): string =>
           <tbody>
             <tr>
               <td><code>GET</code></td>
-              <td><code>/v1/communes</code></td>
+              <td><code>/referentiel/v1/communes</code></td>
               <td>Rechercher des communes par nom, code postal ou code INSEE</td>
             </tr>
             <tr>
               <td><code>GET</code></td>
-              <td><code>/v1/communes/:id</code></td>
+              <td><code>/referentiel/v1/communes/:id</code></td>
               <td>Détail d'une commune (population, EPCI, départements, régions)</td>
             </tr>
             <tr>
               <td><code>GET</code></td>
-              <td><code>/v1/groupements</code></td>
+              <td><code>/referentiel/v1/groupements</code></td>
               <td>Rechercher des groupements (EPCI, syndicats, PETR…)</td>
             </tr>
             <tr>
               <td><code>GET</code></td>
-              <td><code>/v1/groupements/:id</code></td>
+              <td><code>/referentiel/v1/groupements/:id</code></td>
               <td>Détail d'un groupement et ses communes membres</td>
             </tr>
             <tr>
               <td><code>GET</code></td>
-              <td><code>/v1/groupements/competences</code></td>
+              <td><code>/referentiel/v1/groupements/competences</code></td>
               <td>Liste des 123 compétences Banatic en 14 catégories</td>
             </tr>
             <tr>
               <td><code>GET</code></td>
-              <td><code>/v1/recherche</code></td>
+              <td><code>/referentiel/v1/recherche</code></td>
               <td>Recherche transversale par nom (communes et groupements)</td>
             </tr>
           </tbody>
@@ -201,19 +217,19 @@ export const referentielPage = (): string =>
 
       <h2>Exemples</h2>
       <pre class="fr-p-2w" style="background: var(--background-alt-grey); border-radius: 4px; overflow-x: auto;"><code># Rechercher une commune
-curl "https://collectivites.api.beta.gouv.fr/v1/communes?q=Paris"
+curl "https://collectivites.api.beta.gouv.fr/referentiel/v1/communes?q=Paris"
 
 # Détail d'une commune par code INSEE
-curl "https://collectivites.api.beta.gouv.fr/v1/communes/75056"
+curl "https://collectivites.api.beta.gouv.fr/referentiel/v1/communes/75056"
 
 # Rechercher des groupements
-curl "https://collectivites.api.beta.gouv.fr/v1/groupements?q=Nantes"
+curl "https://collectivites.api.beta.gouv.fr/referentiel/v1/groupements?q=Nantes"
 
 # Liste des compétences Banatic
-curl "https://collectivites.api.beta.gouv.fr/v1/groupements/competences"
+curl "https://collectivites.api.beta.gouv.fr/referentiel/v1/groupements/competences"
 
 # Recherche transversale (communes + groupements)
-curl "https://collectivites.api.beta.gouv.fr/v1/recherche?q=Lyon"</code></pre>
+curl "https://collectivites.api.beta.gouv.fr/referentiel/v1/recherche?q=Lyon"</code></pre>
 
       <div class="fr-mt-4w">
         <a class="fr-btn" href="/api/referentiel">
@@ -256,7 +272,85 @@ export const apiProjetsPage = (): string =>
       </ul>
 
       <div class="fr-mt-4w">
-        <a class="fr-btn" href="/api">
+        <a class="fr-btn" href="/api/projets">
+          Documentation Swagger complète
+        </a>
+      </div>
+    </div>`,
+  );
+
+export const opendataPage = (): string =>
+  layoutTemplate(
+    "API Opendata — Plans climat (PCAET)",
+    `
+    <div class="fr-container fr-my-6w">
+      <nav role="navigation" class="fr-breadcrumb" aria-label="vous êtes ici :">
+        <ol class="fr-breadcrumb__list">
+          <li><a class="fr-breadcrumb__link" href="/">Accueil</a></li>
+          <li><a class="fr-breadcrumb__link" aria-current="page">API Opendata — PCAET</a></li>
+        </ol>
+      </nav>
+
+      <h1>API Opendata — Plans climat (PCAET) <span class="fr-badge fr-badge--info fr-badge--no-icon">Alpha</span></h1>
+      <p class="fr-text--lead">
+        Plans Climat-Air-Énergie Territoriaux (PCAET) publiés et fiches action associées.
+        Données issues de <a href="https://territoires-climat.ademe.fr/opendata" target="_blank" rel="noopener">Territoires Climat</a> (ADEME).
+      </p>
+
+      <div class="fr-callout fr-my-4w">
+        <p class="fr-callout__text">
+          Cette API est en phase alpha. Accès libre, sans authentification requise.
+          Les données sont mises à jour régulièrement depuis la source Territoires Climat.
+        </p>
+      </div>
+
+      <h2>Endpoints disponibles</h2>
+      <div class="fr-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Méthode</th>
+              <th>Endpoint</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>GET</code></td>
+              <td><code>/opendata/v1/plans-transition</code></td>
+              <td>Lister les plans de transition (PCAET)</td>
+            </tr>
+            <tr>
+              <td><code>GET</code></td>
+              <td><code>/opendata/v1/plans-transition/:id</code></td>
+              <td>Détail d'un plan avec ses fiches action</td>
+            </tr>
+            <tr>
+              <td><code>GET</code></td>
+              <td><code>/opendata/v1/fiches-action</code></td>
+              <td>Lister les fiches action</td>
+            </tr>
+            <tr>
+              <td><code>GET</code></td>
+              <td><code>/opendata/v1/fiches-action/:id</code></td>
+              <td>Détail d'une fiche action avec ses plans liés</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Exemples</h2>
+      <pre class="fr-p-2w" style="background: var(--background-alt-grey); border-radius: 4px; overflow-x: auto;"><code># Lister les plans de transition
+curl "https://collectivites.api.beta.gouv.fr/opendata/v1/plans-transition"
+
+# Filtrer par SIREN de la collectivité
+curl "https://collectivites.api.beta.gouv.fr/opendata/v1/plans-transition?siren=200046977"
+
+# Lister les fiches action d'un plan
+curl "https://collectivites.api.beta.gouv.fr/opendata/v1/fiches-action?planId=UUID"</code></pre>
+
+      <div class="fr-mt-4w">
+        <a class="fr-btn" href="/api/opendata">
           Documentation Swagger complète
         </a>
       </div>

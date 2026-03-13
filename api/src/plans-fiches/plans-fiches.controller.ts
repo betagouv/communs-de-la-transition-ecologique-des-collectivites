@@ -1,5 +1,5 @@
 import { Controller, Get, Param, ParseUUIDPipe, Query } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { Public } from "@/auth/public.decorator";
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
@@ -8,9 +8,8 @@ import { GetFichesService } from "./services/get-fiches.service";
 import { PlanTransitionResponse, PlanTransitionDetailResponse } from "./dto/plan-transition.dto";
 import { FicheActionResponse, FicheActionDetailResponse } from "./dto/fiche-action.dto";
 
-@ApiTags("Plans & Fiches Action (v2)")
-@ApiBearerAuth()
-@Controller("v2")
+@ApiTags("Opendata - Plans & Fiches Action")
+@Controller("opendata/v1")
 export class PlansFichesController {
   constructor(
     private readonly plansService: GetPlansService,
