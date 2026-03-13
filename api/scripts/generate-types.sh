@@ -13,7 +13,7 @@ echo "Waiting for API to be ready..."
 sleep 5
 
 echo "Generating types..."
-pnpm openapi-typescript http://localhost:3000/openapi.json -o test/generated-types.ts
+pnpm openapi-typescript http://localhost:3000/api/projets/openapi.json -o test/generated-types.ts
 
 # Kill the development server
 echo "Cleaning up.."
