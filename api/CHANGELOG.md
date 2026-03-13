@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.30](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.29...v0.1.30) (2026-03-13)
+
+
+### Features
+
+* ajouter le monitoring Sentry Crons pour l'import TC opendata ([32035a0](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/32035a021081d9c467291509fd50265beef992d1))
+* ajouter une notification Mattermost pour l'import TC opendata ([352e3ab](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/352e3ab30206b79ada799704a8f08ea2bc7f5f75))
+
 ## [0.1.29](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.28...v0.1.29) (2026-03-13)
 
 
