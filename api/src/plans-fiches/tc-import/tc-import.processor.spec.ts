@@ -2,6 +2,7 @@
 import { TcImportProcessor } from "./tc-import.processor";
 import { TcFetchService } from "./tc-fetch.service";
 import { TcImportService } from "./tc-import.service";
+import { ConfigService } from "@nestjs/config";
 import { CustomLogger } from "@logging/logger.service";
 import { Job } from "bullmq";
 import type { ImportStats, ParsedPlan, ParsedFicheAction } from "./tc-import.types";
@@ -10,6 +11,7 @@ describe("TcImportProcessor", () => {
   let processor: TcImportProcessor;
   let fetchService: jest.Mocked<TcFetchService>;
   let importService: jest.Mocked<TcImportService>;
+  let configService: jest.Mocked<ConfigService>;
   let logger: jest.Mocked<CustomLogger>;
 
   const mockPlans: ParsedPlan[] = [
@@ -62,6 +64,10 @@ describe("TcImportProcessor", () => {
       importAll: jest.fn().mockResolvedValue(mockStats),
     } as unknown as jest.Mocked<TcImportService>;
 
+    configService = {
+      get: jest.fn().mockReturnValue(undefined),
+    } as unknown as jest.Mocked<ConfigService>;
+
     logger = {
       log: jest.fn(),
       debug: jest.fn(),
@@ -69,7 +75,7 @@ describe("TcImportProcessor", () => {
       warn: jest.fn(),
     } as unknown as jest.Mocked<CustomLogger>;
 
-    processor = new TcImportProcessor(fetchService, importService, logger);
+    processor = new TcImportProcessor(fetchService, importService, configService, logger);
   });
 
   it("should fetch data and call importAll", async () => {
