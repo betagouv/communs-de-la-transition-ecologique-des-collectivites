@@ -6,7 +6,7 @@ import { CommuneQueryDto } from "./dto/commune-query.dto";
 import { CommuneResponse, CommuneDetailResponse } from "./dto/commune.response";
 import { CompetenceAvecGroupementResponse } from "../competences/dto/competence.response";
 
-@Controller("v1/communes")
+@Controller("referentiel/v1/communes")
 @ApiTags("Référentiel - Communes")
 export class CommunesController {
   constructor(private readonly communesService: CommunesService) {}

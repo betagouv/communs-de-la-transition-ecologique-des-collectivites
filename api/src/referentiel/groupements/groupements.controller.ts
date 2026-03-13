@@ -5,7 +5,7 @@ import { GroupementsService } from "./groupements.service";
 import { GroupementQueryDto } from "./dto/groupement-query.dto";
 import { GroupementResponse, MembreResponse } from "./dto/groupement.response";
 
-@Controller("v1/groupements")
+@Controller("referentiel/v1/groupements")
 @ApiTags("Référentiel - Groupements")
 export class GroupementsController {
   constructor(private readonly groupementsService: GroupementsService) {}

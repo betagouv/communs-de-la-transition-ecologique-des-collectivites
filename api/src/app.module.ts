@@ -23,6 +23,7 @@ import { MatomoModule } from "@/matomo";
 import { ReferentielModule } from "@/referentiel/referentiel.module";
 import { HealthController } from "@/health/health.controller";
 import { PlansFichesModule } from "@/plans-fiches/plans-fiches.module";
+import { ProjetsV2Module } from "@/projets-v2/projets-v2.module";
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { PlansFichesModule } from "@/plans-fiches/plans-fiches.module";
     MatomoModule,
     ReferentielModule,
     PlansFichesModule,
+    ProjetsV2Module,
   ],
   controllers: [HealthController],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],

@@ -9,7 +9,6 @@ import { ProjetsModule } from "@projets/projets.module";
 import { ServicesModule } from "./services/services.module";
 import { ProjetQualificationModule } from "@/projet-qualification/projet-qualification.module";
 import { AnalyticsModule } from "@/analytics/analytics.module";
-import { PlansFichesModule } from "@/plans-fiches/plans-fiches.module";
 
 export function setupApp(app: INestApplication) {
   const logger = app.get(CustomLogger);
@@ -33,6 +32,12 @@ export function setupApp(app: INestApplication) {
     }),
   );
 
+  setupProjetsDoc(app);
+
+  return app;
+}
+
+function setupProjetsDoc(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle("API Projets Collectivités")
     .setDescription("API de partage de projets de transition écologique entre plateformes partenaires.")
@@ -45,10 +50,10 @@ export function setupApp(app: INestApplication) {
 
   const documentFactory = () =>
     SwaggerModule.createDocument(app, config, {
-      include: [ProjetsModule, ServicesModule, ProjetQualificationModule, AnalyticsModule, PlansFichesModule],
+      include: [ProjetsModule, ServicesModule, ProjetQualificationModule, AnalyticsModule],
     });
-  SwaggerModule.setup("api", app, documentFactory, {
-    jsonDocumentUrl: "openapi.json",
+  SwaggerModule.setup("api/projets", app, documentFactory, {
+    jsonDocumentUrl: "api/projets/openapi.json",
     swaggerOptions: {
       persistAuthorization: true,
     },
@@ -56,6 +61,4 @@ export function setupApp(app: INestApplication) {
     // Inject Matomo analytics script into Swagger UI
     customJsStr: matomoService.isTrackingEnabled() ? [matomoService.getInlineScript()] : undefined,
   });
-
-  return app;
 }

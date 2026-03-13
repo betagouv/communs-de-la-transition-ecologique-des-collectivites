@@ -22,7 +22,7 @@ export function setupReferentielDoc(app: INestApplication) {
     });
 
   SwaggerModule.setup("api/referentiel", app, documentFactory, {
-    jsonDocumentUrl: "api/referentiel/openapi.json",
+    jsonDocumentUrl: "/api/referentiel/openapi.json",
     customSiteTitle: "API Référentiel Collectivités - Documentation",
     swaggerOptions: {
       tagsSorter: "alpha",
