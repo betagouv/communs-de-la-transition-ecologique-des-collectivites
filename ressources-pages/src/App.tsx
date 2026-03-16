@@ -4,6 +4,7 @@ import { Footer } from "@codegouvfr/react-dsfr/Footer";
 import { headerFooterDisplayItem } from "@codegouvfr/react-dsfr/Display";
 import { Home } from "./pages/Home";
 import { Vocabulaire } from "./pages/Vocabulaire";
+import { Methodologie } from "./pages/Methodologie";
 import { Confidentialite } from "./pages/Confidentialite";
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/vocabulaire" element={<Vocabulaire />} />
+          <Route path="/vocabulaire/methodologie" element={<Methodologie />} />
           <Route path="/confidentialite" element={<Confidentialite />} />
         </Routes>
       </main>
