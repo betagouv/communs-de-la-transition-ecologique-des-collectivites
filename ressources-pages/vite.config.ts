@@ -5,4 +5,8 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   base: "/ressources/",
+  server: {
+    host: true,
+    allowedHosts: ["claude-box-dinum"],
+  },
 });
