@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.32](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.30...v0.1.32) (2026-03-17)
+
+
+### Features
+
+* **ressources:** refonte page Vocabulaire métier v2 ([8f24d7a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/8f24d7ac7f0f69b145b0bece922f6d7ebc9a162e))
+
 ## [0.1.31](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.30...v0.1.31) (2026-03-17)
 
 
