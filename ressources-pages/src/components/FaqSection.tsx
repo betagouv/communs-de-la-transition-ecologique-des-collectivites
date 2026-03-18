@@ -22,7 +22,7 @@ export function FaqSection() {
         <p>
           La table de correspondance est évolutive. Si votre plateforme intervient dans le domaine de la transition
           écologique des collectivités et que vous souhaitez y apparaître, n&apos;hésitez pas à nous contacter via le
-          formulaire en bas de page. Nous travaillerons ensemble à l&apos;alignement de votre terminologie avec le
+          lien de contact en bas de page. Nous travaillerons ensemble à l&apos;alignement de votre terminologie avec le
           vocabulaire de référence.
         </p>
       </Accordion>

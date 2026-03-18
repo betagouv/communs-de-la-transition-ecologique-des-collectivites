@@ -321,16 +321,6 @@ function ExempleDiagram() {
           strokeWidth="1.5"
           markerEnd="url(#ex-arrow)"
         />
-        {/* Projet 2 → Autofinancement P2 (vertical) */}
-        <line
-          x1={672}
-          y1={g3Y + contentDy + boxH + 2}
-          x2={672}
-          y2={g4Y + contentDy - 2}
-          stroke="#9999CC"
-          strokeWidth="1.5"
-          markerEnd="url(#ex-arrow)"
-        />
 
         {/* === Plan de transition === */}
         <foreignObject x={190} y={g1Y + contentDy} width={400} height={boxH}>
@@ -372,9 +362,6 @@ function ExempleDiagram() {
         {/* === Financements — Projet 2 (right) === */}
         <foreignObject x={400} y={g4Y + contentDy} width={160} height={boxH}>
           <div style={boxStyle("#fce4ec", "#c62828")}>DETR · 150 k€</div>
-        </foreignObject>
-        <foreignObject x={575} y={g4Y + contentDy} width={195} height={boxH}>
-          <div style={boxStyle("#fce4ec", "#c62828")}>Autofinancement · 170 k€</div>
         </foreignObject>
       </svg>
     </div>
@@ -608,7 +595,6 @@ export function Vocabulaire() {
                   <TagsRow
                     key="lt"
                     tags={[
-                      { label: "plan de transition", variant: "light" },
                       { label: "fiche action", variant: "light" },
                       { label: "projet opérationnel", variant: "light" },
                     ]}
@@ -689,15 +675,17 @@ export function Vocabulaire() {
             data={[
               [
                 <strong key="tet">Territoires en Transitions</strong>,
-                <code key="tp">{"{plan}"}</code>,
-                <code key="ta">{"{action}"}</code>,
-                <code key="to">{"{sous-action}"}</code>,
-                "axe ; levier ; compétence",
+                <code key="tp">{"{axe}"}</code>,
+                <code key="ta">{"{fiche_action}"}</code>,
+                <span key="to">
+                  <code>{"{fiche_action}"}</code> (budget)
+                </span>,
+                "levier ; compétence",
               ],
               [
                 <strong key="mec">Mon Espace Collectivité</strong>,
-                <code key="mp">{"{PCAET-de-référence}"}</code>,
-                <code key="ma">{"{action}"}</code>,
+                <code key="mp">{"{crte}"}</code>,
+                "—",
                 <code key="mo">{"{projet}"}</code>,
                 "financement",
               ],
