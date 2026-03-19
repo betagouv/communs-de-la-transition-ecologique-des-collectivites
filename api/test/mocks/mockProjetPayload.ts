@@ -14,5 +14,8 @@ export const mockProjetPayload = (specificPayload: Partial<CreateProjetRequest> 
   collectivites: specificPayload.collectivites ?? [mockedDefaultCollectivite],
   competences: specificPayload.competences ?? ["90-411", "90-311"],
   leviers: specificPayload.leviers ?? ["Bio-carburants"],
+  classificationThematiques: specificPayload.classificationThematiques ?? ["Sobriété énergétique"],
+  classificationSites: specificPayload.classificationSites ?? ["Bâtiment public"],
+  classificationInterventions: specificPayload.classificationInterventions ?? ["Rénovation bâtiment"],
   externalId: specificPayload.externalId ?? "test-external-id",
 });
