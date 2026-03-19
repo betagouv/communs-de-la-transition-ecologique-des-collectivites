@@ -129,6 +129,52 @@ export class CreateProjetRequest {
   @IsIn(leviers, { each: true })
   leviers?: Leviers | null;
 
+  @ApiProperty({
+    type: [String],
+    isArray: true,
+    required: false,
+    nullable: true,
+    description: "Classification thématiques (schéma v0.2)",
+  })
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  classificationThematiques?: string[] | null;
+
+  @ApiProperty({
+    type: [String],
+    isArray: true,
+    required: false,
+    nullable: true,
+    description: "Classification sites (schéma v0.2)",
+  })
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  classificationSites?: string[] | null;
+
+  @ApiProperty({
+    type: [String],
+    isArray: true,
+    required: false,
+    nullable: true,
+    description: "Classification interventions (schéma v0.2)",
+  })
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  classificationInterventions?: string[] | null;
+
+  @ApiProperty({
+    type: String,
+    required: false,
+    nullable: true,
+    description: "Probabilité de lien avec la transition écologique (0-1)",
+  })
+  @IsOptional()
+  @IsString()
+  probabiliteTE?: string | null;
+
   @ApiProperty({ required: true })
   @IsString()
   @IsNotEmpty()

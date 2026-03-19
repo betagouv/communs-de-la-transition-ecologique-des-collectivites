@@ -57,6 +57,12 @@ export const projets = pgTable("projets", {
   competences: text("competences").array(),
   leviers: text("leviers").array(),
 
+  // classification v0.2 (auto-populated via LLM)
+  classificationThematiques: text("classification_thematiques").array(),
+  classificationSites: text("classification_sites").array(),
+  classificationInterventions: text("classification_interventions").array(),
+  probabiliteTE: text("probabilite_te"),
+
   // external service id
   mecId: text("mec_id").unique(),
   tetId: text("tet_id").unique(),
