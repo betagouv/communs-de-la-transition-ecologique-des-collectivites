@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.35](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.34...v0.1.35) (2026-03-19)
+
+
+### Features
+
+* **api:** classifier automatiquement les projets à la création ([de3452d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/de3452d1d627ab8078921c0806cc332380e238c2))
+
+
+### Bug Fixes
+
+* **api:** ajouter les champs classification aux assertions du test E2E ([dc2077b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/dc2077b6c8202134da611c96ad358a55b649a928))
+* **api:** mettre à jour les tests existants pour les nouvelles colonnes classification ([ca8509d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ca8509dc7af5c7a351681c22f7586919c3932281))
+
 ## [0.1.34](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.33...v0.1.34) (2026-03-19)
 
 
