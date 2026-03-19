@@ -8,7 +8,9 @@ import {
   LEVIER_SCORE_TRESHOLD,
   PROJECT_QUALIFICATION_COMPETENCES_JOB,
   PROJECT_QUALIFICATION_LEVIERS_JOB,
+  PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
 } from "@/projet-qualification/const";
+import { ClassificationService } from "@/projet-qualification/classification/classification.service";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { ServiceType } from "@/shared/types";
 import {
@@ -28,6 +30,7 @@ export class ProjetQualificationService extends WorkerHost {
     private readonly anthropicService: AnthropicService,
     private readonly leviersValidationService: LeviersValidationService,
     private readonly competencesValidationService: CompetencesValidationService,
+    private readonly classificationService: ClassificationService,
     private logger: CustomLogger,
   ) {
     super();
@@ -50,6 +53,9 @@ export class ProjetQualificationService extends WorkerHost {
             break;
           case PROJECT_QUALIFICATION_LEVIERS_JOB:
             await this.analyzeAndUpdateLeviers(context, projet.id);
+            break;
+          case PROJECT_QUALIFICATION_CLASSIFICATION_JOB:
+            await this.analyzeAndUpdateClassification(context, projet.id);
             break;
           default:
             throw new Error(`${job.name} is not covered yet`);
@@ -124,6 +130,28 @@ export class ProjetQualificationService extends WorkerHost {
     await this.projetUpdateService.update(projetId, { competences: competencesCodes });
 
     this.logger.log(`Successfully qualified project ${projetId} with competences code ${competencesCodes.join()}`);
+  }
+
+  private async analyzeAndUpdateClassification(context: string, projetId: string): Promise<void> {
+    this.logger.log(`Starting classification analysis for project ${projetId}`);
+
+    const result = await this.classificationService.classify(context, "projet");
+
+    const classificationThematiques = result.thematiques.map((t) => t.label);
+    const classificationSites = result.sites.map((s) => s.label);
+    const classificationInterventions = result.interventions.map((i) => i.label);
+    const probabiliteTE = result.probabiliteTE !== null ? String(result.probabiliteTE) : null;
+
+    await this.projetUpdateService.update(projetId, {
+      classificationThematiques,
+      classificationSites,
+      classificationInterventions,
+      probabiliteTE,
+    });
+
+    this.logger.log(
+      `Successfully classified project ${projetId} with ${classificationThematiques.length} thématiques, ${classificationSites.length} sites, ${classificationInterventions.length} interventions (TE: ${probabiliteTE})`,
+    );
   }
 
   async analyzeCompetences(context: string, serviceType: ServiceType): Promise<ProjetQualificationResponse> {

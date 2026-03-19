@@ -225,6 +225,13 @@
       "when": 1773504000000,
       "tag": "0031_schema_separation",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1773931835505,
+      "tag": "0032_add_classification_columns",
+      "breakpoints": true
     }
   ]
 }

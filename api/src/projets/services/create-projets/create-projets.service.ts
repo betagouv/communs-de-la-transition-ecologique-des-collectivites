@@ -12,6 +12,7 @@ import { CustomLogger } from "@logging/logger.service";
 import {
   PROJECT_QUALIFICATION_COMPETENCES_JOB,
   PROJECT_QUALIFICATION_LEVIERS_JOB,
+  PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
   PROJECT_QUALIFICATION_QUEUE_NAME,
   QualificationJobType,
 } from "@/projet-qualification/const";
@@ -89,6 +90,14 @@ export class CreateProjetsService {
         { leviers: upsertedProject.leviers }, //debug log
       );
       await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_LEVIERS_JOB);
+    }
+
+    const hasProjetNoClassification =
+      !upsertedProject.classificationThematiques || upsertedProject.classificationThematiques.length === 0;
+
+    if (hasProjetNoClassification) {
+      this.logger.log(`Triggering classification for upsertedProject ${upsertedProject.id}`);
+      await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_CLASSIFICATION_JOB);
     }
 
     return upsertedProject.id;

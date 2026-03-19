@@ -10,6 +10,7 @@ import { ProjetQualificationController } from "@/projet-qualification/projet-qua
 import { AnthropicService } from "@/projet-qualification/llm/anthropic.service";
 import { LeviersValidationService } from "@/projet-qualification/llm/validation/leviers-validation.service";
 import { CompetencesValidationService } from "@/projet-qualification/llm/validation/competences-validation.service";
+import { ClassificationModule } from "@/projet-qualification/classification/classification.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CompetencesValidationService } from "@/projet-qualification/llm/validat
       adapter: BullMQAdapter,
     }),
     ProjetsModule,
+    ClassificationModule,
     ConfigModule,
   ],
   controllers: [ProjetQualificationController],
