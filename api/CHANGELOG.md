@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.34](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.33...v0.1.34) (2026-03-19)
+
+
+### Features
+
+* **api:** ajouter l'API de classification thématiques/sites/interventions ([233a0af](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/233a0af6df6e9fe07ae59577e58746c1460474c2))
+* **api:** utiliser Claude Sonnet 4.6 par défaut pour la classification ([9e0cc8a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/9e0cc8a5924c58628549c4238aac6dda7a94f786))
+
+
+### Bug Fixes
+
+* **api:** aligner le format projet sur le pipeline Python et ajouter DECI aux acronymes ([b0ff272](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/b0ff272a7ba1fa86fffac7fccc8b2bc46d0e4a93))
+* **api:** relaxer l'assertion TE probability pour projet non-écologique ([e5cc83e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e5cc83eacaa43509f5f610932b76a2aa828ce260))
+
 ## [0.1.33](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.32...v0.1.33) (2026-03-18)
 
 
