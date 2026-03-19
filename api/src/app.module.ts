@@ -15,6 +15,7 @@ import { ProjetsModule } from "@projets/projets.module";
 import { currentEnv } from "@/shared/utils/currentEnv";
 import { BullModule } from "@nestjs/bullmq";
 import { ProjetQualificationModule } from "@/projet-qualification/projet-qualification.module";
+import { ClassificationModule } from "@/projet-qualification/classification/classification.module";
 import { BullBoardModule } from "@bull-board/nestjs";
 import basicAuth from "express-basic-auth";
 import { ExpressAdapter } from "@bull-board/express";
@@ -67,6 +68,7 @@ import { ProjetsV2Module } from "@/projets-v2/projets-v2.module";
     LoggerModule,
     GeoModule,
     ProjetQualificationModule,
+    ClassificationModule,
     AnalyticsModule,
     MatomoModule,
     ReferentielModule,
