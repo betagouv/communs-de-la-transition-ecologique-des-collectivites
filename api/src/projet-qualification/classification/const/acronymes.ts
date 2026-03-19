@@ -47,4 +47,8 @@ export const ACRONYMES = [
     acronyme: "MAM",
     definition: "Maisons d'Assistantes Maternelles",
   },
+  {
+    acronyme: "DECI",
+    definition: "Défense Extérieure Contre l'Incendie (citernes, réservoirs d'eau, bornes et poteaux incendie)",
+  },
 ] as const;

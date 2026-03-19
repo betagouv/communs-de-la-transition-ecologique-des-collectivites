@@ -90,7 +90,7 @@ export class ClassificationAnthropicService {
               // Part 2: Context (not cached - changes every request)
               {
                 type: "text",
-                text: `${contextLabel} :\n${context}`,
+                text: `${contextLabel} :\n- "${context}"`,
               },
             ],
           },
