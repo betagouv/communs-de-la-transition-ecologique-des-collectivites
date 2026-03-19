@@ -5,7 +5,7 @@
 /**
  * Available Anthropic model IDs
  */
-export type AnthropicModel = "claude-haiku-4-5-20251001" | "claude-sonnet-4-5-20250929";
+export type AnthropicModel = "claude-haiku-4-5-20251001" | "claude-sonnet-4-5-20250929" | "claude-sonnet-4-6";
 
 /**
  * Levier (lever) classification result from LLM

@@ -33,7 +33,7 @@ export class ClassificationAnthropicService {
       apiKey: apiKey ?? "test-api-key",
     });
 
-    this.defaultModel = this.configService.get<AnthropicModel>("ANTHROPIC_MODEL") ?? "claude-haiku-4-5-20251001";
+    this.defaultModel = this.configService.get<AnthropicModel>("ANTHROPIC_MODEL") ?? "claude-sonnet-4-6";
   }
 
   async analyzeThematiques(context: string, type: "projet" | "aide" = "projet"): Promise<ClassificationAnalysisResult> {
