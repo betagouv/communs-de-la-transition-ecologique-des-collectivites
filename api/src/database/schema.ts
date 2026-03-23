@@ -62,6 +62,11 @@ export const projets = pgTable("projets", {
   classificationSites: text("classification_sites").array(),
   classificationInterventions: text("classification_interventions").array(),
   probabiliteTE: text("probabilite_te"),
+  classificationScores: jsonb("classification_scores").$type<{
+    thematiques: { label: string; score: number }[];
+    sites: { label: string; score: number }[];
+    interventions: { label: string; score: number }[];
+  }>(),
 
   // external service id
   mecId: text("mec_id").unique(),
@@ -188,6 +193,17 @@ export const apiRequests = pgTable("api_requests", {
   statusCode: integer("status_code").notNull(),
   responseTimeInMs: integer("response_time").notNull(),
   serviceName: text("service_name"),
+});
+
+export const aideClassifications = pgTable("aide_classifications", {
+  idAt: text("id_at").primaryKey(),
+  contentHash: text("content_hash").notNull(),
+  classificationScores: jsonb("classification_scores").notNull().$type<{
+    thematiques: { label: string; score: number }[];
+    sites: { label: string; score: number }[];
+    interventions: { label: string; score: number }[];
+  }>(),
+  classifiedAt: timestamp("classified_at").notNull().defaultNow(),
 });
 
 // relations needed by drizzle to allow nested query : https://orm.drizzle.team/docs/relations
