@@ -135,18 +135,28 @@ export class ProjetQualificationService extends WorkerHost {
   private async analyzeAndUpdateClassification(context: string, projetId: string): Promise<void> {
     this.logger.log(`Starting classification analysis for project ${projetId}`);
 
-    const result = await this.classificationService.classify(context, "projet");
+    // Get all scores (threshold 0) for jsonb storage and matching
+    const allScores = await this.classificationService.classify(context, "projet", 0);
 
-    const classificationThematiques = result.thematiques.map((t) => t.label);
-    const classificationSites = result.sites.map((s) => s.label);
-    const classificationInterventions = result.interventions.map((i) => i.label);
-    const probabiliteTE = result.probabiliteTE !== null ? String(result.probabiliteTE) : null;
+    // Store full scores for matching
+    const classificationScores = {
+      thematiques: allScores.thematiques,
+      sites: allScores.sites,
+      interventions: allScores.interventions,
+    };
+
+    // Filter for text[] columns (default threshold 0.8)
+    const classificationThematiques = allScores.thematiques.filter((t) => t.score >= 0.8).map((t) => t.label);
+    const classificationSites = allScores.sites.filter((s) => s.score >= 0.8).map((s) => s.label);
+    const classificationInterventions = allScores.interventions.filter((i) => i.score >= 0.8).map((i) => i.label);
+    const probabiliteTE = allScores.probabiliteTE !== null ? String(allScores.probabiliteTE) : null;
 
     await this.projetUpdateService.update(projetId, {
       classificationThematiques,
       classificationSites,
       classificationInterventions,
       probabiliteTE,
+      classificationScores,
     });
 
     this.logger.log(

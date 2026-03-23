@@ -175,6 +175,19 @@ export class CreateProjetRequest {
   @IsString()
   probabiliteTE?: string | null;
 
+  @ApiProperty({
+    type: Object,
+    required: false,
+    nullable: true,
+    description: "Classification scores complets (utilisé pour le matching)",
+  })
+  @IsOptional()
+  classificationScores?: {
+    thematiques: { label: string; score: number }[];
+    sites: { label: string; score: number }[];
+    interventions: { label: string; score: number }[];
+  } | null;
+
   @ApiProperty({ required: true })
   @IsString()
   @IsNotEmpty()

@@ -9,6 +9,7 @@ import { ProjetsModule } from "@projets/projets.module";
 import { ServicesModule } from "./services/services.module";
 import { ProjetQualificationModule } from "@/projet-qualification/projet-qualification.module";
 import { ClassificationModule } from "@/projet-qualification/classification/classification.module";
+import { AidesModule } from "@/aides/aides.module";
 import { AnalyticsModule } from "@/analytics/analytics.module";
 
 export function setupApp(app: INestApplication) {
@@ -51,7 +52,14 @@ function setupProjetsDoc(app: INestApplication) {
 
   const documentFactory = () =>
     SwaggerModule.createDocument(app, config, {
-      include: [ProjetsModule, ServicesModule, ProjetQualificationModule, ClassificationModule, AnalyticsModule],
+      include: [
+        ProjetsModule,
+        ServicesModule,
+        ProjetQualificationModule,
+        ClassificationModule,
+        AidesModule,
+        AnalyticsModule,
+      ],
     });
   SwaggerModule.setup("api/projets", app, documentFactory, {
     jsonDocumentUrl: "api/projets/openapi.json",

@@ -56,6 +56,25 @@ export class ProjetResponse {
   })
   leviers!: Leviers | null;
 
+  @ApiProperty({ nullable: true, type: [String] })
+  classificationThematiques!: string[] | null;
+
+  @ApiProperty({ nullable: true, type: [String] })
+  classificationSites!: string[] | null;
+
+  @ApiProperty({ nullable: true, type: [String] })
+  classificationInterventions!: string[] | null;
+
+  @ApiProperty({ nullable: true, type: String })
+  probabiliteTE!: string | null;
+
+  @ApiProperty({ nullable: true, type: Object })
+  classificationScores!: {
+    thematiques: { label: string; score: number }[];
+    sites: { label: string; score: number }[];
+    interventions: { label: string; score: number }[];
+  } | null;
+
   @ApiProperty({ nullable: true, type: String })
   mecId!: string | null;
 

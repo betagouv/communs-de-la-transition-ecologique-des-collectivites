@@ -232,6 +232,13 @@
       "when": 1773931835505,
       "tag": "0032_add_classification_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1774266107465,
+      "tag": "0033_aide_classifications_and_scores",
+      "breakpoints": true
     }
   ]
 }
