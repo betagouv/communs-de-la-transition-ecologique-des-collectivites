@@ -7,6 +7,7 @@ import { GetProjetsService } from "@projets/services/get-projets/get-projets.ser
 import { AidesTerritoiresService, AideTerritoires } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService, MatchResult } from "./aides-matching.service";
+import { AidesCacheService } from "./aides-cache.service";
 
 interface EnrichedAide extends AideTerritoires {
   classification?: {
@@ -31,6 +32,7 @@ export class AidesController {
     private readonly atService: AidesTerritoiresService,
     private readonly classificationService: AideClassificationService,
     private readonly matchingService: AidesMatchingService,
+    private readonly cacheService: AidesCacheService,
     private readonly projetsService: GetProjetsService,
     private readonly logger: CustomLogger,
   ) {}
@@ -52,14 +54,20 @@ export class AidesController {
   ): Promise<{ aides: EnrichedAide[]; total: number }> {
     const maxResults = parseInt(limit ?? "20", 10);
 
-    // 1. Fetch aides from AT API
+    // 1. Fetch aides from AT API (with Redis cache)
     const params: Record<string, string> = {};
     if (perimeter) params.perimeter = perimeter;
 
-    this.logger.log(`Fetching aides from AT${perimeter ? ` (perimeter=${perimeter})` : ""}`);
-    const aides = await this.atService.fetchAides(params);
+    const cacheKey = this.cacheService.buildKey(params);
+    let aides = await this.cacheService.get(cacheKey);
 
-    // 2. Get classifications for these aides (from cache)
+    if (!aides) {
+      this.logger.log(`Cache miss for AT aides, fetching from API${perimeter ? ` (perimeter=${perimeter})` : ""}`);
+      aides = await this.atService.fetchAides(params);
+      await this.cacheService.set(cacheKey, aides);
+    }
+
+    // 2. Get classifications for these aides (from DB cache)
     const aideIds = aides.map((a) => String(a.id));
     const classifications = await this.classificationService.getCachedClassifications(aideIds);
 
@@ -109,12 +117,17 @@ export class AidesController {
   @Get("sync")
   @ApiOperation({
     summary: "Synchroniser les classifications des aides",
-    description: "Déclenche la classification LLM des aides non encore classifiées ou modifiées.",
+    description:
+      "Déclenche la classification LLM des aides non encore classifiées ou modifiées. Invalide le cache Redis.",
   })
   async syncClassifications(): Promise<{ classified: number; cached: number; total: number }> {
     this.logger.log("Starting aide classification sync");
     const aides = await this.atService.fetchAides();
     const result = await this.classificationService.syncClassifications(aides);
+
+    // Invalidate AT cache after sync (classifications changed)
+    await this.cacheService.invalidateAll();
+
     return { ...result, total: aides.length };
   }
 }

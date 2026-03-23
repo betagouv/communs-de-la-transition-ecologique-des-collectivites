@@ -159,6 +159,9 @@ importers:
       http-proxy-middleware:
         specifier: ^3.0.3
         version: 3.0.5
+      ioredis:
+        specifier: ^5.8.2
+        version: 5.8.2
       openapi-fetch:
         specifier: ^0.15.0
         version: 0.15.0
