@@ -6,8 +6,6 @@ import { CompetenceCode, Levier } from "@/shared/types";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
 import { collectivites, PhaseStatut, ProjetPhase } from "@database/schema";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
-import { GeoService } from "@/geo/geo-service";
-
 describe("Projets (e2e)", () => {
   const api = createApiClient(process.env.MEC_API_KEY);
 
@@ -187,25 +185,24 @@ describe("Projets (e2e)", () => {
       });
     }, 30000);
 
-    it("should create a valid projet when missing valid collectivites", async () => {
-      const missingCodeInsee = "10110"; //Courteranges
+    it("should create a valid projet with a different seeded collectivite", async () => {
+      const courterangesCodeInsee = "10110";
 
-      // Mock geo service to avoid flaky external calls in CI
-      const geoService = global.testApp.get(GeoService, { strict: false });
-      const spy = jest.spyOn(geoService, "validateAndGetCollectivite").mockResolvedValueOnce({
-        nom: "Courteranges",
+      // Seed a second commune directly in DB to avoid external geo API calls
+      await global.testDbService.database.insert(collectivites).values({
         type: "Commune",
-        codeInsee: missingCodeInsee,
-        codeDepartements: ["10"],
-        codeRegions: ["44"],
+        codeInsee: courterangesCodeInsee,
+        nom: "Courteranges",
         codeEpci: "200069250",
         siren: "211001045",
+        codeDepartements: ["10"],
+        codeRegions: ["44"],
       });
 
       const mecClient = createApiClient(process.env.MEC_API_KEY);
       const { data, error } = await mecClient.projets.create({
         ...validProjet,
-        collectivites: [{ code: missingCodeInsee, type: "Commune" }],
+        collectivites: [{ code: courterangesCodeInsee, type: "Commune" }],
       });
       expect(error).toBeUndefined();
       expect(data).toHaveProperty("id");
@@ -216,7 +213,7 @@ describe("Projets (e2e)", () => {
         competences: ["90-411", "90-311"],
         collectivites: [
           {
-            codeInsee: missingCodeInsee,
+            codeInsee: courterangesCodeInsee,
             codeEpci: "200069250",
             type: "Commune",
             siren: "211001045",
@@ -229,18 +226,10 @@ describe("Projets (e2e)", () => {
           },
         ],
       });
-
-      spy.mockRestore();
     });
 
     it("should reject a projet when collectivites are not valid", async () => {
       const missingCodeInsee = "invalidCodeInsee";
-
-      // Mock geo service to simulate invalid code
-      const geoService = global.testApp.get(GeoService, { strict: false });
-      const spy = jest
-        .spyOn(geoService, "validateAndGetCollectivite")
-        .mockRejectedValueOnce(new Error("Cannot find a corresponding Commune for this code invalidCodeInsee"));
 
       const mecClient = createApiClient(process.env.MEC_API_KEY);
       const { error } = await mecClient.projets.create({
@@ -249,8 +238,6 @@ describe("Projets (e2e)", () => {
       });
       expect(error?.statusCode).toBe(400);
       expect(error?.message).toContain("Cannot find a corresponding Commune for this code invalidCodeInsee");
-
-      spy.mockRestore();
     });
 
     it("should reject when nom is empty", async () => {
