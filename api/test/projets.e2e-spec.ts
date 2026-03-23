@@ -6,6 +6,7 @@ import { CompetenceCode, Levier } from "@/shared/types";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
 import { collectivites, PhaseStatut, ProjetPhase } from "@database/schema";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
+import { GeoApiService } from "@/geo/geo-api.service";
 
 describe("Projets (e2e)", () => {
   const api = createApiClient(process.env.MEC_API_KEY);
@@ -189,6 +190,20 @@ describe("Projets (e2e)", () => {
     it("should create a valid projet when missing valid collectivites", async () => {
       const missingCodeInsee = "10110"; //Courteranges
 
+      // Mock geo API to avoid flaky external calls in CI
+      const geoApiService = global.testApp.get(GeoApiService);
+      const spy = jest.spyOn(geoApiService, "getCommune").mockResolvedValueOnce({
+        data: {
+          nom: "Courteranges",
+          type: "Commune",
+          codeInsee: missingCodeInsee,
+          codeDepartements: ["10"],
+          codeRegions: ["44"],
+          codeEpci: "200069250",
+          siren: "211001045",
+        },
+      });
+
       const mecClient = createApiClient(process.env.MEC_API_KEY);
       const { data, error } = await mecClient.projets.create({
         ...validProjet,
@@ -216,10 +231,18 @@ describe("Projets (e2e)", () => {
           },
         ],
       });
+
+      spy.mockRestore();
     });
 
     it("should reject a projet when collectivites are not valid", async () => {
       const missingCodeInsee = "invalidCodeInsee";
+
+      // Mock geo API to return an error for invalid code
+      const geoApiService = global.testApp.get(GeoApiService);
+      const spy = jest.spyOn(geoApiService, "getCommune").mockResolvedValueOnce({
+        error: { message: "Not found" },
+      });
 
       const mecClient = createApiClient(process.env.MEC_API_KEY);
       const { error } = await mecClient.projets.create({
@@ -228,6 +251,8 @@ describe("Projets (e2e)", () => {
       });
       expect(error?.statusCode).toBe(400);
       expect(error?.message).toContain("Cannot find a corresponding Commune for this code invalidCodeInsee");
+
+      spy.mockRestore();
     });
 
     it("should reject when nom is empty", async () => {
