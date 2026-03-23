@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.36](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.35...v0.1.36) (2026-03-23)
+
+
+### Features
+
+* **api:** ajouter cron job sync aides + cache Redis AT ([fa1546c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/fa1546c4c8d009bddb8a88f93bb33345333884f2))
+* **api:** ajouter le proxy enrichi Aides-Territoires avec matching ([3f8f250](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3f8f2504e3b24b6bbf2be6b1145675d310d32e27))
+* migrer le domaine vers api.collectivites.beta.gouv.fr ([a90b097](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/a90b0972f801dd6edb1d19c3f3d7a63ab1684f86))
+
+
+### Bug Fixes
+
+* **api:** ajouter AT_API_TOKEN manquant dans la config de test et le CI ([11cc407](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/11cc407b50af00215a544fe3a410a432cb06a467))
+* **api:** ajouter classificationScores aux assertions du test E2E ([994df90](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/994df904414098ed8eb282f0b1826e49aa341630))
+* **api:** ajouter classificationScores aux assertions du test unitaire ([95f338a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/95f338a73730878a5309264eeb602abf92080419))
+* **api:** corriger le test E2E flaky sur les collectivités manquantes ([52ff42d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/52ff42dde6b56e1ae7f9c18ef4df57956f62609b))
+* **api:** résoudre GeoService avec strict: false dans le test E2E ([2f4a749](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2f4a7491090b33ec2600b1702ba122a4428bf3bf))
+* **api:** supprimer la dépendance à geo.api.gouv.fr dans le test E2E ([415126b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/415126b50a82a03d4369618ef0b835f634325abf))
+* **api:** utiliser GeoService au lieu de GeoApiService dans le test E2E ([3c3dd89](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3c3dd89becc71130449efe90449ec49bfafc531c))
+
 ## [0.1.35](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.34...v0.1.35) (2026-03-19)
 
 
