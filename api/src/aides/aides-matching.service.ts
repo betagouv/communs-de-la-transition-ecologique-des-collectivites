@@ -1,3 +1,31 @@
+/**
+ * Matching engine for projects and aides
+ *
+ * Algorithm (from Gaëtan's match_projets_aides.py):
+ *
+ * Both projects and aides are pre-classified on 3 axes (thématiques, sites,
+ * interventions), each label having a confidence score between 0 and 1.
+ *
+ * For each axis:
+ *   1. Keep only labels with score ≥ 0.8 (high confidence)
+ *   2. Find common labels between the project and the aide
+ *   3. For each common label, compute:
+ *        term = (score_project - 0.7) × (score_aide - 0.7)
+ *      The -0.7 offset means:
+ *        - A label at 0.8 (just above threshold) contributes 0.1 × ... (low weight)
+ *        - A label at 1.0 (very confident) contributes 0.3 × ... (high weight)
+ *   4. Axis score = sum(terms) / number of project labels on this axis
+ *      Division normalizes so projects with fewer labels aren't penalized
+ *
+ * Total score = score_thématiques + score_sites + score_interventions
+ *
+ * Example:
+ *   Project: "Isolation thermique" (0.95), "Rénovation énergétique" (0.85)
+ *   Aide:    "Rénovation énergétique" (0.92)
+ *   Common label: "Rénovation énergétique"
+ *   Score = (0.85 - 0.7) × (0.92 - 0.7) / 2 = 0.15 × 0.22 / 2 = 0.0165
+ */
+
 import { Injectable } from "@nestjs/common";
 import { CustomLogger } from "@logging/logger.service";
 
