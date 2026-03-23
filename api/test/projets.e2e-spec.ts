@@ -584,6 +584,7 @@ describe("Projets (e2e)", () => {
         classificationSites: ["Bâtiment public"],
         classificationInterventions: ["Rénovation bâtiment"],
         probabiliteTE: null,
+        classificationScores: null,
         programme: null,
         mecId: "test-external-id",
         recocoId: null,
