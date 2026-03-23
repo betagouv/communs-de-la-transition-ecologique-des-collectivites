@@ -89,12 +89,18 @@ export class AidesTerritoiresService {
 
   /**
    * Resolve a code INSEE (commune) or code EPCI to an AT perimeter_id
-   * Calls AT /api/perimeters/?code=X and returns the perimeter_id
+   * Strategy: search AT /perimeters/?q={commune_name} then match by code
+   * AT's code/insee params don't filter, only q= (name search) works
    */
-  async resolvePerimeterId(codeInsee: string): Promise<string | null> {
+  async resolvePerimeterId(codeInsee: string, communeName?: string): Promise<string | null> {
+    if (!communeName) {
+      this.logger.warn(`No commune name provided for code ${codeInsee}, cannot resolve perimeter`);
+      return null;
+    }
+
     const token = await this.getBearerToken();
 
-    const response = await fetch(`${this.baseUrl}/perimeters/?code=${encodeURIComponent(codeInsee)}&page_size=50`, {
+    const response = await fetch(`${this.baseUrl}/perimeters/?q=${encodeURIComponent(communeName)}&page_size=50`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -107,16 +113,14 @@ export class AidesTerritoiresService {
       results: { perimeter_id: number; code: string; scale: string; name: string }[];
     };
 
-    // Find exact code match (AT returns all codes starting with the query)
+    // Find exact code match in search results
     const exact = data.results.find((r) => r.code === codeInsee);
     if (exact) {
-      this.logger.log(
-        `Resolved code ${codeInsee} → perimeter_id ${exact.perimeter_id} (${exact.name}, ${exact.scale})`,
-      );
+      this.logger.log(`Resolved ${communeName} (${codeInsee}) → perimeter_id ${exact.perimeter_id} (${exact.scale})`);
       return String(exact.perimeter_id);
     }
 
-    this.logger.warn(`No exact perimeter match for code ${codeInsee}`);
+    this.logger.warn(`No AT perimeter match for ${communeName} (${codeInsee})`);
     return null;
   }
 }

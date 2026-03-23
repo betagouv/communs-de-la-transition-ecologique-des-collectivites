@@ -3,6 +3,9 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger"
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 import { CustomLogger } from "@logging/logger.service";
+import { DatabaseService } from "@database/database.service";
+import { refCommunes } from "@database/schema";
+import { eq } from "drizzle-orm";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { AidesTerritoiresService, AideTerritoires } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
@@ -33,6 +36,7 @@ export class AidesController {
     private readonly classificationService: AideClassificationService,
     private readonly matchingService: AidesMatchingService,
     private readonly cacheService: AidesCacheService,
+    private readonly dbService: DatabaseService,
     private readonly projetsService: GetProjetsService,
     private readonly logger: CustomLogger,
   ) {}
@@ -63,7 +67,15 @@ export class AidesController {
     if (codeInsee) {
       let perimeterId = await this.cacheService.getPerimeterId(codeInsee);
       if (!perimeterId) {
-        perimeterId = await this.atService.resolvePerimeterId(codeInsee);
+        // Lookup commune name from our referential DB
+        const [commune] = await this.dbService.database
+          .select({ nom: refCommunes.nom })
+          .from(refCommunes)
+          .where(eq(refCommunes.codeInsee, codeInsee))
+          .limit(1);
+
+        const communeName = commune?.nom;
+        perimeterId = await this.atService.resolvePerimeterId(codeInsee, communeName ?? undefined);
         if (perimeterId) {
           await this.cacheService.setPerimeterId(codeInsee, perimeterId);
         } else {
