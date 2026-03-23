@@ -129,7 +129,7 @@ Authorization: Bearer <MEC_API_KEY>
 ### 3. Trouver les aides pertinentes pour un projet
 
 ```http
-GET /aides?projet_id=019d...&perimeter=70971&limit=10
+GET /aides?projet_id=019d...&code_insee=44109&limit=10
 Authorization: Bearer <MEC_API_KEY>
 ```
 
@@ -137,7 +137,7 @@ Authorization: Bearer <MEC_API_KEY>
 | Param | Description | Requis |
 |-------|-------------|--------|
 | `projet_id` | ID du projet pour le matching | Non (mais recommandé) |
-| `perimeter` | ID de périmètre Aides-Territoires | Non |
+| `code_insee` | Code INSEE commune ou code EPCI | Non |
 | `limit` | Nombre max de résultats (défaut: 20) | Non |
 
 **Réponse** :
@@ -256,7 +256,7 @@ Cet endpoint est **synchrone** (réponse en ~3-5 secondes) mais consomme des cr�
    → classificationThematiques est rempli ? Oui → continuer
 
 3. MEC affiche les aides pertinentes
-   GET /aides?projet_id=019d...&perimeter=70971
+   GET /aides?projet_id=019d...&code_insee=44109
    → liste triée par matchingScore
 
 4. L'utilisateur clique sur une aide
@@ -358,8 +358,8 @@ La classification fonctionne quand même, mais sera moins précise. Un titre seu
 **Q: Comment forcer une re-classification ?**
 Envoyer `PATCH /projets/:id` avec `{ "classificationThematiques": null }`. La classification sera relancée.
 
-**Q: Le `perimeter` dans `GET /aides` correspond à quoi ?**
-C'est l'ID interne d'Aides-Territoires pour un périmètre géographique (pas le code INSEE). Exemple : 70971 = Nantes. La correspondance code INSEE → perimeter_id sera documentée prochainement.
+**Q: Comment fonctionne le filtre géographique `code_insee` ?**
+L'API traduit automatiquement le code INSEE (ex: `44109` = Nantes) en ID de périmètre Aides-Territoires. Cette correspondance est cachée 7 jours (les codes INSEE ne changent pas). Fonctionne aussi avec les codes EPCI.
 
 **Q: Quelle est la fraîcheur des données d'aides ?**
 Les données AT sont cachées 1h (Redis). Les classifications d'aides sont re-synchronisées quotidiennement à 3h UTC. Si une aide est modifiée côté AT, la re-classification se fait automatiquement au prochain sync (détection par hash du contenu).

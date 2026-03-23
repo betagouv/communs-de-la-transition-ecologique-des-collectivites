@@ -88,10 +88,36 @@ export class AidesTerritoiresService {
   }
 
   /**
-   * Fetch aides filtered by territory (perimeter_id from AT)
+   * Resolve a code INSEE (commune) or code EPCI to an AT perimeter_id
+   * Calls AT /api/perimeters/?code=X and returns the perimeter_id
    */
-  async fetchAidesByTerritory(perimeterId: string): Promise<AideTerritoires[]> {
-    return this.fetchAides({ perimeter: perimeterId });
+  async resolvePerimeterId(codeInsee: string): Promise<string | null> {
+    const token = await this.getBearerToken();
+
+    const response = await fetch(`${this.baseUrl}/perimeters/?code=${encodeURIComponent(codeInsee)}&page_size=50`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      this.logger.error(`AT perimeters lookup failed: ${response.status}`);
+      return null;
+    }
+
+    const data = (await response.json()) as {
+      results: { perimeter_id: number; code: string; scale: string; name: string }[];
+    };
+
+    // Find exact code match (AT returns all codes starting with the query)
+    const exact = data.results.find((r) => r.code === codeInsee);
+    if (exact) {
+      this.logger.log(
+        `Resolved code ${codeInsee} → perimeter_id ${exact.perimeter_id} (${exact.name}, ${exact.scale})`,
+      );
+      return String(exact.perimeter_id);
+    }
+
+    this.logger.warn(`No exact perimeter match for code ${codeInsee}`);
+    return null;
   }
 }
 
