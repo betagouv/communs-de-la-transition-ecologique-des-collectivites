@@ -15,3 +15,4 @@ process.env.RECOCO_API_KEY = process.env.RECOCO_API_KEY ?? "test-recoco-api-key"
 process.env.URBAN_VITALIZ_API_KEY = process.env.URBAN_VITALIZ_API_KEY ?? "test-urban-vitaliz-api-key";
 process.env.SOS_PONTS_API_KEY = process.env.SOS_PONTS_API_KEY ?? "test-sos-ponts-api-key";
 process.env.FOND_VERT_API_KEY = process.env.FOND_VERT_API_KEY ?? "test-fond-vert-api-key";
+process.env.AT_API_TOKEN = process.env.AT_API_TOKEN ?? "test-at-api-token";
