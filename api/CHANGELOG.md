@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.38](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.37...v0.1.38) (2026-03-23)
+
+
+### Features
+
+* **api:** résoudre code INSEE → perimeter AT automatiquement ([690e8c5](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/690e8c5e647e4987c2f47593afa8bb9183c80325))
+
+
+### Bug Fixes
+
+* **docs:** corriger le domaine API → api.collectivites.beta.gouv.fr ([e0afa5e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e0afa5e8c73210d5e99cf2abb15b36af41723bcb))
+
 ## [0.1.37](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.35...v0.1.37) (2026-03-23)
 
 
