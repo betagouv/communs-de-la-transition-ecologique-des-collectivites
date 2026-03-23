@@ -191,7 +191,7 @@ describe("Projets (e2e)", () => {
       const missingCodeInsee = "10110"; //Courteranges
 
       // Mock geo service to avoid flaky external calls in CI
-      const geoService = global.testApp.get(GeoService);
+      const geoService = global.testApp.get(GeoService, { strict: false });
       const spy = jest.spyOn(geoService, "validateAndGetCollectivite").mockResolvedValueOnce({
         nom: "Courteranges",
         type: "Commune",
@@ -237,7 +237,7 @@ describe("Projets (e2e)", () => {
       const missingCodeInsee = "invalidCodeInsee";
 
       // Mock geo service to simulate invalid code
-      const geoService = global.testApp.get(GeoService);
+      const geoService = global.testApp.get(GeoService, { strict: false });
       const spy = jest
         .spyOn(geoService, "validateAndGetCollectivite")
         .mockRejectedValueOnce(new Error("Cannot find a corresponding Commune for this code invalidCodeInsee"));
