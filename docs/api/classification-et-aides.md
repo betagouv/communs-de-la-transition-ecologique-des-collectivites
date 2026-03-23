@@ -179,6 +179,63 @@ Authorization: Bearer <MEC_API_KEY>
 
 **`labelsCommuns`** : les labels partagés entre le projet et l'aide qui ont contribué au score.
 
+#### Comment le `matchingScore` est calculé
+
+Le matching ne fait **aucun appel à l'IA**. C'est un calcul mathématique pur basé sur les labels de classification que le projet et l'aide ont en commun.
+
+**Formule par axe** (thématiques, sites, interventions) :
+
+```
+1. Garder seulement les labels avec score ≥ 0.8 (haute confiance)
+   — côté projet ET côté aide
+
+2. Pour chaque label en commun :
+   terme = (score_projet - 0.7) × (score_aide - 0.7)
+
+3. Score axe = somme(termes) / nombre de labels du projet sur cet axe
+```
+
+**Score total** = score thématiques + score sites + score interventions
+
+**Pourquoi le `- 0.7` ?** C'est un décalage qui donne plus de poids aux labels dont le modèle est très sûr :
+
+| Score du label | Contribution (`score - 0.7`) |
+| -------------- | ---------------------------- |
+| 0.8 (seuil)    | 0.1 — poids faible           |
+| 0.9            | 0.2 — poids moyen            |
+| 1.0 (certain)  | 0.3 — poids fort             |
+
+**La division** par le nombre de labels du projet normalise le score : un projet avec 1 seul label très pertinent n'est pas désavantagé face à un projet avec 3 labels.
+
+**Exemple concret** :
+
+```
+Projet "Rénovation thermique du gymnase" :
+  Thématiques : Isolation thermique (0.95), Rénovation énergétique (0.85)
+  Sites :       Salle de sport (0.95)
+  Interventions : Rénovation bâtiment (0.95)
+
+Aide "Subvention rénovation bâtiments publics" :
+  Thématiques : Rénovation énergétique (0.92)
+  Sites :       Bâtiment public (0.88)
+  Interventions : Rénovation bâtiment (0.90)
+
+Score thématiques :
+  Label commun : "Rénovation énergétique"
+  = (0.85 - 0.7) × (0.92 - 0.7) / 2 labels projet
+  = 0.15 × 0.22 / 2 = 0.0165
+
+Score sites :
+  Pas de label commun (Salle de sport ≠ Bâtiment public) = 0
+
+Score interventions :
+  Label commun : "Rénovation bâtiment"
+  = (0.95 - 0.7) × (0.90 - 0.7) / 1 label projet
+  = 0.25 × 0.20 = 0.05
+
+Score total = 0.0165 + 0 + 0.05 = 0.0665
+```
+
 ### 4. Classifier un texte à la volée (optionnel)
 
 Si MEC veut classifier un projet **avant** de l'envoyer via `POST /projets` :
