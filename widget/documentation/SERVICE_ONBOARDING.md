@@ -16,7 +16,7 @@ Pour le moment, nous testons le widget sur les plateformes Territoires en transi
 
 Les services présentés sont pour l'instant sélectionnés par l'équipe des communs (pour tester la proposition de valeur). À terme, nous souhaitons que ce soit l'écosystème qui sélectionne et valide les services présentés.
 
-Vous pouvez retrouver la liste complète des services présentés sur [la démo du widget](https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/sandbox/)
+Vous pouvez retrouver la liste complète des services présentés sur [la démo du widget](https://api.collectivites.beta.gouv.fr/sandbox/)
 
 Sur cette démo, tous les services sont présentés peu importe le contexte. Les services sont soient :
 
@@ -47,7 +47,7 @@ Principalement nous avons besoin pour une intégration de base de :
 
 ![contenu-service.png](contenu-service.png)
 
-Voici la liste complète des services que nous avons integré à date : https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/sandbox/
+Voici la liste complète des services que nous avons integré à date : https://api.collectivites.beta.gouv.fr/sandbox/
 
 ## Intégration des services
 

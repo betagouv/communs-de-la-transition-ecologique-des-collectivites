@@ -217,19 +217,19 @@ export const referentielPage = (): string =>
 
       <h2>Exemples</h2>
       <pre class="fr-p-2w" style="background: var(--background-alt-grey); border-radius: 4px; overflow-x: auto;"><code># Rechercher une commune
-curl "https://collectivites.api.beta.gouv.fr/referentiel/v1/communes?q=Paris"
+curl "https://api.collectivites.beta.gouv.fr/referentiel/v1/communes?q=Paris"
 
 # Détail d'une commune par code INSEE
-curl "https://collectivites.api.beta.gouv.fr/referentiel/v1/communes/75056"
+curl "https://api.collectivites.beta.gouv.fr/referentiel/v1/communes/75056"
 
 # Rechercher des groupements
-curl "https://collectivites.api.beta.gouv.fr/referentiel/v1/groupements?q=Nantes"
+curl "https://api.collectivites.beta.gouv.fr/referentiel/v1/groupements?q=Nantes"
 
 # Liste des compétences Banatic
-curl "https://collectivites.api.beta.gouv.fr/referentiel/v1/groupements/competences"
+curl "https://api.collectivites.beta.gouv.fr/referentiel/v1/groupements/competences"
 
 # Recherche transversale (communes + groupements)
-curl "https://collectivites.api.beta.gouv.fr/referentiel/v1/recherche?q=Lyon"</code></pre>
+curl "https://api.collectivites.beta.gouv.fr/referentiel/v1/recherche?q=Lyon"</code></pre>
 
       <div class="fr-mt-4w">
         <a class="fr-btn" href="/api/referentiel">
@@ -341,13 +341,13 @@ export const opendataPage = (): string =>
 
       <h2>Exemples</h2>
       <pre class="fr-p-2w" style="background: var(--background-alt-grey); border-radius: 4px; overflow-x: auto;"><code># Lister les plans de transition
-curl "https://collectivites.api.beta.gouv.fr/opendata/v1/plans-transition"
+curl "https://api.collectivites.beta.gouv.fr/opendata/v1/plans-transition"
 
 # Filtrer par SIREN de la collectivité
-curl "https://collectivites.api.beta.gouv.fr/opendata/v1/plans-transition?siren=200046977"
+curl "https://api.collectivites.beta.gouv.fr/opendata/v1/plans-transition?siren=200046977"
 
 # Lister les fiches action d'un plan
-curl "https://collectivites.api.beta.gouv.fr/opendata/v1/fiches-action?planId=UUID"</code></pre>
+curl "https://api.collectivites.beta.gouv.fr/opendata/v1/fiches-action?planId=UUID"</code></pre>
 
       <div class="fr-mt-4w">
         <a class="fr-btn" href="/api/opendata">

@@ -138,7 +138,7 @@ describe("getApiUrl", () => {
   });
 
   it("returns prod URL in prod mode", () => {
-    expect(getApiUrl(false, false)).toBe("https://les-communs-transition-ecologique-api-prod.osc-fr1.scalingo.io");
+    expect(getApiUrl(false, false)).toBe("https://api.collectivites.beta.gouv.fr");
   });
 
   it("returns staging URL when isStaging is true in prod mode", () => {

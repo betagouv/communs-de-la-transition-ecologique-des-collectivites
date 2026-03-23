@@ -93,11 +93,12 @@ Simplement suivre la [procédure documentée dans le readme du widget](widget/RE
 
 - [repo](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/tree/main)
 - [backlog github](https://github.com/orgs/betagouv/projects/129/views/1)
+- [swagger prod](https://api.collectivites.beta.gouv.fr/api)
 - [swagger staging](https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/api)
 - [vaultWarden](https://doc.incubateur.net/communaute/les-outils-de-la-communaute/autres-services/vaultwarden) : c’est le lien vers la doc, il faut que Denis t’invite sur le vaultWarden pour l’administrer et y avoir accès. On l’utilise principalement pour partager de manière sécure les clefs api des services tiers
 - [matomo dev/staging](https://stats.beta.gouv.fr/index.php?module=CoreHome&action=index&idSite=201&period=day&date=yesterday#?period=day&date=2025-05-26&idSite=201&category=Dashboard_Dashboard&subcategory=1) et [matomo prod](https://stats.beta.gouv.fr/index.php?module=CoreHome&action=index&idSite=217&period=day&date=yesterday#?period=day&date=2025-05-26&idSite=217&category=Dashboard_Dashboard&subcategory=1) (on a aussi un site ID pour le widget grist)
 - [scalingo dev](https://dashboard.scalingo.com/apps/osc-fr1/les-communs-transition-ecologique-api-staging) et [scalingo prod](https://dashboard.scalingo.com/apps/osc-fr1/les-communs-transition-ecologique-api-prod)
-- [dashboard redis](https://les-communs-transition-ecologique-api-prod.osc-fr1.scalingo.io/queues/queue/project-qualification?status=active)  pour les jobs LLM ad
+- [dashboard redis](https://api.collectivites.beta.gouv.fr/queues/queue/project-qualification?status=active)  pour les jobs LLM ad
 - [lien vers la demo du widget](https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/sandbox/)
 - [page statistique](https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io/statistics/)
 
