@@ -76,6 +76,7 @@ describe("ProjetFindService", () => {
     leviers: ["Bio-carburants"],
     competences: ["90-411", "90-311"],
     probabiliteTE: null,
+    classificationScores: null,
     budgetPrevisionnel: 100000,
     collectivites: expect.arrayContaining(
       mockedCollectivites.map(({ code, type }, index) => ({
