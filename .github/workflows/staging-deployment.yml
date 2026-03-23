@@ -95,6 +95,7 @@ jobs:
           FOND_VERT_API_KEY: ${{ secrets.FOND_VERT_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SERVICE_MANAGEMENT_API_KEY: ${{ secrets.SERVICE_MANAGEMENT_API_KEY }}
+          AT_API_TOKEN: ${{ secrets.AT_API_TOKEN }}
           DATABASE_URL: postgres://postgres:mypassword@localhost:5433/e2e_test_db
           REDIS_URL: redis://localhost:6380
           QUEUE_BOARD_PWD: AdminIsWatchingYou
