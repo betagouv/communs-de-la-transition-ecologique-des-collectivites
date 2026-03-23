@@ -293,3 +293,73 @@ Les labels de classification sont issus du [schéma v0.2](https://github.com/bet
 | **Interventions** | 15        | Rénovation bâtiment, Etude/Diagnostic, Construction                    |
 
 La **probabilité TE** (transition écologique) est un score de 0 à 1 calculé comme la moyenne pondérée des probabilités TE de chaque thématique, pondérée par les scores de classification.
+
+## Base URL
+
+```
+https://collectivites.api.beta.gouv.fr
+```
+
+Documentation Swagger interactive : `https://collectivites.api.beta.gouv.fr/api/projets`
+
+## Rate limiting
+
+| Endpoint           | Limite       | Fenêtre                |
+| ------------------ | ------------ | ---------------------- |
+| Tous les endpoints | 50 requêtes  | par minute (par IP)    |
+| `/qualification/*` | 500 requêtes | par jour (par clé API) |
+| `GET /aides`       | 50 requêtes  | par minute (par IP)    |
+
+En cas de dépassement, l'API retourne `HTTP 429 Too Many Requests`.
+
+## Création en lot
+
+Pour synchroniser un grand nombre de projets d'un coup :
+
+```http
+POST /projets/bulk
+Authorization: Bearer <MEC_API_KEY>
+Content-Type: application/json
+
+{
+  "projets": [
+    { "nom": "Projet 1", "externalId": "mec-1", "collectivites": [...] },
+    { "nom": "Projet 2", "externalId": "mec-2", "collectivites": [...] }
+  ]
+}
+```
+
+**Réponse** : `{ "ids": ["019d...", "019e..."] }`
+
+Chaque projet est classifié automatiquement (job async par projet). Pour un lot de 100 projets, la classification complète prend ~30 secondes.
+
+## État actuel du stock
+
+> Données au 23 mars 2026
+
+| Donnée                    | Nombre     | Couverture  |
+| ------------------------- | ---------- | ----------- |
+| Projets MEC classifiés    | 11 799     | 100%        |
+| Aides AT classifiées      | 3 045      | 100%        |
+| Thématiques référentiel   | 138 labels | Schéma v0.2 |
+| Sites référentiel         | 59 labels  | Schéma v0.2 |
+| Interventions référentiel | 15 labels  | Schéma v0.2 |
+
+Le matching est opérationnel dès maintenant sur l'ensemble du stock.
+
+## FAQ
+
+**Q: Le matching utilise-t-il l'IA à chaque requête ?**
+Non. L'IA (Claude Sonnet 4.6) est utilisée une seule fois lors de la classification du projet et de l'aide. Le matching est ensuite un calcul mathématique pur (pas de LLM, < 50ms).
+
+**Q: Que se passe-t-il si le projet n'a qu'un titre, pas de description ?**
+La classification fonctionne quand même, mais sera moins précise. Un titre seul donne généralement des scores plus bas (plus d'incertitude pour le LLM).
+
+**Q: Comment forcer une re-classification ?**
+Envoyer `PATCH /projets/:id` avec `{ "classificationThematiques": null }`. La classification sera relancée.
+
+**Q: Le `perimeter` dans `GET /aides` correspond à quoi ?**
+C'est l'ID interne d'Aides-Territoires pour un périmètre géographique (pas le code INSEE). Exemple : 70971 = Nantes. La correspondance code INSEE → perimeter_id sera documentée prochainement.
+
+**Q: Quelle est la fraîcheur des données d'aides ?**
+Les données AT sont cachées 1h (Redis). Les classifications d'aides sont re-synchronisées quotidiennement à 3h UTC. Si une aide est modifiée côté AT, la re-classification se fait automatiquement au prochain sync (détection par hash du contenu).
