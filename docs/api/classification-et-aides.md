@@ -297,10 +297,10 @@ La **probabilité TE** (transition écologique) est un score de 0 à 1 calculé 
 ## Base URL
 
 ```
-https://collectivites.api.beta.gouv.fr
+https://api.collectivites.beta.gouv.fr
 ```
 
-Documentation Swagger interactive : `https://collectivites.api.beta.gouv.fr/api/projets`
+Documentation Swagger interactive : `https://api.collectivites.beta.gouv.fr/api/projets`
 
 ## Rate limiting
 
