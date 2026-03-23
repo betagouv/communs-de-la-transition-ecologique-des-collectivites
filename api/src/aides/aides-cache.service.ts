@@ -5,7 +5,9 @@ import Redis from "ioredis";
 import { AideTerritoires } from "./aides-territoires.service";
 
 const CACHE_PREFIX = "at:aides:";
+const PERIMETER_CACHE_PREFIX = "at:perimeter:";
 const DEFAULT_TTL_SECONDS = 3600; // 1 hour
+const PERIMETER_TTL_SECONDS = 86400 * 7; // 7 days (codes INSEE don't change)
 
 /**
  * Redis cache for Aides-Territoires API responses
@@ -57,6 +59,20 @@ export class AidesCacheService implements OnModuleDestroy {
       .map(([k, v]) => `${k}=${v}`)
       .join("&");
     return sorted || "all";
+  }
+
+  /**
+   * Get cached perimeter_id for a code INSEE
+   */
+  async getPerimeterId(codeInsee: string): Promise<string | null> {
+    return this.redis.get(`${PERIMETER_CACHE_PREFIX}${codeInsee}`);
+  }
+
+  /**
+   * Cache a code INSEE → perimeter_id mapping (7 days TTL)
+   */
+  async setPerimeterId(codeInsee: string, perimeterId: string): Promise<void> {
+    await this.redis.set(`${PERIMETER_CACHE_PREFIX}${codeInsee}`, perimeterId, "EX", PERIMETER_TTL_SECONDS);
   }
 
   /**

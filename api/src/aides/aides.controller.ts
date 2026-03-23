@@ -44,25 +44,43 @@ export class AidesController {
     description:
       "Proxy enrichi de l'API Aides-Territoires. Retourne les aides avec classification thématiques/sites/interventions. Si projet_id est fourni, calcule un score de matching et trie par pertinence.",
   })
-  @ApiQuery({ name: "perimeter", required: false, description: "ID de périmètre AT pour filtrer par territoire" })
+  @ApiQuery({
+    name: "code_insee",
+    required: false,
+    description: "Code INSEE commune ou code EPCI pour filtrer par territoire",
+  })
   @ApiQuery({ name: "projet_id", required: false, description: "ID projet pour calculer le matching" })
   @ApiQuery({ name: "limit", required: false, description: "Nombre max de résultats (défaut: 20)" })
   async listAides(
-    @Query("perimeter") perimeter?: string,
+    @Query("code_insee") codeInsee?: string,
     @Query("projet_id") projetId?: string,
     @Query("limit") limit?: string,
   ): Promise<{ aides: EnrichedAide[]; total: number }> {
     const maxResults = parseInt(limit ?? "20", 10);
 
-    // 1. Fetch aides from AT API (with Redis cache)
+    // 1. Resolve code_insee → AT perimeter_id (with cache)
     const params: Record<string, string> = {};
-    if (perimeter) params.perimeter = perimeter;
+    if (codeInsee) {
+      let perimeterId = await this.cacheService.getPerimeterId(codeInsee);
+      if (!perimeterId) {
+        perimeterId = await this.atService.resolvePerimeterId(codeInsee);
+        if (perimeterId) {
+          await this.cacheService.setPerimeterId(codeInsee, perimeterId);
+        } else {
+          this.logger.warn(`Could not resolve code_insee ${codeInsee} to AT perimeter_id`);
+        }
+      }
+      if (perimeterId) {
+        params.perimeter = perimeterId;
+      }
+    }
 
+    // 2. Fetch aides from AT API (with Redis cache)
     const cacheKey = this.cacheService.buildKey(params);
     let aides = await this.cacheService.get(cacheKey);
 
     if (!aides) {
-      this.logger.log(`Cache miss for AT aides, fetching from API${perimeter ? ` (perimeter=${perimeter})` : ""}`);
+      this.logger.log(`Cache miss for AT aides, fetching from API${codeInsee ? ` (code_insee=${codeInsee})` : ""}`);
       aides = await this.atService.fetchAides(params);
       await this.cacheService.set(cacheKey, aides);
     }
