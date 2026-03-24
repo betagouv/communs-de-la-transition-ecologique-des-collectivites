@@ -8,7 +8,7 @@ import { FichesActionService } from "./fiches-action.service";
 
 @ApiBearerAuth()
 @ApiTags("TeT")
-@Controller("tet/v1/fiches-action")
+@Controller("tet/v1/actions")
 @UseGuards(ApiKeyGuard)
 export class FichesActionController {
   constructor(private readonly fichesActionService: FichesActionService) {}

@@ -4,10 +4,10 @@ import { Type } from "class-transformer";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
 
 export class PlanReference {
-  @ApiProperty({ description: "ID du plan côté source" })
+  @ApiProperty({ description: "ID externe du plan côté source" })
   @IsString()
   @IsNotEmpty()
-  id!: string;
+  externalId!: string;
 
   @ApiPropertyOptional({ description: "Nom du plan" })
   @IsOptional()
@@ -52,7 +52,7 @@ export class CreateFicheActionRequest {
   @ApiPropertyOptional({ type: String, description: "ID externe du parent (sous-action → action)" })
   @IsOptional()
   @IsString()
-  parentId?: string | null;
+  parentExternalId?: string | null;
 
   @ApiProperty({ type: [CollectiviteReference], description: "Collectivités concernées (SIREN ou code INSEE)" })
   @IsArray()
