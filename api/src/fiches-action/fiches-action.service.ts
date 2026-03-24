@@ -1,6 +1,13 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { tetFichesAction, tetPlansTransition, tetFichesActionToPlans, tetExternalIds } from "@database/schema";
+import {
+  tetFichesAction,
+  tetPlansTransition,
+  tetFichesActionToPlans,
+  tetExternalIds,
+  refCommunes,
+  refPerimetres,
+} from "@database/schema";
 import { eq, and } from "drizzle-orm";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
@@ -46,9 +53,8 @@ export class FichesActionService {
       parentUuid = parentExternal?.objetId ?? null;
     }
 
-    // 2. Resolve collectivite SIREN
-    const collectivite = dto.collectivites[0];
-    const siren = collectivite?.type === "EPCI" ? collectivite.code : null;
+    // 2. Resolve collectivite SIREN and territoire communes
+    const { siren, territoireCommunes } = await this.resolveCollectivite(dto.collectivites[0]);
 
     // 3. Build source metadata (fields not in v0.2 schema)
     const sourceMetadata = this.buildSourceMetadata(dto);
@@ -62,6 +68,7 @@ export class FichesActionService {
       competencesM57: dto.competences ?? null,
       leviersSgpe: dto.leviers ?? null,
       collectiviteResponsableSiren: siren,
+      territoireCommunes,
       parentId: parentUuid,
       sourceMetadata,
     };
@@ -180,6 +187,49 @@ export class FichesActionService {
     }
 
     return { id };
+  }
+
+  /**
+   * Resolve collectivite to SIREN + territory communes from our referential DB
+   * - Commune: code_insee → SIREN via refCommunes, territoireCommunes = [code_insee]
+   * - EPCI: code = SIREN, territoireCommunes from refPerimetres
+   */
+  private async resolveCollectivite(collectivite?: {
+    type: string;
+    code: string;
+  }): Promise<{ siren: string | null; territoireCommunes: string[] | null }> {
+    if (!collectivite) return { siren: null, territoireCommunes: null };
+
+    const db = this.dbService.database;
+
+    if (collectivite.type === "Commune") {
+      // Resolve commune code_insee → SIREN
+      const [commune] = await db
+        .select({ siren: refCommunes.siren })
+        .from(refCommunes)
+        .where(eq(refCommunes.codeInsee, collectivite.code))
+        .limit(1);
+
+      return {
+        siren: commune?.siren ?? null,
+        territoireCommunes: [collectivite.code],
+      };
+    }
+
+    if (collectivite.type === "EPCI") {
+      // EPCI code is the SIREN, resolve territory communes
+      const communes = await db
+        .select({ codeInsee: refPerimetres.codeInseeCommune })
+        .from(refPerimetres)
+        .where(eq(refPerimetres.sirenGroupement, collectivite.code));
+
+      return {
+        siren: collectivite.code,
+        territoireCommunes: communes.length > 0 ? communes.map((c) => c.codeInsee) : null,
+      };
+    }
+
+    return { siren: null, territoireCommunes: null };
   }
 
   private async upsertPlans(ficheActionId: string, plans: PlanReference[], serviceType: string): Promise<void> {
