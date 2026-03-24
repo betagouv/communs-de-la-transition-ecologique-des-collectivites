@@ -246,6 +246,13 @@
       "when": 1774349116850,
       "tag": "0034_data_tet_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1774569600000,
+      "tag": "0035_align_data_tet_schema_v02",
+      "breakpoints": true
     }
   ]
 }
