@@ -7,8 +7,8 @@ import { CreateFicheActionRequest, CreateFicheActionResponse } from "./dto/creat
 import { FichesActionService } from "./fiches-action.service";
 
 @ApiBearerAuth()
-@ApiTags("Fiches Action")
-@Controller("fiches-action")
+@ApiTags("TeT")
+@Controller("tet/fiches-action")
 @UseGuards(ApiKeyGuard)
 export class FichesActionController {
   constructor(private readonly fichesActionService: FichesActionService) {}
