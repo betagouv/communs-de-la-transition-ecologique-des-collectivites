@@ -205,18 +205,26 @@ describe("ProjetUpdateService", () => {
       expect(after.contentHash).toBeTruthy();
     });
 
-    it("should not schedule reclassification on second update with same content", async () => {
-      // First update changes content → triggers reclassification
+    it("should not change contentHash on second update with same content", async () => {
+      // First update changes content
       await updateService.update(ProjetId, { nom: "Titre unique" });
 
-      const spyOnSchedule = jest.spyOn(updateService as any, "scheduleReclassification");
+      const [afterFirst] = await testDbService.database
+        .select({ contentHash: projets.contentHash })
+        .from(projets)
+        .where(eq(projets.id, ProjetId))
+        .limit(1);
 
-      // Second update with same nom → should NOT trigger
+      // Second update with same nom → hash should stay identical
       await updateService.update(ProjetId, { nom: "Titre unique" });
 
-      // Filter by ProjetId to ignore async BullMQ jobs from other tests
-      const callsForThisProject = spyOnSchedule.mock.calls.filter(([id]) => id === ProjetId);
-      expect(callsForThisProject).toHaveLength(0);
+      const [afterSecond] = await testDbService.database
+        .select({ contentHash: projets.contentHash })
+        .from(projets)
+        .where(eq(projets.id, ProjetId))
+        .limit(1);
+
+      expect(afterSecond.contentHash).toEqual(afterFirst.contentHash);
     });
   });
 });
