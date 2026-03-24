@@ -181,7 +181,9 @@ describe("ProjetUpdateService", () => {
 
       await updateService.update(ProjetId, { budgetPrevisionnel: 999999 });
 
-      expect(spyOnSchedule).not.toHaveBeenCalled();
+      // Filter by ProjetId to ignore async BullMQ jobs from other tests
+      const callsForThisProject = spyOnSchedule.mock.calls.filter(([id]) => id === ProjetId);
+      expect(callsForThisProject).toHaveLength(0);
     });
 
     it("should update contentHash in database when content changes", async () => {
@@ -212,7 +214,9 @@ describe("ProjetUpdateService", () => {
       // Second update with same nom → should NOT trigger
       await updateService.update(ProjetId, { nom: "Titre unique" });
 
-      expect(spyOnSchedule).not.toHaveBeenCalled();
+      // Filter by ProjetId to ignore async BullMQ jobs from other tests
+      const callsForThisProject = spyOnSchedule.mock.calls.filter(([id]) => id === ProjetId);
+      expect(callsForThisProject).toHaveLength(0);
     });
   });
 });
