@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.43](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.42...v0.1.43) (2026-03-24)
+
+
+### Features
+
+* **api:** inférer le territoire depuis le projet et reclassifier sur changement de contenu ([21ae414](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/21ae414dbd84a5cadfe63ad6dffd1bebbddf7459))
+
+
+### Bug Fixes
+
+* **api:** corriger les tests de reclassification flaky (BullMQ async) ([2502e4c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2502e4c3339be8ecf3a3f56bcbb1e871b5acd970))
+* **api:** remplacer le test de spy flaky par une assertion DB stable ([e6b5ffc](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e6b5ffc249f7faf28a7262156ae0ad2e55b80ccb))
+
 ## [0.1.42](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.41...v0.1.42) (2026-03-24)
 
 ## [0.1.41](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.40...v0.1.41) (2026-03-24)
