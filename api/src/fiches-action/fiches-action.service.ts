@@ -44,11 +44,11 @@ export class FichesActionService {
 
     // 1. Resolve parent UUID from parentId (external id)
     let parentUuid: string | null = null;
-    if (dto.parentId) {
+    if (dto.parentExternalId) {
       const [parentExternal] = await db
         .select({ objetId: tetExternalIds.objetId })
         .from(tetExternalIds)
-        .where(and(eq(tetExternalIds.serviceType, serviceType), eq(tetExternalIds.externalId, dto.parentId)))
+        .where(and(eq(tetExternalIds.serviceType, serviceType), eq(tetExternalIds.externalId, dto.parentExternalId)))
         .limit(1);
       parentUuid = parentExternal?.objetId ?? null;
     }
@@ -241,7 +241,7 @@ export class FichesActionService {
       const [existingPlan] = await db
         .select({ objetId: tetExternalIds.objetId })
         .from(tetExternalIds)
-        .where(and(eq(tetExternalIds.serviceType, serviceType), eq(tetExternalIds.externalId, plan.id)))
+        .where(and(eq(tetExternalIds.serviceType, serviceType), eq(tetExternalIds.externalId, plan.externalId)))
         .limit(1);
 
       let planId: string;
@@ -259,7 +259,7 @@ export class FichesActionService {
           .returning();
         planId = inserted.id;
 
-        await db.insert(tetExternalIds).values({ objetId: planId, serviceType, externalId: plan.id });
+        await db.insert(tetExternalIds).values({ objetId: planId, serviceType, externalId: plan.externalId });
       }
 
       await db.insert(tetFichesActionToPlans).values({ ficheActionId, planTransitionId: planId }).onConflictDoNothing();
