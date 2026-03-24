@@ -67,6 +67,7 @@ export const projets = pgTable("projets", {
     sites: { label: string; score: number }[];
     interventions: { label: string; score: number }[];
   }>(),
+  contentHash: text("content_hash"),
 
   // external service id
   mecId: text("mec_id").unique(),

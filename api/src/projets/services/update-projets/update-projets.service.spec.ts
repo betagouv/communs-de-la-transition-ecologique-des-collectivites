@@ -7,7 +7,8 @@ import { TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
 import { getFormattedDate } from "@test/helpers/get-formatted-date";
 import { UpdateProjetsService } from "./update-projets.service";
-import { collectivites } from "@database/schema";
+import { collectivites, projets } from "@database/schema";
+import { eq } from "drizzle-orm";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
@@ -156,5 +157,62 @@ describe("ProjetUpdateService", () => {
     await expect(updateService.update(nonExistentId, updateDto)).rejects.toThrow(
       `Projet with ID ${nonExistentId} not found`,
     );
+  });
+
+  describe("content hash and reclassification", () => {
+    it("should schedule reclassification when nom changes", async () => {
+      const spyOnSchedule = jest.spyOn(updateService as any, "scheduleReclassification");
+
+      await updateService.update(ProjetId, { nom: "Nouveau titre du projet" });
+
+      expect(spyOnSchedule).toHaveBeenCalledWith(ProjetId);
+    });
+
+    it("should schedule reclassification when description changes", async () => {
+      const spyOnSchedule = jest.spyOn(updateService as any, "scheduleReclassification");
+
+      await updateService.update(ProjetId, { description: "Nouvelle description du projet" });
+
+      expect(spyOnSchedule).toHaveBeenCalledWith(ProjetId);
+    });
+
+    it("should not schedule reclassification when only budget changes", async () => {
+      const spyOnSchedule = jest.spyOn(updateService as any, "scheduleReclassification");
+
+      await updateService.update(ProjetId, { budgetPrevisionnel: 999999 });
+
+      expect(spyOnSchedule).not.toHaveBeenCalled();
+    });
+
+    it("should update contentHash in database when content changes", async () => {
+      const [before] = await testDbService.database
+        .select({ contentHash: projets.contentHash })
+        .from(projets)
+        .where(eq(projets.id, ProjetId))
+        .limit(1);
+
+      await updateService.update(ProjetId, { nom: "Titre modifié" });
+
+      const [after] = await testDbService.database
+        .select({ contentHash: projets.contentHash })
+        .from(projets)
+        .where(eq(projets.id, ProjetId))
+        .limit(1);
+
+      expect(after.contentHash).not.toEqual(before.contentHash);
+      expect(after.contentHash).toBeTruthy();
+    });
+
+    it("should not schedule reclassification on second update with same content", async () => {
+      // First update changes content → triggers reclassification
+      await updateService.update(ProjetId, { nom: "Titre unique" });
+
+      const spyOnSchedule = jest.spyOn(updateService as any, "scheduleReclassification");
+
+      // Second update with same nom → should NOT trigger
+      await updateService.update(ProjetId, { nom: "Titre unique" });
+
+      expect(spyOnSchedule).not.toHaveBeenCalled();
+    });
   });
 });
