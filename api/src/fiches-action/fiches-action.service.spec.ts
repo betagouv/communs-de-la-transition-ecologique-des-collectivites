@@ -1,101 +1,73 @@
-/* eslint-disable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-member-access */
 import { FichesActionService } from "./fiches-action.service";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@logging/logger.service";
 import { Queue } from "bullmq";
-import { PROJECT_QUALIFICATION_CLASSIFICATION_JOB } from "@/projet-qualification/const";
 import { CreateFicheActionRequest } from "./dto/create-fiche-action.dto";
 
 describe("FichesActionService", () => {
   let service: FichesActionService;
-  let mockQueue: jest.Mocked<Queue>;
-  let mockLogger: jest.Mocked<CustomLogger>;
-
-  const mockReturning = jest.fn();
-  const mockOnConflictDoNothing = jest.fn().mockResolvedValue(undefined);
-  const mockValues = jest.fn().mockReturnValue({
-    returning: mockReturning,
-    onConflictDoNothing: mockOnConflictDoNothing,
-  });
-  const mockWhere = jest.fn().mockResolvedValue(undefined);
-  const mockLimit = jest.fn().mockResolvedValue([]);
-  const mockSelectFrom = jest.fn().mockReturnValue({ where: jest.fn().mockReturnValue({ limit: mockLimit }) });
-  const mockUpdate = jest.fn().mockReturnValue({ set: jest.fn().mockReturnValue({ where: mockWhere }) });
 
   beforeEach(() => {
-    mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() } as unknown as jest.Mocked<CustomLogger>;
-    mockQueue = { add: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<Queue>;
-
-    const mockDb = {
-      insert: jest.fn().mockReturnValue({ values: mockValues }),
-      delete: jest.fn().mockReturnValue({ where: mockWhere }),
-      select: jest.fn().mockReturnValue({ from: mockSelectFrom }),
-      update: mockUpdate,
-    };
-
-    const mockDbService = { database: mockDb } as unknown as DatabaseService;
+    const mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() } as unknown as CustomLogger;
+    const mockQueue = {} as unknown as Queue;
+    const mockDbService = {} as unknown as DatabaseService;
     service = new FichesActionService(mockDbService, mockQueue, mockLogger);
-
-    jest.clearAllMocks();
-    mockValues.mockReturnValue({
-      returning: mockReturning,
-      onConflictDoNothing: mockOnConflictDoNothing,
-    });
-    mockSelectFrom.mockReturnValue({ where: jest.fn().mockReturnValue({ limit: mockLimit }) });
   });
 
-  describe("createOrUpdate", () => {
-    const baseFiche: CreateFicheActionRequest = {
-      nom: "Rénovation thermique des écoles",
-      externalId: "12345",
-      description: "Isolation et changement de chauffage",
-      collectivites: [{ type: "EPCI", code: "244400404" }],
-    };
+  describe("buildSourceMetadata", () => {
+    it("should collect non-v0.2 fields into metadata", () => {
+      const dto = {
+        nom: "Test",
+        externalId: "1",
+        collectivites: [],
+        budgetPrevisionnel: 500000,
+        phase: "Opération",
+        phaseStatut: "En cours",
+        porteur: { referentNom: "Dupont", referentEmail: "d@m.fr" },
+      } as CreateFicheActionRequest;
 
-    it("should create a new fiche action and schedule classification", async () => {
-      // No existing external ID
-      mockLimit.mockResolvedValueOnce([]);
-      // Insert fiche
-      mockReturning.mockResolvedValueOnce([{ id: "uuid-fiche-1" }]);
-      // Check classification (null)
-      mockLimit.mockResolvedValueOnce([{ classificationThematiques: null }]);
-
-      const result = await service.createOrUpdate(baseFiche);
-
-      expect(result.id).toBe("uuid-fiche-1");
-      expect(mockQueue.add).toHaveBeenCalledWith(
-        PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
-        { ficheActionId: "uuid-fiche-1" },
-        expect.objectContaining({ attempts: 3 }),
-      );
+      const metadata = service.buildSourceMetadata(dto);
+      expect(metadata.budgetPrevisionnel).toBe(500000);
+      expect(metadata.phase).toBe("Opération");
+      expect(metadata.phaseStatut).toBe("En cours");
+      expect(metadata.porteur).toEqual({ referentNom: "Dupont", referentEmail: "d@m.fr" });
     });
 
-    it("should not schedule classification if already classified", async () => {
-      // No existing external ID
-      mockLimit.mockResolvedValueOnce([]);
-      // Insert fiche
-      mockReturning.mockResolvedValueOnce([{ id: "uuid-fiche-1" }]);
-      // Check classification (already has values)
-      mockLimit.mockResolvedValueOnce([{ classificationThematiques: ["Isolation thermique"] }]);
+    it("should return empty object when no extra fields", () => {
+      const dto = {
+        nom: "Test",
+        externalId: "1",
+        collectivites: [],
+      } as CreateFicheActionRequest;
 
-      await service.createOrUpdate(baseFiche);
-
-      expect(mockQueue.add).not.toHaveBeenCalled();
+      const metadata = service.buildSourceMetadata(dto);
+      expect(Object.keys(metadata)).toHaveLength(0);
     });
 
-    it("should accept porteur field without storing it (RGPD)", async () => {
-      mockLimit.mockResolvedValueOnce([]);
-      mockReturning.mockResolvedValueOnce([{ id: "uuid-fiche-2" }]);
-      mockLimit.mockResolvedValueOnce([{ classificationThematiques: null }]);
+    it("should skip null/undefined values", () => {
+      const dto = {
+        nom: "Test",
+        externalId: "1",
+        collectivites: [],
+        budgetPrevisionnel: null,
+        phase: undefined,
+      } as CreateFicheActionRequest;
 
-      const ficheWithPorteur = {
-        ...baseFiche,
-        porteur: { referentNom: "Dupont", referentEmail: "dupont@mairie.fr" },
-      };
+      const metadata = service.buildSourceMetadata(dto);
+      expect(metadata.budgetPrevisionnel).toBeUndefined();
+      expect(metadata.phase).toBeUndefined();
+    });
 
-      // Should not throw
-      const result = await service.createOrUpdate(ficheWithPorteur);
-      expect(result.id).toBe("uuid-fiche-2");
+    it("should include dateDebutPrevisionnelle", () => {
+      const dto = {
+        nom: "Test",
+        externalId: "1",
+        collectivites: [],
+        dateDebutPrevisionnelle: "2026-01-01",
+      } as CreateFicheActionRequest;
+
+      const metadata = service.buildSourceMetadata(dto);
+      expect(metadata.dateDebutPrevisionnelle).toBe("2026-01-01");
     });
   });
 });

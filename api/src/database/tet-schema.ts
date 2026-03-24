@@ -87,6 +87,10 @@ export const tetFichesAction = dataTetSchema.table(
       interventions: { label: string; score: number }[];
     }>(),
 
+    // Source metadata: webhook fields not in schema v0.2
+    // (budgetPrevisionnel, dateDebutPrevisionnelle, phase, phaseStatut, porteur)
+    sourceMetadata: jsonb("source_metadata").$type<Record<string, unknown>>(),
+
     // Lifecycle
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
