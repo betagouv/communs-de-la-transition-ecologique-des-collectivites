@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.41](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.40...v0.1.41) (2026-03-24)
+
+
+### Features
+
+* **api:** enrichir collectiviteResponsableSiren et territoireCommunes ([e1a5fdc](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e1a5fdc6b94a19edad3c122778a4bbe843f994b6))
+
+
+### Bug Fixes
+
+* **api:** aligner data_tet sur le schéma v0.2.0 ([3c6ab2f](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3c6ab2f9a1a2ef7610d8c1e5cfd407aae61b521f))
+* **api:** aligner data_tet sur schéma v0.2 + GET/PATCH + sourceMetadata ([57e295d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/57e295d04bcf6a94463e1c86ce1b2f45738e38ed))
+
 ## [0.1.40](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.39...v0.1.40) (2026-03-24)
 
 
