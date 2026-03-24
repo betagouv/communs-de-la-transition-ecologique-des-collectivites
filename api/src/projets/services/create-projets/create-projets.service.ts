@@ -1,7 +1,9 @@
 import { DatabaseService, Tx } from "@database/database.service";
 import { Injectable } from "@nestjs/common";
+import { createHash } from "crypto";
 import { CollectivitesService } from "../collectivites/collectivites.service";
 import { projets } from "@database/schema";
+import { eq } from "drizzle-orm";
 import { CreateProjetRequest } from "@projets/dto/create-projet.dto";
 import { ServiceIdentifierService } from "@projets/services/service-identifier/service-identifier.service";
 import { BulkCreateProjetsRequest } from "@projets/dto/bulk-create-projets.dto";
@@ -53,10 +55,20 @@ export class CreateProjetsService {
 
     const { externalId, porteur, collectivites, ...otherFields } = projectDto;
 
+    const contentHash = this.computeContentHash(otherFields.nom, otherFields.description);
+
+    // Read existing project to compare content hash (for upsert case)
+    const [existingProject] = await tx
+      .select({ contentHash: projets.contentHash })
+      .from(projets)
+      .where(eq(projets[serviceIdField], externalId))
+      .limit(1);
+
     const [upsertedProject] = await tx
       .insert(projets)
       .values({
         ...otherFields,
+        contentHash,
         [serviceIdField]: externalId,
         ...this.mapPorteurToDatabase(porteur),
       })
@@ -64,6 +76,7 @@ export class CreateProjetsService {
         target: projets[serviceIdField],
         set: {
           ...otherFields,
+          contentHash,
           ...this.mapPorteurToDatabase(porteur),
           updatedAt: new Date(),
         },
@@ -72,31 +85,34 @@ export class CreateProjetsService {
 
     await this.collectivitesService.createOrUpdateRelations(tx, upsertedProject.id, collectivites);
 
-    const hasProjetNoCompetences = !upsertedProject.competences || upsertedProject.competences.length === 0;
+    // Content changed if existing project had a different hash (upsert case)
+    const contentChanged = existingProject !== undefined && existingProject.contentHash !== contentHash;
 
-    if (hasProjetNoCompetences) {
+    const needsCompetences = !upsertedProject.competences || upsertedProject.competences.length === 0 || contentChanged;
+    const needsLeviers = !upsertedProject.leviers || upsertedProject.leviers.length === 0 || contentChanged;
+    const needsClassification =
+      !upsertedProject.classificationThematiques ||
+      upsertedProject.classificationThematiques.length === 0 ||
+      contentChanged;
+
+    if (needsCompetences) {
       this.logger.log(
-        `Triggering competence qualification for upsertedProject ${upsertedProject.id} with description ${upsertedProject.description}`,
-        { competences: upsertedProject.competences }, //debug log
+        `Triggering competence qualification for projet ${upsertedProject.id}${contentChanged ? " (content changed)" : ""}`,
       );
       await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_COMPETENCES_JOB);
     }
 
-    const hasProjetNoLeviers = !upsertedProject.leviers || upsertedProject.leviers.length === 0;
-
-    if (hasProjetNoLeviers) {
+    if (needsLeviers) {
       this.logger.log(
-        `Triggering leviers qualification for upsertedProject ${upsertedProject.id} with description ${upsertedProject.description}`,
-        { leviers: upsertedProject.leviers }, //debug log
+        `Triggering leviers qualification for projet ${upsertedProject.id}${contentChanged ? " (content changed)" : ""}`,
       );
       await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_LEVIERS_JOB);
     }
 
-    const hasProjetNoClassification =
-      !upsertedProject.classificationThematiques || upsertedProject.classificationThematiques.length === 0;
-
-    if (hasProjetNoClassification) {
-      this.logger.log(`Triggering classification for upsertedProject ${upsertedProject.id}`);
+    if (needsClassification) {
+      this.logger.log(
+        `Triggering classification for projet ${upsertedProject.id}${contentChanged ? " (content changed)" : ""}`,
+      );
       await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_CLASSIFICATION_JOB);
     }
 
@@ -119,6 +135,11 @@ export class CreateProjetsService {
     );
 
     this.logger.log(`Qualification job scheduled for project ${projetId}`);
+  }
+
+  private computeContentHash(nom: string, description: string | null | undefined): string {
+    const content = `${nom}|${description ?? ""}`;
+    return createHash("sha256").update(content).digest("hex");
   }
 
   private mapPorteurToDatabase(porteur: PorteurDto | null | undefined) {

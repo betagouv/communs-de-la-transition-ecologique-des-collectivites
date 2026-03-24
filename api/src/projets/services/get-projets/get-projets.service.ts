@@ -99,6 +99,8 @@ export class GetProjetsService {
       porteurReferentNom,
       porteurReferentPrenom,
       porteurReferentFonction,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      contentHash: _contentHash,
       ...rest
     } = projet;
 

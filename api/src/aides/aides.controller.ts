@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards, NotFoundException } from "@nestjs/common";
+import { Controller, Get, Query, UseGuards, NotFoundException, BadRequestException } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
@@ -46,82 +46,59 @@ export class AidesController {
   @ApiOperation({
     summary: "Lister les aides enrichies avec classification",
     description:
-      "Proxy enrichi de l'API Aides-Territoires. Retourne les aides avec classification thématiques/sites/interventions. Si projet_id est fourni, calcule un score de matching et trie par pertinence.",
+      "Proxy enrichi de l'API Aides-Territoires. Retourne les aides avec classification thématiques/sites/interventions. Si projet_id est fourni, filtre par territoires du projet (union des collectivités) et calcule un score de matching trié par pertinence.",
   })
   @ApiQuery({
-    name: "code_insee",
-    required: false,
-    description: "Code INSEE commune ou code EPCI pour filtrer par territoire",
+    name: "projet_id",
+    required: true,
+    description: "ID projet pour filtrer par territoire et calculer le matching",
   })
-  @ApiQuery({ name: "projet_id", required: false, description: "ID projet pour calculer le matching" })
   @ApiQuery({ name: "limit", required: false, description: "Nombre max de résultats (défaut: 20)" })
   async listAides(
-    @Query("code_insee") codeInsee?: string,
-    @Query("projet_id") projetId?: string,
+    @Query("projet_id") projetId: string,
     @Query("limit") limit?: string,
   ): Promise<{ aides: EnrichedAide[]; total: number }> {
+    if (!projetId) {
+      throw new BadRequestException("projet_id is required");
+    }
+
     const maxResults = parseInt(limit ?? "20", 10);
 
-    // 1. Resolve code_insee → AT perimeter_id (with cache)
-    const params: Record<string, string> = {};
-    if (codeInsee) {
-      let perimeterId = await this.cacheService.getPerimeterId(codeInsee);
-      if (!perimeterId) {
-        // Lookup commune name from our referential DB
-        const [commune] = await this.dbService.database
-          .select({ nom: refCommunes.nom })
-          .from(refCommunes)
-          .where(eq(refCommunes.codeInsee, codeInsee))
-          .limit(1);
+    // 1. Load project with its collectivités
+    const projet = await this.projetsService.findOne(projetId);
 
-        const communeName = commune?.nom;
-        perimeterId = await this.atService.resolvePerimeterId(codeInsee, communeName ?? undefined);
-        if (perimeterId) {
-          await this.cacheService.setPerimeterId(codeInsee, perimeterId);
-        } else {
-          this.logger.warn(`Could not resolve code_insee ${codeInsee} to AT perimeter_id`);
-        }
-      }
-      if (perimeterId) {
-        params.perimeter = perimeterId;
-      }
+    if (!projet.classificationScores) {
+      throw new NotFoundException(`Project ${projetId} has no classification scores yet`);
     }
 
-    // 2. Fetch aides from AT API (with Redis cache)
-    const cacheKey = this.cacheService.buildKey(params);
-    let aides = await this.cacheService.get(cacheKey);
+    // 2. Extract code_insee from project collectivités and resolve perimeter_ids
+    const codesInsee = this.extractCodesInsee(projet.collectivites);
 
-    if (!aides) {
-      this.logger.log(`Cache miss for AT aides, fetching from API${codeInsee ? ` (code_insee=${codeInsee})` : ""}`);
-      aides = await this.atService.fetchAides(params);
-      await this.cacheService.set(cacheKey, aides);
+    if (codesInsee.length === 0) {
+      this.logger.warn(
+        `Project ${projetId} has no collectivités with code_insee, fetching aides without territory filter`,
+      );
     }
 
-    // 2. Get classifications for these aides (from DB cache)
-    const aideIds = aides.map((a) => String(a.id));
+    // 3. Fetch aides for each territory (union) — deduplicate by aide id
+    const allAides = await this.fetchAidesForTerritories(codesInsee);
+
+    // 4. Get classifications for these aides (from DB cache)
+    const aideIds = allAides.map((a) => String(a.id));
     const classifications = await this.classificationService.getCachedClassifications(aideIds);
 
-    // 3. If projet_id, do matching
-    let matchResults: Map<string, MatchResult> | null = null;
-
-    if (projetId) {
-      const projet = await this.projetsService.findOne(projetId);
-      if (!projet.classificationScores) {
-        throw new NotFoundException(`Project ${projetId} has no classification scores yet`);
-      }
-
-      matchResults = new Map<string, MatchResult>();
-      const results = this.matchingService.match(projet.classificationScores, classifications, maxResults);
-      for (const r of results) {
-        matchResults.set(r.idAt, r);
-      }
+    // 5. Do matching
+    const matchResults = new Map<string, MatchResult>();
+    const results = this.matchingService.match(projet.classificationScores, classifications, maxResults);
+    for (const r of results) {
+      matchResults.set(r.idAt, r);
     }
 
-    // 4. Enrich and sort
-    let enriched: EnrichedAide[] = aides.map((aide) => {
+    // 6. Enrich and sort by matching score
+    let enriched: EnrichedAide[] = allAides.map((aide) => {
       const idAt = String(aide.id);
       const classification = classifications.get(idAt);
-      const match = matchResults?.get(idAt);
+      const match = matchResults.get(idAt);
 
       return {
         ...aide,
@@ -131,16 +108,13 @@ export class AidesController {
       };
     });
 
-    // If matching, sort by score and limit; otherwise just limit
-    if (matchResults) {
-      enriched = enriched
-        .filter((a) => a.matchingScore !== undefined)
-        .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0));
-    }
+    enriched = enriched
+      .filter((a) => a.matchingScore !== undefined)
+      .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0));
 
     enriched = enriched.slice(0, maxResults);
 
-    return { aides: enriched, total: aides.length };
+    return { aides: enriched, total: allAides.length };
   }
 
   @TrackApiUsage()
@@ -159,5 +133,89 @@ export class AidesController {
     await this.cacheService.invalidateAll();
 
     return { ...result, total: aides.length };
+  }
+
+  /**
+   * Extract unique code_insee values from project collectivités (Communes only)
+   */
+  private extractCodesInsee(collectivites: { type: string; codeInsee: string | null }[]): string[] {
+    const codes: string[] = [];
+    for (const c of collectivites) {
+      if (c.type === "Commune" && c.codeInsee) {
+        codes.push(c.codeInsee);
+      }
+    }
+    return [...new Set(codes)];
+  }
+
+  /**
+   * Resolve a code_insee to an AT perimeter_id (with cache)
+   */
+  private async resolvePerimeter(codeInsee: string): Promise<string | null> {
+    let perimeterId = await this.cacheService.getPerimeterId(codeInsee);
+    if (perimeterId) return perimeterId;
+
+    const [commune] = await this.dbService.database
+      .select({ nom: refCommunes.nom })
+      .from(refCommunes)
+      .where(eq(refCommunes.codeInsee, codeInsee))
+      .limit(1);
+
+    const communeName = commune?.nom;
+    perimeterId = await this.atService.resolvePerimeterId(codeInsee, communeName ?? undefined);
+    if (perimeterId) {
+      await this.cacheService.setPerimeterId(codeInsee, perimeterId);
+    } else {
+      this.logger.warn(`Could not resolve code_insee ${codeInsee} to AT perimeter_id`);
+    }
+    return perimeterId;
+  }
+
+  /**
+   * Fetch aides for multiple territories (union). Deduplicates by aide id.
+   */
+  private async fetchAidesForTerritories(codesInsee: string[]): Promise<AideTerritoires[]> {
+    if (codesInsee.length === 0) {
+      // No territory filter — fetch all aides
+      const cacheKey = this.cacheService.buildKey({});
+      let aides = await this.cacheService.get(cacheKey);
+      if (!aides) {
+        this.logger.log("Cache miss for AT aides, fetching from API (no territory filter)");
+        aides = await this.atService.fetchAides();
+        await this.cacheService.set(cacheKey, aides);
+      }
+      return aides;
+    }
+
+    const seenIds = new Set<number>();
+    const allAides: AideTerritoires[] = [];
+
+    for (const codeInsee of codesInsee) {
+      const perimeterId = await this.resolvePerimeter(codeInsee);
+      const params: Record<string, string> = {};
+      if (perimeterId) {
+        params.perimeter = perimeterId;
+      }
+
+      const cacheKey = this.cacheService.buildKey(params);
+      let aides = await this.cacheService.get(cacheKey);
+
+      if (!aides) {
+        this.logger.log(`Cache miss for AT aides, fetching from API (code_insee=${codeInsee})`);
+        aides = await this.atService.fetchAides(params);
+        await this.cacheService.set(cacheKey, aides);
+      }
+
+      // Deduplicate across territories
+      for (const aide of aides) {
+        if (!seenIds.has(aide.id)) {
+          seenIds.add(aide.id);
+          allAides.push(aide);
+        }
+      }
+    }
+
+    this.logger.log(`Fetched ${allAides.length} unique aides across ${codesInsee.length} territories`);
+    return allAides;
   }
 }

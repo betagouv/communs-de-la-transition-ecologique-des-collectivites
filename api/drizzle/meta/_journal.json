@@ -253,6 +253,13 @@
       "when": 1774569600000,
       "tag": "0035_align_data_tet_schema_v02",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1774828800000,
+      "tag": "0036_add_content_hash_to_projets",
+      "breakpoints": true
     }
   ]
 }
