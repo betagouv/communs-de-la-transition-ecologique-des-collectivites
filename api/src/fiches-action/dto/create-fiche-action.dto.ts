@@ -2,10 +2,9 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ArrayNotEmpty, IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import { CollectiviteReference } from "@projets/dto/collectivite.dto";
-import { PorteurDto } from "@projets/dto/porteur.dto";
 
 export class PlanReference {
-  @ApiProperty({ description: "ID du plan côté TeT" })
+  @ApiProperty({ description: "ID du plan côté source" })
   @IsString()
   @IsNotEmpty()
   id!: string;
@@ -27,21 +26,49 @@ export class CreateFicheActionRequest {
   @IsNotEmpty()
   nom!: string;
 
-  @ApiProperty({ required: true, description: "ID externe TeT" })
+  @ApiProperty({ required: true, description: "ID externe (plateforme source)" })
   @IsString()
   @IsNotEmpty()
   externalId!: string;
 
-  @ApiPropertyOptional({ type: String, description: "Description de la fiche action" })
+  @ApiPropertyOptional({ type: String, description: "Description" })
   @IsOptional()
   @IsString()
   description?: string | null;
+
+  @ApiPropertyOptional({ type: String, description: "Objectifs visés" })
+  @IsOptional()
+  @IsString()
+  objectifs?: string | null;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "Statut (À venir, En cours, En retard, En pause, Bloqué, Abandonné, Terminé)",
+  })
+  @IsOptional()
+  @IsString()
+  statut?: string | null;
 
   @ApiPropertyOptional({ type: String, description: "ID externe du parent (sous-action → action)" })
   @IsOptional()
   @IsString()
   parentId?: string | null;
 
+  @ApiProperty({ type: [CollectiviteReference], description: "Collectivités concernées (SIREN ou code INSEE)" })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CollectiviteReference)
+  @ArrayNotEmpty()
+  collectivites!: CollectiviteReference[];
+
+  @ApiPropertyOptional({ type: [PlanReference], description: "Plans de transition liés" })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PlanReference)
+  plans?: PlanReference[];
+
+  // Fields from the existing webhook accepted for backward compatibility
   @ApiPropertyOptional({ type: Number })
   @IsOptional()
   @IsNumber()
@@ -52,46 +79,32 @@ export class CreateFicheActionRequest {
   @IsString()
   dateDebutPrevisionnelle?: string | null;
 
-  @ApiPropertyOptional({ type: String, description: "Statut de la fiche action" })
-  @IsOptional()
-  @IsString()
-  statut?: string | null;
-
-  @ApiProperty({ type: [CollectiviteReference], description: "Collectivités concernées" })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CollectiviteReference)
-  @ArrayNotEmpty()
-  collectivites!: CollectiviteReference[];
-
-  @ApiPropertyOptional({ type: PorteurDto })
-  @ValidateNested()
-  @Type(() => PorteurDto)
-  @IsOptional()
-  porteur?: PorteurDto | null;
-
-  @ApiPropertyOptional({ type: [PlanReference], description: "Plans de transition liés" })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => PlanReference)
-  plans?: PlanReference[];
-
-  // Fields from the existing webhook that we accept but don't use for fiches
-  @ApiPropertyOptional({ type: String })
+  @ApiPropertyOptional({ type: String, description: "Phase (accepted for compat, not stored)" })
   @IsOptional()
   @IsString()
   phase?: string | null;
 
-  @ApiPropertyOptional({ type: String })
+  @ApiPropertyOptional({ type: String, description: "Phase statut (used as fallback for statut)" })
   @IsOptional()
   @IsString()
   phaseStatut?: string | null;
 
-  @ApiPropertyOptional({ type: [String] })
+  @ApiPropertyOptional({ type: [String], description: "Compétences M57" })
   @IsOptional()
   @IsArray()
+  @IsString({ each: true })
   competences?: string[] | null;
+
+  @ApiPropertyOptional({ type: [String], description: "Leviers SGPE" })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  leviers?: string[] | null;
+
+  // Porteur accepted for compat but not stored (RGPD - v0.2 recommendation)
+  @ApiPropertyOptional({ description: "Porteur (accepted but not stored per RGPD)" })
+  @IsOptional()
+  porteur?: Record<string, unknown> | null;
 }
 
 export class CreateFicheActionResponse {

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { tetFichesAction, tetPlansTransition, tetFichesActionToPlans } from "@database/schema";
-import { eq } from "drizzle-orm";
+import { tetFichesAction, tetPlansTransition, tetFichesActionToPlans, tetExternalIds } from "@database/schema";
+import { eq, and } from "drizzle-orm";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { CustomLogger } from "@logging/logger.service";
@@ -19,106 +19,146 @@ export class FichesActionService {
     private readonly logger: CustomLogger,
   ) {}
 
-  async createOrUpdate(dto: CreateFicheActionRequest): Promise<{ id: string }> {
+  async createOrUpdate(dto: CreateFicheActionRequest, serviceType = "TeT"): Promise<{ id: string }> {
     const db = this.dbService.database;
 
-    // 1. Upsert fiche action
-    const [upserted] = await db
-      .insert(tetFichesAction)
-      .values({
-        tetId: dto.externalId,
-        nom: dto.nom,
-        description: dto.description ?? null,
-        statut: dto.statut ?? dto.phaseStatut ?? null,
-        budgetPrevisionnel: dto.budgetPrevisionnel ?? null,
-        dateDebutPrevisionnelle: dto.dateDebutPrevisionnelle ?? null,
-        parentTetId: dto.parentId ?? null,
-        porteurReferentNom: dto.porteur?.referentNom ?? null,
-        porteurReferentEmail: dto.porteur?.referentEmail ?? null,
-        porteurReferentTelephone: dto.porteur?.referentTelephone ?? null,
-        collectiviteType: dto.collectivites[0]?.type ?? null,
-        collectiviteCode: dto.collectivites[0]?.code ?? null,
-      })
-      .onConflictDoUpdate({
-        target: tetFichesAction.tetId,
-        set: {
+    // 1. Resolve parent UUID from parentId (external id)
+    let parentUuid: string | null = null;
+    if (dto.parentId) {
+      const [parentExternal] = await db
+        .select({ objetId: tetExternalIds.objetId })
+        .from(tetExternalIds)
+        .where(and(eq(tetExternalIds.serviceType, serviceType), eq(tetExternalIds.externalId, dto.parentId)))
+        .limit(1);
+      parentUuid = parentExternal?.objetId ?? null;
+    }
+
+    // 2. Resolve collectivite SIREN
+    const collectivite = dto.collectivites[0];
+    const siren = collectivite?.type === "EPCI" ? collectivite.code : collectivite?.type === "Commune" ? null : null;
+
+    // 3. Check if fiche already exists (via external_ids)
+    const [existingExternal] = await db
+      .select({ objetId: tetExternalIds.objetId })
+      .from(tetExternalIds)
+      .where(and(eq(tetExternalIds.serviceType, serviceType), eq(tetExternalIds.externalId, dto.externalId)))
+      .limit(1);
+
+    let ficheId: string;
+
+    if (existingExternal) {
+      // Update existing fiche
+      ficheId = existingExternal.objetId;
+      await db
+        .update(tetFichesAction)
+        .set({
           nom: dto.nom,
           description: dto.description ?? null,
+          objectifs: dto.objectifs ?? null,
           statut: dto.statut ?? dto.phaseStatut ?? null,
-          budgetPrevisionnel: dto.budgetPrevisionnel ?? null,
-          dateDebutPrevisionnelle: dto.dateDebutPrevisionnelle ?? null,
-          parentTetId: dto.parentId ?? null,
-          porteurReferentNom: dto.porteur?.referentNom ?? null,
-          porteurReferentEmail: dto.porteur?.referentEmail ?? null,
-          porteurReferentTelephone: dto.porteur?.referentTelephone ?? null,
-          collectiviteType: dto.collectivites[0]?.type ?? null,
-          collectiviteCode: dto.collectivites[0]?.code ?? null,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
+          competencesM57: dto.competences ?? null,
+          leviersSgpe: dto.leviers ?? null,
+          collectiviteResponsableSiren: siren,
+          parentId: parentUuid,
+        })
+        .where(eq(tetFichesAction.id, ficheId));
+    } else {
+      // Insert new fiche
+      const [inserted] = await db
+        .insert(tetFichesAction)
+        .values({
+          nom: dto.nom,
+          description: dto.description ?? null,
+          objectifs: dto.objectifs ?? null,
+          statut: dto.statut ?? dto.phaseStatut ?? null,
+          competencesM57: dto.competences ?? null,
+          leviersSgpe: dto.leviers ?? null,
+          collectiviteResponsableSiren: siren,
+          parentId: parentUuid,
+        })
+        .returning();
+      ficheId = inserted.id;
 
-    // 2. Upsert plans and link them
+      // Register external ID
+      await db.insert(tetExternalIds).values({
+        objetId: ficheId,
+        serviceType,
+        externalId: dto.externalId,
+      });
+    }
+
+    // 4. Upsert plans and link them
     if (dto.plans?.length) {
-      await this.upsertPlans(upserted.id, dto.plans);
+      await this.upsertPlans(ficheId, dto.plans, serviceType);
     }
 
-    // 3. Schedule classification if not yet classified
-    if (!upserted.classificationThematiques || upserted.classificationThematiques.length === 0) {
-      await this.scheduleClassification(upserted.id, upserted.tetId);
+    // 5. Schedule classification if not yet classified
+    const [fiche] = await db
+      .select({ classificationThematiques: tetFichesAction.classificationThematiques })
+      .from(tetFichesAction)
+      .where(eq(tetFichesAction.id, ficheId))
+      .limit(1);
+
+    if (!fiche?.classificationThematiques || fiche.classificationThematiques.length === 0) {
+      await this.scheduleClassification(ficheId);
     }
 
-    return { id: upserted.id };
+    return { id: ficheId };
   }
 
-  private async upsertPlans(ficheActionId: string, plans: PlanReference[]): Promise<void> {
+  private async upsertPlans(ficheActionId: string, plans: PlanReference[], serviceType: string): Promise<void> {
     const db = this.dbService.database;
 
     // Delete existing plan links for this fiche
     await db.delete(tetFichesActionToPlans).where(eq(tetFichesActionToPlans.ficheActionId, ficheActionId));
 
     for (const plan of plans) {
-      // Upsert plan
-      const [upsertedPlan] = await db
-        .insert(tetPlansTransition)
-        .values({
-          tetId: plan.id,
-          nom: plan.nom ?? null,
-          type: plan.type ?? null,
-        })
-        .onConflictDoUpdate({
-          target: tetPlansTransition.tetId,
-          set: {
-            nom: plan.nom ?? null,
-            type: plan.type ?? null,
-            updatedAt: new Date(),
-          },
-        })
-        .returning();
+      // Check if plan already exists via external_ids
+      const [existingPlan] = await db
+        .select({ objetId: tetExternalIds.objetId })
+        .from(tetExternalIds)
+        .where(and(eq(tetExternalIds.serviceType, serviceType), eq(tetExternalIds.externalId, plan.id)))
+        .limit(1);
+
+      let planId: string;
+
+      if (existingPlan) {
+        planId = existingPlan.objetId;
+        // Update plan metadata
+        await db
+          .update(tetPlansTransition)
+          .set({ nom: plan.nom ?? null, type: plan.type ?? null })
+          .where(eq(tetPlansTransition.id, planId));
+      } else {
+        // Insert new plan
+        const [inserted] = await db
+          .insert(tetPlansTransition)
+          .values({ nom: plan.nom ?? null, type: plan.type ?? null })
+          .returning();
+        planId = inserted.id;
+
+        // Register external ID
+        await db.insert(tetExternalIds).values({
+          objetId: planId,
+          serviceType,
+          externalId: plan.id,
+        });
+      }
 
       // Link fiche → plan
-      await db
-        .insert(tetFichesActionToPlans)
-        .values({
-          ficheActionId,
-          planTransitionId: upsertedPlan.id,
-        })
-        .onConflictDoNothing();
+      await db.insert(tetFichesActionToPlans).values({ ficheActionId, planTransitionId: planId }).onConflictDoNothing();
     }
   }
 
-  private async scheduleClassification(ficheId: string, tetId: string): Promise<void> {
-    this.logger.log(`Scheduling classification for fiche action ${tetId}`);
+  private async scheduleClassification(ficheId: string): Promise<void> {
+    this.logger.log(`Scheduling classification for fiche action ${ficheId}`);
 
     await this.qualificationQueue.add(
       PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
       { ficheActionId: ficheId },
       {
         attempts: 3,
-        backoff: {
-          type: "exponential",
-          delay: 5000,
-        },
+        backoff: { type: "exponential", delay: 5000 },
       },
     );
   }
