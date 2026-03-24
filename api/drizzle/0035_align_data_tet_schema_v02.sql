@@ -51,6 +51,7 @@ CREATE TABLE "data_tet"."fiches_action" (
   "classification_interventions" text[],
   "probabilite_te" text,
   "classification_scores" jsonb,
+  "source_metadata" jsonb,
   "created_at" timestamp DEFAULT now() NOT NULL,
   "updated_at" timestamp DEFAULT now() NOT NULL
 );

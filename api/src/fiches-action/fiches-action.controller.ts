@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
@@ -18,7 +18,7 @@ export class FichesActionController {
   @ApiOperation({
     summary: "Créer ou mettre à jour une fiche action",
     description:
-      "Reçoit une fiche action depuis TeT. Stocke dans le schéma data_tet et déclenche la classification automatique.",
+      "Reçoit une fiche action (webhook TeT). Stocke dans le schéma data_tet et déclenche la classification automatique.",
   })
   @ApiEndpointResponses({
     successStatus: 201,
@@ -27,5 +27,28 @@ export class FichesActionController {
   })
   async create(@Body() request: CreateFicheActionRequest): Promise<CreateFicheActionResponse> {
     return this.fichesActionService.createOrUpdate(request);
+  }
+
+  @TrackApiUsage()
+  @Get(":id")
+  @ApiOperation({
+    summary: "Récupérer une fiche action par ID",
+    description: "Retourne la fiche action avec ses plans liés, ses IDs externes et sa classification.",
+  })
+  async findOne(@Param("id") id: string) {
+    return this.fichesActionService.findOne(id);
+  }
+
+  @TrackApiUsage()
+  @Patch(":id")
+  @ApiOperation({
+    summary: "Mettre à jour partiellement une fiche action",
+    description: "Met à jour les champs fournis sans écraser les autres.",
+  })
+  async update(
+    @Param("id") id: string,
+    @Body() request: Partial<CreateFicheActionRequest>,
+  ): Promise<CreateFicheActionResponse> {
+    return this.fichesActionService.update(id, request);
   }
 }
