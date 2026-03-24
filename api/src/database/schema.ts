@@ -248,3 +248,4 @@ export const serviceExtraFieldsRelations = relations(serviceExtraFields, ({ one 
 // Re-export sub-schemas so DatabaseService picks up all tables
 export * from "./referentiel-schema";
 export * from "./plans-fiches-schema";
+export * from "./tet-schema";

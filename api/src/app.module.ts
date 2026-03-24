@@ -17,6 +17,7 @@ import { BullModule } from "@nestjs/bullmq";
 import { ProjetQualificationModule } from "@/projet-qualification/projet-qualification.module";
 import { ClassificationModule } from "@/projet-qualification/classification/classification.module";
 import { AidesModule } from "@/aides/aides.module";
+import { FichesActionModule } from "@/fiches-action/fiches-action.module";
 import { BullBoardModule } from "@bull-board/nestjs";
 import basicAuth from "express-basic-auth";
 import { ExpressAdapter } from "@bull-board/express";
@@ -71,6 +72,7 @@ import { ProjetsV2Module } from "@/projets-v2/projets-v2.module";
     ProjetQualificationModule,
     ClassificationModule,
     AidesModule,
+    FichesActionModule,
     AnalyticsModule,
     MatomoModule,
     ReferentielModule,

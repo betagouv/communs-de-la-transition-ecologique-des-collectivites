@@ -11,6 +11,9 @@ import {
   PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
 } from "@/projet-qualification/const";
 import { ClassificationService } from "@/projet-qualification/classification/classification.service";
+import { DatabaseService } from "@database/database.service";
+import { tetFichesAction } from "@database/schema";
+import { eq } from "drizzle-orm";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { ServiceType } from "@/shared/types";
 import {
@@ -31,15 +34,29 @@ export class ProjetQualificationService extends WorkerHost {
     private readonly leviersValidationService: LeviersValidationService,
     private readonly competencesValidationService: CompetencesValidationService,
     private readonly classificationService: ClassificationService,
+    private readonly dbService: DatabaseService,
     private logger: CustomLogger,
   ) {
     super();
   }
 
-  async process(job: Job<{ projetId: string }>) {
-    const { projetId } = job.data;
-    this.logger.log(`Processing qualification job for project ${projetId} for job ${job.name}`);
+  async process(job: Job<{ projetId?: string; ficheActionId?: string }>) {
+    const { projetId, ficheActionId } = job.data;
+    const entityId = projetId ?? ficheActionId;
+    this.logger.log(
+      `Processing qualification job for ${projetId ? "project" : "fiche"} ${entityId} for job ${job.name}`,
+    );
     try {
+      // Handle fiche action classification (from data_tet)
+      if (ficheActionId && job.name === PROJECT_QUALIFICATION_CLASSIFICATION_JOB) {
+        await this.classifyFicheAction(ficheActionId);
+        return;
+      }
+
+      if (!projetId) {
+        throw new Error("projetId is required for non-fiche jobs");
+      }
+
       const projet = await this.projetGetService.findOne(projetId);
 
       // we only trigger the job from the create service when there is a description or a name
@@ -162,6 +179,43 @@ export class ProjetQualificationService extends WorkerHost {
     this.logger.log(
       `Successfully classified project ${projetId} with ${classificationThematiques.length} thématiques, ${classificationSites.length} sites, ${classificationInterventions.length} interventions (TE: ${probabiliteTE})`,
     );
+  }
+
+  private async classifyFicheAction(ficheActionId: string): Promise<void> {
+    const [fiche] = await this.dbService.database
+      .select()
+      .from(tetFichesAction)
+      .where(eq(tetFichesAction.id, ficheActionId))
+      .limit(1);
+
+    if (!fiche || (!fiche.nom && !fiche.description)) {
+      this.logger.log(`Fiche action ${ficheActionId} not found or empty, skipping classification`);
+      return;
+    }
+
+    const context = `${fiche.nom}\n${fiche.description ?? ""}`;
+    this.logger.log(`Classifying fiche action ${ficheActionId}: ${fiche.nom.slice(0, 60)}`);
+
+    const allScores = await this.classificationService.classify(context, "projet", 0);
+
+    const classificationScores = {
+      thematiques: allScores.thematiques,
+      sites: allScores.sites,
+      interventions: allScores.interventions,
+    };
+
+    await this.dbService.database
+      .update(tetFichesAction)
+      .set({
+        classificationThematiques: allScores.thematiques.filter((t) => t.score >= 0.8).map((t) => t.label),
+        classificationSites: allScores.sites.filter((s) => s.score >= 0.8).map((s) => s.label),
+        classificationInterventions: allScores.interventions.filter((i) => i.score >= 0.8).map((i) => i.label),
+        probabiliteTE: allScores.probabiliteTE !== null ? String(allScores.probabiliteTE) : null,
+        classificationScores,
+      })
+      .where(eq(tetFichesAction.id, ficheActionId));
+
+    this.logger.log(`Successfully classified fiche action ${ficheActionId}`);
   }
 
   async analyzeCompetences(context: string, serviceType: ServiceType): Promise<ProjetQualificationResponse> {
