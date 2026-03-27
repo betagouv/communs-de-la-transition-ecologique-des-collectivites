@@ -4,19 +4,46 @@ import { CustomLogger } from "@logging/logger.service";
 import Redis from "ioredis";
 import { AideTerritoires } from "./aides-territoires.service";
 
-const CACHE_PREFIX = "at:aides:";
+const AIDE_PREFIX = "at:aide:";
+const TERRITORY_PREFIX = "at:territory:";
 const PERIMETER_CACHE_PREFIX = "at:perimeter:";
-const DEFAULT_TTL_SECONDS = 3600; // 1 hour
+
+const AIDE_TTL_SECONDS = 86400 * 7; // 7 days — aides catalog, long-lived
+const FRESH_TTL_SECONDS = 3600; // 1 hour — territory index considered fresh
+const STALE_MAX_TTL_SECONDS = 86400 * 7; // 7 days — max staleness before eviction
 const PERIMETER_TTL_SECONDS = 86400 * 7; // 7 days (codes INSEE don't change)
 
 /**
- * Redis cache for Aides-Territoires API responses
- * Caches aide lists by query key to avoid hitting AT API on every request
+ * Stored alongside the territory index to track SWR freshness.
+ * `storedAt` is the epoch (ms) when the entry was last refreshed.
+ */
+interface TerritoryEntry {
+  ids: number[];
+  storedAt: number;
+}
+
+export type CacheStatus = "fresh" | "stale" | "miss";
+
+export interface CacheResult {
+  aides: AideTerritoires[];
+  status: CacheStatus;
+}
+
+/**
+ * Redis cache for Aides-Territoires API responses.
+ *
+ * Two-level deduplicated cache:
+ *   Level 1 – `at:aide:{id}`        → individual aide JSON (TTL 7d)
+ *   Level 2 – `at:territory:{key}`  → list of aide IDs + timestamp (TTL 7d)
+ *
+ * SWR (stale-while-revalidate):
+ *   - fresh  (< 1h since storedAt) → serve directly
+ *   - stale  (1h–7d)               → serve immediately, caller triggers background refresh
+ *   - miss   (no entry / expired)  → caller must fetch synchronously (cold start)
  */
 @Injectable()
 export class AidesCacheService implements OnModuleDestroy {
   private readonly redis: Redis;
-  private readonly ttl: number;
 
   constructor(
     private readonly configService: ConfigService,
@@ -24,35 +51,95 @@ export class AidesCacheService implements OnModuleDestroy {
   ) {
     const redisUrl = this.configService.getOrThrow<string>("REDIS_URL");
     this.redis = new Redis(redisUrl);
-    this.ttl = DEFAULT_TTL_SECONDS;
   }
 
   onModuleDestroy() {
     this.redis.disconnect();
   }
 
-  /**
-   * Get cached aides for a query key
-   */
-  async get(queryKey: string): Promise<AideTerritoires[] | null> {
-    const cached = await this.redis.get(`${CACHE_PREFIX}${queryKey}`);
-    if (!cached) return null;
+  // ---------------------------------------------------------------------------
+  // Territory-level read (SWR)
+  // ---------------------------------------------------------------------------
 
-    this.logger.log(`Cache hit for AT aides: ${queryKey}`);
-    return JSON.parse(cached) as AideTerritoires[];
+  /**
+   * Get cached aides for a territory query key.
+   * Returns aides + freshness status so the caller can trigger a background refresh when stale.
+   */
+  async get(queryKey: string): Promise<CacheResult | null> {
+    const raw = await this.redis.get(`${TERRITORY_PREFIX}${queryKey}`);
+    if (!raw) return null;
+
+    const entry = JSON.parse(raw) as TerritoryEntry;
+    const status = this.resolveStatus(entry.storedAt);
+
+    this.logger.log(`Cache ${status} for territory: ${queryKey} (${entry.ids.length} aide IDs)`);
+
+    // Fetch individual aides via MGET
+    const aides = await this.getAidesByIds(entry.ids);
+    return { aides, status };
   }
 
+  // ---------------------------------------------------------------------------
+  // Territory-level write
+  // ---------------------------------------------------------------------------
+
   /**
-   * Cache aides for a query key
+   * Store aides for a territory. Writes individual aides then the territory index.
+   * Aides are written first so the index never points to missing keys.
    */
   async set(queryKey: string, aides: AideTerritoires[]): Promise<void> {
-    await this.redis.set(`${CACHE_PREFIX}${queryKey}`, JSON.stringify(aides), "EX", this.ttl);
-    this.logger.log(`Cached ${aides.length} aides for key: ${queryKey} (TTL: ${this.ttl}s)`);
+    if (aides.length === 0) return;
+
+    // 1. Bulk upsert individual aides
+    await this.setAides(aides);
+
+    // 2. Write territory index with timestamp
+    const entry: TerritoryEntry = {
+      ids: aides.map((a) => a.id),
+      storedAt: Date.now(),
+    };
+    await this.redis.set(`${TERRITORY_PREFIX}${queryKey}`, JSON.stringify(entry), "EX", STALE_MAX_TTL_SECONDS);
+
+    this.logger.log(`Cached ${aides.length} aides for territory: ${queryKey}`);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Individual aide operations
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Bulk store individual aides in Redis via pipeline.
+   */
+  private async setAides(aides: AideTerritoires[]): Promise<void> {
+    const pipeline = this.redis.pipeline();
+    for (const aide of aides) {
+      pipeline.set(`${AIDE_PREFIX}${aide.id}`, JSON.stringify(aide), "EX", AIDE_TTL_SECONDS);
+    }
+    await pipeline.exec();
   }
 
   /**
-   * Build a cache key from query parameters
+   * Retrieve aides by ID list using MGET. Silently skips expired/missing keys.
    */
+  private async getAidesByIds(ids: number[]): Promise<AideTerritoires[]> {
+    if (ids.length === 0) return [];
+
+    const keys = ids.map((id) => `${AIDE_PREFIX}${id}`);
+    const values = await this.redis.mget(...keys);
+
+    const aides: AideTerritoires[] = [];
+    for (const v of values) {
+      if (v) {
+        aides.push(JSON.parse(v) as AideTerritoires);
+      }
+    }
+    return aides;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cache key building
+  // ---------------------------------------------------------------------------
+
   buildKey(params: Record<string, string>): string {
     const sorted = Object.entries(params)
       .sort(([a], [b]) => a.localeCompare(b))
@@ -61,28 +148,48 @@ export class AidesCacheService implements OnModuleDestroy {
     return sorted || "all";
   }
 
-  /**
-   * Get cached perimeter_id for a code INSEE
-   */
+  // ---------------------------------------------------------------------------
+  // Perimeter ID cache (unchanged)
+  // ---------------------------------------------------------------------------
+
   async getPerimeterId(codeInsee: string): Promise<string | null> {
     return this.redis.get(`${PERIMETER_CACHE_PREFIX}${codeInsee}`);
   }
 
-  /**
-   * Cache a code INSEE → perimeter_id mapping (7 days TTL)
-   */
   async setPerimeterId(codeInsee: string, perimeterId: string): Promise<void> {
     await this.redis.set(`${PERIMETER_CACHE_PREFIX}${codeInsee}`, perimeterId, "EX", PERIMETER_TTL_SECONDS);
   }
 
+  // ---------------------------------------------------------------------------
+  // Invalidation
+  // ---------------------------------------------------------------------------
+
   /**
-   * Invalidate all AT aide caches
+   * Invalidate all territory indexes. Individual aide entries are left to expire
+   * naturally (7d TTL) — they will be overwritten on next refresh anyway.
    */
-  async invalidateAll(): Promise<void> {
-    const keys = await this.redis.keys(`${CACHE_PREFIX}*`);
+  async invalidateTerritories(): Promise<void> {
+    const keys = await this.redis.keys(`${TERRITORY_PREFIX}*`);
     if (keys.length > 0) {
       await this.redis.del(...keys);
-      this.logger.log(`Invalidated ${keys.length} AT aide cache entries`);
+      this.logger.log(`Invalidated ${keys.length} territory cache entries`);
     }
+  }
+
+  /**
+   * @deprecated Use invalidateTerritories() instead. Kept for backward compat during migration.
+   */
+  async invalidateAll(): Promise<void> {
+    await this.invalidateTerritories();
+  }
+
+  // ---------------------------------------------------------------------------
+  // SWR helpers
+  // ---------------------------------------------------------------------------
+
+  private resolveStatus(storedAt: number): CacheStatus {
+    const ageSeconds = (Date.now() - storedAt) / 1000;
+    if (ageSeconds < FRESH_TTL_SECONDS) return "fresh";
+    return "stale";
   }
 }
