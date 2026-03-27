@@ -9,7 +9,7 @@ const mockRedis = {
   set: jest.fn(),
   mget: jest.fn(),
   del: jest.fn(),
-  keys: jest.fn(),
+  scan: jest.fn(),
   disconnect: jest.fn(),
   pipeline: jest.fn(),
 };
@@ -177,17 +177,31 @@ describe("AidesCacheService", () => {
   });
 
   describe("invalidateTerritories", () => {
-    it("should delete all territory index keys", async () => {
-      mockRedis.keys.mockResolvedValue(["at:territory:a=1", "at:territory:b=2"]);
+    it("should delete all territory index keys using SCAN", async () => {
+      // First scan returns keys + cursor, second scan returns empty + cursor "0"
+      mockRedis.scan
+        .mockResolvedValueOnce(["42", ["at:territory:a=1", "at:territory:b=2"]])
+        .mockResolvedValueOnce(["0", []]);
 
       await service.invalidateTerritories();
 
-      expect(mockRedis.keys).toHaveBeenCalledWith("at:territory:*");
+      expect(mockRedis.scan).toHaveBeenCalledWith("0", "MATCH", "at:territory:*", "COUNT", 100);
       expect(mockRedis.del).toHaveBeenCalledWith("at:territory:a=1", "at:territory:b=2");
     });
 
+    it("should handle multiple scan pages", async () => {
+      mockRedis.scan
+        .mockResolvedValueOnce(["5", ["at:territory:a=1"]])
+        .mockResolvedValueOnce(["0", ["at:territory:b=2"]]);
+
+      await service.invalidateTerritories();
+
+      expect(mockRedis.scan).toHaveBeenCalledTimes(2);
+      expect(mockRedis.del).toHaveBeenCalledTimes(2);
+    });
+
     it("should not call del when no keys exist", async () => {
-      mockRedis.keys.mockResolvedValue([]);
+      mockRedis.scan.mockResolvedValue(["0", []]);
 
       await service.invalidateTerritories();
 
@@ -197,11 +211,11 @@ describe("AidesCacheService", () => {
 
   describe("invalidateAll (backward compat)", () => {
     it("should delegate to invalidateTerritories", async () => {
-      mockRedis.keys.mockResolvedValue([]);
+      mockRedis.scan.mockResolvedValue(["0", []]);
 
       await service.invalidateAll();
 
-      expect(mockRedis.keys).toHaveBeenCalledWith("at:territory:*");
+      expect(mockRedis.scan).toHaveBeenCalledWith("0", "MATCH", "at:territory:*", "COUNT", 100);
     });
   });
 

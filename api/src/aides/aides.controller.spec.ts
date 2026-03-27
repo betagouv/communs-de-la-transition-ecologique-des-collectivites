@@ -4,6 +4,7 @@ import { AidesTerritoiresService, AideTerritoires } from "./aides-territoires.se
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
 import { AidesCacheService, CacheResult } from "./aides-cache.service";
+import { AidesWarmupService } from "./aides-warmup.service";
 import { DatabaseService } from "@database/database.service";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { CustomLogger } from "@logging/logger.service";
@@ -50,6 +51,7 @@ describe("AidesController", () => {
   let controller: AidesController;
   let mockAtService: jest.Mocked<AidesTerritoiresService>;
   let mockCacheService: jest.Mocked<AidesCacheService>;
+  let mockWarmupService: jest.Mocked<AidesWarmupService>;
   let mockClassificationService: jest.Mocked<AideClassificationService>;
   let mockMatchingService: jest.Mocked<AidesMatchingService>;
   let mockProjetsService: jest.Mocked<GetProjetsService>;
@@ -76,6 +78,10 @@ describe("AidesController", () => {
       setPerimeterId: jest.fn().mockResolvedValue(undefined),
       invalidateTerritories: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<AidesCacheService>;
+
+    mockWarmupService = {
+      warmup: jest.fn().mockResolvedValue({ territories: 3, duration: 5000 }),
+    } as unknown as jest.Mocked<AidesWarmupService>;
 
     mockClassificationService = {
       getCachedClassifications: jest.fn().mockResolvedValue(new Map()),
@@ -110,6 +116,7 @@ describe("AidesController", () => {
       mockClassificationService,
       mockMatchingService,
       mockCacheService,
+      mockWarmupService,
       mockDbService,
       mockProjetsService,
       mockLogger,
@@ -126,9 +133,7 @@ describe("AidesController", () => {
 
       await controller.listAides("test-id");
 
-      // Should NOT call AT API
       expect(mockAtService.fetchAides).not.toHaveBeenCalled();
-      // Should NOT write to cache
       expect(mockCacheService.set).not.toHaveBeenCalled();
     });
 
@@ -138,20 +143,34 @@ describe("AidesController", () => {
         status: "stale",
       };
       mockCacheService.get.mockResolvedValue(staleResult);
-
-      // Let the background refresh resolve
       mockAtService.fetchAides.mockResolvedValue([makeAide(1), makeAide(2)]);
 
       await controller.listAides("test-id");
 
-      // Should return stale data (1 aide, not wait for refresh)
-      // Background refresh should have been triggered (fire-and-forget)
-      // We can't easily assert the background call happened synchronously,
-      // but we can wait a tick and check
+      // Background refresh is fire-and-forget — wait a tick
       await new Promise((r) => setTimeout(r, 10));
 
       expect(mockAtService.fetchAides).toHaveBeenCalled();
       expect(mockCacheService.set).toHaveBeenCalled();
+    });
+
+    it("should deduplicate concurrent background refreshes for the same key", async () => {
+      const staleResult: CacheResult = {
+        aides: [makeAide(1)],
+        status: "stale",
+      };
+      mockCacheService.get.mockResolvedValue(staleResult);
+
+      // Slow refresh to ensure both calls overlap
+      mockAtService.fetchAides.mockImplementation(() => new Promise((r) => setTimeout(() => r([makeAide(1)]), 50)));
+
+      // Two concurrent requests for the same stale territory
+      await Promise.all([controller.listAides("test-id"), controller.listAides("test-id")]);
+
+      await new Promise((r) => setTimeout(r, 100));
+
+      // Only ONE background refresh should have been triggered
+      expect(mockAtService.fetchAides).toHaveBeenCalledTimes(1);
     });
 
     it("should fetch synchronously on cache miss (cold start)", async () => {
@@ -160,18 +179,18 @@ describe("AidesController", () => {
 
       await controller.listAides("test-id");
 
-      // Should call AT API synchronously
       expect(mockAtService.fetchAides).toHaveBeenCalled();
-      // Should store in cache
       expect(mockCacheService.set).toHaveBeenCalled();
     });
   });
 
   describe("syncClassifications", () => {
-    it("should call invalidateTerritories instead of invalidateAll", async () => {
-      await controller.syncClassifications();
+    it("should invalidate territories and trigger warmup", async () => {
+      const result = await controller.syncClassifications();
 
       expect(mockCacheService.invalidateTerritories).toHaveBeenCalled();
+      expect(mockWarmupService.warmup).toHaveBeenCalled();
+      expect(result.warmup).toEqual({ territories: 3, duration: 5000 });
     });
   });
 });

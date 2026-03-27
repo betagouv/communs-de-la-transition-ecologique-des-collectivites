@@ -11,6 +11,7 @@ import { AidesTerritoiresService, AideTerritoires } from "./aides-territoires.se
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService, MatchResult } from "./aides-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
+import { AidesWarmupService } from "./aides-warmup.service";
 
 interface EnrichedAide extends AideTerritoires {
   classification?: {
@@ -31,11 +32,14 @@ interface EnrichedAide extends AideTerritoires {
 @Controller("aides")
 @UseGuards(ApiKeyGuard)
 export class AidesController {
+  private readonly refreshingKeys = new Set<string>();
+
   constructor(
     private readonly atService: AidesTerritoiresService,
     private readonly classificationService: AideClassificationService,
     private readonly matchingService: AidesMatchingService,
     private readonly cacheService: AidesCacheService,
+    private readonly warmupService: AidesWarmupService,
     private readonly dbService: DatabaseService,
     private readonly projetsService: GetProjetsService,
     private readonly logger: CustomLogger,
@@ -124,7 +128,12 @@ export class AidesController {
     description:
       "Déclenche la classification LLM des aides non encore classifiées ou modifiées. Invalide le cache Redis.",
   })
-  async syncClassifications(): Promise<{ classified: number; cached: number; total: number }> {
+  async syncClassifications(): Promise<{
+    classified: number;
+    cached: number;
+    total: number;
+    warmup: { territories: number; duration: number };
+  }> {
     this.logger.log("Starting aide classification sync");
     const aides = await this.atService.fetchAides();
     const result = await this.classificationService.syncClassifications(aides);
@@ -132,7 +141,10 @@ export class AidesController {
     // Invalidate territory indexes after sync (classifications changed)
     await this.cacheService.invalidateTerritories();
 
-    return { ...result, total: aides.length };
+    // Pre-warm cache for all active territories
+    const warmup = await this.warmupService.warmup();
+
+    return { ...result, total: aides.length, warmup };
   }
 
   /**
@@ -200,6 +212,9 @@ export class AidesController {
    * Fire-and-forget background refresh for stale cache entries.
    */
   private refreshInBackground(cacheKey: string, params: Record<string, string>, label: string): void {
+    if (this.refreshingKeys.has(cacheKey)) return;
+    this.refreshingKeys.add(cacheKey);
+
     this.atService
       .fetchAides(params)
       .then((aides) => this.cacheService.set(cacheKey, aides))
@@ -208,7 +223,8 @@ export class AidesController {
         this.logger.error(`Background refresh failed for ${label}`, {
           error: { message: error instanceof Error ? error.message : "Unknown error" },
         }),
-      );
+      )
+      .finally(() => this.refreshingKeys.delete(cacheKey));
   }
 
   /**
