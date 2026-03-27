@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.46](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.45...v0.1.46) (2026-03-27)
+
+
+### Bug Fixes
+
+* **api:** respecter le rate-limit AT dans le warmup (séquentiel + retry 429) ([40a998b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/40a998b94d1aaaa0cbb3805df4ccf8ff815daf8c))
+
 ## [0.1.45](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.44...v0.1.45) (2026-03-27)
 
 
