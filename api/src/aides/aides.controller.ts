@@ -129,8 +129,8 @@ export class AidesController {
     const aides = await this.atService.fetchAides();
     const result = await this.classificationService.syncClassifications(aides);
 
-    // Invalidate AT cache after sync (classifications changed)
-    await this.cacheService.invalidateAll();
+    // Invalidate territory indexes after sync (classifications changed)
+    await this.cacheService.invalidateTerritories();
 
     return { ...result, total: aides.length };
   }
@@ -172,19 +172,51 @@ export class AidesController {
   }
 
   /**
+   * Fetch aides for a single territory with SWR.
+   * Returns aides immediately (from cache if available), triggers background refresh if stale.
+   */
+  private async fetchAidesForTerritory(params: Record<string, string>, label: string): Promise<AideTerritoires[]> {
+    const cacheKey = this.cacheService.buildKey(params);
+    const cached = await this.cacheService.get(cacheKey);
+
+    if (cached?.status === "fresh") {
+      return cached.aides;
+    }
+
+    if (cached?.status === "stale") {
+      // Serve stale data immediately, refresh in background
+      this.refreshInBackground(cacheKey, params, label);
+      return cached.aides;
+    }
+
+    // Cache miss — synchronous fetch (cold start)
+    this.logger.log(`Cache miss for AT aides, fetching from API (${label})`);
+    const aides = await this.atService.fetchAides(params);
+    await this.cacheService.set(cacheKey, aides);
+    return aides;
+  }
+
+  /**
+   * Fire-and-forget background refresh for stale cache entries.
+   */
+  private refreshInBackground(cacheKey: string, params: Record<string, string>, label: string): void {
+    this.atService
+      .fetchAides(params)
+      .then((aides) => this.cacheService.set(cacheKey, aides))
+      .then(() => this.logger.log(`Background refresh complete for ${label}`))
+      .catch((error) =>
+        this.logger.error(`Background refresh failed for ${label}`, {
+          error: { message: error instanceof Error ? error.message : "Unknown error" },
+        }),
+      );
+  }
+
+  /**
    * Fetch aides for multiple territories (union). Deduplicates by aide id.
    */
   private async fetchAidesForTerritories(codesInsee: string[]): Promise<AideTerritoires[]> {
     if (codesInsee.length === 0) {
-      // No territory filter — fetch all aides
-      const cacheKey = this.cacheService.buildKey({});
-      let aides = await this.cacheService.get(cacheKey);
-      if (!aides) {
-        this.logger.log("Cache miss for AT aides, fetching from API (no territory filter)");
-        aides = await this.atService.fetchAides();
-        await this.cacheService.set(cacheKey, aides);
-      }
-      return aides;
+      return this.fetchAidesForTerritory({}, "no territory filter");
     }
 
     const seenIds = new Set<number>();
@@ -197,14 +229,7 @@ export class AidesController {
         params.perimeter = perimeterId;
       }
 
-      const cacheKey = this.cacheService.buildKey(params);
-      let aides = await this.cacheService.get(cacheKey);
-
-      if (!aides) {
-        this.logger.log(`Cache miss for AT aides, fetching from API (code_insee=${codeInsee})`);
-        aides = await this.atService.fetchAides(params);
-        await this.cacheService.set(cacheKey, aides);
-      }
+      const aides = await this.fetchAidesForTerritory(params, `code_insee=${codeInsee}`);
 
       // Deduplicate across territories
       for (const aide of aides) {
