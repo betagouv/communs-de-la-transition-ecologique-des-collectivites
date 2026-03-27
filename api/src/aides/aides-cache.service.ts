@@ -169,10 +169,20 @@ export class AidesCacheService implements OnModuleDestroy {
    * naturally (7d TTL) — they will be overwritten on next refresh anyway.
    */
   async invalidateTerritories(): Promise<void> {
-    const keys = await this.redis.keys(`${TERRITORY_PREFIX}*`);
-    if (keys.length > 0) {
-      await this.redis.del(...keys);
-      this.logger.log(`Invalidated ${keys.length} territory cache entries`);
+    let deleted = 0;
+    let cursor = "0";
+
+    do {
+      const [nextCursor, keys] = await this.redis.scan(cursor, "MATCH", `${TERRITORY_PREFIX}*`, "COUNT", 100);
+      cursor = nextCursor;
+      if (keys.length > 0) {
+        await this.redis.del(...keys);
+        deleted += keys.length;
+      }
+    } while (cursor !== "0");
+
+    if (deleted > 0) {
+      this.logger.log(`Invalidated ${deleted} territory cache entries`);
     }
   }
 
