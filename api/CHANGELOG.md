@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.44](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.43...v0.1.44) (2026-03-27)
+
+
+### Features
+
+* **api:** cache dédupliqué SWR + pré-chauffage des territoires pour les aides AT ([b3420ca](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/b3420cafd8c4ddeed2f8a0964069a73fde5484bb))
+
+
+### Bug Fixes
+
+* **api:** corriger les issues identifiées en review ([8fdba7d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/8fdba7d555582648cf33752cf45e7d340f9cbbcf))
+
 ## [0.1.43](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.42...v0.1.43) (2026-03-24)
 
 
