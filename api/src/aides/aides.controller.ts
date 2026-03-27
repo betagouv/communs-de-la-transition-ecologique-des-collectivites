@@ -132,7 +132,7 @@ export class AidesController {
     classified: number;
     cached: number;
     total: number;
-    warmup: { territories: number; duration: number };
+    warmupStarted: boolean;
   }> {
     this.logger.log("Starting aide classification sync");
     const aides = await this.atService.fetchAides();
@@ -141,10 +141,14 @@ export class AidesController {
     // Invalidate territory indexes after sync (classifications changed)
     await this.cacheService.invalidateTerritories();
 
-    // Pre-warm cache for all active territories
-    const warmup = await this.warmupService.warmup();
+    // Pre-warm cache in background (fire-and-forget, too slow for HTTP response)
+    this.warmupService.warmup().catch((error) =>
+      this.logger.error("Background warmup failed after sync", {
+        error: { message: error instanceof Error ? error.message : "Unknown error" },
+      }),
+    );
 
-    return { ...result, total: aides.length, warmup };
+    return { ...result, total: aides.length, warmupStarted: true };
   }
 
   /**

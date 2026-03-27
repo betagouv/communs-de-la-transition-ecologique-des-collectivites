@@ -185,12 +185,14 @@ describe("AidesController", () => {
   });
 
   describe("syncClassifications", () => {
-    it("should invalidate territories and trigger warmup", async () => {
+    it("should invalidate territories and trigger warmup in background", async () => {
       const result = await controller.syncClassifications();
 
       expect(mockCacheService.invalidateTerritories).toHaveBeenCalled();
       expect(mockWarmupService.warmup).toHaveBeenCalled();
-      expect(result.warmup).toEqual({ territories: 3, duration: 5000 });
+      expect(result.warmupStarted).toBe(true);
+      // warmup is fire-and-forget, not awaited
+      expect(result).not.toHaveProperty("warmup");
     });
   });
 });
