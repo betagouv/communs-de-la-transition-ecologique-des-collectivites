@@ -32,9 +32,12 @@ export class AidesSyncProcessor extends WorkerHost {
     super();
   }
 
-  async process(
-    job: Job,
-  ): Promise<{ classified: number; cached: number; total: number; warmup: { territories: number; duration: number } }> {
+  async process(job: Job): Promise<{
+    classified: number;
+    cached: number;
+    total: number;
+    warmup: { territories: number; failed: number; duration: number };
+  }> {
     this.logger.log(`Starting aides sync job ${job.id}`);
 
     try {
