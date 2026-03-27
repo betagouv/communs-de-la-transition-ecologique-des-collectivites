@@ -54,7 +54,6 @@ describe("AidesWarmupService", () => {
     error: jest.fn(),
   } as unknown as CustomLogger;
 
-  // Drizzle query builder mock chain
   const mockQueryBuilder = {
     selectDistinct: jest.fn(),
     from: jest.fn(),
@@ -65,15 +64,12 @@ describe("AidesWarmupService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Chain the query builder methods
     mockQueryBuilder.selectDistinct.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.from.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.innerJoin.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.where.mockResolvedValue([]);
 
-    mockDb = {
-      database: mockQueryBuilder,
-    } as unknown as jest.Mocked<DatabaseService>;
+    mockDb = { database: mockQueryBuilder } as unknown as jest.Mocked<DatabaseService>;
 
     mockAtService = {
       fetchAides: jest.fn().mockResolvedValue([makeAide(1), makeAide(2)]),
@@ -94,14 +90,15 @@ describe("AidesWarmupService", () => {
     } as unknown as jest.Mocked<AidesCacheService>;
 
     service = new AidesWarmupService(mockDb, mockAtService, mockCacheService, mockLogger);
+
+    // Skip all delays in tests
+    jest.spyOn(service as never, "delay" as never).mockResolvedValue(undefined as never);
   });
 
   describe("getActiveCodesInsee", () => {
     it("should return empty array when no projects have communes", async () => {
       mockQueryBuilder.where.mockResolvedValue([]);
-
       const result = await service.getActiveCodesInsee();
-
       expect(result).toEqual([]);
     });
 
@@ -110,9 +107,7 @@ describe("AidesWarmupService", () => {
         { codeInsee: "44109", nom: "Nantes" },
         { codeInsee: "69123", nom: "Lyon" },
       ]);
-
       const result = await service.getActiveCodesInsee();
-
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({ codeInsee: "44109", nom: "Nantes" });
     });
@@ -122,9 +117,7 @@ describe("AidesWarmupService", () => {
         { codeInsee: "44109", nom: "Nantes" },
         { codeInsee: null, nom: "Unknown" },
       ]);
-
       const result = await service.getActiveCodesInsee();
-
       expect(result).toHaveLength(1);
     });
   });
@@ -132,14 +125,12 @@ describe("AidesWarmupService", () => {
   describe("warmup", () => {
     it("should return immediately when no active territories", async () => {
       mockQueryBuilder.where.mockResolvedValue([]);
-
       const result = await service.warmup();
-
       expect(result.territories).toBe(0);
       expect(mockAtService.fetchAides).not.toHaveBeenCalled();
     });
 
-    it("should warm all active territories", async () => {
+    it("should warm all active territories sequentially", async () => {
       mockQueryBuilder.where.mockResolvedValue([
         { codeInsee: "44109", nom: "Nantes" },
         { codeInsee: "69123", nom: "Lyon" },
@@ -148,6 +139,7 @@ describe("AidesWarmupService", () => {
       const result = await service.warmup();
 
       expect(result.territories).toBe(2);
+      expect(result.failed).toBe(0);
       expect(mockAtService.resolvePerimeterId).toHaveBeenCalledTimes(2);
       expect(mockAtService.fetchAides).toHaveBeenCalledTimes(2);
       expect(mockCacheService.set).toHaveBeenCalledTimes(2);
@@ -159,9 +151,7 @@ describe("AidesWarmupService", () => {
 
       await service.warmup();
 
-      // Should NOT call AT to resolve perimeter
       expect(mockAtService.resolvePerimeterId).not.toHaveBeenCalled();
-      // Should still fetch aides
       expect(mockAtService.fetchAides).toHaveBeenCalledWith({ perimeter: "87571-nantes" });
     });
 
@@ -172,7 +162,6 @@ describe("AidesWarmupService", () => {
         { codeInsee: "35238", nom: "Rennes" },
       ]);
 
-      // Second territory fails
       mockAtService.fetchAides
         .mockResolvedValueOnce([makeAide(1)])
         .mockRejectedValueOnce(new Error("AT API timeout"))
@@ -180,34 +169,61 @@ describe("AidesWarmupService", () => {
 
       const result = await service.warmup();
 
-      // 2 out of 3 should succeed
       expect(result.territories).toBe(2);
+      expect(result.failed).toBe(1);
     });
 
-    it("should respect concurrency limit", async () => {
-      // Create 12 territories to test batching (WARMUP_CONCURRENCY = 5)
-      const communes = Array.from({ length: 12 }, (_, i) => ({
+    it("should retry on 429 errors with exponential backoff", async () => {
+      mockQueryBuilder.where.mockResolvedValue([{ codeInsee: "44109", nom: "Nantes" }]);
+
+      mockAtService.fetchAides
+        .mockRejectedValueOnce(new Error("AT API error: 429 Too Many Requests"))
+        .mockRejectedValueOnce(new Error("AT API error: 429 Too Many Requests"))
+        .mockResolvedValueOnce([makeAide(1)]);
+
+      const result = await service.warmup();
+
+      expect(result.territories).toBe(1);
+      expect(result.failed).toBe(0);
+      expect(mockAtService.fetchAides).toHaveBeenCalledTimes(3);
+      expect(mockLogger.warn).toHaveBeenCalledTimes(2);
+    });
+
+    it("should give up after max retries on persistent 429", async () => {
+      mockQueryBuilder.where.mockResolvedValue([{ codeInsee: "44109", nom: "Nantes" }]);
+
+      mockAtService.fetchAides.mockRejectedValue(new Error("AT API error: 429 Too Many Requests"));
+
+      const result = await service.warmup();
+
+      expect(result.territories).toBe(0);
+      expect(result.failed).toBe(1);
+      // 1 initial + 3 retries = 4 calls
+      expect(mockAtService.fetchAides).toHaveBeenCalledTimes(4);
+    });
+
+    it("should process territories sequentially (no concurrency)", async () => {
+      const communes = Array.from({ length: 5 }, (_, i) => ({
         codeInsee: String(10000 + i),
         nom: `Commune ${i}`,
       }));
       mockQueryBuilder.where.mockResolvedValue(communes);
 
-      // Track concurrent calls
       let maxConcurrent = 0;
       let currentConcurrent = 0;
 
       mockAtService.fetchAides.mockImplementation(async () => {
         currentConcurrent++;
         maxConcurrent = Math.max(maxConcurrent, currentConcurrent);
-        await new Promise((r) => setTimeout(r, 10));
+        await Promise.resolve();
         currentConcurrent--;
         return [makeAide(1)];
       });
 
       await service.warmup();
 
-      expect(maxConcurrent).toBeLessThanOrEqual(5);
-      expect(mockAtService.fetchAides).toHaveBeenCalledTimes(12);
+      expect(maxConcurrent).toBe(1);
+      expect(mockAtService.fetchAides).toHaveBeenCalledTimes(5);
     });
   });
 });
