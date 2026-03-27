@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.45](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.44...v0.1.45) (2026-03-27)
+
+
+### Bug Fixes
+
+* **api:** lancer le warmup en fire-and-forget dans GET /aides/sync ([106e3cf](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/106e3cfc1e7e7640e4f711c02279a2572a9e73f8))
+
 ## [0.1.44](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.43...v0.1.44) (2026-03-27)
 
 
