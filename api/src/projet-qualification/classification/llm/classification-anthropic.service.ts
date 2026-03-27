@@ -134,17 +134,22 @@ export class ClassificationAnthropicService {
       const jsonData = JSON.parse(trimmed) as ClassificationLLMResponse;
       return { json: jsonData };
     } catch {
-      // Fallback: extract JSON block via regex (matching Python's re.findall pattern)
-      const jsonCandidates = trimmed.match(/\{[\s\S]*\}/g);
-      if (jsonCandidates) {
-        for (const block of jsonCandidates) {
-          try {
-            const jsonData = JSON.parse(block) as ClassificationLLMResponse;
-            return { json: jsonData };
-          } catch {
-            // Try next candidate
+      // Fallback: extract JSON objects by brace counting (handles multi-JSON / text around JSON)
+      // Take the LAST valid object with items — when the LLM self-corrects, the correction comes last
+      const candidates = this.extractJsonObjects(trimmed);
+      let lastValid: ClassificationLLMResponse | null = null;
+      for (const block of candidates) {
+        try {
+          const jsonData = JSON.parse(block) as ClassificationLLMResponse;
+          if (jsonData.items) {
+            lastValid = jsonData;
           }
+        } catch {
+          // Try next candidate
         }
+      }
+      if (lastValid) {
+        return { json: lastValid };
       }
 
       this.logger.error("Failed to parse JSON from LLM response", { response: trimmed.slice(0, 500) });
@@ -153,6 +158,52 @@ export class ClassificationAnthropicService {
         errorMessage: "Failed to parse JSON from LLM response",
       };
     }
+  }
+
+  /**
+   * Extract complete JSON objects from text by counting braces.
+   * Handles cases where the LLM outputs multiple JSON blocks or text between them.
+   */
+  private extractJsonObjects(text: string): string[] {
+    const objects: string[] = [];
+    let depth = 0;
+    let start = -1;
+    let inString = false;
+    let escape = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+
+      if (escape) {
+        escape = false;
+        continue;
+      }
+
+      if (char === "\\") {
+        escape = true;
+        continue;
+      }
+
+      if (char === '"') {
+        inString = !inString;
+        continue;
+      }
+
+      if (inString) continue;
+
+      if (char === "{") {
+        if (depth === 0) start = i;
+        depth++;
+      } else if (char === "}") {
+        depth--;
+        if (depth === 0 && start !== -1) {
+          objects.push(text.slice(start, i + 1));
+          start = -1;
+        }
+      }
+    }
+
+    return objects;
   }
 
   /**
