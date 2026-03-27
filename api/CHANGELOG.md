@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.47](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.46...v0.1.47) (2026-03-27)
+
+
+### Bug Fixes
+
+* **api:** parser robuste pour les réponses JSON du LLM (multi-blocs) ([2ee5093](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2ee5093acc4c8909fe9ee2e6848bbc408f21b03a))
+
 ## [0.1.46](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.45...v0.1.46) (2026-03-27)
 
 
