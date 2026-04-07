@@ -1,5 +1,12 @@
 # @betagouv/les-communs-widget
 
+## 0.4.0
+
+### Minor Changes
+
+- Migrate production API URL to `api.collectivites.beta.gouv.fr` (custom domain replacing Scalingo URL)
+- Restructure API type generation path for new API prefix layout
+
 ## 0.3.5
 
 ### Patch Changes
