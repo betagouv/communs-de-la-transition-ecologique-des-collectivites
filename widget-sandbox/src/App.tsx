@@ -27,9 +27,9 @@ function App() {
       </Accordion>
 
       {debugMode ? (
-        <ServicesWidget isStagingEnv projectId={FAKE_PROJECT_ID} idType={"communId"} debug />
+        <ServicesWidget projectId={FAKE_PROJECT_ID} idType={"communId"} debug />
       ) : (
-        <ServicesWidget isStagingEnv context={filters} />
+        <ServicesWidget context={filters} />
       )}
     </div>
   );
