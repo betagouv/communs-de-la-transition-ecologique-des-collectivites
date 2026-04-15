@@ -6,12 +6,9 @@ import { AideTerritoires } from "./aides-territoires.service";
 
 const AIDE_PREFIX = "at:aide:";
 const TERRITORY_PREFIX = "at:territory:";
-const PERIMETER_CACHE_PREFIX = "at:perimeter:";
-
 const AIDE_TTL_SECONDS = 86400 * 7; // 7 days — aides catalog, long-lived
 const FRESH_TTL_SECONDS = 3600; // 1 hour — territory index considered fresh
 const STALE_MAX_TTL_SECONDS = 86400 * 7; // 7 days — max staleness before eviction
-const PERIMETER_TTL_SECONDS = 86400 * 7; // 7 days (codes INSEE don't change)
 
 /**
  * Stored alongside the territory index to track SWR freshness.
@@ -146,18 +143,6 @@ export class AidesCacheService implements OnModuleDestroy {
       .map(([k, v]) => `${k}=${v}`)
       .join("&");
     return sorted || "all";
-  }
-
-  // ---------------------------------------------------------------------------
-  // Perimeter ID cache (unchanged)
-  // ---------------------------------------------------------------------------
-
-  async getPerimeterId(codeInsee: string): Promise<string | null> {
-    return this.redis.get(`${PERIMETER_CACHE_PREFIX}${codeInsee}`);
-  }
-
-  async setPerimeterId(codeInsee: string, perimeterId: string): Promise<void> {
-    await this.redis.set(`${PERIMETER_CACHE_PREFIX}${codeInsee}`, perimeterId, "EX", PERIMETER_TTL_SECONDS);
   }
 
   // ---------------------------------------------------------------------------

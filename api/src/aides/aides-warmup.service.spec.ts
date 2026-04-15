@@ -73,12 +73,9 @@ describe("AidesWarmupService", () => {
 
     mockAtService = {
       fetchAides: jest.fn().mockResolvedValue([makeAide(1), makeAide(2)]),
-      resolvePerimeterId: jest.fn().mockResolvedValue("87571-nantes"),
     } as unknown as jest.Mocked<AidesTerritoiresService>;
 
     mockCacheService = {
-      getPerimeterId: jest.fn().mockResolvedValue(null),
-      setPerimeterId: jest.fn().mockResolvedValue(undefined),
       buildKey: jest.fn().mockImplementation((params: Record<string, string>) => {
         const sorted = Object.entries(params)
           .sort(([a], [b]) => a.localeCompare(b))
@@ -140,19 +137,16 @@ describe("AidesWarmupService", () => {
 
       expect(result.territories).toBe(2);
       expect(result.failed).toBe(0);
-      expect(mockAtService.resolvePerimeterId).toHaveBeenCalledTimes(2);
       expect(mockAtService.fetchAides).toHaveBeenCalledTimes(2);
       expect(mockCacheService.set).toHaveBeenCalledTimes(2);
     });
 
-    it("should use cached perimeter ID when available", async () => {
+    it("should pass perimeter_codes[] with code INSEE directly to AT", async () => {
       mockQueryBuilder.where.mockResolvedValue([{ codeInsee: "44109", nom: "Nantes" }]);
-      mockCacheService.getPerimeterId.mockResolvedValue("87571-nantes");
 
       await service.warmup();
 
-      expect(mockAtService.resolvePerimeterId).not.toHaveBeenCalled();
-      expect(mockAtService.fetchAides).toHaveBeenCalledWith({ perimeter: "87571-nantes" });
+      expect(mockAtService.fetchAides).toHaveBeenCalledWith({ "perimeter_codes[]": "44109" });
     });
 
     it("should continue on individual territory failure", async () => {
