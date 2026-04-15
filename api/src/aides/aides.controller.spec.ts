@@ -5,7 +5,6 @@ import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
 import { AidesCacheService, CacheResult } from "./aides-cache.service";
 import { AidesWarmupService } from "./aides-warmup.service";
-import { DatabaseService } from "@database/database.service";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { CustomLogger } from "@logging/logger.service";
 
@@ -55,7 +54,6 @@ describe("AidesController", () => {
   let mockClassificationService: jest.Mocked<AideClassificationService>;
   let mockMatchingService: jest.Mocked<AidesMatchingService>;
   let mockProjetsService: jest.Mocked<GetProjetsService>;
-  let mockDbService: jest.Mocked<DatabaseService>;
   const mockLogger = {
     log: jest.fn(),
     warn: jest.fn(),
@@ -67,15 +65,12 @@ describe("AidesController", () => {
 
     mockAtService = {
       fetchAides: jest.fn().mockResolvedValue([makeAide(1), makeAide(2)]),
-      resolvePerimeterId: jest.fn().mockResolvedValue("87571"),
     } as unknown as jest.Mocked<AidesTerritoiresService>;
 
     mockCacheService = {
       get: jest.fn().mockResolvedValue(null),
       set: jest.fn().mockResolvedValue(undefined),
-      buildKey: jest.fn().mockReturnValue("perimeter=87571"),
-      getPerimeterId: jest.fn().mockResolvedValue("87571"),
-      setPerimeterId: jest.fn().mockResolvedValue(undefined),
+      buildKey: jest.fn().mockReturnValue("perimeter_codes%5B%5D=44109"),
       invalidateTerritories: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<AidesCacheService>;
 
@@ -100,24 +95,12 @@ describe("AidesController", () => {
       }),
     } as unknown as jest.Mocked<GetProjetsService>;
 
-    const mockQueryResult = [{ nom: "Nantes" }];
-    const mockQueryBuilder = {
-      select: jest.fn().mockReturnThis(),
-      from: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue(mockQueryResult),
-    };
-    mockDbService = {
-      database: mockQueryBuilder,
-    } as unknown as jest.Mocked<DatabaseService>;
-
     controller = new AidesController(
       mockAtService,
       mockClassificationService,
       mockMatchingService,
       mockCacheService,
       mockWarmupService,
-      mockDbService,
       mockProjetsService,
       mockLogger,
     );

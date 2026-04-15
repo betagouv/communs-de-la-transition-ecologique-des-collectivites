@@ -117,23 +117,10 @@ export class AidesWarmupService {
 
   /**
    * Pre-warm cache for a single territory.
+   * Uses AT's perimeter_codes[] parameter which accepts code INSEE directly.
    */
   private async warmTerritory(codeInsee: string, communeName: string): Promise<void> {
-    // 1. Resolve perimeter ID (from cache or AT API)
-    let perimeterId = await this.cacheService.getPerimeterId(codeInsee);
-    if (!perimeterId) {
-      perimeterId = await this.atService.resolvePerimeterId(codeInsee, communeName);
-      if (perimeterId) {
-        await this.cacheService.setPerimeterId(codeInsee, perimeterId);
-      }
-    }
-
-    // 2. Fetch aides from AT and store in cache
-    const params: Record<string, string> = {};
-    if (perimeterId) {
-      params.perimeter = perimeterId;
-    }
-
+    const params = { "perimeter_codes[]": codeInsee };
     const cacheKey = this.cacheService.buildKey(params);
     const aides = await this.atService.fetchAides(params);
     await this.cacheService.set(cacheKey, aides);

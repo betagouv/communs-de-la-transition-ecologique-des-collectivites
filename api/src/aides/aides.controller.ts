@@ -3,9 +3,6 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger"
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 import { CustomLogger } from "@logging/logger.service";
-import { DatabaseService } from "@database/database.service";
-import { refCommunes } from "@database/schema";
-import { eq } from "drizzle-orm";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { AidesTerritoiresService, AideTerritoires } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
@@ -40,7 +37,6 @@ export class AidesController {
     private readonly matchingService: AidesMatchingService,
     private readonly cacheService: AidesCacheService,
     private readonly warmupService: AidesWarmupService,
-    private readonly dbService: DatabaseService,
     private readonly projetsService: GetProjetsService,
     private readonly logger: CustomLogger,
   ) {}
@@ -165,29 +161,6 @@ export class AidesController {
   }
 
   /**
-   * Resolve a code_insee to an AT perimeter_id (with cache)
-   */
-  private async resolvePerimeter(codeInsee: string): Promise<string | null> {
-    let perimeterId = await this.cacheService.getPerimeterId(codeInsee);
-    if (perimeterId) return perimeterId;
-
-    const [commune] = await this.dbService.database
-      .select({ nom: refCommunes.nom })
-      .from(refCommunes)
-      .where(eq(refCommunes.codeInsee, codeInsee))
-      .limit(1);
-
-    const communeName = commune?.nom;
-    perimeterId = await this.atService.resolvePerimeterId(codeInsee, communeName ?? undefined);
-    if (perimeterId) {
-      await this.cacheService.setPerimeterId(codeInsee, perimeterId);
-    } else {
-      this.logger.warn(`Could not resolve code_insee ${codeInsee} to AT perimeter_id`);
-    }
-    return perimeterId;
-  }
-
-  /**
    * Fetch aides for a single territory with SWR.
    * Returns aides immediately (from cache if available), triggers background refresh if stale.
    */
@@ -233,6 +206,7 @@ export class AidesController {
 
   /**
    * Fetch aides for multiple territories (union). Deduplicates by aide id.
+   * Uses AT's perimeter_codes[] parameter which accepts code INSEE directly.
    */
   private async fetchAidesForTerritories(codesInsee: string[]): Promise<AideTerritoires[]> {
     if (codesInsee.length === 0) {
@@ -243,12 +217,7 @@ export class AidesController {
     const allAides: AideTerritoires[] = [];
 
     for (const codeInsee of codesInsee) {
-      const perimeterId = await this.resolvePerimeter(codeInsee);
-      const params: Record<string, string> = {};
-      if (perimeterId) {
-        params.perimeter = perimeterId;
-      }
-
+      const params = { "perimeter_codes[]": codeInsee };
       const aides = await this.fetchAidesForTerritory(params, `code_insee=${codeInsee}`);
 
       // Deduplicate across territories

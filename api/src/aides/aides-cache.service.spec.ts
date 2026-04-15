@@ -218,21 +218,4 @@ describe("AidesCacheService", () => {
       expect(mockRedis.scan).toHaveBeenCalledWith("0", "MATCH", "at:territory:*", "COUNT", 100);
     });
   });
-
-  describe("perimeter cache", () => {
-    it("should get cached perimeter ID", async () => {
-      mockRedis.get.mockResolvedValue("87571-nantes");
-
-      const result = await service.getPerimeterId("44109");
-
-      expect(mockRedis.get).toHaveBeenCalledWith("at:perimeter:44109");
-      expect(result).toBe("87571-nantes");
-    });
-
-    it("should set perimeter ID with 7-day TTL", async () => {
-      await service.setPerimeterId("44109", "87571-nantes");
-
-      expect(mockRedis.set).toHaveBeenCalledWith("at:perimeter:44109", "87571-nantes", "EX", 604800);
-    });
-  });
 });
