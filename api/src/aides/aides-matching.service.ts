@@ -38,9 +38,11 @@ interface ScoredLabels {
 export interface MatchResult {
   idAt: string;
   score: number;
+  normalizedScore: number;
   scoreThematiques: number;
   scoreSites: number;
   scoreInterventions: number;
+  axesMatched: number;
   labelsCommuns: {
     thematiques: string[];
     sites: string[];
@@ -76,6 +78,8 @@ export class AidesMatchingService {
     const pSites = this.filterByThreshold(projetScores.sites);
     const pInterventions = this.filterByThreshold(projetScores.interventions);
 
+    const projectMax = this.computeProjectMax(pThematiques, pSites, pInterventions);
+
     // Build inverted index for fast candidate lookup
     const candidates = this.findCandidates(pThematiques, pSites, pInterventions, aidesScores);
 
@@ -96,12 +100,19 @@ export class AidesMatchingService {
       const totalScore = thResult.score + siResult.score + inResult.score;
 
       if (totalScore > 0) {
+        const axesMatched =
+          (thResult.commonLabels.length > 0 ? 1 : 0) +
+          (siResult.commonLabels.length > 0 ? 1 : 0) +
+          (inResult.commonLabels.length > 0 ? 1 : 0);
+
         results.push({
           idAt,
           score: Math.round(totalScore * 100) / 100,
+          normalizedScore: projectMax > 0 ? Math.round((totalScore / projectMax) * 100) / 100 : 0,
           scoreThematiques: Math.round(thResult.score * 100) / 100,
           scoreSites: Math.round(siResult.score * 100) / 100,
           scoreInterventions: Math.round(inResult.score * 100) / 100,
+          axesMatched,
           labelsCommuns: {
             thematiques: thResult.commonLabels,
             sites: siResult.commonLabels,
@@ -114,6 +125,28 @@ export class AidesMatchingService {
     // Sort by score descending, take top N
     results.sort((a, b) => b.score - a.score);
     return results.slice(0, limit);
+  }
+
+  /**
+   * Theoretical max score for a project: the score if a hypothetical aide
+   * matched every project label at confidence 1.0.
+   */
+  private computeProjectMax(
+    pThematiques: Map<string, number>,
+    pSites: Map<string, number>,
+    pInterventions: Map<string, number>,
+  ): number {
+    return this.axisMax(pThematiques) + this.axisMax(pSites) + this.axisMax(pInterventions);
+  }
+
+  private axisMax(projectLabels: Map<string, number>): number {
+    if (projectLabels.size === 0) return 0;
+    const maxAideContribution = 1.0 - this.SCORE_THRESHOLD + this.SCORE_OFFSET; // 0.3
+    let sum = 0;
+    for (const pScore of projectLabels.values()) {
+      sum += (pScore - this.SCORE_THRESHOLD + this.SCORE_OFFSET) * maxAideContribution;
+    }
+    return sum / projectLabels.size;
   }
 
   /**

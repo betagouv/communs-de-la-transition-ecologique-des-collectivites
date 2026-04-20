@@ -17,6 +17,8 @@ interface EnrichedAide extends AideTerritoires {
     interventions: { label: string; score: number }[];
   };
   matchingScore?: number;
+  normalizedScore?: number;
+  axesMatched?: number;
   labelsCommuns?: {
     thematiques: string[];
     sites: string[];
@@ -104,6 +106,8 @@ export class AidesController {
         ...aide,
         classification: classification ?? undefined,
         matchingScore: match?.score,
+        normalizedScore: match?.normalizedScore,
+        axesMatched: match?.axesMatched,
         labelsCommuns: match?.labelsCommuns,
       };
     });
