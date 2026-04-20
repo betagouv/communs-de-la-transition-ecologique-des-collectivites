@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { CustomLogger } from "@logging/logger.service";
+import { Aide } from "./dto/aides.dto";
 
 const RETRYABLE_STATUS_CODES = [429, 502, 503, 504];
 const MAX_RETRIES = 3;
@@ -84,9 +85,9 @@ export class AidesTerritoiresService {
    * @param params Query parameters (perimeter, targeted_audiences, etc.)
    * @returns All aides matching the query
    */
-  async fetchAides(params: Record<string, string> = {}): Promise<AideTerritoires[]> {
+  async fetchAides(params: Record<string, string> = {}): Promise<Aide[]> {
     const token = await this.getBearerToken();
-    const allAides: AideTerritoires[] = [];
+    const allAides: Aide[] = [];
     let page = 1;
     let hasMore = true;
 
@@ -112,48 +113,9 @@ export class AidesTerritoiresService {
   }
 }
 
-/**
- * Shape of an aide from the AT API (subset of 48 fields)
- */
-export interface AideTerritoires {
-  id: number;
-  slug: string;
-  url: string;
-  name: string;
-  name_initial: string;
-  short_title: string | null;
-  financers: string[];
-  financers_full: { id: number; name: string; logo: string | null }[];
-  instructors: string[];
-  programs: string[];
-  description: string | null;
-  eligibility: string | null;
-  perimeter: string;
-  perimeter_id: number;
-  perimeter_scale: string;
-  categories: string[];
-  targeted_audiences: string[];
-  aid_types: string[];
-  aid_types_full: { id: number; name: string; group: { id: number; name: string } }[];
-  mobilization_steps: string[];
-  origin_url: string | null;
-  application_url: string | null;
-  is_call_for_project: boolean | null;
-  start_date: string | null;
-  submission_deadline: string | null;
-  subvention_rate_lower_bound: number | null;
-  subvention_rate_upper_bound: number | null;
-  subvention_comment: string | null;
-  contact: string | null;
-  recurrence: string | null;
-  project_examples: string | null;
-  date_created: string | null;
-  date_updated: string | null;
-}
-
 interface AidesTerritoiresResponse {
   count: number;
   next: string | null;
   previous: string | null;
-  results: AideTerritoires[];
+  results: Aide[];
 }

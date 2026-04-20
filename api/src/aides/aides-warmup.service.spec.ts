@@ -2,10 +2,11 @@
 import { AidesWarmupService } from "./aides-warmup.service";
 import { CustomLogger } from "@logging/logger.service";
 import { DatabaseService } from "@database/database.service";
-import { AidesTerritoiresService, AideTerritoires } from "./aides-territoires.service";
+import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AidesCacheService } from "./aides-cache.service";
+import { Aide } from "./dto/aides.dto";
 
-function makeAide(id: number): AideTerritoires {
+function makeAide(id: number): Aide {
   return {
     id,
     slug: `aide-${id}`,

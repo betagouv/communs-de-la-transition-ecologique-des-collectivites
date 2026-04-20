@@ -14,6 +14,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { eq, relations, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
+import { AideClassification } from "@/aides/dto/aides.dto";
 
 const projetPhases = ["Idée", "Étude", "Opération"] as const;
 export const projetPhasesEnum = pgEnum("projet_phases", projetPhases);
@@ -199,11 +200,7 @@ export const apiRequests = pgTable("api_requests", {
 export const aideClassifications = pgTable("aide_classifications", {
   idAt: text("id_at").primaryKey(),
   contentHash: text("content_hash").notNull(),
-  classificationScores: jsonb("classification_scores").notNull().$type<{
-    thematiques: { label: string; score: number }[];
-    sites: { label: string; score: number }[];
-    interventions: { label: string; score: number }[];
-  }>(),
+  classificationScores: jsonb("classification_scores").notNull().$type<AideClassification>(),
   classifiedAt: timestamp("classified_at").notNull().defaultNow(),
 });
 
