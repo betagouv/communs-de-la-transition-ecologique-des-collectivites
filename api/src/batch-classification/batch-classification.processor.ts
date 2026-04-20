@@ -49,6 +49,7 @@ export class BatchClassificationProcessor extends WorkerHost {
     job: Job<{
       triggeredBy?: string;
       projectCount?: number;
+      maxProjects?: number;
       batchIds?: string[];
       totalProjects?: number;
       batchId?: string;
@@ -69,14 +70,16 @@ export class BatchClassificationProcessor extends WorkerHost {
   /**
    * Step 1: Collect unclassified projects (paginated), build batch requests, submit to Anthropic.
    */
-  private async handleSubmit(job: Job<{ triggeredBy?: string; projectCount?: number }>) {
+  private async handleSubmit(job: Job<{ triggeredBy?: string; projectCount?: number; maxProjects?: number }>) {
+    const { maxProjects } = job.data;
     this.logger.log(
-      `Batch classification submit triggered (${job.data.triggeredBy ?? "unknown"}, ~${job.data.projectCount ?? "?"} projects)`,
+      `Batch classification submit triggered (${job.data.triggeredBy ?? "unknown"}, ~${job.data.projectCount ?? "?"} projects${maxProjects ? `, limit: ${maxProjects}` : ""})`,
     );
 
     try {
       // Collect unclassified projects with pagination to avoid loading 80k+ rows in RAM
-      const unclassified = await this.fetchUnclassifiedProjects();
+      const allUnclassified = await this.fetchUnclassifiedProjects();
+      const unclassified = maxProjects ? allUnclassified.slice(0, maxProjects) : allUnclassified;
 
       if (unclassified.length === 0) {
         this.logger.log("No unclassified projects found, skipping batch");
