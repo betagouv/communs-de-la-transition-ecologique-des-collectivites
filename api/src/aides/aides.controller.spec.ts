@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { AidesController } from "./aides.controller";
-import { AidesTerritoiresService, AideTerritoires } from "./aides-territoires.service";
+import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
 import { AidesCacheService, CacheResult } from "./aides-cache.service";
 import { AidesWarmupService } from "./aides-warmup.service";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { CustomLogger } from "@logging/logger.service";
+import { Aide } from "./dto/aides.dto";
 
-function makeAide(id: number): AideTerritoires {
+function makeAide(id: number): Aide {
   return {
     id,
     slug: `aide-${id}`,

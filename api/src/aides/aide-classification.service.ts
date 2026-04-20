@@ -5,13 +5,7 @@ import { DatabaseService } from "@database/database.service";
 import { aideClassifications } from "@database/schema";
 import { CustomLogger } from "@logging/logger.service";
 import { ClassificationService } from "@/projet-qualification/classification/classification.service";
-import { AideTerritoires } from "./aides-territoires.service";
-
-interface ClassificationScores {
-  thematiques: { label: string; score: number }[];
-  sites: { label: string; score: number }[];
-  interventions: { label: string; score: number }[];
-}
+import { Aide, AideClassification } from "./dto/aides.dto";
 
 /**
  * Manages classification of aides: LLM classification + cache via content hash
@@ -28,7 +22,7 @@ export class AideClassificationService {
   /**
    * Get classification for an aide, classifying if needed (cache miss or content changed)
    */
-  async getOrClassify(aide: AideTerritoires): Promise<ClassificationScores | null> {
+  async getOrClassify(aide: Aide): Promise<AideClassification | null> {
     const idAt = String(aide.id);
     const hash = this.computeHash(aide);
 
@@ -51,12 +45,12 @@ export class AideClassificationService {
    * Get cached classifications for multiple aides (batch lookup)
    * Returns a map of id_at -> scores (only for aides that are already classified)
    */
-  async getCachedClassifications(aideIds: string[]): Promise<Map<string, ClassificationScores>> {
+  async getCachedClassifications(aideIds: string[]): Promise<Map<string, AideClassification>> {
     if (aideIds.length === 0) return new Map();
 
     const rows = await this.dbService.database.select().from(aideClassifications);
 
-    const map = new Map<string, ClassificationScores>();
+    const map = new Map<string, AideClassification>();
     for (const row of rows) {
       if (aideIds.includes(row.idAt)) {
         map.set(row.idAt, row.classificationScores);
@@ -69,7 +63,7 @@ export class AideClassificationService {
    * Sync classifications for a batch of aides
    * Only classifies new or modified aides (based on content hash)
    */
-  async syncClassifications(aides: AideTerritoires[]): Promise<{ classified: number; cached: number }> {
+  async syncClassifications(aides: Aide[]): Promise<{ classified: number; cached: number }> {
     let classified = 0;
     let cached = 0;
 
@@ -100,13 +94,13 @@ export class AideClassificationService {
     return { classified, cached };
   }
 
-  private async classifyAndStore(aide: AideTerritoires, idAt: string, hash: string): Promise<ClassificationScores> {
+  private async classifyAndStore(aide: Aide, idAt: string, hash: string): Promise<AideClassification> {
     const context = this.buildContext(aide);
     this.logger.log(`Classifying aide ${idAt}: ${aide.name.slice(0, 60)}`);
 
     const result = await this.classificationService.classify(context, "aide");
 
-    const scores: ClassificationScores = {
+    const scores: AideClassification = {
       thematiques: result.thematiques,
       sites: result.sites,
       interventions: result.interventions,
@@ -133,12 +127,12 @@ export class AideClassificationService {
     return scores;
   }
 
-  private computeHash(aide: AideTerritoires): string {
+  private computeHash(aide: Aide): string {
     const content = `${aide.name}|${aide.description ?? ""}`;
     return createHash("sha256").update(content).digest("hex");
   }
 
-  private buildContext(aide: AideTerritoires): string {
+  private buildContext(aide: Aide): string {
     const parts = [`TITRE: ${aide.name}`];
     if (aide.description) {
       parts.push(`DESCRIPTION: ${aide.description}`);

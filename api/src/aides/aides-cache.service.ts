@@ -2,7 +2,7 @@ import { Injectable, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { CustomLogger } from "@logging/logger.service";
 import Redis from "ioredis";
-import { AideTerritoires } from "./aides-territoires.service";
+import { Aide } from "./dto/aides.dto";
 
 const AIDE_PREFIX = "at:aide:";
 const TERRITORY_PREFIX = "at:territory:";
@@ -22,7 +22,7 @@ interface TerritoryEntry {
 export type CacheStatus = "fresh" | "stale" | "miss";
 
 export interface CacheResult {
-  aides: AideTerritoires[];
+  aides: Aide[];
   status: CacheStatus;
 }
 
@@ -84,7 +84,7 @@ export class AidesCacheService implements OnModuleDestroy {
    * Store aides for a territory. Writes individual aides then the territory index.
    * Aides are written first so the index never points to missing keys.
    */
-  async set(queryKey: string, aides: AideTerritoires[]): Promise<void> {
+  async set(queryKey: string, aides: Aide[]): Promise<void> {
     if (aides.length === 0) return;
 
     // 1. Bulk upsert individual aides
@@ -107,7 +107,7 @@ export class AidesCacheService implements OnModuleDestroy {
   /**
    * Bulk store individual aides in Redis via pipeline.
    */
-  private async setAides(aides: AideTerritoires[]): Promise<void> {
+  private async setAides(aides: Aide[]): Promise<void> {
     const pipeline = this.redis.pipeline();
     for (const aide of aides) {
       pipeline.set(`${AIDE_PREFIX}${aide.id}`, JSON.stringify(aide), "EX", AIDE_TTL_SECONDS);
@@ -118,16 +118,16 @@ export class AidesCacheService implements OnModuleDestroy {
   /**
    * Retrieve aides by ID list using MGET. Silently skips expired/missing keys.
    */
-  private async getAidesByIds(ids: number[]): Promise<AideTerritoires[]> {
+  private async getAidesByIds(ids: number[]): Promise<Aide[]> {
     if (ids.length === 0) return [];
 
     const keys = ids.map((id) => `${AIDE_PREFIX}${id}`);
     const values = await this.redis.mget(...keys);
 
-    const aides: AideTerritoires[] = [];
+    const aides: Aide[] = [];
     for (const v of values) {
       if (v) {
-        aides.push(JSON.parse(v) as AideTerritoires);
+        aides.push(JSON.parse(v) as Aide);
       }
     }
     return aides;

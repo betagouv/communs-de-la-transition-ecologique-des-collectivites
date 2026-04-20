@@ -4,27 +4,13 @@ import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 import { CustomLogger } from "@logging/logger.service";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
-import { AidesTerritoiresService, AideTerritoires } from "./aides-territoires.service";
+import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
+import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
-import { AidesMatchingService, MatchResult } from "./aides-matching.service";
+import { AidesMatchingService } from "./aides-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
 import { AidesWarmupService } from "./aides-warmup.service";
-
-interface EnrichedAide extends AideTerritoires {
-  classification?: {
-    thematiques: { label: string; score: number }[];
-    sites: { label: string; score: number }[];
-    interventions: { label: string; score: number }[];
-  };
-  matchingScore?: number;
-  normalizedScore?: number;
-  axesMatched?: number;
-  labelsCommuns?: {
-    thematiques: string[];
-    sites: string[];
-    interventions: string[];
-  };
-}
+import { Aide, AideMatchResult, AidesListResponse, AidesSyncResponse, AideWithClassification } from "./dto/aides.dto";
 
 @ApiBearerAuth()
 @ApiTags("Aides")
@@ -56,10 +42,12 @@ export class AidesController {
     description: "ID projet pour filtrer par territoire et calculer le matching",
   })
   @ApiQuery({ name: "limit", required: false, description: "Nombre max de résultats (défaut: 20)" })
-  async listAides(
-    @Query("projet_id") projetId: string,
-    @Query("limit") limit?: string,
-  ): Promise<{ aides: EnrichedAide[]; total: number }> {
+  @ApiEndpointResponses({
+    successStatus: 200,
+    response: AidesListResponse,
+    description: "Liste des aides enrichies avec score de matching",
+  })
+  async listAides(@Query("projet_id") projetId: string, @Query("limit") limit?: string): Promise<AidesListResponse> {
     if (!projetId) {
       throw new BadRequestException("projet_id is required");
     }
@@ -90,14 +78,14 @@ export class AidesController {
     const classifications = await this.classificationService.getCachedClassifications(aideIds);
 
     // 5. Do matching
-    const matchResults = new Map<string, MatchResult>();
+    const matchResults = new Map<string, AideMatchResult>();
     const results = this.matchingService.match(projet.classificationScores, classifications, maxResults);
     for (const r of results) {
       matchResults.set(r.idAt, r);
     }
 
     // 6. Enrich and sort by matching score
-    let enriched: EnrichedAide[] = allAides.map((aide) => {
+    let enriched: AideWithClassification[] = allAides.map((aide) => {
       const idAt = String(aide.id);
       const classification = classifications.get(idAt);
       const match = matchResults.get(idAt);
@@ -128,12 +116,12 @@ export class AidesController {
     description:
       "Déclenche la classification LLM des aides non encore classifiées ou modifiées. Invalide le cache Redis.",
   })
-  async syncClassifications(): Promise<{
-    classified: number;
-    cached: number;
-    total: number;
-    warmupStarted: boolean;
-  }> {
+  @ApiEndpointResponses({
+    successStatus: 200,
+    response: AidesSyncResponse,
+    description: "Résultat de la synchronisation",
+  })
+  async syncClassifications(): Promise<AidesSyncResponse> {
     this.logger.log("Starting aide classification sync");
     const aides = await this.atService.fetchAides();
     const result = await this.classificationService.syncClassifications(aides);
@@ -168,7 +156,7 @@ export class AidesController {
    * Fetch aides for a single territory with SWR.
    * Returns aides immediately (from cache if available), triggers background refresh if stale.
    */
-  private async fetchAidesForTerritory(params: Record<string, string>, label: string): Promise<AideTerritoires[]> {
+  private async fetchAidesForTerritory(params: Record<string, string>, label: string): Promise<Aide[]> {
     const cacheKey = this.cacheService.buildKey(params);
     const cached = await this.cacheService.get(cacheKey);
 
@@ -212,13 +200,13 @@ export class AidesController {
    * Fetch aides for multiple territories (union). Deduplicates by aide id.
    * Uses AT's perimeter_codes[] parameter which accepts code INSEE directly.
    */
-  private async fetchAidesForTerritories(codesInsee: string[]): Promise<AideTerritoires[]> {
+  private async fetchAidesForTerritories(codesInsee: string[]): Promise<Aide[]> {
     if (codesInsee.length === 0) {
       return this.fetchAidesForTerritory({}, "no territory filter");
     }
 
     const seenIds = new Set<number>();
-    const allAides: AideTerritoires[] = [];
+    const allAides: Aide[] = [];
 
     for (const codeInsee of codesInsee) {
       const params = { "perimeter_codes[]": codeInsee };

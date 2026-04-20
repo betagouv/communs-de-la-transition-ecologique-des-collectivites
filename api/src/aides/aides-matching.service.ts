@@ -28,27 +28,7 @@
 
 import { Injectable } from "@nestjs/common";
 import { CustomLogger } from "@logging/logger.service";
-
-interface ScoredLabels {
-  thematiques: { label: string; score: number }[];
-  sites: { label: string; score: number }[];
-  interventions: { label: string; score: number }[];
-}
-
-export interface MatchResult {
-  idAt: string;
-  score: number;
-  normalizedScore: number;
-  scoreThematiques: number;
-  scoreSites: number;
-  scoreInterventions: number;
-  axesMatched: number;
-  labelsCommuns: {
-    thematiques: string[];
-    sites: string[];
-    interventions: string[];
-  };
-}
+import { AideClassification, AideMatchResult } from "./dto/aides.dto";
 
 /**
  * Matching engine for projects and aides
@@ -72,7 +52,7 @@ export class AidesMatchingService {
    * @param limit Max number of results
    * @returns Sorted list of matching aides with scores
    */
-  match(projetScores: ScoredLabels, aidesScores: Map<string, ScoredLabels>, limit = 10): MatchResult[] {
+  match(projetScores: AideClassification, aidesScores: Map<string, AideClassification>, limit = 10): AideMatchResult[] {
     // Filter project labels by threshold
     const pThematiques = this.filterByThreshold(projetScores.thematiques);
     const pSites = this.filterByThreshold(projetScores.sites);
@@ -84,7 +64,7 @@ export class AidesMatchingService {
     const candidates = this.findCandidates(pThematiques, pSites, pInterventions, aidesScores);
 
     // Score each candidate
-    const results: MatchResult[] = [];
+    const results: AideMatchResult[] = [];
 
     for (const idAt of candidates) {
       const aideScores = aidesScores.get(idAt)!;
@@ -169,7 +149,7 @@ export class AidesMatchingService {
     pTh: Map<string, number>,
     pSi: Map<string, number>,
     pIn: Map<string, number>,
-    aidesScores: Map<string, ScoredLabels>,
+    aidesScores: Map<string, AideClassification>,
   ): Set<string> {
     const candidates = new Set<string>();
     const projectLabels = new Set([...pTh.keys(), ...pSi.keys(), ...pIn.keys()]);

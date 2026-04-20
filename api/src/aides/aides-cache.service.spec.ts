@@ -1,7 +1,7 @@
 import { AidesCacheService } from "./aides-cache.service";
 import { ConfigService } from "@nestjs/config";
 import { CustomLogger } from "@logging/logger.service";
-import { AideTerritoires } from "./aides-territoires.service";
+import { Aide } from "./dto/aides.dto";
 
 // Mock ioredis
 const mockRedis = {
@@ -23,7 +23,7 @@ jest.mock("ioredis", () => {
   return jest.fn().mockImplementation(() => mockRedis);
 });
 
-function makeAide(id: number, name = `Aide ${id}`): AideTerritoires {
+function makeAide(id: number, name = `Aide ${id}`): Aide {
   return {
     id,
     slug: `aide-${id}`,
