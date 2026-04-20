@@ -1,4 +1,5 @@
 import {
+  bigint,
   boolean,
   index,
   integer,
@@ -40,7 +41,7 @@ export const projets = pgTable("projets", {
 
   nom: text("nom").notNull(),
   description: text("description"),
-  budgetPrevisionnel: integer("budget_previsionnel"),
+  budgetPrevisionnel: bigint("budget_previsionnel", { mode: "number" }),
   dateDebutPrevisionnelle: text("date_debut_previsionnelle"),
   phase: projetPhasesEnum(),
   phaseStatut: phaseStatutEnum(),
