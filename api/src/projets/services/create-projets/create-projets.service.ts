@@ -18,6 +18,7 @@ import {
   PROJECT_QUALIFICATION_QUEUE_NAME,
   QualificationJobType,
 } from "@/projet-qualification/const";
+import { BATCH_CLASSIFICATION_QUEUE_NAME } from "@/batch-classification/batch-classification.const";
 
 @Injectable()
 export class CreateProjetsService {
@@ -26,6 +27,7 @@ export class CreateProjetsService {
     private readonly collectivitesService: CollectivitesService,
     private readonly serviceIdentifierService: ServiceIdentifierService,
     @InjectQueue(PROJECT_QUALIFICATION_QUEUE_NAME) private qualificationQueue: Queue,
+    @InjectQueue(BATCH_CLASSIFICATION_QUEUE_NAME) private batchClassificationQueue: Queue,
     private logger: CustomLogger,
   ) {}
 
@@ -38,19 +40,50 @@ export class CreateProjetsService {
   }
 
   async createBulk(bulkCreateProjectsRequest: BulkCreateProjetsRequest, apiKey: string): Promise<{ ids: string[] }> {
-    return this.dbService.database.transaction(async (tx) => {
-      const createdProjets: string[] = [];
+    const allIds: string[] = [];
+    const chunks = this.chunkArray(bulkCreateProjectsRequest.projets, 500);
 
-      for (const projetDto of bulkCreateProjectsRequest.projets) {
-        const result = await this.createOrUpdateProjet(tx, projetDto, apiKey);
-        createdProjets.push(result);
-      }
+    this.logger.log(
+      `Bulk creating ${bulkCreateProjectsRequest.projets.length} projects in ${chunks.length} chunks of 500`,
+    );
 
-      return { ids: createdProjets };
+    for (const chunk of chunks) {
+      const ids = await this.dbService.database.transaction(async (tx) => {
+        const chunkIds: string[] = [];
+        for (const projetDto of chunk) {
+          const id = await this.createOrUpdateProjet(tx, projetDto, apiKey, { skipQualificationJobs: true });
+          chunkIds.push(id);
+        }
+        return chunkIds;
+      });
+      allIds.push(...ids);
+    }
+
+    // Trigger batch classification for newly inserted projects
+    await this.batchClassificationQueue.add("submit", {
+      triggeredBy: "bulk",
+      projectCount: allIds.length,
     });
+
+    this.logger.log(`Bulk insert complete: ${allIds.length} projects, batch classification scheduled`);
+
+    return { ids: allIds };
   }
 
-  private async createOrUpdateProjet(tx: Tx, projectDto: CreateProjetRequest, apiKey: string): Promise<string> {
+  private chunkArray<T>(array: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
+  }
+
+  private async createOrUpdateProjet(
+    tx: Tx,
+    projectDto: CreateProjetRequest,
+    apiKey: string,
+    options?: { skipQualificationJobs?: boolean },
+  ): Promise<string> {
     const serviceIdField = this.serviceIdentifierService.getServiceIdFieldFromApiKey(apiKey);
 
     const { externalId, porteur, collectivites, ...otherFields } = projectDto;
@@ -88,32 +121,35 @@ export class CreateProjetsService {
     // Content changed if existing project had a different hash (upsert case)
     const contentChanged = existingProject !== undefined && existingProject.contentHash !== contentHash;
 
-    const needsCompetences = !upsertedProject.competences || upsertedProject.competences.length === 0 || contentChanged;
-    const needsLeviers = !upsertedProject.leviers || upsertedProject.leviers.length === 0 || contentChanged;
-    const needsClassification =
-      !upsertedProject.classificationThematiques ||
-      upsertedProject.classificationThematiques.length === 0 ||
-      contentChanged;
+    if (!options?.skipQualificationJobs) {
+      const needsCompetences =
+        !upsertedProject.competences || upsertedProject.competences.length === 0 || contentChanged;
+      const needsLeviers = !upsertedProject.leviers || upsertedProject.leviers.length === 0 || contentChanged;
+      const needsClassification =
+        !upsertedProject.classificationThematiques ||
+        upsertedProject.classificationThematiques.length === 0 ||
+        contentChanged;
 
-    if (needsCompetences) {
-      this.logger.log(
-        `Triggering competence qualification for projet ${upsertedProject.id}${contentChanged ? " (content changed)" : ""}`,
-      );
-      await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_COMPETENCES_JOB);
-    }
+      if (needsCompetences) {
+        this.logger.log(
+          `Triggering competence qualification for projet ${upsertedProject.id}${contentChanged ? " (content changed)" : ""}`,
+        );
+        await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_COMPETENCES_JOB);
+      }
 
-    if (needsLeviers) {
-      this.logger.log(
-        `Triggering leviers qualification for projet ${upsertedProject.id}${contentChanged ? " (content changed)" : ""}`,
-      );
-      await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_LEVIERS_JOB);
-    }
+      if (needsLeviers) {
+        this.logger.log(
+          `Triggering leviers qualification for projet ${upsertedProject.id}${contentChanged ? " (content changed)" : ""}`,
+        );
+        await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_LEVIERS_JOB);
+      }
 
-    if (needsClassification) {
-      this.logger.log(
-        `Triggering classification for projet ${upsertedProject.id}${contentChanged ? " (content changed)" : ""}`,
-      );
-      await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_CLASSIFICATION_JOB);
+      if (needsClassification) {
+        this.logger.log(
+          `Triggering classification for projet ${upsertedProject.id}${contentChanged ? " (content changed)" : ""}`,
+        );
+        await this.scheduleProjectQualification(upsertedProject.id, PROJECT_QUALIFICATION_CLASSIFICATION_JOB);
+      }
     }
 
     return upsertedProject.id;

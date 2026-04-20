@@ -27,6 +27,7 @@ import { ReferentielModule } from "@/referentiel/referentiel.module";
 import { HealthController } from "@/health/health.controller";
 import { PlansFichesModule } from "@/plans-fiches/plans-fiches.module";
 import { ProjetsV2Module } from "@/projets-v2/projets-v2.module";
+import { BatchClassificationModule } from "@/batch-classification/batch-classification.module";
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { ProjetsV2Module } from "@/projets-v2/projets-v2.module";
     ReferentielModule,
     PlansFichesModule,
     ProjetsV2Module,
+    BatchClassificationModule,
   ],
   controllers: [HealthController],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
