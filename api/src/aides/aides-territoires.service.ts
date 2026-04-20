@@ -2,6 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { CustomLogger } from "@logging/logger.service";
 
+const RETRYABLE_STATUS_CODES = [429, 502, 503, 504];
+const MAX_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 5000;
+
 /**
  * Client for the Aides-Territoires API
  * Handles authentication (JWT token) and data fetching
@@ -48,6 +52,34 @@ export class AidesTerritoiresService {
   }
 
   /**
+   * Fetch a single page from AT API with retry on transient errors (429, 502, 503, 504).
+   */
+  private async fetchPage(url: string, token: string): Promise<AidesTerritoiresResponse> {
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        return (await response.json()) as AidesTerritoiresResponse;
+      }
+
+      if (!RETRYABLE_STATUS_CODES.includes(response.status) || attempt === MAX_RETRIES) {
+        throw new Error(`AT API error: ${response.status} ${response.statusText}`);
+      }
+
+      const backoff = RETRY_BASE_DELAY_MS * Math.pow(2, attempt);
+      this.logger.warn(
+        `AT API ${response.status} on ${url}, retrying in ${backoff / 1000}s (attempt ${attempt + 1}/${MAX_RETRIES})`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, backoff));
+    }
+
+    // Unreachable, but satisfies TypeScript
+    throw new Error("AT API: max retries exhausted");
+  }
+
+  /**
    * Fetch aides from AT API with pagination
    * @param params Query parameters (perimeter, targeted_audiences, etc.)
    * @returns All aides matching the query
@@ -62,15 +94,7 @@ export class AidesTerritoiresService {
       const queryParams = new URLSearchParams({ ...params, page_size: "50", page: String(page) });
       const url = `${this.baseUrl}/aids/?${queryParams}`;
 
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        throw new Error(`AT API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = (await response.json()) as AidesTerritoiresResponse;
+      const data = await this.fetchPage(url, token);
       allAides.push(...data.results);
 
       hasMore = data.next !== null;
