@@ -1,6 +1,6 @@
 import { Processor, WorkerHost, InjectQueue } from "@nestjs/bullmq";
 import { Job, Queue } from "bullmq";
-import { isNull, eq } from "drizzle-orm";
+import { isNull, eq, inArray } from "drizzle-orm";
 import { CustomLogger } from "@logging/logger.service";
 import { DatabaseService } from "@database/database.service";
 import { projets } from "@database/schema";
@@ -15,6 +15,7 @@ import {
   BATCH_POLL_JOB,
   BATCH_PROCESS_JOB,
   ANTHROPIC_BATCH_MAX_REQUESTS,
+  MAX_PROJECTS_PER_SUBMIT,
   POLL_DELAY_MS,
   MAX_POLL_ATTEMPTS,
   DB_WRITE_CHUNK_SIZE,
@@ -50,6 +51,7 @@ export class BatchClassificationProcessor extends WorkerHost {
       triggeredBy?: string;
       projectCount?: number;
       maxProjects?: number;
+      projectIds?: string[];
       batchIds?: string[];
       totalProjects?: number;
       batchId?: string;
@@ -68,18 +70,36 @@ export class BatchClassificationProcessor extends WorkerHost {
   }
 
   /**
-   * Step 1: Collect unclassified projects (paginated), build batch requests, submit to Anthropic.
+   * Step 1: Collect unclassified projects, build batch requests, submit to Anthropic.
+   * If there are more projects than MAX_PROJECTS_PER_SUBMIT, enqueue additional submit jobs.
    */
-  private async handleSubmit(job: Job<{ triggeredBy?: string; projectCount?: number; maxProjects?: number }>) {
-    const { maxProjects } = job.data;
+  private async handleSubmit(
+    job: Job<{ triggeredBy?: string; projectCount?: number; maxProjects?: number; projectIds?: string[] }>,
+  ) {
+    const { maxProjects, projectIds } = job.data;
     this.logger.log(
       `Batch classification submit triggered (${job.data.triggeredBy ?? "unknown"}, ~${job.data.projectCount ?? "?"} projects${maxProjects ? `, limit: ${maxProjects}` : ""})`,
     );
 
     try {
-      // Collect unclassified projects with pagination to avoid loading 80k+ rows in RAM
-      const allUnclassified = await this.fetchUnclassifiedProjects();
-      const unclassified = maxProjects ? allUnclassified.slice(0, maxProjects) : allUnclassified;
+      // Collect projects to classify: either specific IDs or all unclassified
+      const allUnclassified = projectIds
+        ? await this.fetchProjectsByIds(projectIds)
+        : await this.fetchUnclassifiedProjects();
+
+      const limit = maxProjects ?? MAX_PROJECTS_PER_SUBMIT;
+      const unclassified = allUnclassified.slice(0, limit);
+
+      // If there are more projects, enqueue another submit job for the rest
+      if (allUnclassified.length > limit) {
+        const remainingIds = allUnclassified.slice(limit).map((p) => p.id);
+        await this.batchQueue.add(BATCH_SUBMIT_JOB, {
+          triggeredBy: "continuation",
+          projectCount: remainingIds.length,
+          projectIds: remainingIds,
+        });
+        this.logger.log(`${remainingIds.length} remaining projects scheduled in follow-up job`);
+      }
 
       if (unclassified.length === 0) {
         this.logger.log("No unclassified projects found, skipping batch");
@@ -342,6 +362,26 @@ export class BatchClassificationProcessor extends WorkerHost {
     }
 
     return allProjects;
+  }
+
+  /**
+   * Fetch specific projects by IDs (for bulk-triggered jobs that pass their own IDs).
+   */
+  private async fetchProjectsByIds(ids: string[]): Promise<ProjectForClassification[]> {
+    const allProjects: ProjectForClassification[] = [];
+    const chunks = this.chunkArray(ids, SELECT_PAGE_SIZE);
+
+    for (const chunk of chunks) {
+      const page = await this.dbService.database
+        .select({ id: projets.id, nom: projets.nom, description: projets.description })
+        .from(projets)
+        .where(inArray(projets.id, chunk));
+
+      allProjects.push(...page);
+    }
+
+    // Only return those still needing classification
+    return allProjects.filter((p) => p.nom || p.description);
   }
 
   /**

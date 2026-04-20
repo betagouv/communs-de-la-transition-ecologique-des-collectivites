@@ -59,10 +59,11 @@ export class CreateProjetsService {
       allIds.push(...ids);
     }
 
-    // Trigger batch classification for newly inserted projects
+    // Trigger batch classification for newly inserted projects (pass IDs to avoid classifying everything)
     await this.batchClassificationQueue.add("submit", {
       triggeredBy: "bulk",
       projectCount: allIds.length,
+      projectIds: allIds,
     });
 
     this.logger.log(`Bulk insert complete: ${allIds.length} projects, batch classification scheduled`);
