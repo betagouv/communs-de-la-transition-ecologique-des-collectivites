@@ -9,12 +9,16 @@ import { ExtraFieldsService } from "@projets/services/extra-fields/extra-fields.
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { BullModule } from "@nestjs/bullmq";
 import { PROJECT_QUALIFICATION_QUEUE_NAME } from "@/projet-qualification/const";
+import { BATCH_CLASSIFICATION_QUEUE_NAME } from "@/batch-classification/batch-classification.const";
 
 @Module({
   imports: [
     GeoModule,
     BullModule.registerQueue({
       name: PROJECT_QUALIFICATION_QUEUE_NAME,
+    }),
+    BullModule.registerQueue({
+      name: BATCH_CLASSIFICATION_QUEUE_NAME,
     }),
   ],
   controllers: [ProjetsController],

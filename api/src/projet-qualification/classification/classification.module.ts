@@ -17,6 +17,12 @@ import { TEProbabilityService } from "./post-processing/te-probability.service";
     EnrichmentService,
     TEProbabilityService,
   ],
-  exports: [ClassificationService],
+  exports: [
+    ClassificationService,
+    ClassificationAnthropicService,
+    ClassificationValidationService,
+    EnrichmentService,
+    TEProbabilityService,
+  ],
 })
 export class ClassificationModule {}

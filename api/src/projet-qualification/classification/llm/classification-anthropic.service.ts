@@ -37,65 +37,115 @@ export class ClassificationAnthropicService {
   }
 
   async analyzeThematiques(context: string, type: "projet" | "aide" = "projet"): Promise<ClassificationAnalysisResult> {
-    const userPrompt = type === "aide" ? USER_PROMPT_THEMATIQUES_AIDE : USER_PROMPT_THEMATIQUES;
-    return this.analyze(context, userPrompt, type, "thematiques");
+    return this.analyze(context, type, "thematiques");
   }
 
   async analyzeSites(context: string, type: "projet" | "aide" = "projet"): Promise<ClassificationAnalysisResult> {
-    const userPrompt = type === "aide" ? USER_PROMPT_SITES_AIDE : USER_PROMPT_SITES;
-    return this.analyze(context, userPrompt, type, "sites");
+    return this.analyze(context, type, "sites");
   }
 
   async analyzeInterventions(
     context: string,
     type: "projet" | "aide" = "projet",
   ): Promise<ClassificationAnalysisResult> {
-    const userPrompt = type === "aide" ? USER_PROMPT_INTERVENTIONS_AIDE : USER_PROMPT_INTERVENTIONS;
-    return this.analyze(context, userPrompt, type, "interventions");
+    return this.analyze(context, type, "interventions");
+  }
+
+  /**
+   * Build the message params for a classification request.
+   * Used by both the real-time single call and the batch API.
+   */
+  buildMessageParams(
+    context: string,
+    axis: "thematiques" | "sites" | "interventions",
+    type: "projet" | "aide" = "projet",
+  ): Anthropic.Messages.MessageCreateParamsNonStreaming {
+    const userPromptMap = {
+      thematiques: type === "aide" ? USER_PROMPT_THEMATIQUES_AIDE : USER_PROMPT_THEMATIQUES,
+      sites: type === "aide" ? USER_PROMPT_SITES_AIDE : USER_PROMPT_SITES,
+      interventions: type === "aide" ? USER_PROMPT_INTERVENTIONS_AIDE : USER_PROMPT_INTERVENTIONS,
+    };
+    const contextLabel = type === "aide" ? "Aide" : "Projet";
+
+    return {
+      model: this.defaultModel,
+      max_tokens: 4096,
+      temperature: 0.4,
+      system: [
+        {
+          type: "text",
+          text: SYSTEM_PROMPT_CLASSIFICATION,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: userPromptMap[axis],
+              cache_control: { type: "ephemeral" },
+            },
+            {
+              type: "text",
+              text: `${contextLabel} :\n- "${context}"`,
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  /**
+   * Parse raw JSON response from Claude — public for batch result processing.
+   */
+  parseResponse(response: string, context: string): ClassificationAnalysisResult {
+    const trimmed = this.stripMarkdownCodeBlock(response.trim());
+
+    try {
+      const jsonData = JSON.parse(trimmed) as ClassificationLLMResponse;
+      return { json: jsonData };
+    } catch {
+      const candidates = this.extractJsonObjects(trimmed);
+      let lastValid: ClassificationLLMResponse | null = null;
+      for (const block of candidates) {
+        try {
+          const jsonData = JSON.parse(block) as ClassificationLLMResponse;
+          if (jsonData.items) {
+            lastValid = jsonData;
+          }
+        } catch {
+          // Try next candidate
+        }
+      }
+      if (lastValid) {
+        return { json: lastValid };
+      }
+
+      this.logger.error("Failed to parse JSON from LLM response", { response: trimmed.slice(0, 500) });
+      return {
+        json: { projet: context, items: [] },
+        errorMessage: "Failed to parse JSON from LLM response",
+      };
+    }
+  }
+
+  /** Expose the Anthropic client for batch API usage. */
+  getClient(): Anthropic {
+    return this.client;
   }
 
   private async analyze(
     context: string,
-    userPrompt: string,
     type: "projet" | "aide",
-    axis: string,
+    axis: "thematiques" | "sites" | "interventions",
   ): Promise<ClassificationAnalysisResult> {
     this.logger.log(`Analyzing ${axis} for ${type} context`);
 
-    // Context label matches Python: "Projet :" or "Aide :"
-    const contextLabel = type === "aide" ? "Aide" : "Projet";
-
     try {
-      const message = await this.client.messages.create({
-        model: this.defaultModel,
-        max_tokens: 4096,
-        temperature: 0.4,
-        system: [
-          {
-            type: "text",
-            text: SYSTEM_PROMPT_CLASSIFICATION,
-            cache_control: { type: "ephemeral" },
-          },
-        ],
-        messages: [
-          {
-            role: "user",
-            content: [
-              // Part 1: User prompt with labels list + rules (cached)
-              {
-                type: "text",
-                text: userPrompt,
-                cache_control: { type: "ephemeral" },
-              },
-              // Part 2: Context (not cached - changes every request)
-              {
-                type: "text",
-                text: `${contextLabel} :\n- "${context}"`,
-              },
-            ],
-          },
-        ],
-      });
+      const params = this.buildMessageParams(context, axis, type);
+      const message = await this.client.messages.create(params);
 
       const textContent = message.content.find((block) => block.type === "text");
       if (textContent?.type !== "text") {
@@ -122,11 +172,6 @@ export class ClassificationAnthropicService {
   }
 
   /**
-   * Parse raw JSON response from Claude
-   * Matches Python extract_json(): tries direct parse, then regex fallback
-   * Prompt says "Aucun texte hors JSON" so response should be pure JSON
-   */
-  private parseResponse(response: string, context: string): ClassificationAnalysisResult {
     // Try direct JSON parse (expected case: response is pure JSON)
     const trimmed = this.stripMarkdownCodeBlock(response.trim());
 
