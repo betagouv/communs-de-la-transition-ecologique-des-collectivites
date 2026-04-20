@@ -8,6 +8,7 @@ import { ClassificationAnthropicService } from "@/projet-qualification/classific
 import { ClassificationValidationService } from "@/projet-qualification/classification/validation/classification-validation.service";
 import { EnrichmentService } from "@/projet-qualification/classification/post-processing/enrichment.service";
 import { TEProbabilityService } from "@/projet-qualification/classification/post-processing/te-probability.service";
+import * as Sentry from "@sentry/node";
 import {
   BATCH_CLASSIFICATION_QUEUE_NAME,
   BATCH_SUBMIT_JOB,
@@ -20,6 +21,9 @@ import {
   CLASSIFICATION_AXES,
   ClassificationAxis,
 } from "./batch-classification.const";
+
+/** Page size for paginated SELECT of unclassified projects */
+const SELECT_PAGE_SIZE = 5000;
 
 interface ProjectForClassification {
   id: string;
@@ -63,62 +67,67 @@ export class BatchClassificationProcessor extends WorkerHost {
   }
 
   /**
-   * Step 1: Collect unclassified projects, build batch requests, submit to Anthropic.
+   * Step 1: Collect unclassified projects (paginated), build batch requests, submit to Anthropic.
    */
   private async handleSubmit(job: Job<{ triggeredBy?: string; projectCount?: number }>) {
     this.logger.log(
       `Batch classification submit triggered (${job.data.triggeredBy ?? "unknown"}, ~${job.data.projectCount ?? "?"} projects)`,
     );
 
-    // Collect all projects without classification scores
-    const unclassified = await this.dbService.database
-      .select({ id: projets.id, nom: projets.nom, description: projets.description })
-      .from(projets)
-      .where(isNull(projets.classificationScores));
+    try {
+      // Collect unclassified projects with pagination to avoid loading 80k+ rows in RAM
+      const unclassified = await this.fetchUnclassifiedProjects();
 
-    if (unclassified.length === 0) {
-      this.logger.log("No unclassified projects found, skipping batch");
-      return { submitted: 0 };
-    }
+      if (unclassified.length === 0) {
+        this.logger.log("No unclassified projects found, skipping batch");
+        return { submitted: 0 };
+      }
 
-    this.logger.log(`Found ${unclassified.length} unclassified projects`);
+      this.logger.log(`Found ${unclassified.length} unclassified projects`);
 
-    // Build batch requests (3 per project, max 100k per batch)
-    const requestsPerProject = CLASSIFICATION_AXES.length; // 3
-    const projectsPerBatch = Math.floor(ANTHROPIC_BATCH_MAX_REQUESTS / requestsPerProject);
-    const projectChunks = this.chunkArray(unclassified, projectsPerBatch);
+      // Build batch requests (3 per project, max 100k per batch)
+      const requestsPerProject = CLASSIFICATION_AXES.length; // 3
+      const projectsPerBatch = Math.floor(ANTHROPIC_BATCH_MAX_REQUESTS / requestsPerProject);
+      const projectChunks = this.chunkArray(unclassified, projectsPerBatch);
 
-    const client = this.anthropicService.getClient();
-    const batchIds: string[] = [];
+      const client = this.anthropicService.getClient();
+      const batchIds: string[] = [];
 
-    for (let i = 0; i < projectChunks.length; i++) {
-      const chunk = projectChunks[i];
-      const requests = this.buildBatchRequests(chunk);
+      for (let i = 0; i < projectChunks.length; i++) {
+        const chunk = projectChunks[i];
+        const requests = this.buildBatchRequests(chunk);
 
-      this.logger.log(
-        `Submitting batch ${i + 1}/${projectChunks.length} with ${requests.length} requests (${chunk.length} projects)`,
+        this.logger.log(
+          `Submitting batch ${i + 1}/${projectChunks.length} with ${requests.length} requests (${chunk.length} projects)`,
+        );
+
+        const batch = await client.messages.batches.create({ requests });
+        batchIds.push(batch.id);
+
+        this.logger.log(`Batch ${i + 1} submitted: ${batch.id} (status: ${batch.processing_status})`);
+      }
+
+      // Enqueue poll job
+      await this.batchQueue.add(
+        BATCH_POLL_JOB,
+        { batchIds, totalProjects: unclassified.length },
+        {
+          delay: POLL_DELAY_MS,
+          attempts: MAX_POLL_ATTEMPTS,
+          backoff: { type: "fixed", delay: POLL_DELAY_MS },
+        },
       );
 
-      const batch = await client.messages.batches.create({ requests });
-      batchIds.push(batch.id);
+      this.logger.log(`Batch submit complete: ${batchIds.length} batches, poll scheduled in ${POLL_DELAY_MS / 1000}s`);
 
-      this.logger.log(`Batch ${i + 1} submitted: ${batch.id} (status: ${batch.processing_status})`);
+      return { batchIds, totalProjects: unclassified.length };
+    } catch (error) {
+      this.logger.error("Batch submit failed", {
+        error: { message: error instanceof Error ? error.message : "Unknown error" },
+      });
+      Sentry.captureException(error);
+      throw error;
     }
-
-    // Enqueue poll job
-    await this.batchQueue.add(
-      BATCH_POLL_JOB,
-      { batchIds, totalProjects: unclassified.length },
-      {
-        delay: POLL_DELAY_MS,
-        attempts: MAX_POLL_ATTEMPTS,
-        backoff: { type: "fixed", delay: POLL_DELAY_MS },
-      },
-    );
-
-    this.logger.log(`Batch submit complete: ${batchIds.length} batches, poll scheduled in ${POLL_DELAY_MS / 1000}s`);
-
-    return { batchIds, totalProjects: unclassified.length };
   }
 
   /**
@@ -166,70 +175,83 @@ export class BatchClassificationProcessor extends WorkerHost {
 
     this.logger.log(`Processing results for batch ${batchId}`);
 
-    // Stream results and group by project
-    const projectResults = new Map<string, Map<ClassificationAxis, Record<string, number>>>();
-    let succeeded = 0;
-    let failed = 0;
+    try {
+      // Stream results and group by project
+      const projectResults = new Map<string, Map<ClassificationAxis, Record<string, number>>>();
+      let succeeded = 0;
+      let failed = 0;
 
-    const results = await client.messages.batches.results(batchId);
-    for await (const result of results) {
-      const [projectId, axis] = result.custom_id.split(":") as [string, ClassificationAxis];
+      const results = await client.messages.batches.results(batchId);
+      for await (const result of results) {
+        const { projectId, axis } = this.parseCustomId(result.custom_id);
 
-      if (result.result.type !== "succeeded") {
-        failed++;
-        this.logger.warn(`Batch result failed for ${result.custom_id}: ${result.result.type}`);
-        continue;
+        if (result.result.type !== "succeeded") {
+          failed++;
+          this.logger.warn(`Batch result failed for ${result.custom_id}: ${result.result.type}`);
+          continue;
+        }
+
+        const textContent = result.result.message.content.find((b) => b.type === "text");
+        if (textContent?.type !== "text") {
+          failed++;
+          continue;
+        }
+
+        // Parse LLM response using existing parser
+        const parsed = this.anthropicService.parseResponse(textContent.text, projectId);
+        if (parsed.errorMessage) {
+          failed++;
+          this.logger.warn(`Parse error for ${result.custom_id}: ${parsed.errorMessage}`);
+          continue;
+        }
+
+        // Convert items to Record<string, number> for validation service
+        const labelsMap: Record<string, number> = {};
+        for (const item of parsed.json.items) {
+          labelsMap[item.label] = item.score;
+        }
+
+        if (!projectResults.has(projectId)) {
+          projectResults.set(projectId, new Map());
+        }
+        projectResults.get(projectId)!.set(axis, labelsMap);
+        succeeded++;
       }
 
-      const textContent = result.result.message.content.find((b) => b.type === "text");
-      if (textContent?.type !== "text") {
-        failed++;
-        continue;
-      }
+      this.logger.log(`Parsed ${succeeded} results (${failed} failed) for ${projectResults.size} projects`);
 
-      // Parse LLM response using existing parser
-      const parsed = this.anthropicService.parseResponse(textContent.text, projectId);
-      if (parsed.errorMessage) {
-        failed++;
-        this.logger.warn(`Parse error for ${result.custom_id}: ${parsed.errorMessage}`);
-        continue;
-      }
+      // Filter out incomplete projects (need all 3 axes)
+      const completeProjects = Array.from(projectResults.entries()).filter(([projectId, axes]) => {
+        if (axes.size < CLASSIFICATION_AXES.length) {
+          this.logger.warn(
+            `Project ${projectId} has only ${axes.size}/${CLASSIFICATION_AXES.length} axes, skipping (will be retried in next batch)`,
+          );
+          return false;
+        }
+        return true;
+      });
 
-      // Convert items to Record<string, number> for validation service
-      const labelsMap: Record<string, number> = {};
-      for (const item of parsed.json.items) {
-        labelsMap[item.label] = item.score;
-      }
+      this.logger.log(
+        `${completeProjects.length} complete projects (${projectResults.size - completeProjects.length} incomplete, skipped)`,
+      );
 
-      if (!projectResults.has(projectId)) {
-        projectResults.set(projectId, new Map());
-      }
-      projectResults.get(projectId)!.set(axis, labelsMap);
-      succeeded++;
-    }
+      // Apply post-processing and write to DB in chunks (sequential to avoid pool saturation)
+      const chunks = this.chunkArray(completeProjects, DB_WRITE_CHUNK_SIZE);
+      let written = 0;
 
-    this.logger.log(`Parsed ${succeeded} results (${failed} failed) for ${projectResults.size} projects`);
-
-    // Apply post-processing and write to DB in chunks
-    const projectEntries = Array.from(projectResults.entries());
-    const chunks = this.chunkArray(projectEntries, DB_WRITE_CHUNK_SIZE);
-    let written = 0;
-
-    for (const chunk of chunks) {
-      const updates = chunk
-        .filter(([, axes]) => axes.size > 0)
-        .map(([projectId, axes]) => {
+      for (const chunk of chunks) {
+        const updates = chunk.map(([projectId, axes]) => {
           // Validate against referentials (Levenshtein anti-hallucination)
           let thematiques = this.validationService.validateAndCorrect(
-            { projet: projectId, items: this.mapToItems(axes.get("thematiques") ?? {}) },
+            { projet: projectId, items: this.mapToItems(axes.get("thematiques")!) },
             "thematiques",
           );
           let sites = this.validationService.validateAndCorrect(
-            { projet: projectId, items: this.mapToItems(axes.get("sites") ?? {}) },
+            { projet: projectId, items: this.mapToItems(axes.get("sites")!) },
             "sites",
           );
           let interventions = this.validationService.validateAndCorrect(
-            { projet: projectId, items: this.mapToItems(axes.get("interventions") ?? {}) },
+            { projet: projectId, items: this.mapToItems(axes.get("interventions")!) },
             "interventions",
           );
 
@@ -263,10 +285,9 @@ export class BatchClassificationProcessor extends WorkerHost {
           };
         });
 
-      // Write to DB
-      await Promise.all(
-        updates.map((u) =>
-          this.dbService.database
+        // Write to DB sequentially to avoid saturating the connection pool
+        for (const u of updates) {
+          await this.dbService.database
             .update(projets)
             .set({
               classificationScores: u.classificationScores,
@@ -275,17 +296,61 @@ export class BatchClassificationProcessor extends WorkerHost {
               classificationInterventions: u.classificationInterventions,
               probabiliteTE: u.probabiliteTE,
             })
-            .where(eq(projets.id, u.projectId)),
-        ),
-      );
+            .where(eq(projets.id, u.projectId));
+        }
 
-      written += updates.length;
-      this.logger.log(`Batch process progress: ${written}/${projectEntries.length} projects written`);
+        written += updates.length;
+        this.logger.log(`Batch process progress: ${written}/${completeProjects.length} projects written`);
+      }
+
+      this.logger.log(`Batch ${batchId} processing complete: ${written} projects classified`);
+
+      return { batchId, classified: written, failed };
+    } catch (error) {
+      this.logger.error(`Batch process failed for ${batchId}`, {
+        error: { message: error instanceof Error ? error.message : "Unknown error" },
+      });
+      Sentry.captureException(error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch unclassified projects with pagination to avoid loading everything in RAM.
+   */
+  private async fetchUnclassifiedProjects(): Promise<ProjectForClassification[]> {
+    const allProjects: ProjectForClassification[] = [];
+    let offset = 0;
+
+    while (true) {
+      const page = await this.dbService.database
+        .select({ id: projets.id, nom: projets.nom, description: projets.description })
+        .from(projets)
+        .where(isNull(projets.classificationScores))
+        .limit(SELECT_PAGE_SIZE)
+        .offset(offset);
+
+      allProjects.push(...page);
+
+      if (page.length < SELECT_PAGE_SIZE) break;
+      offset += SELECT_PAGE_SIZE;
+
+      this.logger.log(`Fetched ${allProjects.length} unclassified projects so far...`);
     }
 
-    this.logger.log(`Batch ${batchId} processing complete: ${written} projects classified`);
+    return allProjects;
+  }
 
-    return { batchId, classified: written, failed };
+  /**
+   * Parse custom_id format "projectId:axis". Uses lastIndexOf to handle
+   * any edge case where the projectId might contain colons.
+   */
+  private parseCustomId(customId: string): { projectId: string; axis: ClassificationAxis } {
+    const lastColon = customId.lastIndexOf(":");
+    return {
+      projectId: customId.slice(0, lastColon),
+      axis: customId.slice(lastColon + 1) as ClassificationAxis,
+    };
   }
 
   private buildBatchRequests(projects: ProjectForClassification[]) {
