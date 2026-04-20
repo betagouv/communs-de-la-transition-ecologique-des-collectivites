@@ -345,14 +345,14 @@ export class BatchClassificationProcessor extends WorkerHost {
   }
 
   /**
-   * Parse custom_id format "projectId:axis". Uses lastIndexOf to handle
-   * any edge case where the projectId might contain colons.
+   * Parse custom_id format "projectId--axis".
+   * Separator is "--" because Anthropic Batch API only allows [a-zA-Z0-9_-] in custom_id.
    */
   private parseCustomId(customId: string): { projectId: string; axis: ClassificationAxis } {
-    const lastColon = customId.lastIndexOf(":");
+    const separatorIndex = customId.lastIndexOf("--");
     return {
-      projectId: customId.slice(0, lastColon),
-      axis: customId.slice(lastColon + 1) as ClassificationAxis,
+      projectId: customId.slice(0, separatorIndex),
+      axis: customId.slice(separatorIndex + 2) as ClassificationAxis,
     };
   }
 
@@ -360,7 +360,7 @@ export class BatchClassificationProcessor extends WorkerHost {
     return projects.flatMap((p) => {
       const context = `${p.nom}\n${p.description ?? ""}`;
       return CLASSIFICATION_AXES.map((axis) => ({
-        custom_id: `${p.id}:${axis}`,
+        custom_id: `${p.id}--${axis}`,
         params: this.anthropicService.buildMessageParams(context, axis, "projet"),
       }));
     });

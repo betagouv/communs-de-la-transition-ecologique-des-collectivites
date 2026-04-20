@@ -171,14 +171,14 @@ describe("BatchClassificationProcessor", () => {
       // Only 2 axes for proj-1 (missing interventions)
       const asyncResults = (function* () {
         yield {
-          custom_id: "proj-1:thematiques",
+          custom_id: "proj-1--thematiques",
           result: {
             type: "succeeded" as const,
             message: { content: [{ type: "text" as const, text: '{"projet":"p","items":[]}' }] },
           },
         };
         yield {
-          custom_id: "proj-1:sites",
+          custom_id: "proj-1--sites",
           result: {
             type: "succeeded" as const,
             message: { content: [{ type: "text" as const, text: '{"projet":"p","items":[]}' }] },
@@ -197,7 +197,7 @@ describe("BatchClassificationProcessor", () => {
       const asyncResults = (function* () {
         for (const axis of ["thematiques", "sites", "interventions"]) {
           yield {
-            custom_id: `proj-1:${axis}`,
+            custom_id: `proj-1--${axis}`,
             result: {
               type: "succeeded" as const,
               message: {
