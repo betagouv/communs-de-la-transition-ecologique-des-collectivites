@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { createHash } from "node:crypto";
 
 /**
  * Service for generating Matomo analytics tracking scripts.
@@ -10,6 +11,7 @@ export class MatomoService {
   private readonly logger = new Logger(MatomoService.name);
   private readonly matomoScript: string;
   private readonly inlineScript: string;
+  private readonly inlineScriptCspHash: string;
   private readonly isEnabled: boolean;
 
   constructor(private readonly configService: ConfigService) {
@@ -22,6 +24,7 @@ export class MatomoService {
       this.logger.warn("MATOMO_RESSOURCES_SITE_ID not configured - analytics disabled for static pages");
       this.matomoScript = "";
       this.inlineScript = "";
+      this.inlineScriptCspHash = "";
       return;
     }
 
@@ -45,9 +48,7 @@ _paq.push(['enableLinkTracking']);
   g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
 })();`;
 
-    this.matomoScript = `
-<!-- Matomo Analytics (CNIL exempt - no cookies, opt-out supported) -->
-<script>
+    const injectedScriptBody = `
   var _paq = window._paq = window._paq || [];
   _paq.push(['disableCookies']);
   if (localStorage.getItem('matomo-opt-out') === 'true') {
@@ -62,10 +63,27 @@ _paq.push(['enableLinkTracking']);
     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
     g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
   })();
-</script>
+`;
+
+    this.matomoScript = `
+<!-- Matomo Analytics (CNIL exempt - no cookies, opt-out supported) -->
+<script>${injectedScriptBody}</script>
 <!-- End Matomo Analytics -->`;
 
+    const digest = createHash("sha256").update(injectedScriptBody, "utf8").digest("base64");
+    this.inlineScriptCspHash = `'sha256-${digest}'`;
+
     this.logger.log(`Matomo analytics enabled with site ID: ${siteId} (cookies disabled for CNIL compliance)`);
+  }
+
+  /**
+   * Returns the CSP script-src hash source for the injected Matomo inline script,
+   * e.g. "'sha256-xxxx='". Empty string when Matomo is disabled.
+   * Use this to build a strict CSP that whitelists the inline tag without
+   * falling back to 'unsafe-inline'.
+   */
+  getInlineScriptCspHash(): string {
+    return this.inlineScriptCspHash;
   }
 
   /**

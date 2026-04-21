@@ -18,16 +18,21 @@ interface ServeStaticOptions {
 }
 
 const MATOMO_ORIGIN = "https://stats.beta.gouv.fr";
+const GOOGLE_FONTS_CSS = "https://fonts.googleapis.com";
+const GOOGLE_FONTS_FILES = "https://fonts.gstatic.com";
 
-// CSP allows DSFR inline styles (required by @codegouvfr/react-dsfr) and
-// connections to Matomo + this API. Scripts are restricted to 'self' + Matomo.
-const SECURITY_HEADERS: Record<string, string> = {
+// CSP allows DSFR inline styles (required by @codegouvfr/react-dsfr), Marianne
+// webfont from Google Fonts (loaded by the statistics-dashboard index.html),
+// and connections to Matomo. The Matomo inline pageview script is whitelisted
+// via its SHA-256 hash (computed at runtime by MatomoService) to avoid
+// falling back to 'unsafe-inline'.
+const buildSecurityHeaders = (matomoInlineScriptHash: string): Record<string, string> => ({
   "Content-Security-Policy": [
     "default-src 'self'",
-    `script-src 'self' ${MATOMO_ORIGIN}`,
-    "style-src 'self' 'unsafe-inline'",
+    `script-src 'self' ${MATOMO_ORIGIN} ${matomoInlineScriptHash}`.trim(),
+    `style-src 'self' 'unsafe-inline' ${GOOGLE_FONTS_CSS}`,
     "img-src 'self' data: https:",
-    "font-src 'self' data:",
+    `font-src 'self' data: ${GOOGLE_FONTS_FILES}`,
     `connect-src 'self' ${MATOMO_ORIGIN}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
@@ -38,7 +43,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-};
+});
 
 /**
  * Serves static files with Matomo injection for HTML pages.
@@ -80,7 +85,8 @@ export const serveStaticWithMatomo = (
       }
 
       const htmlWithMatomo = matomoService.injectIntoHtml(html);
-      for (const [header, value] of Object.entries(SECURITY_HEADERS)) {
+      const headers = buildSecurityHeaders(matomoService.getInlineScriptCspHash());
+      for (const [header, value] of Object.entries(headers)) {
         res.setHeader(header, value);
       }
       res.type("html").send(htmlWithMatomo);
