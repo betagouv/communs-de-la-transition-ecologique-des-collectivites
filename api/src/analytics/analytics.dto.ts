@@ -1,25 +1,37 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from "class-validator";
+
+// eslint-disable-next-line no-control-regex
+const NO_CONTROL_CHARS_OR_ANGLE_BRACKETS = /^[^\x00-\x1F<>]*$/;
+const HOSTNAME_PATTERN = /^[a-zA-Z0-9.-]+$/;
 
 export class TrackEventRequest {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(120)
+  @Matches(NO_CONTROL_CHARS_OR_ANGLE_BRACKETS)
   name!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(60)
+  @Matches(NO_CONTROL_CHARS_OR_ANGLE_BRACKETS)
   action!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(120)
+  @Matches(HOSTNAME_PATTERN)
   category!: string;
 
   @ApiProperty({ required: false, type: String })
   @IsString()
   @IsOptional()
+  @MaxLength(120)
+  @Matches(NO_CONTROL_CHARS_OR_ANGLE_BRACKETS)
   value?: string;
 }
 

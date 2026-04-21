@@ -88,6 +88,8 @@ export const createApiClient = (apiKey?: string) => {
             query: params!,
           },
         }),
+
+      trackEvent: (body: components["schemas"]["TrackEventRequest"]) => client.POST("/analytics/trackEvent", { body }),
     },
     qualification: {
       competences: (data: components["schemas"]["ProjetQualificationRequest"]) =>
