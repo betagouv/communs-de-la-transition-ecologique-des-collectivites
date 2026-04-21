@@ -17,6 +17,29 @@ interface ServeStaticOptions {
   label?: string;
 }
 
+const MATOMO_ORIGIN = "https://stats.beta.gouv.fr";
+
+// CSP allows DSFR inline styles (required by @codegouvfr/react-dsfr) and
+// connections to Matomo + this API. Scripts are restricted to 'self' + Matomo.
+const SECURITY_HEADERS: Record<string, string> = {
+  "Content-Security-Policy": [
+    "default-src 'self'",
+    `script-src 'self' ${MATOMO_ORIGIN}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "font-src 'self' data:",
+    `connect-src 'self' ${MATOMO_ORIGIN}`,
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+  ].join("; "),
+  "Permissions-Policy": "geolocation=(), microphone=(), camera=(), interest-cohort=()",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+};
+
 /**
  * Serves static files with Matomo injection for HTML pages.
  * This handles SPA-style routing by serving index.html for non-file routes.
@@ -57,6 +80,9 @@ export const serveStaticWithMatomo = (
       }
 
       const htmlWithMatomo = matomoService.injectIntoHtml(html);
+      for (const [header, value] of Object.entries(SECURITY_HEADERS)) {
+        res.setHeader(header, value);
+      }
       res.type("html").send(htmlWithMatomo);
     });
   });

@@ -140,6 +140,17 @@ L'intégration des services est aussi matérialisé dans le backlog dans une col
 
 Je conseille de faire le suivi global dans le gsheet et de créer des taches adhoc dans le backlog pour matérialiser le travail sur une tache spécifique
 
+### Sécurité — rendu de données externes
+
+Les données provenant de Matomo (endpoints `/analytics/widget-usage` et `/analytics/api-usage`) ou du payload de `/analytics/trackEvent` ne sont **jamais** de confiance : l'endpoint `trackEvent` est public (pattern standard des SDK analytics — Matomo, Plausible, PostHog, GA4 fonctionnent tous sans auth côté browser) et un attaquant peut injecter des libellés arbitraires dans `hostingPlatforms` via le champ `category`.
+
+Règles de rendu :
+- **Ne jamais** utiliser `dangerouslySetInnerHTML`, `innerHTML`, ou `document.write` sur un champ issu de Matomo ou du payload widget
+- Se limiter au rendu textuel React (`<option>{platform}</option>`) qui échappe automatiquement
+- En cas de besoin de rendu riche, passer par une lib de sanitization (DOMPurify) côté front
+
+La validation d'entrée côté `TrackEventRequest` (MaxLength + regex hostname pour `category`, rejet des caractères de contrôle et `<`/`>`) est une défense en profondeur, pas une garantie — garder la vigilance côté rendu.
+
 ### Divers
 
 **Plusieurs canaux ou se faire inviter sur mattermost :**
