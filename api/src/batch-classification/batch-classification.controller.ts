@@ -19,16 +19,28 @@ export class BatchClassificationController {
       "Soumet les projets sans classificationScores à l'API Batch Anthropic. Le traitement est asynchrone (~24h). Suivre la progression dans le Bull Board (/queues).",
   })
   @ApiQuery({ name: "limit", required: false, description: "Nombre max de projets à classifier (défaut: tous)" })
-  async triggerBatchClassification(@Query("limit") limit?: string) {
+  @ApiQuery({
+    name: "source",
+    required: false,
+    description: "Filtrer par source: MEC, TeT, Recoco, etc. (défaut: tous)",
+  })
+  async triggerBatchClassification(@Query("limit") limit?: string, @Query("source") source?: string) {
     const maxProjects = limit ? parseInt(limit, 10) : undefined;
 
     await this.batchQueue.add(BATCH_SUBMIT_JOB, {
       triggeredBy: "management-endpoint",
       maxProjects,
+      source,
     });
 
+    const parts = [
+      "Batch classification scheduled",
+      maxProjects ? `limit: ${maxProjects}` : null,
+      source ? `source: ${source}` : null,
+    ].filter(Boolean);
+
     return {
-      message: `Batch classification scheduled${maxProjects ? ` (limit: ${maxProjects})` : ""}`,
+      message: parts[0] + (parts.length > 1 ? ` (${parts.slice(1).join(", ")})` : ""),
       queue: BATCH_CLASSIFICATION_QUEUE_NAME,
     };
   }

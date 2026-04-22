@@ -1,6 +1,6 @@
 import { Processor, WorkerHost, InjectQueue } from "@nestjs/bullmq";
 import { Job, Queue } from "bullmq";
-import { isNull, eq, inArray } from "drizzle-orm";
+import { isNull, isNotNull, eq, and, inArray } from "drizzle-orm";
 import { CustomLogger } from "@logging/logger.service";
 import { DatabaseService } from "@database/database.service";
 import { projets } from "@database/schema";
@@ -51,6 +51,7 @@ export class BatchClassificationProcessor extends WorkerHost {
       triggeredBy?: string;
       projectCount?: number;
       maxProjects?: number;
+      source?: string;
       projectIds?: string[];
       batchIds?: string[];
       totalProjects?: number;
@@ -74,18 +75,24 @@ export class BatchClassificationProcessor extends WorkerHost {
    * If there are more projects than MAX_PROJECTS_PER_SUBMIT, enqueue additional submit jobs.
    */
   private async handleSubmit(
-    job: Job<{ triggeredBy?: string; projectCount?: number; maxProjects?: number; projectIds?: string[] }>,
+    job: Job<{
+      triggeredBy?: string;
+      projectCount?: number;
+      maxProjects?: number;
+      source?: string;
+      projectIds?: string[];
+    }>,
   ) {
-    const { maxProjects, projectIds } = job.data;
+    const { maxProjects, projectIds, source } = job.data;
     this.logger.log(
-      `Batch classification submit triggered (${job.data.triggeredBy ?? "unknown"}, ~${job.data.projectCount ?? "?"} projects${maxProjects ? `, limit: ${maxProjects}` : ""})`,
+      `Batch classification submit triggered (${job.data.triggeredBy ?? "unknown"}, ~${job.data.projectCount ?? "?"} projects${maxProjects ? `, limit: ${maxProjects}` : ""}${source ? `, source: ${source}` : ""})`,
     );
 
     try {
       // Collect projects to classify: either specific IDs or all unclassified
       const allUnclassified = projectIds
         ? await this.fetchProjectsByIds(projectIds)
-        : await this.fetchUnclassifiedProjects();
+        : await this.fetchUnclassifiedProjects(source);
 
       const limit = maxProjects ?? MAX_PROJECTS_PER_SUBMIT;
       const unclassified = allUnclassified.slice(0, limit);
@@ -341,18 +348,38 @@ export class BatchClassificationProcessor extends WorkerHost {
   /**
    * Fetch unclassified projects with pagination to avoid loading everything in RAM.
    */
-  private async fetchUnclassifiedProjects(): Promise<ProjectForClassification[]> {
+  private async fetchUnclassifiedProjects(source?: string): Promise<ProjectForClassification[]> {
+    const sourceColumns = {
+      MEC: projets.mecId,
+      TeT: projets.tetId,
+      Recoco: projets.recocoId,
+      UrbanVitaliz: projets.urbanVitalizId,
+      SosPonts: projets.sosPontsId,
+      FondVert: projets.fondVertId,
+    } as const;
+
     const allProjects: ProjectForClassification[] = [];
     let offset = 0;
 
     while (true) {
-      const page = await this.dbService.database
+      let query = this.dbService.database
         .select({ id: projets.id, nom: projets.nom, description: projets.description })
         .from(projets)
         .where(isNull(projets.classificationScores))
         .limit(SELECT_PAGE_SIZE)
         .offset(offset);
 
+      if (source && source in sourceColumns) {
+        const column = sourceColumns[source as keyof typeof sourceColumns];
+        query = this.dbService.database
+          .select({ id: projets.id, nom: projets.nom, description: projets.description })
+          .from(projets)
+          .where(and(isNull(projets.classificationScores), isNotNull(column)))
+          .limit(SELECT_PAGE_SIZE)
+          .offset(offset);
+      }
+
+      const page = await query;
       allProjects.push(...page);
 
       if (page.length < SELECT_PAGE_SIZE) break;
