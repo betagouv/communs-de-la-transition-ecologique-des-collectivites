@@ -260,6 +260,13 @@
       "when": 1774828800000,
       "tag": "0036_add_content_hash_to_projets",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1775088000000,
+      "tag": "0037_budget_previsionnel_bigint",
+      "breakpoints": true
     }
   ]
 }

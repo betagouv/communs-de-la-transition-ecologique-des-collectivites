@@ -6,8 +6,8 @@ export const BATCH_PROCESS_JOB = "process";
 /** Max requests per Anthropic batch API call */
 export const ANTHROPIC_BATCH_MAX_REQUESTS = 100_000;
 
-/** Max projects per submit job — avoids OOM when building requests in memory */
-export const MAX_PROJECTS_PER_SUBMIT = 5_000;
+/** Max projects per submit job — avoids OOM on 512MB Scalingo containers */
+export const MAX_PROJECTS_PER_SUBMIT = 500;
 
 /** Polling interval for batch status checks */
 export const POLL_DELAY_MS = 5 * 60 * 1000; // 5 minutes
