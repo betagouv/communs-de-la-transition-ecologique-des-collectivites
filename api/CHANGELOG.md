@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.60](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.59...v0.1.60) (2026-04-23)
+
+
+### Features
+
+* **api:** enrichir /dashboard-te/stats/national + fix colonnes communes ([ba600fd](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ba600fdfeb5d6dc4bafc8836bde19f03e75ae2f1))
+* **api:** filtre type (duplicate/affinity) sur clusters dashboard-te ([2aaf8c1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2aaf8c16cc4f2fea080894211a041c64d8d5aaeb)), closes [#434](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/434) [#436](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/436)
+* **api:** filtres + endpoints dashboard-te pour dashboard V3 ([085ab26](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/085ab2694b1615881ce88ec208f0583d636577b8))
+
 ## [0.1.59](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.58...v0.1.59) (2026-04-23)
 
 
