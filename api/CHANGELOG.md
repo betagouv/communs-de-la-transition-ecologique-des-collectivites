@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.59](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.58...v0.1.59) (2026-04-23)
+
+
+### Features
+
+* **api:** ajouter endpoints dashboard-te (schema_commun_v2 + snapshot_crte) ([82ae517](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/82ae517e00973d51ff501341ad6c781529be84b2))
+
 ## [0.1.58](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.57...v0.1.58) (2026-04-22)
 
 
