@@ -1,7 +1,7 @@
 import { leviers } from "@/shared/const/leviers";
 import { competenceCodes, competencesFromM57Referentials } from "@/shared/const/competences-list";
 
-export type ServiceType = "MEC" | "TeT" | "Recoco" | "UrbanVitaliz" | "SosPonts" | "FondVert";
+export type ServiceType = "MEC" | "TeT" | "Recoco" | "UrbanVitaliz" | "SosPonts" | "FondVert" | "DashboardTE";
 export type ServiceTypeIds = "mecId" | "tetId" | "recocoId" | "urbanVitalizId" | "sosPontsId" | "fondVertId";
 
 export type CompetenceCode = (typeof competenceCodes)[number];
