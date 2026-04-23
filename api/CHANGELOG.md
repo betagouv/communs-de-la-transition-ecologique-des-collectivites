@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.61](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.60...v0.1.61) (2026-04-23)
+
+
+### Bug Fixes
+
+* **api:** corriger les noms de colonnes dashboard-te (camelCase + JSONB llm_sites) ([634113d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/634113d0cee4d5400c6dcb513ab9897142bce3ff))
+
 ## [0.1.60](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.59...v0.1.60) (2026-04-23)
 
 
