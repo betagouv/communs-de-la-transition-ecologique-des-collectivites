@@ -262,18 +262,24 @@ export class DashboardTeService {
   async collectivites(params: { region?: string; departement?: string; q?: string; page: number; limit: number }) {
     const { region, departement, q, page, limit } = params;
     const pattern = q ? `%${q}%` : null;
-    return this.query(sql`
+    const whereSuffix = sql`
+      WHERE 1=1
+        ${departement ? sql`AND code_departement = ${departement}` : sql``}
+        ${region ? sql`AND code_region = ${region}` : sql``}
+        ${pattern ? sql`AND nom ILIKE ${pattern}` : sql``}`;
+    const items = await this.query(sql`
       SELECT siren, nom, 'Commune' AS type, code_insee, code_epci,
         code_departement AS "codeDepartement", code_region AS "codeRegion",
         population
       FROM api_referentiel.communes
-      WHERE 1=1
-        ${departement ? sql`AND code_departement = ${departement}` : sql``}
-        ${region ? sql`AND code_region = ${region}` : sql``}
-        ${pattern ? sql`AND nom ILIKE ${pattern}` : sql``}
+      ${whereSuffix}
       ORDER BY nom
       LIMIT ${limit} OFFSET ${page * limit}
     `);
+    const [{ total }] = await this.query<{ total: string }>(sql`
+      SELECT count(*)::text AS total FROM api_referentiel.communes ${whereSuffix}
+    `);
+    return { items, total: Number(total) };
   }
 
   async collectivite(siren: string) {
@@ -347,6 +353,12 @@ export class DashboardTeService {
       }
     }
 
+    const joinClause = sql`
+      FROM schema_commun_v2.projets_operationnels p
+      ${needsCommuneJoin ? sql`JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id` : sql``}
+      ${departement ? sql`JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
+    `;
+
     const items = await this.query(sql`
       SELECT DISTINCT
         p.id,
@@ -366,11 +378,9 @@ export class DashboardTeService {
         p.llm_sites->0->>'nom_propre' AS "llmSiteNomPropre",
         cm.cluster_id AS "clusterId",
         c.confiance AS "clusterConfiance"
-      FROM schema_commun_v2.projets_operationnels p
+      ${joinClause}
       LEFT JOIN api_referentiel.communes cref ON cref.siren = p."collectiviteResponsableSiren"
       LEFT JOIN api_referentiel.groupements gref ON gref.siren = p."collectiviteResponsableSiren"
-      ${needsCommuneJoin ? sql`JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id` : sql``}
-      ${departement ? sql`JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
       LEFT JOIN schema_commun_v2.clusters_membres cm ON cm.projet_id = p.id
       LEFT JOIN schema_commun_v2.clusters c ON c.id = cm.cluster_id
       ${whereClause}
@@ -378,7 +388,13 @@ export class DashboardTeService {
       LIMIT ${limit} OFFSET ${page * limit}
     `);
 
-    return items;
+    const [{ total }] = await this.query<{ total: string }>(sql`
+      SELECT count(DISTINCT p.id)::text AS total
+      ${joinClause}
+      ${whereClause}
+    `);
+
+    return { items, total: Number(total) };
   }
 
   /**
@@ -477,7 +493,11 @@ export class DashboardTeService {
       }
     }
 
-    return this.query(sql`
+    const joinClause = sql`
+      FROM schema_commun_v2.fiches_action f
+      ${plan ? sql`JOIN schema_commun_v2.liens_plans_fiches lpf ON lpf.fiche_action_id = f.id AND lpf.plan_id = ${plan}` : sql``}
+    `;
+    const items = await this.query(sql`
       SELECT DISTINCT
         f.id,
         f.nom,
@@ -488,12 +508,15 @@ export class DashboardTeService {
         f."leviersSgpe",
         f."competencesM57",
         f."classificationThematiques"
-      FROM schema_commun_v2.fiches_action f
-      ${plan ? sql`JOIN schema_commun_v2.liens_plans_fiches lpf ON lpf.fiche_action_id = f.id AND lpf.plan_id = ${plan}` : sql``}
+      ${joinClause}
       ${whereClause}
       ORDER BY f.nom
       LIMIT ${limit} OFFSET ${page * limit}
     `);
+    const [{ total }] = await this.query<{ total: string }>(sql`
+      SELECT count(DISTINCT f.id)::text AS total ${joinClause} ${whereClause}
+    `);
+    return { items, total: Number(total) };
   }
 
   async plans(params: { siren?: string; crte?: string; departement?: string; page: number; limit: number }) {
@@ -513,7 +536,11 @@ export class DashboardTeService {
       }
     }
 
-    return this.query(sql`
+    const joinClause = sql`
+      FROM schema_commun_v2.plans_transition p
+      ${departement ? sql`JOIN schema_commun_v2.liens_plans_communes lpc ON lpc.plan_id = p.id JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
+    `;
+    const items = await this.query(sql`
       SELECT DISTINCT
         p.id,
         p.nom,
@@ -524,12 +551,15 @@ export class DashboardTeService {
         p."collectiviteResponsableSiren" AS "collectiviteSiren",
         p.source,
         p.id_crte
-      FROM schema_commun_v2.plans_transition p
-      ${departement ? sql`JOIN schema_commun_v2.liens_plans_communes lpc ON lpc.plan_id = p.id JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
+      ${joinClause}
       ${whereClause}
       ORDER BY p.nom
       LIMIT ${limit} OFFSET ${page * limit}
     `);
+    const [{ total }] = await this.query<{ total: string }>(sql`
+      SELECT count(DISTINCT p.id)::text AS total ${joinClause} ${whereClause}
+    `);
+    return { items, total: Number(total) };
   }
 
   async plan(id: string) {
@@ -578,16 +608,22 @@ export class DashboardTeService {
     `);
   }
 
-  clusters(params: { confidence?: string; type: string; page: number; limit: number }) {
+  async clusters(params: { confidence?: string; type: string; page: number; limit: number }) {
     const { confidence, type, page, limit } = params;
-    return this.query(sql`
+    const whereClause = sql`
+      WHERE type = ${type}
+        ${confidence ? sql`AND confiance = ${confidence}` : sql``}`;
+    const items = await this.query(sql`
       SELECT id, confiance, taille, type
       FROM schema_commun_v2.clusters
-      WHERE type = ${type}
-        ${confidence ? sql`AND confiance = ${confidence}` : sql``}
+      ${whereClause}
       ORDER BY taille DESC, id
       LIMIT ${limit} OFFSET ${page * limit}
     `);
+    const [{ total }] = await this.query<{ total: string }>(sql`
+      SELECT count(*)::text AS total FROM schema_commun_v2.clusters ${whereClause}
+    `);
+    return { items, total: Number(total) };
   }
 
   async cluster(id: string) {
