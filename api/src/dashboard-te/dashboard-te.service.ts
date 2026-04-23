@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { sql } from "drizzle-orm";
+import { sql, SQL } from "drizzle-orm";
 
 // Dashboard TE API — raw SQL queries against schema_commun_v2 + snapshot_crte + api_referentiel.
 // Called by the dashboard-te Cloudflare Worker (static SPA proxy) via API key.
@@ -206,14 +206,71 @@ export class DashboardTeService {
     };
   }
 
-  async collectivites(params: { region?: string; departement?: string; page: number; limit: number }) {
-    const { region, departement, page, limit } = params;
+  /**
+   * Per-department aggregated stats. Used by DepartementPage KPIs + breakdowns.
+   */
+  async statsDepartement(code: string) {
+    const [row] = await this.query<{
+      code: string;
+      nbProjets: string;
+      nbCollectivites: string;
+      nbPlans: string;
+      budgetTotal: string;
+    }>(sql`
+      WITH projet_dept AS (
+        SELECT DISTINCT p.id, p."collectiviteResponsableSiren", p."budgetPrevisionnel"
+        FROM schema_commun_v2.projets_operationnels p
+        JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
+        JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com
+        WHERE ar.code_departement = ${code}
+      ),
+      plan_dept AS (
+        SELECT DISTINCT pl.id
+        FROM schema_commun_v2.plans_transition pl
+        JOIN schema_commun_v2.liens_plans_communes lpc ON lpc.plan_id = pl.id
+        JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com
+        WHERE ar.code_departement = ${code}
+      )
+      SELECT
+        ${code}::text AS code,
+        (SELECT count(*) FROM projet_dept)::text AS "nbProjets",
+        (SELECT count(DISTINCT "collectiviteResponsableSiren") FROM projet_dept)::text AS "nbCollectivites",
+        (SELECT count(*) FROM plan_dept)::text AS "nbPlans",
+        (SELECT COALESCE(SUM(CAST(NULLIF("budgetPrevisionnel", '') AS numeric)), 0) FROM projet_dept)::text AS "budgetTotal"
+    `);
+
+    const parSource = await this.query<{ source: string; count: string }>(sql`
+      SELECT p.source_origine AS source, count(DISTINCT p.id)::text AS count
+      FROM schema_commun_v2.projets_operationnels p
+      JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
+      JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com
+      WHERE ar.code_departement = ${code} AND p.source_origine IS NOT NULL
+      GROUP BY p.source_origine
+      ORDER BY count(DISTINCT p.id) DESC
+    `);
+
+    return {
+      code,
+      nbProjets: Number(row?.nbProjets ?? 0),
+      nbCollectivites: Number(row?.nbCollectivites ?? 0),
+      nbPlans: Number(row?.nbPlans ?? 0),
+      budgetTotal: Number(row?.budgetTotal ?? 0),
+      parSource: parSource.map((r) => ({ source: r.source, count: Number(r.count) })),
+    };
+  }
+
+  async collectivites(params: { region?: string; departement?: string; q?: string; page: number; limit: number }) {
+    const { region, departement, q, page, limit } = params;
+    const pattern = q ? `%${q}%` : null;
     return this.query(sql`
-      SELECT siren, nom, 'Commune' AS type, code_insee, code_epci, code_departement, code_region, population
+      SELECT siren, nom, 'Commune' AS type, code_insee, code_epci,
+        code_departement AS "codeDepartement", code_region AS "codeRegion",
+        population
       FROM api_referentiel.communes
       WHERE 1=1
         ${departement ? sql`AND code_departement = ${departement}` : sql``}
         ${region ? sql`AND code_region = ${region}` : sql``}
+        ${pattern ? sql`AND nom ILIKE ${pattern}` : sql``}
       ORDER BY nom
       LIMIT ${limit} OFFSET ${page * limit}
     `);
@@ -224,73 +281,266 @@ export class DashboardTeService {
     const [groupement] = await this.query(
       sql`SELECT * FROM api_referentiel.groupements WHERE siren = ${siren} LIMIT 1`,
     );
-    const projets = await this.query(sql`
-      SELECT id, nom, source_origine, "classificationThematiques" AS thematiques
+
+    // Count projets / plans / fiches to avoid loading full lists (pagination used for lists)
+    const [{ nbProjets }] = await this.query<{ nbProjets: string }>(sql`
+      SELECT count(*)::text AS "nbProjets"
       FROM schema_commun_v2.projets_operationnels
       WHERE "collectiviteResponsableSiren" = ${siren}
-      LIMIT 200
     `);
-    const fiches = await this.query(sql`
-      SELECT id, nom, source_origine, "classificationThematiques" AS thematiques
+    const [{ nbPlans }] = await this.query<{ nbPlans: string }>(sql`
+      SELECT count(*)::text AS "nbPlans"
+      FROM schema_commun_v2.plans_transition
+      WHERE "collectiviteResponsableSiren" = ${siren}
+    `);
+    const [{ nbFiches }] = await this.query<{ nbFiches: string }>(sql`
+      SELECT count(*)::text AS "nbFiches"
       FROM schema_commun_v2.fiches_action
       WHERE "collectiviteResponsableSiren" = ${siren}
-      LIMIT 200
     `);
-    return { siren, commune: commune ?? null, groupement: groupement ?? null, projets, fiches };
+
+    return {
+      siren,
+      commune: commune ?? null,
+      groupement: groupement ?? null,
+      nbProjets: Number(nbProjets),
+      nbPlans: Number(nbPlans),
+      nbFiches: Number(nbFiches),
+    };
   }
 
-  async projets(params: { commune?: string; q?: string; page: number; limit: number }) {
-    const { commune, q, page, limit } = params;
+  async projets(params: {
+    commune?: string;
+    departement?: string;
+    siren?: string;
+    levier?: string;
+    competence?: string;
+    source?: string;
+    phase?: string;
+    q?: string;
+    page: number;
+    limit: number;
+  }) {
+    const { commune, departement, siren, levier, competence, source, phase, q, page, limit } = params;
     const pattern = q ? `%${q}%` : null;
-    return this.query(sql`
-      SELECT DISTINCT p.id, p.nom, p.source_origine, p."collectiviteResponsableSiren" AS siren
-      FROM schema_commun_v2.projets_operationnels p
-      ${
-        commune
-          ? sql`JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id WHERE lpc.insee_com = ${commune}`
-          : pattern
-            ? sql`WHERE p.nom ILIKE ${pattern}`
-            : sql``
+    const leviersPattern = levier ? `%${levier}%` : null;
+    const competencesPattern = competence ? `%${competence}%` : null;
+
+    const conditions: SQL[] = [];
+    if (commune) conditions.push(sql`lpc.insee_com = ${commune}`);
+    if (departement) conditions.push(sql`ar.code_departement = ${departement}`);
+    if (siren) conditions.push(sql`p."collectiviteResponsableSiren" = ${siren}`);
+    if (source) conditions.push(sql`p.source_origine = ${source}`);
+    if (phase) conditions.push(sql`p.phase = ${phase}`);
+    if (pattern) conditions.push(sql`p.nom ILIKE ${pattern}`);
+    if (leviersPattern) conditions.push(sql`p."leviersSgpe" ILIKE ${leviersPattern}`);
+    if (competencesPattern) conditions.push(sql`p."competencesM57" ILIKE ${competencesPattern}`);
+
+    const needsCommuneJoin = Boolean(commune ?? departement);
+
+    let whereClause = sql``;
+    if (conditions.length > 0) {
+      whereClause = sql`WHERE `;
+      for (let i = 0; i < conditions.length; i++) {
+        if (i > 0) whereClause = sql`${whereClause} AND `;
+        whereClause = sql`${whereClause}${conditions[i]}`;
       }
-      ${commune && pattern ? sql`AND p.nom ILIKE ${pattern}` : sql``}
+    }
+
+    const items = await this.query(sql`
+      SELECT DISTINCT
+        p.id,
+        p.nom,
+        p.description,
+        p.source_origine AS "sourceOrigine",
+        p.phase,
+        p.phase_statut AS "phaseStatut",
+        CAST(NULLIF(p."budgetPrevisionnel", '') AS numeric) AS "budgetPrevisionnel",
+        p."collectiviteResponsableSiren" AS "collectiviteSiren",
+        p."competencesM57",
+        p."leviersSgpe",
+        p."classificationThematiques",
+        p.llm_site AS "llmSite",
+        p.llm_site_nom_propre AS "llmSiteNomPropre",
+        cm.cluster_id AS "clusterId",
+        c.confiance AS "clusterConfiance"
+      FROM schema_commun_v2.projets_operationnels p
+      ${needsCommuneJoin ? sql`JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id` : sql``}
+      ${departement ? sql`JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
+      LEFT JOIN schema_commun_v2.clusters_membres cm ON cm.projet_id = p.id
+      LEFT JOIN schema_commun_v2.clusters c ON c.id = cm.cluster_id
+      ${whereClause}
       ORDER BY p.nom
       LIMIT ${limit} OFFSET ${page * limit}
     `);
+
+    return items;
   }
 
-  async fiches(params: { plan?: string; commune?: string; page: number; limit: number }) {
-    const { plan, commune, page, limit } = params;
-    return this.query(sql`
-      SELECT DISTINCT f.id, f.nom, f.source_origine, f."collectiviteResponsableSiren" AS siren
-      FROM schema_commun_v2.fiches_action f
-      ${
-        plan
-          ? sql`JOIN schema_commun_v2.liens_plans_fiches lpf ON lpf.fiche_action_id = f.id WHERE lpf.plan_id = ${plan}`
-          : commune
-            ? sql`WHERE f."collectiviteResponsableSiren" IN (SELECT siren FROM api_referentiel.communes WHERE code_insee = ${commune})`
-            : sql``
+  /**
+   * Full project detail with financements, cluster, linked plans, and collectivite.
+   */
+  async projet(id: string) {
+    const [projet] = await this.query(sql`
+      SELECT
+        p.id,
+        p.nom,
+        p.description,
+        p.source_origine AS "sourceOrigine",
+        p.phase,
+        p.phase_statut AS "phaseStatut",
+        CAST(NULLIF(p."budgetPrevisionnel", '') AS numeric) AS "budgetPrevisionnel",
+        p.date_debut AS "dateDebut",
+        p.date_fin AS "dateFin",
+        p.adresse,
+        p.latitude,
+        p.longitude,
+        p."collectiviteResponsableSiren" AS "collectiviteSiren",
+        p."competencesM57",
+        p."leviersSgpe",
+        p."classificationThematiques",
+        p.llm_site AS "llmSite",
+        p.llm_site_nom_propre AS "llmSiteNomPropre",
+        p.llm_intervention AS "llmIntervention",
+        p.llm_thematique AS "llmThematique",
+        cm.cluster_id AS "clusterId",
+        c.confiance AS "clusterConfiance"
+      FROM schema_commun_v2.projets_operationnels p
+      LEFT JOIN schema_commun_v2.clusters_membres cm ON cm.projet_id = p.id
+      LEFT JOIN schema_commun_v2.clusters c ON c.id = cm.cluster_id
+      WHERE p.id = ${id}
+      LIMIT 1
+    `);
+    if (!projet) return null;
+
+    const financements = await this.query(sql`
+      SELECT id, source, reference_externe AS "referenceExterne",
+        CAST(NULLIF("montantDemande", '') AS numeric) AS "montantDemande",
+        CAST(NULLIF("montantAttribue", '') AS numeric) AS "montantAttribue",
+        CAST(NULLIF("montantPaye", '') AS numeric) AS "montantPaye",
+        statut,
+        date_attribution AS "dateAttribution"
+      FROM schema_commun_v2.financements
+      WHERE projet_id = ${id}
+    `);
+
+    const collectiviteSiren = (projet as { collectiviteSiren?: string }).collectiviteSiren;
+    const [collectivite] = collectiviteSiren
+      ? await this.query(sql`
+        SELECT siren, nom, code_departement AS "codeDepartement", code_region AS "codeRegion", population
+        FROM api_referentiel.communes
+        WHERE siren = ${collectiviteSiren}
+        LIMIT 1
+      `)
+      : [null];
+
+    const linkedPlans = await this.query(sql`
+      SELECT pl.id, pl.nom, pl.type
+      FROM schema_commun_v2.liens_projets_communes lpc1
+      JOIN schema_commun_v2.liens_plans_communes lpc2 ON lpc2.insee_com = lpc1.insee_com
+      JOIN schema_commun_v2.plans_transition pl ON pl.id = lpc2.plan_id
+      WHERE lpc1.projet_id = ${id}
+      LIMIT 10
+    `);
+
+    return {
+      ...projet,
+      financements,
+      collectivite: collectivite ?? null,
+      linkedPlans,
+    };
+  }
+
+  async fiches(params: { plan?: string; commune?: string; siren?: string; q?: string; page: number; limit: number }) {
+    const { plan, commune, siren, q, page, limit } = params;
+    const pattern = q ? `%${q}%` : null;
+
+    const conditions: SQL[] = [];
+    if (siren) conditions.push(sql`f."collectiviteResponsableSiren" = ${siren}`);
+    if (commune)
+      conditions.push(
+        sql`f."collectiviteResponsableSiren" IN (SELECT siren FROM api_referentiel.communes WHERE code_insee = ${commune})`,
+      );
+    if (pattern) conditions.push(sql`f.nom ILIKE ${pattern}`);
+
+    let whereClause = sql``;
+    if (conditions.length > 0) {
+      whereClause = sql`WHERE `;
+      for (let i = 0; i < conditions.length; i++) {
+        if (i > 0) whereClause = sql`${whereClause} AND `;
+        whereClause = sql`${whereClause}${conditions[i]}`;
       }
+    }
+
+    return this.query(sql`
+      SELECT DISTINCT
+        f.id,
+        f.nom,
+        f.description,
+        f.source_origine AS "sourceOrigine",
+        f."collectiviteResponsableSiren" AS "collectiviteSiren",
+        f.statut,
+        f."leviersSgpe",
+        f."competencesM57",
+        f."classificationThematiques"
+      FROM schema_commun_v2.fiches_action f
+      ${plan ? sql`JOIN schema_commun_v2.liens_plans_fiches lpf ON lpf.fiche_action_id = f.id AND lpf.plan_id = ${plan}` : sql``}
+      ${whereClause}
       ORDER BY f.nom
       LIMIT ${limit} OFFSET ${page * limit}
     `);
   }
 
-  async plans(params: { siren?: string; crte?: string; page: number; limit: number }) {
-    const { siren, crte, page, limit } = params;
+  async plans(params: { siren?: string; crte?: string; departement?: string; page: number; limit: number }) {
+    const { siren, crte, departement, page, limit } = params;
+
+    const conditions: SQL[] = [];
+    if (siren) conditions.push(sql`p."collectiviteResponsableSiren" = ${siren}`);
+    if (crte) conditions.push(sql`p.id_crte = ${crte}`);
+    if (departement) conditions.push(sql`ar.code_departement = ${departement}`);
+
+    let whereClause = sql``;
+    if (conditions.length > 0) {
+      whereClause = sql`WHERE `;
+      for (let i = 0; i < conditions.length; i++) {
+        if (i > 0) whereClause = sql`${whereClause} AND `;
+        whereClause = sql`${whereClause}${conditions[i]}`;
+      }
+    }
+
     return this.query(sql`
-      SELECT id, nom, type, "collectiviteResponsableSiren" AS siren, source, id_crte
-      FROM schema_commun_v2.plans_transition
-      WHERE 1=1
-        ${siren ? sql`AND "collectiviteResponsableSiren" = ${siren}` : sql``}
-        ${crte ? sql`AND id_crte = ${crte}` : sql``}
-      ORDER BY nom
+      SELECT DISTINCT
+        p.id,
+        p.nom,
+        p.type,
+        p.description,
+        p.periode_debut AS "periodeDebut",
+        p.periode_fin AS "periodeFin",
+        p."collectiviteResponsableSiren" AS "collectiviteSiren",
+        p.source,
+        p.id_crte
+      FROM schema_commun_v2.plans_transition p
+      ${departement ? sql`JOIN schema_commun_v2.liens_plans_communes lpc ON lpc.plan_id = p.id JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
+      ${whereClause}
+      ORDER BY p.nom
       LIMIT ${limit} OFFSET ${page * limit}
     `);
   }
 
   async plan(id: string) {
     const [plan] = await this.query(sql`
-      SELECT p.*, c.lib_crte AS crte_nom, c.date_signature AS crte_date_signature
+      SELECT
+        p.id,
+        p.nom,
+        p.type,
+        p.description,
+        p.periode_debut AS "periodeDebut",
+        p.periode_fin AS "periodeFin",
+        p.source,
+        p.id_crte,
+        p."collectiviteResponsableSiren" AS "collectiviteSiren",
+        c.lib_crte AS crte_nom,
+        c.date_signature AS crte_date_signature
       FROM schema_commun_v2.plans_transition p
       LEFT JOIN snapshot_crte.contrats c ON c.id_crte = p.id_crte
       WHERE p.id = ${id}
@@ -340,13 +590,23 @@ export class DashboardTeService {
     );
     if (!cluster) return null;
     const projets = await this.query(sql`
-      SELECT p.id, p.nom, p.source_origine, p."collectiviteResponsableSiren" AS siren
+      SELECT
+        p.id,
+        p.nom,
+        p.source_origine AS "sourceOrigine",
+        p."collectiviteResponsableSiren" AS "collectiviteSiren",
+        p.llm_site AS "llmSite",
+        p.llm_site_nom_propre AS "llmSiteNomPropre"
       FROM schema_commun_v2.clusters_membres cm
       JOIN schema_commun_v2.projets_operationnels p ON p.id = cm.projet_id
       WHERE cm.cluster_id = ${id}
     `);
     const fiches = await this.query(sql`
-      SELECT f.id, f.nom, f.source_origine, f."collectiviteResponsableSiren" AS siren
+      SELECT
+        f.id,
+        f.nom,
+        f.source_origine AS "sourceOrigine",
+        f."collectiviteResponsableSiren" AS "collectiviteSiren"
       FROM schema_commun_v2.clusters_membres cm
       JOIN schema_commun_v2.fiches_action f ON f.id = cm.fiche_action_id
       WHERE cm.cluster_id = ${id}

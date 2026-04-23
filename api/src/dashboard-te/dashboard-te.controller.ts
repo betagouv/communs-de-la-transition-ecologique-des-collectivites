@@ -19,21 +19,27 @@ export class DashboardTeController {
     return this.svc.statsNational();
   }
 
+  @Get("stats/departement/:code")
+  statsDepartement(@Param("code") code: string) {
+    return this.svc.statsDepartement(code);
+  }
+
   @Get("collectivites")
-  collectivites(
+  async collectivites(
     @Query("region") region?: string,
     @Query("departement") departement?: string,
+    @Query("q") q?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
-    return this.svc
-      .collectivites({
-        region,
-        departement,
-        page: toInt(page, 0),
-        limit: Math.min(toInt(limit, 50), 200),
-      })
-      .then((items) => ({ items, page: toInt(page, 0), limit: Math.min(toInt(limit, 50), 200) }));
+    const items = await this.svc.collectivites({
+      region,
+      departement,
+      q,
+      page: toInt(page, 0),
+      limit: Math.min(toInt(limit, 50), 200),
+    });
+    return { items, page: toInt(page, 0), limit: Math.min(toInt(limit, 50), 200) };
   }
 
   @Get("collectivites/:siren")
@@ -44,12 +50,24 @@ export class DashboardTeController {
   @Get("projets")
   async projets(
     @Query("commune") commune?: string,
+    @Query("departement") departement?: string,
+    @Query("siren") siren?: string,
+    @Query("levier") levier?: string,
+    @Query("competence") competence?: string,
+    @Query("source") source?: string,
+    @Query("phase") phase?: string,
     @Query("q") q?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
     const items = await this.svc.projets({
       commune,
+      departement,
+      siren,
+      levier,
+      competence,
+      source,
+      phase,
       q,
       page: toInt(page, 0),
       limit: Math.min(toInt(limit, 50), 200),
@@ -57,16 +75,27 @@ export class DashboardTeController {
     return { items, page: toInt(page, 0), limit: Math.min(toInt(limit, 50), 200) };
   }
 
+  @Get("projets/:id")
+  async projet(@Param("id") id: string) {
+    const projet = await this.svc.projet(id);
+    if (!projet) throw new NotFoundException("projet not found");
+    return projet;
+  }
+
   @Get("fiches")
   async fiches(
     @Query("plan") plan?: string,
     @Query("commune") commune?: string,
+    @Query("siren") siren?: string,
+    @Query("q") q?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
     const items = await this.svc.fiches({
       plan,
       commune,
+      siren,
+      q,
       page: toInt(page, 0),
       limit: Math.min(toInt(limit, 50), 200),
     });
@@ -77,12 +106,14 @@ export class DashboardTeController {
   async plans(
     @Query("siren") siren?: string,
     @Query("crte") crte?: string,
+    @Query("departement") departement?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
     const items = await this.svc.plans({
       siren,
       crte,
+      departement,
       page: toInt(page, 0),
       limit: Math.min(toInt(limit, 50), 200),
     });
