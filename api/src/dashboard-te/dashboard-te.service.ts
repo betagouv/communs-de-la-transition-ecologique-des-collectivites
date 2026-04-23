@@ -357,6 +357,8 @@ export class DashboardTeService {
         p."phaseStatut",
         CAST(NULLIF(p."budgetPrevisionnel", '') AS numeric) AS "budgetPrevisionnel",
         p."collectiviteResponsableSiren" AS "collectiviteSiren",
+        cref.nom AS "collectiviteNom",
+        cref.code_departement AS "codeDepartement",
         p."competencesM57",
         p."leviersSgpe",
         p."classificationThematiques",
@@ -365,6 +367,7 @@ export class DashboardTeService {
         cm.cluster_id AS "clusterId",
         c.confiance AS "clusterConfiance"
       FROM schema_commun_v2.projets_operationnels p
+      LEFT JOIN api_referentiel.communes cref ON cref.siren = p."collectiviteResponsableSiren"
       ${needsCommuneJoin ? sql`JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id` : sql``}
       ${departement ? sql`JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
       LEFT JOIN schema_commun_v2.clusters_membres cm ON cm.projet_id = p.id
