@@ -573,12 +573,13 @@ export class DashboardTeService {
     `);
   }
 
-  clusters(params: { confidence?: string; page: number; limit: number }) {
-    const { confidence, page, limit } = params;
+  clusters(params: { confidence?: string; type: string; page: number; limit: number }) {
+    const { confidence, type, page, limit } = params;
     return this.query(sql`
-      SELECT id, confiance, taille
+      SELECT id, confiance, taille, type
       FROM schema_commun_v2.clusters
-      ${confidence ? sql`WHERE confiance = ${confidence}` : sql``}
+      WHERE type = ${type}
+        ${confidence ? sql`AND confiance = ${confidence}` : sql``}
       ORDER BY taille DESC, id
       LIMIT ${limit} OFFSET ${page * limit}
     `);
@@ -586,7 +587,7 @@ export class DashboardTeService {
 
   async cluster(id: string) {
     const [cluster] = await this.query(
-      sql`SELECT id, confiance, taille FROM schema_commun_v2.clusters WHERE id = ${id} LIMIT 1`,
+      sql`SELECT id, confiance, taille, type FROM schema_commun_v2.clusters WHERE id = ${id} LIMIT 1`,
     );
     if (!cluster) return null;
     const projets = await this.query(sql`
