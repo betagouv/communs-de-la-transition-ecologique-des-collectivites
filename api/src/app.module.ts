@@ -28,6 +28,7 @@ import { HealthController } from "@/health/health.controller";
 import { PlansFichesModule } from "@/plans-fiches/plans-fiches.module";
 import { ProjetsV2Module } from "@/projets-v2/projets-v2.module";
 import { BatchClassificationModule } from "@/batch-classification/batch-classification.module";
+import { DashboardTeModule } from "@/dashboard-te/dashboard-te.module";
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { BatchClassificationModule } from "@/batch-classification/batch-classifi
     PlansFichesModule,
     ProjetsV2Module,
     BatchClassificationModule,
+    DashboardTeModule,
   ],
   controllers: [HealthController],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
