@@ -354,14 +354,14 @@ export class DashboardTeService {
         p.description,
         p.source_origine AS "sourceOrigine",
         p.phase,
-        p.phase_statut AS "phaseStatut",
+        p."phaseStatut",
         CAST(NULLIF(p."budgetPrevisionnel", '') AS numeric) AS "budgetPrevisionnel",
         p."collectiviteResponsableSiren" AS "collectiviteSiren",
         p."competencesM57",
         p."leviersSgpe",
         p."classificationThematiques",
-        p.llm_site AS "llmSite",
-        p.llm_site_nom_propre AS "llmSiteNomPropre",
+        p.llm_sites->0->>'label' AS "llmSite",
+        p.llm_sites->0->>'nom_propre' AS "llmSiteNomPropre",
         cm.cluster_id AS "clusterId",
         c.confiance AS "clusterConfiance"
       FROM schema_commun_v2.projets_operationnels p
@@ -388,21 +388,21 @@ export class DashboardTeService {
         p.description,
         p.source_origine AS "sourceOrigine",
         p.phase,
-        p.phase_statut AS "phaseStatut",
+        p."phaseStatut",
         CAST(NULLIF(p."budgetPrevisionnel", '') AS numeric) AS "budgetPrevisionnel",
-        p.date_debut AS "dateDebut",
-        p.date_fin AS "dateFin",
-        p.adresse,
-        p.latitude,
-        p.longitude,
+        p."dateDebut",
+        p."dateFin",
+        p."localisationAdresse" AS adresse,
+        p."localisationLatitude" AS latitude,
+        p."localisationLongitude" AS longitude,
         p."collectiviteResponsableSiren" AS "collectiviteSiren",
         p."competencesM57",
         p."leviersSgpe",
         p."classificationThematiques",
-        p.llm_site AS "llmSite",
-        p.llm_site_nom_propre AS "llmSiteNomPropre",
-        p.llm_intervention AS "llmIntervention",
-        p.llm_thematique AS "llmThematique",
+        p.llm_sites->0->>'label' AS "llmSite",
+        p.llm_sites->0->>'nom_propre' AS "llmSiteNomPropre",
+        p.llm_interventions->0->>'label' AS "llmIntervention",
+        p.llm_thematiques->0->>'label' AS "llmThematique",
         cm.cluster_id AS "clusterId",
         c.confiance AS "clusterConfiance"
       FROM schema_commun_v2.projets_operationnels p
@@ -413,16 +413,17 @@ export class DashboardTeService {
     `);
     if (!projet) return null;
 
-    const financements = await this.query(sql`
-      SELECT id, source, reference_externe AS "referenceExterne",
+    const financements = await this.query(
+      sql`
+      SELECT id, source,
         CAST(NULLIF("montantDemande", '') AS numeric) AS "montantDemande",
         CAST(NULLIF("montantAttribue", '') AS numeric) AS "montantAttribue",
         CAST(NULLIF("montantPaye", '') AS numeric) AS "montantPaye",
-        statut,
-        date_attribution AS "dateAttribution"
+        statut
       FROM schema_commun_v2.financements
-      WHERE projet_id = ${id}
-    `);
+      WHERE "projetId" = ${id} OR projet_id = ${id}
+    `,
+    ).catch(() => [] as Row[]);
 
     const collectiviteSiren = (projet as { collectiviteSiren?: string }).collectiviteSiren;
     const [collectivite] = collectiviteSiren
@@ -514,8 +515,8 @@ export class DashboardTeService {
         p.nom,
         p.type,
         p.description,
-        p.periode_debut AS "periodeDebut",
-        p.periode_fin AS "periodeFin",
+        p."periodeDebut",
+        p."periodeFin",
         p."collectiviteResponsableSiren" AS "collectiviteSiren",
         p.source,
         p.id_crte
@@ -534,8 +535,8 @@ export class DashboardTeService {
         p.nom,
         p.type,
         p.description,
-        p.periode_debut AS "periodeDebut",
-        p.periode_fin AS "periodeFin",
+        p."periodeDebut",
+        p."periodeFin",
         p.source,
         p.id_crte,
         p."collectiviteResponsableSiren" AS "collectiviteSiren",
@@ -596,8 +597,8 @@ export class DashboardTeService {
         p.nom,
         p.source_origine AS "sourceOrigine",
         p."collectiviteResponsableSiren" AS "collectiviteSiren",
-        p.llm_site AS "llmSite",
-        p.llm_site_nom_propre AS "llmSiteNomPropre"
+        p.llm_sites->0->>'label' AS "llmSite",
+        p.llm_sites->0->>'nom_propre' AS "llmSiteNomPropre"
       FROM schema_commun_v2.clusters_membres cm
       JOIN schema_commun_v2.projets_operationnels p ON p.id = cm.projet_id
       WHERE cm.cluster_id = ${id}
