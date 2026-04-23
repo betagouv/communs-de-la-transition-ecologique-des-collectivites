@@ -16,27 +16,204 @@ export class DashboardTeService {
     return result.rows as T[];
   }
 
+  /**
+   * Rich national statistics matching V2's `StatsNational` shape.
+   * Returns totals, plus aggregations parSource/parPhase/parDepartement/etc.
+   */
   async statsNational() {
-    const [row] = await this.query(sql`
+    // Totals
+    const [totalsRow] = await this.query<{
+      totalProjets: string;
+      totalBudget: string;
+      totalCollectivites: string;
+      totalPlans: string;
+      totalFiches: string;
+      totalFinancements: string;
+      totalFinancementAttribue: string;
+      totalFinancementPaye: string;
+    }>(sql`
       SELECT
-        (SELECT count(*) FROM schema_commun_v2.projets_operationnels) AS projets,
-        (SELECT count(*) FROM schema_commun_v2.fiches_action) AS fiches,
-        (SELECT count(*) FROM schema_commun_v2.plans_transition) AS plans,
-        (SELECT count(*) FROM schema_commun_v2.clusters) AS clusters,
-        (SELECT count(*) FROM schema_commun_v2.clusters WHERE confiance='CERTAIN') AS clusters_certain,
-        (SELECT count(*) FROM schema_commun_v2.clusters WHERE confiance='PROBABLE') AS clusters_probable
+        (SELECT count(*) FROM schema_commun_v2.projets_operationnels)::text AS "totalProjets",
+        (SELECT COALESCE(SUM(CAST(NULLIF("budgetPrevisionnel", '') AS numeric)), 0)
+          FROM schema_commun_v2.projets_operationnels)::text AS "totalBudget",
+        (SELECT count(DISTINCT "collectiviteResponsableSiren")
+          FROM schema_commun_v2.projets_operationnels
+          WHERE "collectiviteResponsableSiren" IS NOT NULL)::text AS "totalCollectivites",
+        (SELECT count(*) FROM schema_commun_v2.plans_transition)::text AS "totalPlans",
+        (SELECT count(*) FROM schema_commun_v2.fiches_action)::text AS "totalFiches",
+        (SELECT count(*) FROM schema_commun_v2.financements)::text AS "totalFinancements",
+        (SELECT COALESCE(SUM(CAST(NULLIF("montantAttribue", '') AS numeric)), 0)
+          FROM schema_commun_v2.financements)::text AS "totalFinancementAttribue",
+        (SELECT COALESCE(SUM(CAST(NULLIF("montantPaye", '') AS numeric)), 0)
+          FROM schema_commun_v2.financements)::text AS "totalFinancementPaye"
     `);
-    return row;
+
+    // Cluster aggregates
+    const [clusterRow] = await this.query<{
+      totalClusters: string;
+      totalProjetsInClusters: string;
+      totalFichesLiees: string;
+    }>(sql`
+      SELECT
+        (SELECT count(*) FROM schema_commun_v2.clusters)::text AS "totalClusters",
+        (SELECT count(*) FROM schema_commun_v2.clusters_membres WHERE projet_id IS NOT NULL)::text AS "totalProjetsInClusters",
+        (SELECT count(*) FROM schema_commun_v2.clusters_membres WHERE fiche_action_id IS NOT NULL)::text AS "totalFichesLiees"
+    `);
+
+    const clusterSizesRows = await this.query<{ taille: number; nb: string }>(sql`
+      SELECT taille, count(*)::text AS nb
+      FROM schema_commun_v2.clusters
+      GROUP BY taille
+      ORDER BY taille
+    `);
+    const clusterSizes: Record<string, number> = {};
+    for (const r of clusterSizesRows) clusterSizes[String(r.taille)] = Number(r.nb);
+
+    // By source
+    const parSource = await this.query<{ source: string; count: string; budget: string }>(sql`
+      SELECT source_origine AS source, count(*)::text AS count,
+        COALESCE(SUM(CAST(NULLIF("budgetPrevisionnel", '') AS numeric)), 0)::text AS budget
+      FROM schema_commun_v2.projets_operationnels
+      WHERE source_origine IS NOT NULL
+      GROUP BY source_origine
+      ORDER BY count(*) DESC
+    `);
+
+    // By phase
+    const parPhase = await this.query<{ phase: string; count: string; budget: string }>(sql`
+      SELECT COALESCE(NULLIF(phase, ''), 'Non renseigné') AS phase,
+        count(*)::text AS count,
+        COALESCE(SUM(CAST(NULLIF("budgetPrevisionnel", '') AS numeric)), 0)::text AS budget
+      FROM schema_commun_v2.projets_operationnels
+      GROUP BY phase
+      ORDER BY count(*) DESC
+    `);
+
+    // By department — join projets → liens_projets_communes → api_referentiel.communes
+    const parDepartement = await this.query<{
+      code: string;
+      nom: string;
+      region: string;
+      nbProjets: string;
+      nbCollectivites: string;
+      budgetTotal: string;
+      nbPlans: string;
+    }>(sql`
+      WITH projet_dept AS (
+        SELECT DISTINCT p.id, p."collectiviteResponsableSiren", p."budgetPrevisionnel",
+          ar.code_departement AS code_dept, ar.code_region AS code_reg
+        FROM schema_commun_v2.projets_operationnels p
+        JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
+        JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com
+        WHERE ar.code_departement IS NOT NULL
+      )
+      SELECT code_dept AS code,
+        code_dept AS nom,
+        COALESCE(MAX(code_reg), '') AS region,
+        count(DISTINCT id)::text AS "nbProjets",
+        count(DISTINCT "collectiviteResponsableSiren")::text AS "nbCollectivites",
+        COALESCE(SUM(CAST(NULLIF("budgetPrevisionnel", '') AS numeric)), 0)::text AS "budgetTotal",
+        0::text AS "nbPlans"
+      FROM projet_dept
+      GROUP BY code_dept
+      ORDER BY code_dept
+    `);
+
+    // Top leviers SGPE (text[] array unnested)
+    const parLevier = await this.query<{ levier: string; count: string }>(sql`
+      SELECT levier, count(*)::text AS count
+      FROM schema_commun_v2.projets_operationnels, UNNEST(
+        string_to_array("leviersSgpe", ',')
+      ) AS levier
+      WHERE levier IS NOT NULL AND trim(levier) <> ''
+      GROUP BY levier
+      ORDER BY count(*) DESC
+      LIMIT 20
+    `);
+
+    // Top competences M57
+    const parCompetence = await this.query<{ code: string; count: string }>(sql`
+      SELECT code, count(*)::text AS count
+      FROM schema_commun_v2.projets_operationnels, UNNEST(
+        string_to_array("competencesM57", ',')
+      ) AS code
+      WHERE code IS NOT NULL AND trim(code) <> ''
+      GROUP BY code
+      ORDER BY count(*) DESC
+      LIMIT 20
+    `);
+
+    // Financements par source
+    const parSourceFinancement = await this.query<{
+      source: string;
+      count: string;
+      totalAttribue: string;
+    }>(sql`
+      SELECT source, count(*)::text AS count,
+        COALESCE(SUM(CAST(NULLIF("montantAttribue", '') AS numeric)), 0)::text AS "totalAttribue"
+      FROM schema_commun_v2.financements
+      WHERE source IS NOT NULL
+      GROUP BY source
+      ORDER BY SUM(CAST(NULLIF("montantAttribue", '') AS numeric)) DESC NULLS LAST
+      LIMIT 20
+    `);
+
+    return {
+      totalProjets: Number(totalsRow.totalProjets ?? 0),
+      totalBudget: Number(totalsRow.totalBudget ?? 0),
+      totalCollectivites: Number(totalsRow.totalCollectivites ?? 0),
+      totalPlans: Number(totalsRow.totalPlans ?? 0),
+      totalFiches: Number(totalsRow.totalFiches ?? 0),
+      totalFinancements: Number(totalsRow.totalFinancements ?? 0),
+      totalFinancementAttribue: Number(totalsRow.totalFinancementAttribue ?? 0),
+      totalFinancementPaye: Number(totalsRow.totalFinancementPaye ?? 0),
+      clusters: {
+        totalClusters: Number(clusterRow.totalClusters ?? 0),
+        totalProjetsInClusters: Number(clusterRow.totalProjetsInClusters ?? 0),
+        totalFichesLiees: Number(clusterRow.totalFichesLiees ?? 0),
+        clusterSizes,
+      },
+      parSource: parSource.map((r) => ({
+        source: r.source,
+        count: Number(r.count),
+        budget: Number(r.budget),
+      })),
+      parPhase: parPhase.map((r) => ({
+        phase: r.phase,
+        count: Number(r.count),
+        budget: Number(r.budget),
+      })),
+      parDepartement: parDepartement.map((r) => ({
+        code: r.code,
+        nom: r.nom,
+        region: r.region,
+        nbProjets: Number(r.nbProjets),
+        nbCollectivites: Number(r.nbCollectivites),
+        budgetTotal: Number(r.budgetTotal),
+        nbPlans: Number(r.nbPlans),
+      })),
+      parSourceFinancement: parSourceFinancement.map((r) => ({
+        source: r.source,
+        count: Number(r.count),
+        totalAttribue: Number(r.totalAttribue),
+      })),
+      parLevier: parLevier.map((r) => ({ levier: r.levier, count: Number(r.count) })),
+      parCompetence: parCompetence.map((r) => ({
+        code: r.code,
+        label: r.code,
+        count: Number(r.count),
+      })),
+    };
   }
 
   async collectivites(params: { region?: string; departement?: string; page: number; limit: number }) {
     const { region, departement, page, limit } = params;
     return this.query(sql`
-      SELECT siren, nom, type, code_insee, code_epci, code_departements, code_regions
+      SELECT siren, nom, 'Commune' AS type, code_insee, code_epci, code_departement, code_region, population
       FROM api_referentiel.communes
       WHERE 1=1
-        ${departement ? sql`AND ${departement} = ANY(code_departements)` : sql``}
-        ${region ? sql`AND ${region} = ANY(code_regions)` : sql``}
+        ${departement ? sql`AND code_departement = ${departement}` : sql``}
+        ${region ? sql`AND code_region = ${region}` : sql``}
       ORDER BY nom
       LIMIT ${limit} OFFSET ${page * limit}
     `);
@@ -128,7 +305,7 @@ export class DashboardTeService {
 
   planCommunes(id: string) {
     return this.query(sql`
-      SELECT ar.code_insee, ar.nom, ar.code_departements, ar.code_regions
+      SELECT ar.code_insee, ar.nom, ar.code_departement, ar.code_region
       FROM schema_commun_v2.liens_plans_communes lpc
       JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com
       WHERE lpc.plan_id = ${id}
