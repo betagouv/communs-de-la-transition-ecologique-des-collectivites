@@ -566,7 +566,7 @@ export class DashboardTeService {
 
   planGroupements(id: string) {
     return this.query(sql`
-      SELECT ar.siren, ar.nom, ar.nature_juridique
+      SELECT ar.siren, ar.nom, ar.type AS nature_juridique
       FROM schema_commun_v2.liens_plans_groupements lpg
       JOIN api_referentiel.groupements ar ON ar.siren = lpg.siren_groupement
       WHERE lpg.plan_id = ${id}
