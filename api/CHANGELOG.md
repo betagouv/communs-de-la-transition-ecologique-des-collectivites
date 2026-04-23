@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.65](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.64...v0.1.65) (2026-04-23)
+
+
+### Features
+
+* **api:** ajouter total sur endpoints dashboard-te paginés ([96d736e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/96d736eb9bbc3bd4a5dc99138d2a9a8bf3dea7fe))
+
 ## [0.1.64](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.63...v0.1.64) (2026-04-23)
 
 
