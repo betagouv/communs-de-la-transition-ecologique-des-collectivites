@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.62](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.61...v0.1.62) (2026-04-23)
+
+
+### Bug Fixes
+
+* **api:** plans/:id/groupements — type au lieu de nature_juridique ([4e2a89c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/4e2a89c224e05264b2f1d522800735e774452c76))
+
 ## [0.1.61](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.60...v0.1.61) (2026-04-23)
 
 
