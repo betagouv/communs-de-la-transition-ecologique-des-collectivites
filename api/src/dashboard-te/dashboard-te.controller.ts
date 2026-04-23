@@ -32,14 +32,10 @@ export class DashboardTeController {
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
-    const items = await this.svc.collectivites({
-      region,
-      departement,
-      q,
-      page: toInt(page, 0),
-      limit: Math.min(toInt(limit, 50), 200),
-    });
-    return { items, page: toInt(page, 0), limit: Math.min(toInt(limit, 50), 200) };
+    const p = toInt(page, 0);
+    const l = Math.min(toInt(limit, 50), 200);
+    const result = await this.svc.collectivites({ region, departement, q, page: p, limit: l });
+    return { ...result, page: p, limit: l };
   }
 
   @Get("collectivites/:siren")
@@ -60,7 +56,9 @@ export class DashboardTeController {
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
-    const items = await this.svc.projets({
+    const p = toInt(page, 0);
+    const l = Math.min(toInt(limit, 50), 200);
+    const result = await this.svc.projets({
       commune,
       departement,
       siren,
@@ -69,10 +67,10 @@ export class DashboardTeController {
       source,
       phase,
       q,
-      page: toInt(page, 0),
-      limit: Math.min(toInt(limit, 50), 200),
+      page: p,
+      limit: l,
     });
-    return { items, page: toInt(page, 0), limit: Math.min(toInt(limit, 50), 200) };
+    return { ...result, page: p, limit: l };
   }
 
   @Get("projets/:id")
@@ -91,15 +89,10 @@ export class DashboardTeController {
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
-    const items = await this.svc.fiches({
-      plan,
-      commune,
-      siren,
-      q,
-      page: toInt(page, 0),
-      limit: Math.min(toInt(limit, 50), 200),
-    });
-    return { items, page: toInt(page, 0), limit: Math.min(toInt(limit, 50), 200) };
+    const p = toInt(page, 0);
+    const l = Math.min(toInt(limit, 50), 200);
+    const result = await this.svc.fiches({ plan, commune, siren, q, page: p, limit: l });
+    return { ...result, page: p, limit: l };
   }
 
   @Get("plans")
@@ -110,14 +103,10 @@ export class DashboardTeController {
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
-    const items = await this.svc.plans({
-      siren,
-      crte,
-      departement,
-      page: toInt(page, 0),
-      limit: Math.min(toInt(limit, 50), 200),
-    });
-    return { items, page: toInt(page, 0), limit: Math.min(toInt(limit, 50), 200) };
+    const p = toInt(page, 0);
+    const l = Math.min(toInt(limit, 50), 200);
+    const result = await this.svc.plans({ siren, crte, departement, page: p, limit: l });
+    return { ...result, page: p, limit: l };
   }
 
   @Get("plans/:id")
@@ -146,13 +135,15 @@ export class DashboardTeController {
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
-    const items = await this.svc.clusters({
+    const p = toInt(page, 0);
+    const l = Math.min(toInt(limit, 50), 200);
+    const result = await this.svc.clusters({
       confidence,
       type: type === "affinity" ? "affinity" : "duplicate",
-      page: toInt(page, 0),
-      limit: Math.min(toInt(limit, 50), 200),
+      page: p,
+      limit: l,
     });
-    return { items, page: toInt(page, 0), limit: Math.min(toInt(limit, 50), 200) };
+    return { ...result, page: p, limit: l };
   }
 
   @Get("clusters/:id")
