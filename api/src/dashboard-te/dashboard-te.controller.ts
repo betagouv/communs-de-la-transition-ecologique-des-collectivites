@@ -111,11 +111,13 @@ export class DashboardTeController {
   @Get("clusters")
   async clusters(
     @Query("confidence") confidence?: string,
+    @Query("type") type?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
     const items = await this.svc.clusters({
       confidence,
+      type: type === "affinity" ? "affinity" : "duplicate",
       page: toInt(page, 0),
       limit: Math.min(toInt(limit, 50), 200),
     });
