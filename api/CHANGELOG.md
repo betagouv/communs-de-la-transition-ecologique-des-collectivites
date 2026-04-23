@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.64](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.63...v0.1.64) (2026-04-23)
+
+
+### Bug Fixes
+
+* **api:** /projets collectiviteNom — fallback groupements pour les EPCI ([cc82012](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/cc820129eb68f7d49ba7c45bbfa2f0e61ddb95ec))
+
 ## [0.1.63](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.62...v0.1.63) (2026-04-23)
 
 
