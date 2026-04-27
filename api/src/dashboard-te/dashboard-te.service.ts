@@ -765,10 +765,11 @@ export class DashboardTeService {
     return { dispositifs, stats };
   }
 
-  async dispositifsProjets(filters: { type?: string; statut?: string; page: number; limit: number }) {
+  async dispositifsProjets(filters: { type?: string; statut?: string; source?: string; page: number; limit: number }) {
     const typeFilter = filters.type ?? "COT";
     const conditions: SQL[] = [sql`dt.dispositif = ${typeFilter}`];
     if (filters.statut) conditions.push(sql`dt.statut = ${filters.statut}`);
+    if (filters.source) conditions.push(sql`p.source_origine = ${filters.source}`);
     const where = sql`WHERE ${sql.join(conditions, sql` AND `)}`;
 
     const [countRow] = await this.query<{ total: string }>(sql`
@@ -777,6 +778,7 @@ export class DashboardTeService {
       JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
       JOIN api_referentiel.communes c ON c.code_insee = lpc.insee_com
       JOIN schema_commun_v2.dispositifs_territoriaux dt ON dt.epci_siren = c.code_epci
+      LEFT JOIN snapshot_crte.contrats crte ON crte.id_crte = dt.crte_code
       ${where}
     `);
 
@@ -803,11 +805,13 @@ export class DashboardTeService {
         dt.crte_code AS "crteCode",
         dt.metadata->>'crte_nom' AS "crteNom",
         dt.statut AS "cotStatut",
-        dt.date_signature AS "cotDateSignature"
+        dt.date_signature AS "cotDateSignature",
+        crte.date_signature AS "crteDateSignature"
       FROM schema_commun_v2.projets_operationnels p
       JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
       JOIN api_referentiel.communes c ON c.code_insee = lpc.insee_com
       JOIN schema_commun_v2.dispositifs_territoriaux dt ON dt.epci_siren = c.code_epci
+      LEFT JOIN snapshot_crte.contrats crte ON crte.id_crte = dt.crte_code
       ${where}
       ORDER BY p.id
       OFFSET ${filters.page * filters.limit}

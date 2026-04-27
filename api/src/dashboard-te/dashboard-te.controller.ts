@@ -190,12 +190,13 @@ export class DashboardTeController {
   async dispositifsProjets(
     @Query("type") type?: string,
     @Query("statut") statut?: string,
+    @Query("source") source?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
     const p = toInt(page, 0);
     const l = Math.min(toInt(limit, 50), 1000);
-    const result = await this.svc.dispositifsProjets({ type, statut, page: p, limit: l });
+    const result = await this.svc.dispositifsProjets({ type, statut, source, page: p, limit: l });
     return { ...result, page: p, limit: l };
   }
 }
