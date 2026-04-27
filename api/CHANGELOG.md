@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.67](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.66...v0.1.67) (2026-04-27)
+
+
+### Bug Fixes
+
+* **referentiel:** metadata jsonb (pas text) + supprimer JSON.parse inutile ([d910c6c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d910c6cd6ed37a790b8da39fd37c9b4b86b01caf))
+
 ## [0.1.66](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.65...v0.1.66) (2026-04-27)
 
 
