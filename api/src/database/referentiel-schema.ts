@@ -1,4 +1,4 @@
-import { index, integer, pgSchema, primaryKey, text, varchar, date } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, pgSchema, primaryKey, text, varchar, date } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // ============================================================
@@ -110,7 +110,7 @@ export const dispositifsTerritoriaux = schemaCommunV2.table(
     statut: varchar("statut", { length: 50 }),
     referenceExterne: varchar("reference_externe", { length: 50 }),
     crteCode: varchar("crte_code", { length: 30 }),
-    metadata: text("metadata"),
+    metadata: jsonb("metadata"),
     source: varchar("source", { length: 100 }),
   },
   (t) => [index("idx_dispositifs_epci").on(t.epciSiren), index("idx_dispositifs_type").on(t.dispositif)],
