@@ -1,12 +1,14 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
+import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { DispositifsService } from "./dispositifs.service";
 import { DispositifQueryDto } from "./dto/dispositif-query.dto";
 import { DispositifResponse, DispositifsDataResponse } from "./dto/dispositif.response";
 
 @Controller("referentiel/v1/dispositifs")
 @ApiTags("Référentiel - Dispositifs Territoriaux")
+@UseGuards(ApiKeyGuard)
 export class DispositifsController {
   constructor(private readonly dispositifsService: DispositifsService) {}
 
