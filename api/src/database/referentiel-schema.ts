@@ -95,6 +95,28 @@ export const refGroupementCompetences = apiReferentielSchema.table(
 );
 
 // ============================================================
+// Schema: schema_commun_v2 — Dashboard cross-source data
+// ============================================================
+
+export const schemaCommunV2 = pgSchema("schema_commun_v2");
+
+export const dispositifsTerritoriaux = schemaCommunV2.table(
+  "dispositifs_territoriaux",
+  {
+    id: integer("id").primaryKey(),
+    epciSiren: varchar("epci_siren", { length: 9 }).notNull(),
+    dispositif: varchar("dispositif", { length: 50 }).notNull(),
+    dateSignature: date("date_signature"),
+    statut: varchar("statut", { length: 50 }),
+    referenceExterne: varchar("reference_externe", { length: 50 }),
+    crteCode: varchar("crte_code", { length: 30 }),
+    metadata: text("metadata"),
+    source: varchar("source", { length: 100 }),
+  },
+  (t) => [index("idx_dispositifs_epci").on(t.epciSiren), index("idx_dispositifs_type").on(t.dispositif)],
+);
+
+// ============================================================
 // Relations
 // ============================================================
 
