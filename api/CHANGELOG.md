@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.66](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.65...v0.1.66) (2026-04-27)
+
+
+### Features
+
+* **referentiel:** endpoint dispositifs territoriaux (COT ADEME) ([528ddd7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/528ddd7e2ad5388c5615ab0d8ab5d26fb2e13f7c))
+
+
+### Bug Fixes
+
+* **referentiel:** protéger endpoint dispositifs avec ApiKeyGuard ([c7cfe7c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/c7cfe7c71a23133eb4c634e127eda59699f0f608))
+
 ## [0.1.65](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.64...v0.1.65) (2026-04-23)
 
 
