@@ -746,7 +746,10 @@ export class DashboardTeService {
           COUNT(*) FILTER (WHERE source_origine = 'MEC') AS nb_mec,
           COUNT(*) AS nb_all
         FROM schema_commun_v2.projets_operationnels
-        WHERE "collectiviteResponsableSiren" = ANY(${epciSirens})
+        WHERE "collectiviteResponsableSiren" = ANY(${sql`ARRAY[${sql.join(
+          epciSirens.map((s) => sql`${s}`),
+          sql`, `,
+        )}]`})
       `);
 
       stats[type] = {
