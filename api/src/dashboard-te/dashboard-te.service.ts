@@ -697,4 +697,66 @@ export class DashboardTeService {
       WHERE lpc.insee_com = ${insee}
     `);
   }
+
+  async dispositifs(filters: { type?: string; statut?: string }) {
+    const conditions: SQL[] = [];
+    if (filters.type) conditions.push(sql`dt.dispositif = ${filters.type}`);
+    if (filters.statut) conditions.push(sql`dt.statut = ${filters.statut}`);
+    const where = conditions.length > 0 ? sql`WHERE ${sql.join(conditions, sql` AND `)}` : sql``;
+
+    return this.query(sql`
+      SELECT
+        dt.epci_siren AS "epciSiren",
+        COALESCE(g.nom, dt.metadata->>'epci_nom', '') AS "epciNom",
+        dt.dispositif,
+        dt.date_signature AS "dateSignature",
+        COALESCE(dt.statut, '') AS statut,
+        dt.crte_code AS "crteCode",
+        dt.metadata->>'crte_nom' AS "crteNom",
+        dt.metadata->>'region' AS region
+      FROM schema_commun_v2.dispositifs_territoriaux dt
+      LEFT JOIN api_referentiel.groupements g ON g.siren = dt.epci_siren
+      ${where}
+      ORDER BY dt.dispositif, dt.epci_siren
+    `);
+  }
+
+  async dispositifsAll() {
+    const dispositifs = await this.dispositifs({});
+
+    // Stats per type
+    const byType = new Map<string, typeof dispositifs>();
+    for (const d of dispositifs) {
+      const t = d.dispositif as string;
+      if (!byType.has(t)) byType.set(t, []);
+      byType.get(t)!.push(d);
+    }
+
+    const stats: Record<string, unknown> = {};
+    for (const [type, items] of byType) {
+      const epciSirens = items.map((i) => (i as Record<string, unknown>).epciSiren as string);
+      const parStatut: Record<string, number> = {};
+      for (const i of items) {
+        const s = (i as Record<string, unknown>).statut as string;
+        parStatut[s] = (parStatut[s] ?? 0) + 1;
+      }
+
+      const [counts] = await this.query<{ nb_mec: string; nb_all: string }>(sql`
+        SELECT
+          COUNT(*) FILTER (WHERE source_origine = 'MEC') AS nb_mec,
+          COUNT(*) AS nb_all
+        FROM schema_commun_v2.projets_operationnels
+        WHERE "collectiviteResponsableSiren" = ANY(${epciSirens})
+      `);
+
+      stats[type] = {
+        totalEpci: items.length,
+        nbProjetsMec: Number(counts?.nb_mec ?? 0),
+        nbProjetsToutesSources: Number(counts?.nb_all ?? 0),
+        parStatut,
+      };
+    }
+
+    return { dispositifs, stats };
+  }
 }

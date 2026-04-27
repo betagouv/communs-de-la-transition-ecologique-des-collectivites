@@ -175,4 +175,14 @@ export class DashboardTeController {
     const items = await this.svc.communePlans(insee);
     return { items };
   }
+
+  @Get("dispositifs")
+  async dispositifs(@Query("type") type?: string, @Query("statut") statut?: string) {
+    return this.svc.dispositifs({ type, statut });
+  }
+
+  @Get("dispositifs/all")
+  async dispositifsAll() {
+    return this.svc.dispositifsAll();
+  }
 }
