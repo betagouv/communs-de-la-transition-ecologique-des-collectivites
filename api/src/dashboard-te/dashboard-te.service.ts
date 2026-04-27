@@ -743,10 +743,12 @@ export class DashboardTeService {
 
       const [counts] = await this.query<{ nb_mec: string; nb_all: string }>(sql`
         SELECT
-          COUNT(*) FILTER (WHERE source_origine = 'MEC') AS nb_mec,
+          COUNT(*) FILTER (WHERE p.source_origine = 'MEC') AS nb_mec,
           COUNT(*) AS nb_all
-        FROM schema_commun_v2.projets_operationnels
-        WHERE "collectiviteResponsableSiren" = ANY(${sql`ARRAY[${sql.join(
+        FROM schema_commun_v2.projets_operationnels p
+        JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
+        JOIN api_referentiel.communes c ON c.code_insee = lpc.insee_com
+        WHERE c.code_epci = ANY(${sql`ARRAY[${sql.join(
           epciSirens.map((s) => sql`${s}`),
           sql`, `,
         )}]`})
@@ -761,5 +763,57 @@ export class DashboardTeService {
     }
 
     return { dispositifs, stats };
+  }
+
+  async dispositifsProjets(filters: { type?: string; statut?: string; page: number; limit: number }) {
+    const typeFilter = filters.type ?? "COT";
+    const conditions: SQL[] = [sql`dt.dispositif = ${typeFilter}`];
+    if (filters.statut) conditions.push(sql`dt.statut = ${filters.statut}`);
+    const where = sql`WHERE ${sql.join(conditions, sql` AND `)}`;
+
+    const [countRow] = await this.query<{ total: string }>(sql`
+      SELECT COUNT(DISTINCT p.id)::text AS total
+      FROM schema_commun_v2.projets_operationnels p
+      JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
+      JOIN api_referentiel.communes c ON c.code_insee = lpc.insee_com
+      JOIN schema_commun_v2.dispositifs_territoriaux dt ON dt.epci_siren = c.code_epci
+      ${where}
+    `);
+
+    const items = await this.query(sql`
+      SELECT DISTINCT ON (p.id)
+        p.id,
+        p.nom,
+        p.description,
+        p.source_origine AS "sourceOrigine",
+        p.phase,
+        p."phaseStatut",
+        p."budgetPrevisionnel",
+        p."collectiviteResponsableSiren" AS "collectiviteSiren",
+        p."dateDebut",
+        p."dateFin",
+        p.llm_thematiques AS "llmThematiques",
+        p.llm_sites AS "llmSites",
+        p.llm_interventions AS "llmInterventions",
+        p.llm_probabilite_te AS "llmProbabiliteTe",
+        p."competencesM57",
+        p."leviersSgpe",
+        p.mots_cles AS "motsCles",
+        c.code_epci AS "epciSiren",
+        dt.crte_code AS "crteCode",
+        dt.metadata->>'crte_nom' AS "crteNom",
+        dt.statut AS "cotStatut",
+        dt.date_signature AS "cotDateSignature"
+      FROM schema_commun_v2.projets_operationnels p
+      JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
+      JOIN api_referentiel.communes c ON c.code_insee = lpc.insee_com
+      JOIN schema_commun_v2.dispositifs_territoriaux dt ON dt.epci_siren = c.code_epci
+      ${where}
+      ORDER BY p.id
+      OFFSET ${filters.page * filters.limit}
+      LIMIT ${filters.limit}
+    `);
+
+    return { items, total: Number(countRow?.total ?? 0) };
   }
 }
