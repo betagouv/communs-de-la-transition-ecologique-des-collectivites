@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.70](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.69...v0.1.70) (2026-04-27)
+
+
+### Bug Fixes
+
+* **dashboard-te:** stats via communes→EPCI + endpoint export projets ([a95497c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/a95497cc1b40785fafd75a76d1ae2f8c3f1b4a87))
+
 ## [0.1.69](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.68...v0.1.69) (2026-04-27)
 
 
