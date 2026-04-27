@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.71](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.70...v0.1.71) (2026-04-27)
+
+
+### Features
+
+* **dashboard-te:** filtre source + date signature CRTE sur dispositifs/projets ([1fa06f6](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/1fa06f62e6d70651398ff43bd07a1057481c9698))
+
 ## [0.1.70](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.69...v0.1.70) (2026-04-27)
 
 
