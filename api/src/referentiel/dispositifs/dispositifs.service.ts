@@ -37,7 +37,7 @@ export class DispositifsService {
       .orderBy(dispositifsTerritoriaux.dispositif, dispositifsTerritoriaux.epciSiren);
 
     return rows.map((r) => {
-      const meta = (r.metadata ? JSON.parse(r.metadata) : {}) as Record<string, string | undefined>;
+      const meta = (r.metadata ?? {}) as Record<string, string | undefined>;
       return {
         epciSiren: r.epciSiren,
         epciNom: r.epciNomRef ?? meta.epci_nom ?? "",
