@@ -1,6 +1,7 @@
 -- Create data_mec schema tables for dedicated MEC ingestion
--- Note: data_mec schema already exists with a VIEW called 'projets' — drop it first
+CREATE SCHEMA IF NOT EXISTS "data_mec";
 
+-- Drop existing view if present (prod has a legacy VIEW called 'projets')
 DROP VIEW IF EXISTS "data_mec"."projets";
 
 -- External IDs (same pattern as data_tet)
