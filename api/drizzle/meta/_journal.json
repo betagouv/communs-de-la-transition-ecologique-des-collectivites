@@ -267,6 +267,13 @@
       "when": 1775088000000,
       "tag": "0037_budget_previsionnel_bigint",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1745856000000,
+      "tag": "0038_data_mec_schema",
+      "breakpoints": true
     }
   ]
 }
