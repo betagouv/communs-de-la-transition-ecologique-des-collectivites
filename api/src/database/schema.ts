@@ -248,3 +248,4 @@ export const serviceExtraFieldsRelations = relations(serviceExtraFields, ({ one 
 export * from "./referentiel-schema";
 export * from "./plans-fiches-schema";
 export * from "./tet-schema";
+export * from "./mec-schema";
