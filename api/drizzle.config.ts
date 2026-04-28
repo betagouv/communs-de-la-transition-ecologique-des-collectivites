@@ -10,6 +10,7 @@ export default defineConfig({
     "./src/database/referentiel-schema.ts",
     "./src/database/plans-fiches-schema.ts",
     "./src/database/tet-schema.ts",
+    "./src/database/mec-schema.ts",
   ],
   out: "./drizzle",
   dialect: "postgresql",
