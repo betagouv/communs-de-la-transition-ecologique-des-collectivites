@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.72](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.71...v0.1.72) (2026-04-28)
+
+
+### Features
+
+* **mec:** endpoint dédié /mec/v1/projets + schema data_mec ([30353a1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/30353a1bc88e0a6549a547ee9b7397a507fe8b28))
+
+
+### Bug Fixes
+
+* create schema data_mec avant les tables (CI) ([51eeee2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/51eeee2883e46de5948e7782fe156ecff53f278c))
+* inclure MecModule dans la spec OpenAPI Swagger ([d342162](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d3421626ebb0c4133c36983ea8c5d7c66bebf8a5))
+* **mec:** corrections review — bulk error handling, PATCH validation, classification, collectivites ([6f8c251](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6f8c25189956e597d234af41fc7d35d942aefae9))
+* migration Drizzle pour data_mec schema ([7a86d84](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/7a86d84d88a287c245fabc66b2bb590b710770c7))
+
 ## [0.1.71](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.70...v0.1.71) (2026-04-27)
 
 
