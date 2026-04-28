@@ -9,14 +9,8 @@ import {
   refPerimetres,
 } from "@database/schema";
 import { eq, and } from "drizzle-orm";
-import { InjectQueue } from "@nestjs/bullmq";
-import { Queue } from "bullmq";
 import { CustomLogger } from "@logging/logger.service";
-import {
-  PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
-  PROJECT_QUALIFICATION_QUEUE_NAME,
-} from "@/projet-qualification/const";
-import { CreateMecProjetRequest, MecPlanReference } from "./dto/create-mec-projet.dto";
+import { CreateMecProjetRequest, UpdateMecProjetRequest, MecPlanReference } from "./dto/create-mec-projet.dto";
 import { createHash } from "crypto";
 import { uuidv7 } from "uuidv7";
 
@@ -24,7 +18,6 @@ import { uuidv7 } from "uuidv7";
 export class MecService {
   constructor(
     private readonly dbService: DatabaseService,
-    @InjectQueue(PROJECT_QUALIFICATION_QUEUE_NAME) private qualificationQueue: Queue,
     private readonly logger: CustomLogger,
   ) {}
 
@@ -90,7 +83,7 @@ export class MecService {
 
       // Schedule classification if content changed
       if (existing && existing.contentHash !== contentHash) {
-        await this.scheduleClassification(projetId);
+        this.scheduleClassification(projetId);
       }
     } else {
       projetId = uuidv7();
@@ -108,7 +101,7 @@ export class MecService {
 
       // Schedule classification for new records if classification is empty
       if (!dto.classificationThematiques || dto.classificationThematiques.length === 0) {
-        await this.scheduleClassification(projetId);
+        this.scheduleClassification(projetId);
       }
     }
 
@@ -122,18 +115,31 @@ export class MecService {
 
   async createBulk(dtos: CreateMecProjetRequest[], serviceType = "MEC"): Promise<{ ids: string[] }> {
     const allIds: string[] = [];
+    const errors: { index: number; externalId: string; error: string }[] = [];
     const chunks = this.chunkArray(dtos, 500);
 
     this.logger.log(`Bulk creating ${dtos.length} MEC projets in ${chunks.length} chunks of 500`);
 
+    let globalIndex = 0;
     for (const chunk of chunks) {
       for (const dto of chunk) {
-        const result = await this.createOrUpdate(dto, serviceType);
-        allIds.push(result.id);
+        try {
+          const result = await this.createOrUpdate(dto, serviceType);
+          allIds.push(result.id);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          this.logger.error(`Bulk insert failed for projet ${dto.externalId} (index ${globalIndex}): ${message}`);
+          errors.push({ index: globalIndex, externalId: dto.externalId, error: message });
+        }
+        globalIndex++;
       }
     }
 
-    this.logger.log(`Bulk insert complete: ${allIds.length} MEC projets`);
+    this.logger.log(`Bulk insert complete: ${allIds.length} succeeded, ${errors.length} failed out of ${dtos.length}`);
+
+    if (errors.length > 0) {
+      this.logger.warn(`Failed projects: ${JSON.stringify(errors.slice(0, 10))}`);
+    }
 
     return { ids: allIds };
   }
@@ -174,7 +180,7 @@ export class MecService {
     };
   }
 
-  async update(id: string, dto: Partial<CreateMecProjetRequest>): Promise<{ id: string }> {
+  async update(id: string, dto: UpdateMecProjetRequest): Promise<{ id: string }> {
     const db = this.dbService.database;
 
     const [existing] = await db
@@ -224,9 +230,9 @@ export class MecService {
   }
 
   /**
-   * Resolve collectivite to SIREN + territory communes from our referential DB
-   * - Commune: code_insee → SIREN via refCommunes, territoireCommunes = [code_insee]
-   * - EPCI: code = SIREN, territoireCommunes from refPerimetres
+   * Resolve collectivite to SIREN + territory communes from our referential DB.
+   * Supports: Commune (code_insee → SIREN), EPCI (code = SIREN, communes from perimetres),
+   * and any other groupement type (Département, Région, Syndicat — code treated as SIREN).
    */
   private async resolveCollectivite(collectivite?: {
     type: string;
@@ -249,19 +255,23 @@ export class MecService {
       };
     }
 
-    if (collectivite.type === "EPCI") {
-      const communes = await db
-        .select({ codeInsee: refPerimetres.codeInseeCommune })
-        .from(refPerimetres)
-        .where(eq(refPerimetres.sirenGroupement, collectivite.code));
+    // EPCI or any groupement type (Département, Région, Syndicat, etc.)
+    // code = SIREN of the groupement, resolve territory communes from perimetres
+    const communes = await db
+      .select({ codeInsee: refPerimetres.codeInseeCommune })
+      .from(refPerimetres)
+      .where(eq(refPerimetres.sirenGroupement, collectivite.code));
 
-      return {
-        siren: collectivite.code,
-        territoireCommunes: communes.length > 0 ? communes.map((c) => c.codeInsee) : null,
-      };
+    if (communes.length === 0 && collectivite.type !== "EPCI") {
+      this.logger.warn(
+        `resolveCollectivite: unknown type "${collectivite.type}" for code ${collectivite.code}, no communes found`,
+      );
     }
 
-    return { siren: null, territoireCommunes: null };
+    return {
+      siren: collectivite.code,
+      territoireCommunes: communes.length > 0 ? communes.map((c) => c.codeInsee) : null,
+    };
   }
 
   private async upsertPlans(projetId: string, plans: MecPlanReference[], serviceType: string): Promise<void> {
@@ -299,16 +309,13 @@ export class MecService {
     }
   }
 
-  private async scheduleClassification(projetId: string): Promise<void> {
-    // TODO: The qualification worker currently reads/writes from public.projets directly.
-    // For now, schedule the classification job the same way — adjust the worker later to support data_mec.
-    this.logger.log(`Scheduling classification for MEC projet ${projetId}`);
-
-    await this.qualificationQueue.add(
-      PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
-      { projetId, schema: "data_mec" },
-      { attempts: 3, backoff: { type: "exponential", delay: 5000 } },
-    );
+  // FIXME: The qualification worker reads/writes from public.projets directly and does not
+  // support data_mec yet. Scheduling a job with schema:"data_mec" would silently fail
+  // (projet not found in public.projets). Classification is disabled until the worker
+  // is adapted to support data_mec. Existing projects keep their classifications from
+  // the SQL migration; only NEW projects added after migration will be unclassified.
+  private scheduleClassification(projetId: string): void {
+    this.logger.warn(`Classification skipped for MEC projet ${projetId} — worker does not support data_mec yet`);
   }
 
   private computeContentHash(nom: string, description: string | null | undefined): string {
