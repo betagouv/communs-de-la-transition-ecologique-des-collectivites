@@ -128,7 +128,6 @@ export const mecProjetsOperationnels = dataMecSchema.table(
     index("mec_projets_siren_idx").on(t.collectiviteResponsableSiren),
     index("mec_projets_crte_idx").on(t.crteId),
     index("mec_projets_source_mec_idx").on(t.sourceMec),
-    index("mec_projets_content_hash_idx").on(t.contentHash),
   ],
 );
 

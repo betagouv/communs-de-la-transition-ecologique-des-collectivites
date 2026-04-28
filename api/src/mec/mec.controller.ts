@@ -8,6 +8,7 @@ import {
   CreateMecProjetResponse,
   BulkCreateMecProjetsRequest,
   BulkCreateMecProjetsResponse,
+  UpdateMecProjetRequest,
 } from "./dto/create-mec-projet.dto";
 import { MecService } from "./mec.service";
 
@@ -65,10 +66,7 @@ export class MecController {
     summary: "Mettre à jour partiellement un projet MEC",
     description: "Met à jour les champs fournis sans écraser les autres. Utilisé pour le backfill CRTE.",
   })
-  async update(
-    @Param("id") id: string,
-    @Body() request: Partial<CreateMecProjetRequest>,
-  ): Promise<CreateMecProjetResponse> {
+  async update(@Param("id") id: string, @Body() request: UpdateMecProjetRequest): Promise<CreateMecProjetResponse> {
     return this.mecService.update(id, request);
   }
 }
