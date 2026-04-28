@@ -29,6 +29,7 @@ import { PlansFichesModule } from "@/plans-fiches/plans-fiches.module";
 import { ProjetsV2Module } from "@/projets-v2/projets-v2.module";
 import { BatchClassificationModule } from "@/batch-classification/batch-classification.module";
 import { DashboardTeModule } from "@/dashboard-te/dashboard-te.module";
+import { MecModule } from "@/mec/mec.module";
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { DashboardTeModule } from "@/dashboard-te/dashboard-te.module";
     ProjetsV2Module,
     BatchClassificationModule,
     DashboardTeModule,
+    MecModule,
   ],
   controllers: [HealthController],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
