@@ -8,7 +8,7 @@ import {
   refCommunes,
   refPerimetres,
 } from "@database/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { CustomLogger } from "@logging/logger.service";
 import { CreateMecProjetRequest, UpdateMecProjetRequest, MecPlanReference } from "./dto/create-mec-projet.dto";
 import { createHash } from "crypto";
@@ -108,6 +108,11 @@ export class MecService {
     // 5. Upsert plans and link them
     if (dto.plans?.length) {
       await this.upsertPlans(projetId, dto.plans, serviceType);
+    }
+
+    // 6. Auto-create CRTE plan if crteId is set
+    if (dto.crteId) {
+      await this.upsertCrtePlan(projetId, dto.crteId, serviceType);
     }
 
     return { id: projetId };
@@ -307,6 +312,43 @@ export class MecService {
 
       await db.insert(mecProjetsToPlans).values({ projetId, planTransitionId: planId }).onConflictDoNothing();
     }
+  }
+
+  /**
+   * Auto-create a CRTE plan from the crteId field and link it to the project.
+   * Resolves the CRTE name from snapshot_crte.contrats if available.
+   */
+  private async upsertCrtePlan(projetId: string, crteId: string, serviceType: string): Promise<void> {
+    const db = this.dbService.database;
+
+    // Check if plan already exists for this crteId
+    const [existingPlan] = await db
+      .select({ objetId: mecExternalIds.objetId })
+      .from(mecExternalIds)
+      .where(and(eq(mecExternalIds.serviceType, `${serviceType}_CRTE`), eq(mecExternalIds.externalId, crteId)))
+      .limit(1);
+
+    let planId: string;
+
+    if (existingPlan) {
+      planId = existingPlan.objetId;
+    } else {
+      // Resolve CRTE name from snapshot_crte.contrats
+      const crteResult = await db.execute(
+        sql`SELECT lib_crte FROM snapshot_crte.contrats WHERE id_crte = ${crteId} LIMIT 1`,
+      );
+      const crteName = (crteResult.rows[0] as { lib_crte?: string } | undefined)?.lib_crte ?? null;
+
+      const [inserted] = await db.insert(mecPlansTransition).values({ nom: crteName, type: "CRTE" }).returning();
+      planId = inserted.id;
+
+      await db
+        .insert(mecExternalIds)
+        .values({ objetId: planId, serviceType: `${serviceType}_CRTE`, externalId: crteId });
+    }
+
+    // Link project to CRTE plan
+    await db.insert(mecProjetsToPlans).values({ projetId, planTransitionId: planId }).onConflictDoNothing();
   }
 
   // FIXME: The qualification worker reads/writes from public.projets directly and does not
