@@ -231,6 +231,11 @@ export class MecService {
       await db.update(mecProjetsOperationnels).set(fieldsToUpdate).where(eq(mecProjetsOperationnels.id, id));
     }
 
+    // Auto-create CRTE plan if crteId is provided in the update
+    if (dto.crteId) {
+      await this.upsertCrtePlan(id, dto.crteId, "MEC");
+    }
+
     return { id };
   }
 
