@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.74](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.73...v0.1.74) (2026-05-04)
+
+
+### Features
+
+* **mec:** auto-création plan CRTE depuis crteId + scripts migration data_mec ([83a581a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/83a581a92077153ab0668c4ca35a3ecc8284a999))
+
+
+### Bug Fixes
+
+* **mec:** auto-créer plan CRTE aussi sur PATCH (backfill) ([e0db41b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e0db41b2cc2333305d88fe80fb56aee73464e47e))
+
 ## [0.1.73](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.72...v0.1.73) (2026-04-28)
 
 
