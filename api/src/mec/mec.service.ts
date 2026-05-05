@@ -199,6 +199,14 @@ export class MecService {
     }
 
     const fieldsToUpdate: Record<string, unknown> = {};
+
+    // Resolve collectivites → SIREN + territoireCommunes (same as createOrUpdate)
+    if (dto.collectivites?.length) {
+      const { siren, territoireCommunes } = await this.resolveCollectivite(dto.collectivites[0]);
+      fieldsToUpdate.collectiviteResponsableSiren = siren;
+      if (territoireCommunes) fieldsToUpdate.territoireCommunes = territoireCommunes;
+    }
+
     if (dto.nom !== undefined) fieldsToUpdate.nom = dto.nom;
     if (dto.description !== undefined) fieldsToUpdate.description = dto.description;
     if (dto.budgetPrevisionnel !== undefined) fieldsToUpdate.budgetPrevisionnel = dto.budgetPrevisionnel;
