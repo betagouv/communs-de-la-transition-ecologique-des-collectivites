@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.75](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.74...v0.1.75) (2026-05-05)
+
+
+### Features
+
+* **aides:** statuts explicites + 202 auto-classification ([aa26cc1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/aa26cc1d8bc9849b9b2ce9cdbeebf2ad3670e0d0))
+
+
+### Bug Fixes
+
+* fallback data_mec/data_tet sur endpoints legacy /projets (widget cassé) ([1b6f19b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/1b6f19b9fe71d04143ad1478f4a40996e3e30583))
+
 ## [0.1.74](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.73...v0.1.74) (2026-05-04)
 
 
