@@ -1,5 +1,5 @@
 import { DatabaseService } from "@database/database.service";
-import { collectivites, projets } from "@database/schema";
+import { collectivites, mecProjetsOperationnels, projets, tetFichesAction } from "@database/schema";
 import { CustomLogger } from "@logging/logger.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq, InferSelectModel } from "drizzle-orm";
@@ -79,6 +79,18 @@ export class GetProjetsService {
       },
     });
 
+    if (!projet && idType === "communId") {
+      const fallback = await this.findFallbackProject(id);
+      if (fallback) {
+        const collectiviteList = await this.resolveCollectiviteFromSiren(fallback.siren);
+        return {
+          description: fallback.description,
+          phase: fallback.phase as ProjectPublicInfoResponse["phase"],
+          collectivites: collectiviteList,
+        };
+      }
+    }
+
     if (!projet) {
       this.logger.warn(`Projet not found by ${idType}`, { [idType]: id });
       throw new NotFoundException(`Projet with ${idType} ${id} not found`);
@@ -118,5 +130,65 @@ export class GetProjetsService {
       leviers: projet.leviers ? (projet.leviers as Leviers) : null,
       collectivites: projet.collectivites.map((c) => c.collectivite),
     };
+  }
+
+  /**
+   * Search data_mec then data_tet for a project not found in public.projets.
+   */
+  private async findFallbackProject(
+    id: string,
+  ): Promise<{ description: string | null; phase: string | null; siren: string | null } | null> {
+    this.logger.warn("Falling back to data_mec for project lookup", { id });
+    const [mecProjet] = await this.dbService.database
+      .select({
+        description: mecProjetsOperationnels.description,
+        phase: mecProjetsOperationnels.phase,
+        siren: mecProjetsOperationnels.collectiviteResponsableSiren,
+      })
+      .from(mecProjetsOperationnels)
+      .where(eq(mecProjetsOperationnels.id, id));
+
+    if (mecProjet) return mecProjet;
+
+    this.logger.warn("Falling back to data_tet for project lookup", { id });
+    const [tetFiche] = await this.dbService.database
+      .select({
+        description: tetFichesAction.description,
+        siren: tetFichesAction.collectiviteResponsableSiren,
+      })
+      .from(tetFichesAction)
+      .where(eq(tetFichesAction.id, id));
+
+    if (tetFiche) return { ...tetFiche, phase: null };
+
+    return null;
+  }
+
+  /**
+   * Resolve a SIREN to a collectivite object. Checks public.collectivites first,
+   * returns a minimal stub if not found.
+   */
+  private async resolveCollectiviteFromSiren(siren: string | null): Promise<Collectivite[]> {
+    if (!siren) return [];
+
+    const [existing] = await this.dbService.database.select().from(collectivites).where(eq(collectivites.siren, siren));
+
+    if (existing) return [existing];
+
+    // Minimal stub — SIREN exists but not in our collectivites table
+    return [
+      {
+        id: siren,
+        nom: "",
+        type: "Commune",
+        codeInsee: null,
+        codeEpci: null,
+        codeDepartements: null,
+        codeRegions: null,
+        siren,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as Collectivite,
+    ];
   }
 }

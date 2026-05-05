@@ -3,7 +3,14 @@ import { CreateServiceRequest, CreateServiceResponse } from "./dto/create-servic
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@logging/logger.service";
-import { projets, collectivites, services } from "@database/schema";
+import {
+  collectivites,
+  mecProjetsOperationnels,
+  projets,
+  ProjetPhase,
+  services,
+  tetFichesAction,
+} from "@database/schema";
 import { ServicesByProjectIdResponse } from "./dto/service.dto";
 import { ServicesContextService } from "./services-context.service";
 import { CompetenceCodes, IdType, Leviers } from "@/shared/types";
@@ -68,6 +75,18 @@ export class ServicesService {
       },
     });
 
+    if (!project && idType === "communId") {
+      const fallback = await this.findFallbackForServices(id);
+      if (fallback) {
+        return this.serviceContextService.findMatchingServicesContext(
+          fallback.competences,
+          fallback.leviers,
+          fallback.phase,
+          fallback.codeRegions,
+        );
+      }
+    }
+
     if (!project) {
       throw new NotFoundException(`Projet with ${idType} ${id} not found`);
     }
@@ -89,5 +108,69 @@ export class ServicesService {
       project.phase,
       codeRegionsFromProject,
     );
+  }
+
+  /**
+   * Search data_mec then data_tet for a project and resolve its region codes.
+   */
+  private async findFallbackForServices(id: string): Promise<{
+    competences: CompetenceCodes | null;
+    leviers: Leviers | null;
+    phase: ProjetPhase | null;
+    codeRegions: RegionCode[];
+  } | null> {
+    // data_mec
+    this.logger.warn("Falling back to data_mec for services project lookup", { id });
+    const [mecProjet] = await this.dbService.database
+      .select({
+        competencesM57: mecProjetsOperationnels.competencesM57,
+        leviersSgpe: mecProjetsOperationnels.leviersSgpe,
+        phase: mecProjetsOperationnels.phase,
+        siren: mecProjetsOperationnels.collectiviteResponsableSiren,
+      })
+      .from(mecProjetsOperationnels)
+      .where(eq(mecProjetsOperationnels.id, id));
+
+    if (mecProjet) {
+      const codeRegions = await this.resolveRegionsFromSiren(mecProjet.siren);
+      return {
+        competences: (mecProjet.competencesM57 as CompetenceCodes) ?? null,
+        leviers: (mecProjet.leviersSgpe as Leviers) ?? null,
+        phase: mecProjet.phase as ProjetPhase | null,
+        codeRegions,
+      };
+    }
+
+    // data_tet
+    this.logger.warn("Falling back to data_tet for services project lookup", { id });
+    const [tetFiche] = await this.dbService.database
+      .select({
+        competencesM57: tetFichesAction.competencesM57,
+        leviersSgpe: tetFichesAction.leviersSgpe,
+        siren: tetFichesAction.collectiviteResponsableSiren,
+      })
+      .from(tetFichesAction)
+      .where(eq(tetFichesAction.id, id));
+
+    if (tetFiche) {
+      const codeRegions = await this.resolveRegionsFromSiren(tetFiche.siren);
+      return {
+        competences: (tetFiche.competencesM57 as CompetenceCodes) ?? null,
+        leviers: (tetFiche.leviersSgpe as Leviers) ?? null,
+        phase: null,
+        codeRegions,
+      };
+    }
+
+    return null;
+  }
+
+  private async resolveRegionsFromSiren(siren: string | null): Promise<RegionCode[]> {
+    if (!siren) return [];
+    const [collectivite] = await this.dbService.database
+      .select({ codeRegions: collectivites.codeRegions })
+      .from(collectivites)
+      .where(eq(collectivites.siren, siren));
+    return (collectivite?.codeRegions as RegionCode[]) ?? [];
   }
 }
