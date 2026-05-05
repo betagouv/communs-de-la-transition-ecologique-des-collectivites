@@ -187,6 +187,16 @@ export class BulkCreateMecProjetsRequest {
 }
 
 export class UpdateMecProjetRequest {
+  @ApiPropertyOptional({
+    type: [CollectiviteReference],
+    description: "Collectivités concernées (résout SIREN + territoire)",
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CollectiviteReference)
+  collectivites?: CollectiviteReference[];
+
   @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
