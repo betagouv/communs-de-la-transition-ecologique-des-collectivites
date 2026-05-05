@@ -204,12 +204,38 @@ export class AideWithClassification extends Aide {
   labelsCommuns?: AideLabelsCommuns;
 }
 
+export type AidesListStatus = "ok" | "no_match" | "no_aides_on_perimeter";
+
 export class AidesListResponse {
+  @ApiProperty({
+    enum: ["ok", "no_match", "no_aides_on_perimeter"],
+    description:
+      "Statut du résultat — `ok` : aides matchées triées par pertinence ; `no_match` : aides présentes sur le périmètre mais aucune ne partage de label de classification ≥ 0.8 avec le projet ; `no_aides_on_perimeter` : aucune aide AT n'a été trouvée pour les codes INSEE du projet.",
+  })
+  status!: AidesListStatus;
+
   @ApiProperty({ type: [AideWithClassification] })
   aides!: AideWithClassification[];
 
-  @ApiProperty()
+  @ApiProperty({ description: "Nombre total d'aides AT trouvées sur le périmètre (avant filtrage matching)" })
   total!: number;
+}
+
+export class ClassificationPendingResponse {
+  @ApiProperty({ enum: ["classification_pending"] })
+  status!: "classification_pending";
+
+  @ApiProperty({ description: "ID du projet en cours de classification" })
+  projetId!: string;
+
+  @ApiProperty({ description: "Délai recommandé (en secondes) avant de réessayer la requête" })
+  retryAfter!: number;
+
+  @ApiProperty({
+    description:
+      "Indique si un job de classification a été (re)déclenché par cette requête. `false` signifie qu'un job était déjà en cours.",
+  })
+  classificationTriggered!: boolean;
 }
 
 export class AidesSyncResponse {

@@ -1,16 +1,32 @@
-import { Controller, Get, Query, UseGuards, NotFoundException, BadRequestException } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Controller, Get, Query, Res, UseGuards, BadRequestException } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Response } from "express";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 import { CustomLogger } from "@logging/logger.service";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
+import {
+  PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
+  PROJECT_QUALIFICATION_QUEUE_NAME,
+} from "@/projet-qualification/const";
 import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
 import { AidesWarmupService } from "./aides-warmup.service";
-import { Aide, AideMatchResult, AidesListResponse, AidesSyncResponse, AideWithClassification } from "./dto/aides.dto";
+import {
+  Aide,
+  AideMatchResult,
+  AidesListResponse,
+  AidesSyncResponse,
+  AideWithClassification,
+  ClassificationPendingResponse,
+} from "./dto/aides.dto";
+
+const CLASSIFICATION_RETRY_AFTER_SECONDS = 15;
 
 @ApiBearerAuth()
 @ApiTags("Aides")
@@ -26,6 +42,7 @@ export class AidesController {
     private readonly cacheService: AidesCacheService,
     private readonly warmupService: AidesWarmupService,
     private readonly projetsService: GetProjetsService,
+    @InjectQueue(PROJECT_QUALIFICATION_QUEUE_NAME) private readonly qualificationQueue: Queue,
     private readonly logger: CustomLogger,
   ) {}
 
@@ -34,7 +51,7 @@ export class AidesController {
   @ApiOperation({
     summary: "Lister les aides enrichies avec classification",
     description:
-      "Proxy enrichi de l'API Aides-Territoires. Retourne les aides avec classification thématiques/sites/interventions. Si projet_id est fourni, filtre par territoires du projet (union des collectivités) et calcule un score de matching trié par pertinence.",
+      "Proxy enrichi de l'API Aides-Territoires. Retourne les aides avec classification thématiques/sites/interventions, filtrées par les territoires du projet (union des collectivités) et triées par score de matching.\n\n**Statuts de réponse** :\n- `200 ok` : aides matchées trouvées\n- `200 no_match` : aides présentes sur le périmètre mais aucune ne partage de label ≥ 0.8\n- `200 no_aides_on_perimeter` : aucune aide AT trouvée pour les codes INSEE du projet\n- `202 classification_pending` : projet pas encore classifié, job de classification (re)déclenché — réessayer après `retryAfter` secondes\n- `404` : projet inexistant",
   })
   @ApiQuery({
     name: "projet_id",
@@ -45,23 +62,41 @@ export class AidesController {
   @ApiEndpointResponses({
     successStatus: 200,
     response: AidesListResponse,
-    description: "Liste des aides enrichies avec score de matching",
+    description: "Aides enrichies avec score de matching (status: ok | no_match | no_aides_on_perimeter)",
   })
-  async listAides(@Query("projet_id") projetId: string, @Query("limit") limit?: string): Promise<AidesListResponse> {
+  @ApiResponse({
+    status: 202,
+    type: ClassificationPendingResponse,
+    description:
+      "Le projet n'a pas encore été classifié. Un job de classification a été (re)déclenché. Réessayer après `retryAfter` secondes.",
+  })
+  async listAides(
+    @Query("projet_id") projetId: string,
+    @Res({ passthrough: true }) res: Response,
+    @Query("limit") limit?: string,
+  ): Promise<AidesListResponse | ClassificationPendingResponse> {
     if (!projetId) {
       throw new BadRequestException("projet_id is required");
     }
 
     const maxResults = parseInt(limit ?? "20", 10);
 
-    // 1. Load project with its collectivités
+    // 1. Load project (throws 404 if not found)
     const projet = await this.projetsService.findOne(projetId);
 
+    // 2. If not classified yet → enqueue classification + return 202
     if (!projet.classificationScores) {
-      throw new NotFoundException(`Project ${projetId} has no classification scores yet`);
+      const triggered = await this.triggerClassificationIfNeeded(projetId);
+      res.status(202).setHeader("Retry-After", String(CLASSIFICATION_RETRY_AFTER_SECONDS));
+      return {
+        status: "classification_pending",
+        projetId,
+        retryAfter: CLASSIFICATION_RETRY_AFTER_SECONDS,
+        classificationTriggered: triggered,
+      };
     }
 
-    // 2. Extract code_insee from project collectivités and resolve perimeter_ids
+    // 3. Extract code_insee from project collectivités
     const codesInsee = this.extractCodesInsee(projet.collectivites);
 
     if (codesInsee.length === 0) {
@@ -70,21 +105,25 @@ export class AidesController {
       );
     }
 
-    // 3. Fetch aides for each territory (union) — deduplicate by aide id
+    // 4. Fetch aides for each territory (union) — deduplicate by aide id
     const allAides = await this.fetchAidesForTerritories(codesInsee);
 
-    // 4. Get classifications for these aides (from DB cache)
+    if (allAides.length === 0) {
+      return { status: "no_aides_on_perimeter", aides: [], total: 0 };
+    }
+
+    // 5. Get classifications for these aides (from DB cache)
     const aideIds = allAides.map((a) => String(a.id));
     const classifications = await this.classificationService.getCachedClassifications(aideIds);
 
-    // 5. Do matching
+    // 6. Do matching
     const matchResults = new Map<string, AideMatchResult>();
     const results = this.matchingService.match(projet.classificationScores, classifications, maxResults);
     for (const r of results) {
       matchResults.set(r.idAt, r);
     }
 
-    // 6. Enrich and sort by matching score
+    // 7. Enrich and sort by matching score
     let enriched: AideWithClassification[] = allAides.map((aide) => {
       const idAt = String(aide.id);
       const classification = classifications.get(idAt);
@@ -102,11 +141,46 @@ export class AidesController {
 
     enriched = enriched
       .filter((a) => a.matchingScore !== undefined)
-      .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0));
+      .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
+      .slice(0, maxResults);
 
-    enriched = enriched.slice(0, maxResults);
+    if (enriched.length === 0) {
+      return { status: "no_match", aides: [], total: allAides.length };
+    }
 
-    return { aides: enriched, total: allAides.length };
+    return { status: "ok", aides: enriched, total: allAides.length };
+  }
+
+  /**
+   * Enqueue a classification job for the project if none is already pending or active.
+   * Uses a deterministic jobId so concurrent polls from MEC don't pile up duplicate jobs.
+   * Returns true if a new job was enqueued, false if one was already in flight.
+   */
+  private async triggerClassificationIfNeeded(projetId: string): Promise<boolean> {
+    const jobId = `auto-classify:${projetId}`;
+    const existing = await this.qualificationQueue.getJob(jobId);
+
+    if (existing) {
+      const state = await existing.getState();
+      if (state === "waiting" || state === "active" || state === "delayed") {
+        this.logger.log(`Classification already in flight for ${projetId} (state=${state}), not re-enqueuing`);
+        return false;
+      }
+      // Stale completed/failed job blocks re-add with same id — remove it first
+      await existing.remove();
+    }
+
+    await this.qualificationQueue.add(
+      PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
+      { projetId },
+      {
+        jobId,
+        attempts: 3,
+        backoff: { type: "exponential", delay: 5000 },
+      },
+    );
+    this.logger.log(`Enqueued classification job for ${projetId} (triggered by GET /aides)`);
+    return true;
   }
 
   @TrackApiUsage()
