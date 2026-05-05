@@ -6,6 +6,7 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { Queue } from "bullmq";
 import { ProjetsModule } from "@projets/projets.module";
 import { ClassificationModule } from "@/projet-qualification/classification/classification.module";
+import { PROJECT_QUALIFICATION_QUEUE_NAME } from "@/projet-qualification/const";
 import { CustomLogger } from "@logging/logger.service";
 import { AidesController } from "./aides.controller";
 import { AidesTerritoiresService } from "./aides-territoires.service";
@@ -22,6 +23,9 @@ import { AidesWarmupService } from "./aides-warmup.service";
     ClassificationModule,
     BullModule.registerQueue({
       name: AIDES_SYNC_QUEUE_NAME,
+    }),
+    BullModule.registerQueue({
+      name: PROJECT_QUALIFICATION_QUEUE_NAME,
     }),
     BullBoardModule.forFeature({
       name: AIDES_SYNC_QUEUE_NAME,
