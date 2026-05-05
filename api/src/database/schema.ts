@@ -244,6 +244,28 @@ export const serviceExtraFieldsRelations = relations(serviceExtraFields, ({ one 
   }),
 }));
 
+export const aideFeedbacks = pgTable(
+  "aide_feedbacks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projetId: uuid("projet_id").notNull(),
+    idAt: text("id_at").notNull(),
+    feedback: text("feedback").notNull().default("not_relevant"),
+    reason: text("reason"),
+    source: text("source").default("MEC"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("aide_feedbacks_projet_aide_idx").on(t.projetId, t.idAt),
+    index("aide_feedbacks_projet_idx").on(t.projetId),
+    index("aide_feedbacks_id_at_idx").on(t.idAt),
+  ],
+);
+
 // Re-export sub-schemas so DatabaseService picks up all tables
 export * from "./referentiel-schema";
 export * from "./plans-fiches-schema";

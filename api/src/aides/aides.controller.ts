@@ -1,4 +1,15 @@
-import { Controller, Get, Query, Res, UseGuards, BadRequestException } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Post,
+  Query,
+  Res,
+  UseGuards,
+  BadRequestException,
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { Response } from "express";
 import { InjectQueue } from "@nestjs/bullmq";
@@ -17,6 +28,8 @@ import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
 import { AidesWarmupService } from "./aides-warmup.service";
+import { AidesFeedbackService } from "./aides-feedback.service";
+import { CreateAideFeedbackRequest, DeleteAideFeedbackRequest } from "./dto/aide-feedback.dto";
 import {
   Aide,
   AideMatchResult,
@@ -41,6 +54,7 @@ export class AidesController {
     private readonly matchingService: AidesMatchingService,
     private readonly cacheService: AidesCacheService,
     private readonly warmupService: AidesWarmupService,
+    private readonly feedbackService: AidesFeedbackService,
     private readonly projetsService: GetProjetsService,
     @InjectQueue(PROJECT_QUALIFICATION_QUEUE_NAME) private readonly qualificationQueue: Queue,
     private readonly logger: CustomLogger,
@@ -211,6 +225,28 @@ export class AidesController {
     );
 
     return { ...result, total: aides.length, warmupStarted: true };
+  }
+
+  @TrackApiUsage()
+  @Post("feedback")
+  @ApiOperation({ summary: "Signaler une aide non pertinente pour un projet" })
+  async createFeedback(@Body() dto: CreateAideFeedbackRequest) {
+    return this.feedbackService.create(dto);
+  }
+
+  @TrackApiUsage()
+  @Get("feedback")
+  @ApiOperation({ summary: "Liste des feedbacks pour un projet" })
+  async getFeedbacks(@Query("projetId") projetId: string) {
+    return this.feedbackService.findByProjet(projetId);
+  }
+
+  @TrackApiUsage()
+  @Delete("feedback")
+  @ApiOperation({ summary: "Annuler un feedback" })
+  @HttpCode(204)
+  async deleteFeedback(@Body() dto: DeleteAideFeedbackRequest) {
+    return this.feedbackService.delete(dto.projetId, dto.idAt);
   }
 
   /**
