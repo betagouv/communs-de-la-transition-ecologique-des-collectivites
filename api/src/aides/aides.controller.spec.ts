@@ -7,6 +7,7 @@ import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
 import { AidesCacheService, CacheResult } from "./aides-cache.service";
 import { AidesWarmupService } from "./aides-warmup.service";
+import { AidesFeedbackService } from "./aides-feedback.service";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { CustomLogger } from "@logging/logger.service";
 import { Aide, AidesListResponse, ClassificationPendingResponse } from "./dto/aides.dto";
@@ -115,12 +116,19 @@ describe("AidesController", () => {
       add: jest.fn().mockResolvedValue({ id: "auto-classify:test-id" }),
     } as unknown as jest.Mocked<Queue>;
 
+    const mockFeedbackService = {
+      create: jest.fn(),
+      findByProjet: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as jest.Mocked<AidesFeedbackService>;
+
     controller = new AidesController(
       mockAtService,
       mockClassificationService,
       mockMatchingService,
       mockCacheService,
       mockWarmupService,
+      mockFeedbackService,
       mockProjetsService,
       mockQualificationQueue,
       mockLogger,

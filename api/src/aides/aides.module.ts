@@ -15,6 +15,7 @@ import { AidesMatchingService } from "./aides-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
 import { AidesSyncProcessor, AIDES_SYNC_QUEUE_NAME, AIDES_SYNC_JOB_NAME } from "./aides-sync.processor";
 import { AidesWarmupService } from "./aides-warmup.service";
+import { AidesFeedbackService } from "./aides-feedback.service";
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AidesWarmupService } from "./aides-warmup.service";
     AidesMatchingService,
     AidesCacheService,
     AidesWarmupService,
+    AidesFeedbackService,
     AidesSyncProcessor,
   ],
   exports: [AideClassificationService],
