@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { DatabaseService } from "@database/database.service";
 import {
   mecProjetsOperationnels,
@@ -13,12 +15,17 @@ import { CustomLogger } from "@logging/logger.service";
 import { CreateMecProjetRequest, UpdateMecProjetRequest, MecPlanReference } from "./dto/create-mec-projet.dto";
 import { createHash } from "crypto";
 import { uuidv7 } from "uuidv7";
+import {
+  PROJECT_QUALIFICATION_QUEUE_NAME,
+  PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
+} from "@/projet-qualification/const";
 
 @Injectable()
 export class MecService {
   constructor(
     private readonly dbService: DatabaseService,
     private readonly logger: CustomLogger,
+    @InjectQueue(PROJECT_QUALIFICATION_QUEUE_NAME) private readonly qualificationQueue: Queue,
   ) {}
 
   async createOrUpdate(dto: CreateMecProjetRequest, serviceType = "MEC"): Promise<{ id: string }> {
@@ -364,13 +371,15 @@ export class MecService {
     await db.insert(mecProjetsToPlans).values({ projetId, planTransitionId: planId }).onConflictDoNothing();
   }
 
-  // FIXME: The qualification worker reads/writes from public.projets directly and does not
-  // support data_mec yet. Scheduling a job with schema:"data_mec" would silently fail
-  // (projet not found in public.projets). Classification is disabled until the worker
-  // is adapted to support data_mec. Existing projects keep their classifications from
-  // the SQL migration; only NEW projects added after migration will be unclassified.
   private scheduleClassification(projetId: string): void {
-    this.logger.warn(`Classification skipped for MEC projet ${projetId} — worker does not support data_mec yet`);
+    this.qualificationQueue
+      .add(PROJECT_QUALIFICATION_CLASSIFICATION_JOB, { projetId, schema: "data_mec" })
+      .then(() => this.logger.log(`Classification scheduled for MEC projet ${projetId}`))
+      .catch((err) =>
+        this.logger.error(
+          `Failed to schedule classification for MEC projet ${projetId}: ${err instanceof Error ? err.message : String(err)}`,
+        ),
+      );
   }
 
   private computeContentHash(nom: string, description: string | null | undefined): string {

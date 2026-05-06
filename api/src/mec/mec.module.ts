@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common";
+import { BullModule } from "@nestjs/bullmq";
 import { MecController } from "./mec.controller";
 import { MecService } from "./mec.service";
+import { PROJECT_QUALIFICATION_QUEUE_NAME } from "@/projet-qualification/const";
 
-// FIXME: Re-add BullModule.registerQueue({ name: PROJECT_QUALIFICATION_QUEUE_NAME })
-// when the classification worker is adapted to support data_mec.
 @Module({
+  imports: [BullModule.registerQueue({ name: PROJECT_QUALIFICATION_QUEUE_NAME })],
   controllers: [MecController],
   providers: [MecService],
 })

@@ -3,7 +3,7 @@ import { Job, Queue } from "bullmq";
 import { isNull, isNotNull, eq, and, inArray } from "drizzle-orm";
 import { CustomLogger } from "@logging/logger.service";
 import { DatabaseService } from "@database/database.service";
-import { projets } from "@database/schema";
+import { projets, mecProjetsOperationnels } from "@database/schema";
 import { ClassificationAnthropicService } from "@/projet-qualification/classification/llm/classification-anthropic.service";
 import { ClassificationValidationService } from "@/projet-qualification/classification/validation/classification-validation.service";
 import { EnrichmentService } from "@/projet-qualification/classification/post-processing/enrichment.service";
@@ -22,6 +22,8 @@ import {
   CLASSIFICATION_AXES,
   ClassificationAxis,
 } from "./batch-classification.const";
+
+export type ClassificationSchema = "public" | "data_mec";
 
 /** Page size for paginated SELECT of unclassified projects */
 const SELECT_PAGE_SIZE = 5000;
@@ -52,6 +54,7 @@ export class BatchClassificationProcessor extends WorkerHost {
       projectCount?: number;
       maxProjects?: number;
       source?: string;
+      schema?: ClassificationSchema;
       projectIds?: string[];
       batchIds?: string[];
       totalProjects?: number;
@@ -62,9 +65,11 @@ export class BatchClassificationProcessor extends WorkerHost {
       case BATCH_SUBMIT_JOB:
         return this.handleSubmit(job);
       case BATCH_POLL_JOB:
-        return this.handlePoll(job as Job<{ batchIds: string[]; totalProjects: number }>);
+        return this.handlePoll(
+          job as Job<{ batchIds: string[]; totalProjects: number; schema?: ClassificationSchema }>,
+        );
       case BATCH_PROCESS_JOB:
-        return this.handleProcess(job as Job<{ batchId: string }>);
+        return this.handleProcess(job as Job<{ batchId: string; schema?: ClassificationSchema }>);
       default:
         throw new Error(`Unknown job type: ${job.name}`);
     }
@@ -80,19 +85,21 @@ export class BatchClassificationProcessor extends WorkerHost {
       projectCount?: number;
       maxProjects?: number;
       source?: string;
+      schema?: ClassificationSchema;
       projectIds?: string[];
     }>,
   ) {
-    const { maxProjects, projectIds, source } = job.data;
+    const { maxProjects, projectIds, source, schema } = job.data;
+    const targetSchema = schema ?? "public";
     this.logger.log(
-      `Batch classification submit triggered (${job.data.triggeredBy ?? "unknown"}, ~${job.data.projectCount ?? "?"} projects${maxProjects ? `, limit: ${maxProjects}` : ""}${source ? `, source: ${source}` : ""})`,
+      `Batch classification submit triggered (${job.data.triggeredBy ?? "unknown"}, schema: ${targetSchema}, ~${job.data.projectCount ?? "?"} projects${maxProjects ? `, limit: ${maxProjects}` : ""}${source ? `, source: ${source}` : ""})`,
     );
 
     try {
       // Collect projects to classify: either specific IDs or all unclassified
       const allUnclassified = projectIds
-        ? await this.fetchProjectsByIds(projectIds)
-        : await this.fetchUnclassifiedProjects(source);
+        ? await this.fetchProjectsByIds(projectIds, targetSchema)
+        : await this.fetchUnclassifiedProjects(source, targetSchema);
 
       const limit = maxProjects ?? MAX_PROJECTS_PER_SUBMIT;
       const unclassified = allUnclassified.slice(0, limit);
@@ -104,6 +111,7 @@ export class BatchClassificationProcessor extends WorkerHost {
           triggeredBy: "continuation",
           projectCount: remainingIds.length,
           projectIds: remainingIds,
+          schema: targetSchema,
         });
         this.logger.log(`${remainingIds.length} remaining projects scheduled in follow-up job`);
       }
@@ -140,7 +148,7 @@ export class BatchClassificationProcessor extends WorkerHost {
       // Enqueue poll job
       await this.batchQueue.add(
         BATCH_POLL_JOB,
-        { batchIds, totalProjects: unclassified.length },
+        { batchIds, totalProjects: unclassified.length, schema: targetSchema },
         {
           delay: POLL_DELAY_MS,
           attempts: MAX_POLL_ATTEMPTS,
@@ -163,8 +171,8 @@ export class BatchClassificationProcessor extends WorkerHost {
   /**
    * Step 2: Poll Anthropic batch status. Throws if not done (BullMQ retries with backoff).
    */
-  private async handlePoll(job: Job<{ batchIds: string[]; totalProjects: number }>) {
-    const { batchIds } = job.data;
+  private async handlePoll(job: Job<{ batchIds: string[]; totalProjects: number; schema?: ClassificationSchema }>) {
+    const { batchIds, schema } = job.data;
     const client = this.anthropicService.getClient();
 
     let allEnded = true;
@@ -188,7 +196,7 @@ export class BatchClassificationProcessor extends WorkerHost {
 
     // All batches ended — enqueue process jobs (one per batch)
     for (const batchId of batchIds) {
-      await this.batchQueue.add(BATCH_PROCESS_JOB, { batchId });
+      await this.batchQueue.add(BATCH_PROCESS_JOB, { batchId, schema });
     }
 
     this.logger.log(`All ${batchIds.length} batches ended, processing jobs enqueued`);
@@ -199,8 +207,9 @@ export class BatchClassificationProcessor extends WorkerHost {
   /**
    * Step 3: Stream results from a completed batch, apply post-processing, write to DB.
    */
-  private async handleProcess(job: Job<{ batchId: string }>) {
-    const { batchId } = job.data;
+  private async handleProcess(job: Job<{ batchId: string; schema?: ClassificationSchema }>) {
+    const { batchId, schema } = job.data;
+    const targetSchema = schema ?? "public";
     const client = this.anthropicService.getClient();
 
     this.logger.log(`Processing results for batch ${batchId}`);
@@ -317,16 +326,29 @@ export class BatchClassificationProcessor extends WorkerHost {
 
         // Write to DB sequentially to avoid saturating the connection pool
         for (const u of updates) {
-          await this.dbService.database
-            .update(projets)
-            .set({
-              classificationScores: u.classificationScores,
-              classificationThematiques: u.classificationThematiques,
-              classificationSites: u.classificationSites,
-              classificationInterventions: u.classificationInterventions,
-              probabiliteTE: u.probabiliteTE,
-            })
-            .where(eq(projets.id, u.projectId));
+          if (targetSchema === "data_mec") {
+            await this.dbService.database
+              .update(mecProjetsOperationnels)
+              .set({
+                classificationScores: u.classificationScores,
+                classificationThematiques: u.classificationThematiques,
+                classificationSites: u.classificationSites,
+                classificationInterventions: u.classificationInterventions,
+                probabiliteTe: u.probabiliteTE !== null ? Number(u.probabiliteTE) : null,
+              })
+              .where(eq(mecProjetsOperationnels.id, u.projectId));
+          } else {
+            await this.dbService.database
+              .update(projets)
+              .set({
+                classificationScores: u.classificationScores,
+                classificationThematiques: u.classificationThematiques,
+                classificationSites: u.classificationSites,
+                classificationInterventions: u.classificationInterventions,
+                probabiliteTE: u.probabiliteTE,
+              })
+              .where(eq(projets.id, u.projectId));
+          }
         }
 
         written += updates.length;
@@ -348,38 +370,55 @@ export class BatchClassificationProcessor extends WorkerHost {
   /**
    * Fetch unclassified projects with pagination to avoid loading everything in RAM.
    */
-  private async fetchUnclassifiedProjects(source?: string): Promise<ProjectForClassification[]> {
-    const sourceColumns = {
-      MEC: projets.mecId,
-      TeT: projets.tetId,
-      Recoco: projets.recocoId,
-      UrbanVitaliz: projets.urbanVitalizId,
-      SosPonts: projets.sosPontsId,
-      FondVert: projets.fondVertId,
-    } as const;
-
+  private async fetchUnclassifiedProjects(
+    source?: string,
+    schema: ClassificationSchema = "public",
+  ): Promise<ProjectForClassification[]> {
     const allProjects: ProjectForClassification[] = [];
     let offset = 0;
 
     while (true) {
-      let query = this.dbService.database
-        .select({ id: projets.id, nom: projets.nom, description: projets.description })
-        .from(projets)
-        .where(isNull(projets.classificationScores))
-        .limit(SELECT_PAGE_SIZE)
-        .offset(offset);
+      let page: ProjectForClassification[];
 
-      if (source && source in sourceColumns) {
-        const column = sourceColumns[source as keyof typeof sourceColumns];
-        query = this.dbService.database
-          .select({ id: projets.id, nom: projets.nom, description: projets.description })
-          .from(projets)
-          .where(and(isNull(projets.classificationScores), isNotNull(column)))
+      if (schema === "data_mec") {
+        page = await this.dbService.database
+          .select({
+            id: mecProjetsOperationnels.id,
+            nom: mecProjetsOperationnels.nom,
+            description: mecProjetsOperationnels.description,
+          })
+          .from(mecProjetsOperationnels)
+          .where(isNull(mecProjetsOperationnels.classificationScores))
           .limit(SELECT_PAGE_SIZE)
           .offset(offset);
+      } else {
+        const sourceColumns = {
+          MEC: projets.mecId,
+          TeT: projets.tetId,
+          Recoco: projets.recocoId,
+          UrbanVitaliz: projets.urbanVitalizId,
+          SosPonts: projets.sosPontsId,
+          FondVert: projets.fondVertId,
+        } as const;
+
+        if (source && source in sourceColumns) {
+          const column = sourceColumns[source as keyof typeof sourceColumns];
+          page = await this.dbService.database
+            .select({ id: projets.id, nom: projets.nom, description: projets.description })
+            .from(projets)
+            .where(and(isNull(projets.classificationScores), isNotNull(column)))
+            .limit(SELECT_PAGE_SIZE)
+            .offset(offset);
+        } else {
+          page = await this.dbService.database
+            .select({ id: projets.id, nom: projets.nom, description: projets.description })
+            .from(projets)
+            .where(isNull(projets.classificationScores))
+            .limit(SELECT_PAGE_SIZE)
+            .offset(offset);
+        }
       }
 
-      const page = await query;
       allProjects.push(...page);
 
       if (page.length < SELECT_PAGE_SIZE) break;
@@ -394,15 +433,20 @@ export class BatchClassificationProcessor extends WorkerHost {
   /**
    * Fetch specific projects by IDs (for bulk-triggered jobs that pass their own IDs).
    */
-  private async fetchProjectsByIds(ids: string[]): Promise<ProjectForClassification[]> {
+  private async fetchProjectsByIds(
+    ids: string[],
+    schema: ClassificationSchema = "public",
+  ): Promise<ProjectForClassification[]> {
     const allProjects: ProjectForClassification[] = [];
     const chunks = this.chunkArray(ids, SELECT_PAGE_SIZE);
 
+    const table = schema === "data_mec" ? mecProjetsOperationnels : projets;
+
     for (const chunk of chunks) {
       const page = await this.dbService.database
-        .select({ id: projets.id, nom: projets.nom, description: projets.description })
-        .from(projets)
-        .where(inArray(projets.id, chunk));
+        .select({ id: table.id, nom: table.nom, description: table.description })
+        .from(table)
+        .where(inArray(table.id, chunk));
 
       allProjects.push(...page);
     }

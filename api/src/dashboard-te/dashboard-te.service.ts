@@ -741,13 +741,13 @@ export class DashboardTeService {
         parStatut[s] = (parStatut[s] ?? 0) + 1;
       }
 
-      const [counts] = await this.query<{ nb_mec: string; nb_all: string }>(sql`
+      // Count from data_mec with CRTE breakdown
+      const [counts] = await this.query<{ nb_crte: string; nb_all: string }>(sql`
         SELECT
-          COUNT(*) FILTER (WHERE p.source_origine = 'MEC') AS nb_mec,
-          COUNT(*) AS nb_all
-        FROM schema_commun_v2.projets_operationnels p
-        JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
-        JOIN api_referentiel.communes c ON c.code_insee = lpc.insee_com
+          COUNT(DISTINCT p.id) FILTER (WHERE p.crte_id IS NOT NULL) AS nb_crte,
+          COUNT(DISTINCT p.id) AS nb_all
+        FROM data_mec.projets_operationnels p
+        JOIN api_referentiel.communes c ON c.code_insee = ANY(p.territoire_communes)
         WHERE c.code_epci = ANY(${sql`ARRAY[${sql.join(
           epciSirens.map((s) => sql`${s}`),
           sql`, `,
@@ -756,8 +756,8 @@ export class DashboardTeService {
 
       stats[type] = {
         totalEpci: items.length,
-        nbProjetsMec: Number(counts?.nb_mec ?? 0),
-        nbProjetsToutesSources: Number(counts?.nb_all ?? 0),
+        nbProjetsCrte: Number(counts?.nb_crte ?? 0),
+        nbProjetsMec: Number(counts?.nb_all ?? 0),
         parStatut,
       };
     }
@@ -767,18 +767,16 @@ export class DashboardTeService {
 
   async dispositifsProjets(filters: { type?: string; statut?: string; source?: string; page: number; limit: number }) {
     const typeFilter = filters.type ?? "COT";
-    const conditions: SQL[] = [sql`dt.dispositif = ${typeFilter}`];
+    const conditions: SQL[] = [sql`p.crte_id IS NOT NULL`, sql`dt.dispositif = ${typeFilter}`];
     if (filters.statut) conditions.push(sql`dt.statut = ${filters.statut}`);
-    if (filters.source) conditions.push(sql`p.source_origine = ${filters.source}`);
+    // source filter ignored — data_mec is MEC-only
     const where = sql`WHERE ${sql.join(conditions, sql` AND `)}`;
 
     const [countRow] = await this.query<{ total: string }>(sql`
       SELECT COUNT(DISTINCT p.id)::text AS total
-      FROM schema_commun_v2.projets_operationnels p
-      JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
-      JOIN api_referentiel.communes c ON c.code_insee = lpc.insee_com
+      FROM data_mec.projets_operationnels p
+      JOIN api_referentiel.communes c ON c.code_insee = ANY(p.territoire_communes)
       JOIN schema_commun_v2.dispositifs_territoriaux dt ON dt.epci_siren = c.code_epci
-      LEFT JOIN snapshot_crte.contrats crte ON crte.id_crte = dt.crte_code
       ${where}
     `);
 
@@ -787,31 +785,31 @@ export class DashboardTeService {
         p.id,
         p.nom,
         p.description,
-        p.source_origine AS "sourceOrigine",
+        'MEC' AS "sourceOrigine",
         p.phase,
-        p."phaseStatut",
-        p."budgetPrevisionnel",
-        p."collectiviteResponsableSiren" AS "collectiviteSiren",
-        p."dateDebut",
-        p."dateFin",
-        p.llm_thematiques AS "llmThematiques",
-        p.llm_sites AS "llmSites",
-        p.llm_interventions AS "llmInterventions",
-        p.llm_probabilite_te AS "llmProbabiliteTe",
-        p."competencesM57",
-        p."leviersSgpe",
+        p.phase_statut AS "phaseStatut",
+        p.budget_previsionnel AS "budgetPrevisionnel",
+        p.collectivite_responsable_siren AS "collectiviteSiren",
+        p.date_debut AS "dateDebut",
+        p.date_fin AS "dateFin",
+        p.classification_scores->'thematiques' AS "llmThematiques",
+        p.classification_scores->'sites' AS "llmSites",
+        p.classification_scores->'interventions' AS "llmInterventions",
+        p.probabilite_te AS "llmProbabiliteTe",
+        p.competences_m57 AS "competencesM57",
+        p.leviers_sgpe AS "leviersSgpe",
         p.mots_cles AS "motsCles",
+        p.crte_id AS "crteId",
+        p.crte_annee_inscription AS "crteAnneeInscription",
+        p.crte_orientation_strategique AS "crteOrientationStrategique",
         c.code_epci AS "epciSiren",
         dt.crte_code AS "crteCode",
         dt.metadata->>'crte_nom' AS "crteNom",
         dt.statut AS "cotStatut",
-        dt.date_signature AS "cotDateSignature",
-        crte.date_signature AS "crteDateSignature"
-      FROM schema_commun_v2.projets_operationnels p
-      JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
-      JOIN api_referentiel.communes c ON c.code_insee = lpc.insee_com
+        dt.date_signature AS "cotDateSignature"
+      FROM data_mec.projets_operationnels p
+      JOIN api_referentiel.communes c ON c.code_insee = ANY(p.territoire_communes)
       JOIN schema_commun_v2.dispositifs_territoriaux dt ON dt.epci_siren = c.code_epci
-      LEFT JOIN snapshot_crte.contrats crte ON crte.id_crte = dt.crte_code
       ${where}
       ORDER BY p.id
       OFFSET ${filters.page * filters.limit}
