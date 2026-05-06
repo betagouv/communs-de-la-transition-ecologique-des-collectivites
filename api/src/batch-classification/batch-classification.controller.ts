@@ -22,21 +22,33 @@ export class BatchClassificationController {
   @ApiQuery({
     name: "source",
     required: false,
-    description: "Filtrer par source: MEC, TeT, Recoco, etc. (défaut: tous)",
+    description: "Filtrer par source: MEC, TeT, Recoco, etc. (défaut: tous, ignoré si schema=data_mec)",
   })
-  async triggerBatchClassification(@Query("limit") limit?: string, @Query("source") source?: string) {
+  @ApiQuery({
+    name: "schema",
+    required: false,
+    description: "Schéma cible: public (défaut) ou data_mec",
+  })
+  async triggerBatchClassification(
+    @Query("limit") limit?: string,
+    @Query("source") source?: string,
+    @Query("schema") schema?: string,
+  ) {
     const maxProjects = limit ? parseInt(limit, 10) : undefined;
+    const targetSchema = schema === "data_mec" ? "data_mec" : "public";
 
     await this.batchQueue.add(BATCH_SUBMIT_JOB, {
       triggeredBy: "management-endpoint",
       maxProjects,
-      source,
+      source: targetSchema === "data_mec" ? undefined : source,
+      schema: targetSchema,
     });
 
     const parts = [
       "Batch classification scheduled",
+      `schema: ${targetSchema}`,
       maxProjects ? `limit: ${maxProjects}` : null,
-      source ? `source: ${source}` : null,
+      source && targetSchema !== "data_mec" ? `source: ${source}` : null,
     ].filter(Boolean);
 
     return {

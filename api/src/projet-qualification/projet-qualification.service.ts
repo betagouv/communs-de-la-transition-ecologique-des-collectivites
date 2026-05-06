@@ -12,7 +12,7 @@ import {
 } from "@/projet-qualification/const";
 import { ClassificationService } from "@/projet-qualification/classification/classification.service";
 import { DatabaseService } from "@database/database.service";
-import { tetFichesAction } from "@database/schema";
+import { tetFichesAction, mecProjetsOperationnels } from "@database/schema";
 import { eq } from "drizzle-orm";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { ServiceType } from "@/shared/types";
@@ -40,11 +40,11 @@ export class ProjetQualificationService extends WorkerHost {
     super();
   }
 
-  async process(job: Job<{ projetId?: string; ficheActionId?: string }>) {
-    const { projetId, ficheActionId } = job.data;
+  async process(job: Job<{ projetId?: string; ficheActionId?: string; schema?: string }>) {
+    const { projetId, ficheActionId, schema } = job.data;
     const entityId = projetId ?? ficheActionId;
     this.logger.log(
-      `Processing qualification job for ${projetId ? "project" : "fiche"} ${entityId} for job ${job.name}`,
+      `Processing qualification job for ${projetId ? "project" : "fiche"} ${entityId} for job ${job.name}${schema ? ` (schema: ${schema})` : ""}`,
     );
     try {
       // Handle fiche action classification (from data_tet)
@@ -55,6 +55,12 @@ export class ProjetQualificationService extends WorkerHost {
 
       if (!projetId) {
         throw new Error("projetId is required for non-fiche jobs");
+      }
+
+      // Handle data_mec classification directly (bypass public.projets read/write)
+      if (schema === "data_mec" && job.name === PROJECT_QUALIFICATION_CLASSIFICATION_JOB) {
+        await this.classifyMecProjet(projetId);
+        return;
       }
 
       const projet = await this.projetGetService.findOne(projetId);
@@ -179,6 +185,47 @@ export class ProjetQualificationService extends WorkerHost {
     this.logger.log(
       `Successfully classified project ${projetId} with ${classificationThematiques.length} thématiques, ${classificationSites.length} sites, ${classificationInterventions.length} interventions (TE: ${probabiliteTE})`,
     );
+  }
+
+  private async classifyMecProjet(projetId: string): Promise<void> {
+    const [projet] = await this.dbService.database
+      .select({
+        id: mecProjetsOperationnels.id,
+        nom: mecProjetsOperationnels.nom,
+        description: mecProjetsOperationnels.description,
+      })
+      .from(mecProjetsOperationnels)
+      .where(eq(mecProjetsOperationnels.id, projetId))
+      .limit(1);
+
+    if (!projet || (!projet.nom && !projet.description)) {
+      this.logger.log(`MEC projet ${projetId} not found or empty, skipping classification`);
+      return;
+    }
+
+    const context = `${projet.nom}\n${projet.description ?? ""}`;
+    this.logger.log(`Classifying MEC projet ${projetId}: ${projet.nom.slice(0, 60)}`);
+
+    const allScores = await this.classificationService.classify(context, "projet", 0);
+
+    const classificationScores = {
+      thematiques: allScores.thematiques,
+      sites: allScores.sites,
+      interventions: allScores.interventions,
+    };
+
+    await this.dbService.database
+      .update(mecProjetsOperationnels)
+      .set({
+        classificationThematiques: allScores.thematiques.filter((t) => t.score >= 0.8).map((t) => t.label),
+        classificationSites: allScores.sites.filter((s) => s.score >= 0.8).map((s) => s.label),
+        classificationInterventions: allScores.interventions.filter((i) => i.score >= 0.8).map((i) => i.label),
+        probabiliteTe: allScores.probabiliteTE !== null ? Number(allScores.probabiliteTE) : null,
+        classificationScores,
+      })
+      .where(eq(mecProjetsOperationnels.id, projetId));
+
+    this.logger.log(`Successfully classified MEC projet ${projetId}`);
   }
 
   private async classifyFicheAction(ficheActionId: string): Promise<void> {
