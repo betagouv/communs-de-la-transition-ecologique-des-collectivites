@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.80](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.79...v0.1.80) (2026-05-07)
+
+
+### Features
+
+* **aides:** aligner GET /aides sur projetId (camelCase) avec dépréciation graceful de projet_id ([c80923d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/c80923d0845c26e70f558cda4354204abb2b3cfd))
+
+
+### Bug Fixes
+
+* **aides:** valider projetId sur GET /aides/feedback (400 explicite) ([3a4444b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3a4444ba03da45e25f0a35324da5602ae3170bf9))
+
 ## [0.1.79](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.78...v0.1.79) (2026-05-06)
 
 
