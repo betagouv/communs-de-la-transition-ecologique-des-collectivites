@@ -68,6 +68,7 @@ describe("AidesController", () => {
   let mockWarmupService: jest.Mocked<AidesWarmupService>;
   let mockClassificationService: jest.Mocked<AideClassificationService>;
   let mockMatchingService: jest.Mocked<AidesMatchingService>;
+  let mockFeedbackService: jest.Mocked<AidesFeedbackService>;
   let mockProjetsService: jest.Mocked<GetProjetsService>;
   let mockQualificationQueue: jest.Mocked<Queue>;
   const mockLogger = {
@@ -116,7 +117,7 @@ describe("AidesController", () => {
       add: jest.fn().mockResolvedValue({ id: "auto-classify:test-id" }),
     } as unknown as jest.Mocked<Queue>;
 
-    const mockFeedbackService = {
+    mockFeedbackService = {
       create: jest.fn(),
       findByProjet: jest.fn(),
       delete: jest.fn(),
@@ -322,6 +323,57 @@ describe("AidesController", () => {
       expect(result.warmupStarted).toBe(true);
       // warmup is fire-and-forget, not awaited
       expect(result).not.toHaveProperty("warmup");
+    });
+  });
+
+  describe("feedback endpoints", () => {
+    const projetId = "019df7ce-1234-7890-abcd-ef0123456789";
+
+    it("createFeedback should delegate to feedbackService.create", async () => {
+      const dto = { projetId, idAt: "12345", reason: "wrong_territory" };
+      const created = {
+        id: "00000000-0000-0000-0000-000000000001",
+        projetId,
+        idAt: "12345",
+        feedback: "not_relevant",
+        reason: "wrong_territory",
+        source: "MEC",
+        createdAt: new Date(),
+      };
+      mockFeedbackService.create.mockResolvedValue(created);
+
+      const result = await controller.createFeedback(dto);
+
+      expect(mockFeedbackService.create).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(created);
+    });
+
+    it("getFeedbacks should delegate to feedbackService.findByProjet", async () => {
+      const feedbacks = [
+        {
+          id: "00000000-0000-0000-0000-000000000001",
+          projetId,
+          idAt: "12345",
+          feedback: "not_relevant",
+          reason: null,
+          source: "MEC",
+          createdAt: new Date(),
+        },
+      ];
+      mockFeedbackService.findByProjet.mockResolvedValue(feedbacks);
+
+      const result = await controller.getFeedbacks(projetId);
+
+      expect(mockFeedbackService.findByProjet).toHaveBeenCalledWith(projetId);
+      expect(result).toEqual(feedbacks);
+    });
+
+    it("deleteFeedback should delegate to feedbackService.delete", async () => {
+      mockFeedbackService.delete.mockResolvedValue(undefined);
+
+      await controller.deleteFeedback({ projetId, idAt: "12345" });
+
+      expect(mockFeedbackService.delete).toHaveBeenCalledWith(projetId, "12345");
     });
   });
 });

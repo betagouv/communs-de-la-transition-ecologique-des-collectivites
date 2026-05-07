@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  ParseUUIDPipe,
   Post,
   Query,
   Res,
@@ -237,7 +238,13 @@ export class AidesController {
   @TrackApiUsage()
   @Get("feedback")
   @ApiOperation({ summary: "Liste des feedbacks pour un projet" })
-  async getFeedbacks(@Query("projetId") projetId: string) {
+  @ApiQuery({
+    name: "projetId",
+    required: true,
+    description: "ID du projet (UUID, communId)",
+    example: "019df7ce-1234-7890-abcd-ef0123456789",
+  })
+  async getFeedbacks(@Query("projetId", new ParseUUIDPipe()) projetId: string) {
     return this.feedbackService.findByProjet(projetId);
   }
 
