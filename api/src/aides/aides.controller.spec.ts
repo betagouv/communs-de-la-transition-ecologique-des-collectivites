@@ -376,4 +376,54 @@ describe("AidesController", () => {
       expect(mockFeedbackService.delete).toHaveBeenCalledWith(projetId, "12345");
     });
   });
+
+  describe("listAides projetId param compat", () => {
+    beforeEach(() => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
+      mockMatchingService.match.mockReturnValue([
+        {
+          idAt: "1",
+          score: 0.5,
+          normalizedScore: 0.5,
+          scoreThematiques: 0.5,
+          scoreSites: 0,
+          scoreInterventions: 0,
+          axesMatched: 1,
+          labelsCommuns: { thematiques: ["X"], sites: [], interventions: [] },
+        },
+      ]);
+    });
+
+    it("should accept projetId (camelCase, canonical) without warning", async () => {
+      const { res } = makeRes();
+      const result = (await controller.listAides("test-id", res)) as AidesListResponse;
+
+      expect(result.status).toBe("ok");
+      expect(mockProjetsService.findOne).toHaveBeenCalledWith("test-id");
+      expect(mockLogger.warn).not.toHaveBeenCalledWith(expect.stringContaining("Deprecated query param projet_id"));
+    });
+
+    it("should accept projet_id (snake_case, deprecated) and log a warning", async () => {
+      const { res } = makeRes();
+      const result = (await controller.listAides(undefined, res, undefined, "test-id")) as AidesListResponse;
+
+      expect(result.status).toBe("ok");
+      expect(mockProjetsService.findOne).toHaveBeenCalledWith("test-id");
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining("Deprecated query param projet_id"));
+    });
+
+    it("should prefer projetId when both are provided (no warning)", async () => {
+      const { res } = makeRes();
+      const result = (await controller.listAides("camel-id", res, undefined, "snake-id")) as AidesListResponse;
+
+      expect(result.status).toBe("ok");
+      expect(mockProjetsService.findOne).toHaveBeenCalledWith("camel-id");
+      expect(mockLogger.warn).not.toHaveBeenCalledWith(expect.stringContaining("Deprecated query param projet_id"));
+    });
+
+    it("should throw 400 when neither projetId nor projet_id is provided", async () => {
+      const { res } = makeRes();
+      await expect(controller.listAides(undefined, res)).rejects.toThrow("projetId is required");
+    });
+  });
 });

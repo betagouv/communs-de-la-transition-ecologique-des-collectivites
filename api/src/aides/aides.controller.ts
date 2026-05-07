@@ -69,9 +69,16 @@ export class AidesController {
       "Proxy enrichi de l'API Aides-Territoires. Retourne les aides avec classification thématiques/sites/interventions, filtrées par les territoires du projet (union des collectivités) et triées par score de matching.\n\n**Statuts de réponse** :\n- `200 ok` : aides matchées trouvées\n- `200 no_match` : aides présentes sur le périmètre mais aucune ne partage de label ≥ 0.8\n- `200 no_aides_on_perimeter` : aucune aide AT trouvée pour les codes INSEE du projet\n- `202 classification_pending` : projet pas encore classifié, job de classification (re)déclenché — réessayer après `retryAfter` secondes\n- `404` : projet inexistant",
   })
   @ApiQuery({
-    name: "projet_id",
+    name: "projetId",
     required: true,
     description: "ID projet pour filtrer par territoire et calculer le matching",
+    example: "019df7ce-1234-7890-abcd-ef0123456789",
+  })
+  @ApiQuery({
+    name: "projet_id",
+    required: false,
+    deprecated: true,
+    description: "Déprécié — utiliser `projetId` (camelCase). Sera supprimé après migration des consommateurs.",
   })
   @ApiQuery({ name: "limit", required: false, description: "Nombre max de résultats (défaut: 20)" })
   @ApiEndpointResponses({
@@ -86,12 +93,19 @@ export class AidesController {
       "Le projet n'a pas encore été classifié. Un job de classification a été (re)déclenché. Réessayer après `retryAfter` secondes.",
   })
   async listAides(
-    @Query("projet_id") projetId: string,
+    @Query("projetId") projetIdCamel: string | undefined,
     @Res({ passthrough: true }) res: Response,
     @Query("limit") limit?: string,
+    @Query("projet_id") projetIdSnake?: string,
   ): Promise<AidesListResponse | ClassificationPendingResponse> {
+    const projetId = projetIdCamel ?? projetIdSnake;
     if (!projetId) {
-      throw new BadRequestException("projet_id is required");
+      throw new BadRequestException("projetId is required");
+    }
+    if (!projetIdCamel && projetIdSnake) {
+      this.logger.warn(
+        `Deprecated query param projet_id used on GET /aides (use projetId instead) — projetId=${projetIdSnake}`,
+      );
     }
 
     const maxResults = parseInt(limit ?? "20", 10);

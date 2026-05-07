@@ -129,15 +129,16 @@ Authorization: Bearer <MEC_API_KEY>
 ### 3. Trouver les aides pertinentes pour un projet
 
 ```http
-GET /aides?projet_id=019d...&limit=10
+GET /aides?projetId=019d...&limit=10
 Authorization: Bearer <MEC_API_KEY>
 ```
 
 **Paramètres** :
 | Param | Description | Requis |
 |-------|-------------|--------|
-| `projet_id` | ID du projet pour le matching et la résolution du périmètre | **Oui** |
+| `projetId` | ID du projet pour le matching et la résolution du périmètre | **Oui** |
 | `limit` | Nombre max de résultats (défaut: 20) | Non |
+| `projet_id` | _Déprécié_ — alias snake_case de `projetId`, accepté pour compat. Migrer vers `projetId`. | Non |
 
 > Le périmètre territorial est dérivé automatiquement des `collectivites` du projet (codes INSEE des communes). Pas besoin de passer `code_insee`.
 
@@ -151,7 +152,7 @@ L'endpoint renvoie l'un des 4 statuts suivants. **Tous les cas 200 et le 202 con
 | 200  | `no_match`                | Des aides existent sur le périmètre, mais aucune ne partage de label ≥ 0.8             | Message "aucune aide pertinente" + CTA enrichir desc |
 | 200  | `no_aides_on_perimeter`   | Aucune aide AT trouvée pour les codes INSEE du projet                                  | Message "pas d'aide AT pour ce territoire"           |
 | 202  | `classification_pending`  | Le projet n'est pas encore classifié — un job a été (re)déclenché                      | Loader + retry automatique après `retryAfter`s      |
-| 404  | (NotFoundException)       | `projet_id` inexistant en base                                                          | Erreur d'intégration MEC (ID jamais synchronisé)     |
+| 404  | (NotFoundException)       | `projetId` inexistant en base                                                          | Erreur d'intégration MEC (ID jamais synchronisé)     |
 
 #### `200 ok` — résultat nominal
 
@@ -420,7 +421,7 @@ Les aides individuelles (`at:aide:{id}`) sont partagées entre territoires : une
    POST /projets → { id: "019d..." }
 
 2. MEC appelle directement les aides
-   GET /aides?projet_id=019d...
+   GET /aides?projetId=019d...
    → 202 classification_pending si pas encore classifié
      → MEC attend retryAfter secondes et réessaye
    → 200 ok / no_match / no_aides_on_perimeter sinon
