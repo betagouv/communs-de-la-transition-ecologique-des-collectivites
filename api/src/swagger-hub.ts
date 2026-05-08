@@ -11,6 +11,7 @@ export function setupSwaggerHub(app: INestApplication) {
         { name: "API Référentiel Collectivités", url: "/api/referentiel/openapi.json" },
         { name: "API Opendata — PCAET", url: "/api/opendata/openapi.json" },
         { name: "API Projets (legacy)", url: "/api/projets/openapi.json" },
+        { name: "API Dashboard TE", url: "/api/dashboard-te/openapi.json" },
       ],
     },
   });
