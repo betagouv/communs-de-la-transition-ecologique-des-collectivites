@@ -259,6 +259,39 @@ export class DashboardTeService {
     };
   }
 
+  /**
+   * Distribution of a JSONB classification column (first element's label) across all projects,
+   * keeping only entries whose score >= scoreMin (default 0.8). Used to feed front-end dropdowns
+   * with values actually present in the data.
+   */
+  async statsClassif(
+    column: "llm_sites" | "llm_thematiques" | "llm_interventions",
+    scoreMin?: number,
+  ): Promise<{ value: string; count: number }[]> {
+    const threshold = scoreMin ?? 0.8;
+    const col = (() => {
+      switch (column) {
+        case "llm_sites":
+          return sql`p.llm_sites`;
+        case "llm_thematiques":
+          return sql`p.llm_thematiques`;
+        case "llm_interventions":
+          return sql`p.llm_interventions`;
+      }
+    })();
+    const rows = await this.query<{ value: string; count: string }>(sql`
+      SELECT
+        ${col}->0->>'label' AS value,
+        count(*)::text AS count
+      FROM schema_commun_v2.projets_operationnels p
+      WHERE ${col}->0->>'label' IS NOT NULL
+        AND COALESCE((${col}->0->>'score')::numeric, 0) >= ${threshold}
+      GROUP BY 1
+      ORDER BY count(*) DESC, value
+    `);
+    return rows.map((r) => ({ value: r.value, count: Number(r.count) }));
+  }
+
   async collectivites(params: { region?: string; departement?: string; q?: string; page: number; limit: number }) {
     const { region, departement, q, page, limit } = params;
     const pattern = q ? `%${q}%` : null;
@@ -321,16 +354,45 @@ export class DashboardTeService {
     siren?: string;
     levier?: string;
     competence?: string;
+    site?: { label: string; scoreMin?: number }[];
+    intervention?: { label: string; scoreMin?: number }[];
+    thematique?: { label: string; scoreMin?: number }[];
+    scoreMin?: number;
     source?: string;
     phase?: string;
     q?: string;
     page: number;
     limit: number;
   }) {
-    const { commune, departement, siren, levier, competence, source, phase, q, page, limit } = params;
+    const {
+      commune,
+      departement,
+      siren,
+      levier,
+      competence,
+      site,
+      intervention,
+      thematique,
+      source,
+      phase,
+      q,
+      page,
+      limit,
+    } = params;
+    const scoreMin = params.scoreMin ?? 0.8;
     const pattern = q ? `%${q}%` : null;
     const leviersPattern = levier ? `%${levier}%` : null;
     const competencesPattern = competence ? `%${competence}%` : null;
+
+    // Builds `(label=X1 AND score>=S1) OR (label=X2 AND score>=S2) ...`
+    // where Sn falls back to the request-level scoreMin if not set per-entry.
+    const classifClause = (col: SQL, entries: { label: string; scoreMin?: number }[]): SQL => {
+      const parts = entries.map(
+        (e) =>
+          sql`(${col}->0->>'label' = ${e.label} AND COALESCE((${col}->0->>'score')::numeric, 0) >= ${e.scoreMin ?? scoreMin})`,
+      );
+      return sql`(${sql.join(parts, sql` OR `)})`;
+    };
 
     const conditions: SQL[] = [];
     if (commune) conditions.push(sql`lpc.insee_com = ${commune}`);
@@ -341,6 +403,9 @@ export class DashboardTeService {
     if (pattern) conditions.push(sql`p.nom ILIKE ${pattern}`);
     if (leviersPattern) conditions.push(sql`p."leviersSgpe" ILIKE ${leviersPattern}`);
     if (competencesPattern) conditions.push(sql`p."competencesM57" ILIKE ${competencesPattern}`);
+    if (site && site.length > 0) conditions.push(classifClause(sql`p.llm_sites`, site));
+    if (intervention && intervention.length > 0) conditions.push(classifClause(sql`p.llm_interventions`, intervention));
+    if (thematique && thematique.length > 0) conditions.push(classifClause(sql`p.llm_thematiques`, thematique));
 
     const needsCommuneJoin = Boolean(commune ?? departement);
 

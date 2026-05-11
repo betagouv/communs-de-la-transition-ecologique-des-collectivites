@@ -8,6 +8,35 @@ const toInt = (v: string | undefined, def: number) => {
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : def;
 };
 
+const toList = (v: string | string[] | undefined): string[] | undefined => {
+  if (v == null) return undefined;
+  const arr = (Array.isArray(v) ? v : v.split(",")).map((s) => s.trim()).filter(Boolean);
+  return arr.length > 0 ? arr : undefined;
+};
+
+const parseScoreMin = (v: string | undefined): number | undefined => {
+  if (v == null || v === "") return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+};
+
+// Parses `label` or `label:score` (score = optional per-entry threshold).
+// Split on the last `:` only, and only treat the suffix as a score if it parses as a finite number;
+// otherwise the entire token is kept as the label (robust to labels containing `:`).
+const toClassifList = (v: string | string[] | undefined): { label: string; scoreMin?: number }[] | undefined => {
+  const raw = toList(v);
+  if (!raw) return undefined;
+  return raw.map((item) => {
+    const idx = item.lastIndexOf(":");
+    if (idx < 0) return { label: item };
+    const labelPart = item.slice(0, idx).trim();
+    const scorePart = item.slice(idx + 1).trim();
+    const score = Number(scorePart);
+    if (!labelPart || !Number.isFinite(score)) return { label: item };
+    return { label: labelPart, scoreMin: score };
+  });
+};
+
 @ApiTags("Dashboard TE")
 @Controller("dashboard-te")
 @UseGuards(ApiKeyGuard)
@@ -22,6 +51,24 @@ export class DashboardTeController {
   @Get("stats/departement/:code")
   statsDepartement(@Param("code") code: string) {
     return this.svc.statsDepartement(code);
+  }
+
+  @Get("stats/sites")
+  async statsSites(@Query("scoreMin") scoreMin?: string) {
+    const items = await this.svc.statsClassif("llm_sites", parseScoreMin(scoreMin));
+    return { items };
+  }
+
+  @Get("stats/thematiques")
+  async statsThematiques(@Query("scoreMin") scoreMin?: string) {
+    const items = await this.svc.statsClassif("llm_thematiques", parseScoreMin(scoreMin));
+    return { items };
+  }
+
+  @Get("stats/interventions")
+  async statsInterventions(@Query("scoreMin") scoreMin?: string) {
+    const items = await this.svc.statsClassif("llm_interventions", parseScoreMin(scoreMin));
+    return { items };
   }
 
   @Get("collectivites")
@@ -50,6 +97,10 @@ export class DashboardTeController {
     @Query("siren") siren?: string,
     @Query("levier") levier?: string,
     @Query("competence") competence?: string,
+    @Query("site") site?: string | string[],
+    @Query("intervention") intervention?: string | string[],
+    @Query("thematique") thematique?: string | string[],
+    @Query("scoreMin") scoreMin?: string,
     @Query("source") source?: string,
     @Query("phase") phase?: string,
     @Query("q") q?: string,
@@ -58,12 +109,17 @@ export class DashboardTeController {
   ) {
     const p = toInt(page, 0);
     const l = Math.min(toInt(limit, 50), 200);
+    const scoreMinNum = scoreMin != null && scoreMin !== "" ? Number(scoreMin) : undefined;
     const result = await this.svc.projets({
       commune,
       departement,
       siren,
       levier,
       competence,
+      site: toClassifList(site),
+      intervention: toClassifList(intervention),
+      thematique: toClassifList(thematique),
+      scoreMin: Number.isFinite(scoreMinNum) ? scoreMinNum : undefined,
       source,
       phase,
       q,
