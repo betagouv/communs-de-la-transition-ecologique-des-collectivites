@@ -168,10 +168,15 @@ describe("Projets (e2e)", () => {
     it("should update leviers when not provided", async () => {
       const mecClient = createApiClient(process.env.MEC_API_KEY);
 
+      // Description chosen for a literal, unambiguous match on a single levier ("Vélo").
+      // The previous description ("Aménagement de logements sur une friche") relied on
+      // "Sobriété foncière" but the few-shot examples in the leviers prompt score that
+      // label at 0.5-0.6 — below the 0.7 validation threshold — making Haiku 4.5 results
+      // borderline and the test flaky.
       const { data } = await mecClient.projets.create({
         ...validProjet,
         leviers: null,
-        description: "Aménagement de logements sur une friche",
+        description: "Installation d'une piste cyclable communale",
         externalId: "mec-leviers-not-provided",
       });
 
@@ -180,9 +185,7 @@ describe("Projets (e2e)", () => {
 
       const { data: updatedProjet } = await api.projets.getOne(data!.id);
 
-      // LLM score for "Sobriété foncière" oscillates around the 0.7 threshold (post Haiku 4.5 migration).
-      // Accept any non-empty leviers list — the qualification flow is what's tested here, not the exact label.
-      expect(updatedProjet?.leviers?.length).toBeGreaterThanOrEqual(1);
+      expect(updatedProjet?.leviers).toContain("Vélo");
     }, 30000);
 
     it("should create a valid projet with a different seeded collectivite", async () => {
