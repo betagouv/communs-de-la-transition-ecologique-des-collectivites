@@ -7,9 +7,16 @@ import { CompetencesController } from "./competences/competences.controller";
 import { CompetencesService } from "./competences/competences.service";
 import { RechercheController } from "./recherche/recherche.controller";
 import { RechercheService } from "./recherche/recherche.service";
+import { TaxonomiesController } from "./taxonomies/taxonomies.controller";
 
 @Module({
-  controllers: [CommunesController, GroupementsController, CompetencesController, RechercheController],
+  controllers: [
+    CommunesController,
+    GroupementsController,
+    CompetencesController,
+    RechercheController,
+    TaxonomiesController,
+  ],
   providers: [CommunesService, GroupementsService, CompetencesService, RechercheService],
 })
 export class ReferentielModule {}

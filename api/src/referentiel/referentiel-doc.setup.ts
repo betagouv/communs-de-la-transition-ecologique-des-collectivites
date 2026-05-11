@@ -14,6 +14,10 @@ export function setupReferentielDoc(app: INestApplication) {
     .addTag("Référentiel - Groupements", "EPCI, syndicats, PETR (9 345 entités)")
     .addTag("Référentiel - Compétences", "123 compétences Banatic en 10 catégories")
     .addTag("Référentiel - Recherche", "Recherche transversale par nom")
+    .addTag(
+      "Référentiel - Taxonomies",
+      "Listes fermées sites, thématiques, interventions et leviers utilisées par la classification",
+    )
     .build();
 
   const documentFactory = () =>
