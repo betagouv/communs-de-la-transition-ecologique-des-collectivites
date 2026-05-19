@@ -18,7 +18,7 @@ import { Queue } from "bullmq";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 import { CustomLogger } from "@logging/logger.service";
-import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
+import { GetProjetsService, ProjetSource } from "@projets/services/get-projets/get-projets.service";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import {
   PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
@@ -110,12 +110,13 @@ export class AidesController {
 
     const maxResults = parseInt(limit ?? "20", 10);
 
-    // 1. Load project (throws 404 if not found)
-    const projet = await this.projetsService.findOne(projetId);
+    // 1. Load project (throws 404 if not found) + détecte la source pour
+    //    pouvoir tagger correctement un éventuel job de classification.
+    const { projet, source } = await this.projetsService.findOneWithSource(projetId);
 
     // 2. If not classified yet → enqueue classification + return 202
     if (!projet.classificationScores) {
-      const triggered = await this.triggerClassificationIfNeeded(projetId);
+      const triggered = await this.triggerClassificationIfNeeded(projetId, source);
       res.status(202).setHeader("Retry-After", String(CLASSIFICATION_RETRY_AFTER_SECONDS));
       return {
         status: "classification_pending",
@@ -183,9 +184,14 @@ export class AidesController {
   /**
    * Enqueue a classification job for the project if none is already pending or active.
    * Uses a deterministic jobId so concurrent polls from MEC don't pile up duplicate jobs.
+   * Le payload du job dépend de la source du projet pour que le processor
+   * (projet-qualification.service.ts) écrive dans la bonne table :
+   *   - public        → { projetId }                  → analyzeAndUpdateClassification (public.projets)
+   *   - data_mec      → { projetId, schema: "data_mec" } → classifyMecProjet (data_mec.projets_operationnels)
+   *   - data_tet      → { ficheActionId: projetId }   → classifyFicheAction (data_tet.fiches_action)
    * Returns true if a new job was enqueued, false if one was already in flight.
    */
-  private async triggerClassificationIfNeeded(projetId: string): Promise<boolean> {
+  private async triggerClassificationIfNeeded(projetId: string, source: ProjetSource): Promise<boolean> {
     const jobId = `auto-classify:${projetId}`;
     const existing = await this.qualificationQueue.getJob(jobId);
 
@@ -199,17 +205,29 @@ export class AidesController {
       await existing.remove();
     }
 
-    await this.qualificationQueue.add(
-      PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
-      { projetId },
-      {
-        jobId,
-        attempts: 3,
-        backoff: { type: "exponential", delay: 5000 },
-      },
-    );
-    this.logger.log(`Enqueued classification job for ${projetId} (triggered by GET /aides)`);
+    const jobData = this.buildClassificationJobData(projetId, source);
+
+    await this.qualificationQueue.add(PROJECT_QUALIFICATION_CLASSIFICATION_JOB, jobData, {
+      jobId,
+      attempts: 3,
+      backoff: { type: "exponential", delay: 5000 },
+    });
+    this.logger.log(`Enqueued classification job for ${projetId} (source: ${source}, triggered by GET /aides)`);
     return true;
+  }
+
+  private buildClassificationJobData(
+    projetId: string,
+    source: ProjetSource,
+  ): { projetId?: string; ficheActionId?: string; schema?: string } {
+    switch (source) {
+      case "data_tet":
+        return { ficheActionId: projetId };
+      case "data_mec":
+        return { projetId, schema: "data_mec" };
+      case "public":
+        return { projetId };
+    }
   }
 
   @TrackApiUsage()
