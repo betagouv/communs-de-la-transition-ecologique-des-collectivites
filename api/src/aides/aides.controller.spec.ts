@@ -105,10 +105,13 @@ describe("AidesController", () => {
     } as unknown as jest.Mocked<AidesMatchingService>;
 
     mockProjetsService = {
-      findOne: jest.fn().mockResolvedValue({
-        id: "test-id",
-        collectivites: [{ type: "Commune", codeInsee: "44109" }],
-        classificationScores: { thematiques: [], sites: [], interventions: [] },
+      findOneWithSource: jest.fn().mockResolvedValue({
+        projet: {
+          id: "test-id",
+          collectivites: [{ type: "Commune", codeInsee: "44109" }],
+          classificationScores: { thematiques: [], sites: [], interventions: [] },
+        },
+        source: "public",
       }),
     } as unknown as jest.Mocked<GetProjetsService>;
 
@@ -202,10 +205,13 @@ describe("AidesController", () => {
 
   describe("listAides response statuses", () => {
     it("should return 202 + classification_pending and enqueue a job when project is unclassified", async () => {
-      mockProjetsService.findOne.mockResolvedValue({
-        id: "test-id",
-        collectivites: [{ type: "Commune", codeInsee: "44109" }],
-        classificationScores: null,
+      mockProjetsService.findOneWithSource.mockResolvedValue({
+        projet: {
+          id: "test-id",
+          collectivites: [{ type: "Commune", codeInsee: "44109" }],
+          classificationScores: null,
+        },
+        source: "public",
       } as never);
 
       const { res, statusSpy, headerSpy } = makeRes();
@@ -224,11 +230,54 @@ describe("AidesController", () => {
       );
     });
 
+    it("should tag the classification job with schema=data_mec when projet comes from data_mec", async () => {
+      mockProjetsService.findOneWithSource.mockResolvedValue({
+        projet: {
+          id: "test-id",
+          collectivites: [{ type: "Commune", codeInsee: "44109" }],
+          classificationScores: null,
+        },
+        source: "data_mec",
+      } as never);
+
+      const { res } = makeRes();
+      await controller.listAides("test-id", res);
+
+      expect(mockQualificationQueue.add).toHaveBeenCalledWith(
+        PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
+        { projetId: "test-id", schema: "data_mec" },
+        expect.objectContaining({ jobId: "auto-classify:test-id" }),
+      );
+    });
+
+    it("should tag the classification job as ficheActionId when projet comes from data_tet", async () => {
+      mockProjetsService.findOneWithSource.mockResolvedValue({
+        projet: {
+          id: "test-id",
+          collectivites: [{ type: "Commune", codeInsee: "44109" }],
+          classificationScores: null,
+        },
+        source: "data_tet",
+      } as never);
+
+      const { res } = makeRes();
+      await controller.listAides("test-id", res);
+
+      expect(mockQualificationQueue.add).toHaveBeenCalledWith(
+        PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
+        { ficheActionId: "test-id" },
+        expect.objectContaining({ jobId: "auto-classify:test-id" }),
+      );
+    });
+
     it("should not re-enqueue when a classification job is already in flight", async () => {
-      mockProjetsService.findOne.mockResolvedValue({
-        id: "test-id",
-        collectivites: [{ type: "Commune", codeInsee: "44109" }],
-        classificationScores: null,
+      mockProjetsService.findOneWithSource.mockResolvedValue({
+        projet: {
+          id: "test-id",
+          collectivites: [{ type: "Commune", codeInsee: "44109" }],
+          classificationScores: null,
+        },
+        source: "public",
       } as never);
 
       mockQualificationQueue.getJob.mockResolvedValue({
@@ -244,10 +293,13 @@ describe("AidesController", () => {
     });
 
     it("should remove a stale completed/failed job before re-enqueuing", async () => {
-      mockProjetsService.findOne.mockResolvedValue({
-        id: "test-id",
-        collectivites: [{ type: "Commune", codeInsee: "44109" }],
-        classificationScores: null,
+      mockProjetsService.findOneWithSource.mockResolvedValue({
+        projet: {
+          id: "test-id",
+          collectivites: [{ type: "Commune", codeInsee: "44109" }],
+          classificationScores: null,
+        },
+        source: "public",
       } as never);
 
       const removeSpy = jest.fn();
@@ -399,7 +451,7 @@ describe("AidesController", () => {
       const result = (await controller.listAides("test-id", res)) as AidesListResponse;
 
       expect(result.status).toBe("ok");
-      expect(mockProjetsService.findOne).toHaveBeenCalledWith("test-id");
+      expect(mockProjetsService.findOneWithSource).toHaveBeenCalledWith("test-id");
       expect(mockLogger.warn).not.toHaveBeenCalledWith(expect.stringContaining("Deprecated query param projet_id"));
     });
 
@@ -408,7 +460,7 @@ describe("AidesController", () => {
       const result = (await controller.listAides(undefined, res, undefined, "test-id")) as AidesListResponse;
 
       expect(result.status).toBe("ok");
-      expect(mockProjetsService.findOne).toHaveBeenCalledWith("test-id");
+      expect(mockProjetsService.findOneWithSource).toHaveBeenCalledWith("test-id");
       expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining("Deprecated query param projet_id"));
     });
 
@@ -417,7 +469,7 @@ describe("AidesController", () => {
       const result = (await controller.listAides("camel-id", res, undefined, "snake-id")) as AidesListResponse;
 
       expect(result.status).toBe("ok");
-      expect(mockProjetsService.findOne).toHaveBeenCalledWith("camel-id");
+      expect(mockProjetsService.findOneWithSource).toHaveBeenCalledWith("camel-id");
       expect(mockLogger.warn).not.toHaveBeenCalledWith(expect.stringContaining("Deprecated query param projet_id"));
     });
 
