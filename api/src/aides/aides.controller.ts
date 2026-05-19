@@ -32,7 +32,7 @@ import { AidesTextualMatchingService } from "./aides-textual-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
 import { AidesWarmupService } from "./aides-warmup.service";
 import { AidesFeedbackService } from "./aides-feedback.service";
-import { CreateAideFeedbackRequest, DeleteAideFeedbackRequest } from "./dto/aide-feedback.dto";
+import { AideFeedbackResponse, CreateAideFeedbackRequest, DeleteAideFeedbackRequest } from "./dto/aide-feedback.dto";
 import {
   Aide,
   AideMatchResult,
@@ -375,7 +375,8 @@ export class AidesController {
   @TrackApiUsage()
   @Post("feedback")
   @ApiOperation({ summary: "Signaler une aide non pertinente pour un projet" })
-  async createFeedback(@Body() dto: CreateAideFeedbackRequest) {
+  @ApiEndpointResponses({ successStatus: 201, response: AideFeedbackResponse })
+  async createFeedback(@Body() dto: CreateAideFeedbackRequest): Promise<AideFeedbackResponse> {
     return this.feedbackService.create(dto);
   }
 
@@ -388,7 +389,8 @@ export class AidesController {
     description: "ID du projet (UUID, communId)",
     example: "019df7ce-1234-7890-abcd-ef0123456789",
   })
-  async getFeedbacks(@Query("projetId", new ParseUUIDPipe()) projetId: string) {
+  @ApiEndpointResponses({ successStatus: 200, response: AideFeedbackResponse, isArray: true })
+  async getFeedbacks(@Query("projetId", new ParseUUIDPipe()) projetId: string): Promise<AideFeedbackResponse[]> {
     return this.feedbackService.findByProjet(projetId);
   }
 
@@ -396,7 +398,8 @@ export class AidesController {
   @Delete("feedback")
   @ApiOperation({ summary: "Annuler un feedback" })
   @HttpCode(204)
-  async deleteFeedback(@Body() dto: DeleteAideFeedbackRequest) {
+  @ApiEndpointResponses({ successStatus: 204 })
+  async deleteFeedback(@Body() dto: DeleteAideFeedbackRequest): Promise<void> {
     return this.feedbackService.delete(dto.projetId, dto.idAt);
   }
 
