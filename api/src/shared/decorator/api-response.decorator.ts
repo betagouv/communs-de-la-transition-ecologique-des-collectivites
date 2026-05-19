@@ -4,7 +4,7 @@ import { ErrorResponse } from "../dto/error.response";
 
 export interface ApiResponseOptions {
   successStatus: number;
-  response: Type<unknown>;
+  response?: Type<unknown>;
   description?: string;
   isArray?: boolean;
 }
