@@ -7,40 +7,35 @@
  * interventions), each label having a confidence score between 0 and 1.
  *
  * For each axis:
- *   1. Keep only labels with score ≥ 0.8 (high confidence)
+ *   1. Keep only labels with score ≥ threshold (high confidence). The threshold
+ *      defaults to 0.8 but can be set independently for the project side and
+ *      the aide side (see `match` thresholds option).
  *   2. Find common labels between the project and the aide
  *   3. For each common label, compute:
- *        term = (score_project - 0.7) × (score_aide - 0.7)
- *      The -0.7 offset means:
- *        - A label at 0.8 (just above threshold) contributes 0.1 × ... (low weight)
- *        - A label at 1.0 (very confident) contributes 0.3 × ... (high weight)
+ *        term = (score_project - projetThreshold + offset)
+ *             × (score_aide   - aideThreshold   + offset)
+ *      The offset (0.1) means a label just above its threshold contributes a
+ *      small weight, a label at 1.0 contributes a large one.
  *   4. Axis score = sum(terms) / number of project labels on this axis
  *      Division normalizes so projects with fewer labels aren't penalized
  *
  * Total score = score_thématiques + score_sites + score_interventions
- *
- * Example:
- *   Project: "Isolation thermique" (0.95), "Rénovation énergétique" (0.85)
- *   Aide:    "Rénovation énergétique" (0.92)
- *   Common label: "Rénovation énergétique"
- *   Score = (0.85 - 0.7) × (0.92 - 0.7) / 2 = 0.15 × 0.22 / 2 = 0.0165
  */
 
 import { Injectable } from "@nestjs/common";
 import { CustomLogger } from "@logging/logger.service";
 import { AideClassification, AideMatchResult } from "./dto/aides.dto";
 
-/**
- * Matching engine for projects and aides
- * Algorithm aligned with Gaëtan's match_projets_aides.py
- *
- * For each axis, score = Σ((score_projet - 0.7) × (score_aide - 0.7)) / nb_labels_projet
- * Total score = sum of 3 axis scores
- */
+/** Per-call confidence thresholds. Absent values fall back to DEFAULT_THRESHOLD. */
+export interface MatchThresholds {
+  projet?: number;
+  aide?: number;
+}
+
 @Injectable()
 export class AidesMatchingService {
-  // Threshold and offset matching Gaëtan's script (THRESHOLD=80, OFFSET=10 on 0-100 scale)
-  private readonly SCORE_THRESHOLD = 0.8;
+  /** Default confidence threshold (Gaëtan's script: THRESHOLD=80 on the 0-100 scale). */
+  static readonly DEFAULT_THRESHOLD = 0.8;
   private readonly SCORE_OFFSET = 0.1;
 
   constructor(private readonly logger: CustomLogger) {}
@@ -50,18 +45,27 @@ export class AidesMatchingService {
    * @param projetScores Classification scores of the project
    * @param aidesScores Map of aide id_at -> classification scores
    * @param limit Max number of results
+   * @param thresholds Optional per-side confidence thresholds (default 0.8 each)
    * @returns Sorted list of matching aides with scores
    */
-  match(projetScores: AideClassification, aidesScores: Map<string, AideClassification>, limit = 10): AideMatchResult[] {
-    // Filter project labels by threshold
-    const pThematiques = this.filterByThreshold(projetScores.thematiques);
-    const pSites = this.filterByThreshold(projetScores.sites);
-    const pInterventions = this.filterByThreshold(projetScores.interventions);
+  match(
+    projetScores: AideClassification,
+    aidesScores: Map<string, AideClassification>,
+    limit = 10,
+    thresholds?: MatchThresholds,
+  ): AideMatchResult[] {
+    const projetThreshold = thresholds?.projet ?? AidesMatchingService.DEFAULT_THRESHOLD;
+    const aideThreshold = thresholds?.aide ?? AidesMatchingService.DEFAULT_THRESHOLD;
 
-    const projectMax = this.computeProjectMax(pThematiques, pSites, pInterventions);
+    // Filter project labels by the project threshold
+    const pThematiques = this.filterByThreshold(projetScores.thematiques, projetThreshold);
+    const pSites = this.filterByThreshold(projetScores.sites, projetThreshold);
+    const pInterventions = this.filterByThreshold(projetScores.interventions, projetThreshold);
+
+    const projectMax = this.computeProjectMax(pThematiques, pSites, pInterventions, projetThreshold, aideThreshold);
 
     // Build inverted index for fast candidate lookup
-    const candidates = this.findCandidates(pThematiques, pSites, pInterventions, aidesScores);
+    const candidates = this.findCandidates(pThematiques, pSites, pInterventions, aidesScores, aideThreshold);
 
     // Score each candidate
     const results: AideMatchResult[] = [];
@@ -69,13 +73,13 @@ export class AidesMatchingService {
     for (const idAt of candidates) {
       const aideScores = aidesScores.get(idAt)!;
 
-      const aThematiques = this.filterByThreshold(aideScores.thematiques);
-      const aSites = this.filterByThreshold(aideScores.sites);
-      const aInterventions = this.filterByThreshold(aideScores.interventions);
+      const aThematiques = this.filterByThreshold(aideScores.thematiques, aideThreshold);
+      const aSites = this.filterByThreshold(aideScores.sites, aideThreshold);
+      const aInterventions = this.filterByThreshold(aideScores.interventions, aideThreshold);
 
-      const thResult = this.scoreAxis(pThematiques, aThematiques);
-      const siResult = this.scoreAxis(pSites, aSites);
-      const inResult = this.scoreAxis(pInterventions, aInterventions);
+      const thResult = this.scoreAxis(pThematiques, aThematiques, projetThreshold, aideThreshold);
+      const siResult = this.scoreAxis(pSites, aSites, projetThreshold, aideThreshold);
+      const inResult = this.scoreAxis(pInterventions, aInterventions, projetThreshold, aideThreshold);
 
       const totalScore = thResult.score + siResult.score + inResult.score;
 
@@ -115,27 +119,31 @@ export class AidesMatchingService {
     pThematiques: Map<string, number>,
     pSites: Map<string, number>,
     pInterventions: Map<string, number>,
+    projetThreshold: number,
+    aideThreshold: number,
   ): number {
-    return this.axisMax(pThematiques) + this.axisMax(pSites) + this.axisMax(pInterventions);
+    return (
+      this.axisMax(pThematiques, projetThreshold, aideThreshold) +
+      this.axisMax(pSites, projetThreshold, aideThreshold) +
+      this.axisMax(pInterventions, projetThreshold, aideThreshold)
+    );
   }
 
-  private axisMax(projectLabels: Map<string, number>): number {
+  private axisMax(projectLabels: Map<string, number>, projetThreshold: number, aideThreshold: number): number {
     if (projectLabels.size === 0) return 0;
-    const maxAideContribution = 1.0 - this.SCORE_THRESHOLD + this.SCORE_OFFSET; // 0.3
+    const maxAideContribution = 1.0 - aideThreshold + this.SCORE_OFFSET;
     let sum = 0;
     for (const pScore of projectLabels.values()) {
-      sum += (pScore - this.SCORE_THRESHOLD + this.SCORE_OFFSET) * maxAideContribution;
+      sum += (pScore - projetThreshold + this.SCORE_OFFSET) * maxAideContribution;
     }
     return sum / projectLabels.size;
   }
 
-  /**
-   * Filter labels above the threshold (matching Gaëtan's THRESHOLD=80 on 0-100 scale)
-   */
-  private filterByThreshold(items: { label: string; score: number }[]): Map<string, number> {
+  /** Filter labels at or above the given confidence threshold. */
+  private filterByThreshold(items: { label: string; score: number }[], threshold: number): Map<string, number> {
     const map = new Map<string, number>();
     for (const item of items) {
-      if (item.score >= this.SCORE_THRESHOLD) {
+      if (item.score >= threshold) {
         map.set(item.label, item.score);
       }
     }
@@ -150,15 +158,16 @@ export class AidesMatchingService {
     pSi: Map<string, number>,
     pIn: Map<string, number>,
     aidesScores: Map<string, AideClassification>,
+    aideThreshold: number,
   ): Set<string> {
     const candidates = new Set<string>();
     const projectLabels = new Set([...pTh.keys(), ...pSi.keys(), ...pIn.keys()]);
 
     for (const [idAt, scores] of aidesScores) {
       const aideLabels = [
-        ...scores.thematiques.filter((t) => t.score >= this.SCORE_THRESHOLD).map((t) => t.label),
-        ...scores.sites.filter((s) => s.score >= this.SCORE_THRESHOLD).map((s) => s.label),
-        ...scores.interventions.filter((i) => i.score >= this.SCORE_THRESHOLD).map((i) => i.label),
+        ...scores.thematiques.filter((t) => t.score >= aideThreshold).map((t) => t.label),
+        ...scores.sites.filter((s) => s.score >= aideThreshold).map((s) => s.label),
+        ...scores.interventions.filter((i) => i.score >= aideThreshold).map((i) => i.label),
       ];
 
       for (const label of aideLabels) {
@@ -175,11 +184,13 @@ export class AidesMatchingService {
 
   /**
    * Score one axis between a project and an aide
-   * Formula: Σ((Sp - threshold + offset) × (Sa - threshold + offset)) / Pt
+   * Formula: Σ((Sp - projetThreshold + offset) × (Sa - aideThreshold + offset)) / nbLabelsProjet
    */
   private scoreAxis(
     projectItems: Map<string, number>,
     aideItems: Map<string, number>,
+    projetThreshold: number,
+    aideThreshold: number,
   ): { score: number; commonLabels: string[] } {
     if (projectItems.size === 0) {
       return { score: 0, commonLabels: [] };
@@ -191,8 +202,7 @@ export class AidesMatchingService {
     for (const [label, pScore] of projectItems) {
       const aScore = aideItems.get(label);
       if (aScore !== undefined) {
-        const term =
-          (pScore - this.SCORE_THRESHOLD + this.SCORE_OFFSET) * (aScore - this.SCORE_THRESHOLD + this.SCORE_OFFSET);
+        const term = (pScore - projetThreshold + this.SCORE_OFFSET) * (aScore - aideThreshold + this.SCORE_OFFSET);
         totalScore += term;
         commonLabels.push(label);
       }
