@@ -101,6 +101,27 @@ export class AidesController {
       "Optionnel — désactivé par défaut.",
     example: "true",
   })
+  @ApiQuery({
+    name: "cutoff",
+    required: false,
+    description:
+      "Score de pertinence minimal (0-1) sous lequel une aide est écartée du résultat. Optionnel — aucun seuil par défaut.",
+    example: "0.1",
+  })
+  @ApiQuery({
+    name: "aideThreshold",
+    required: false,
+    description:
+      "Seuil de confiance (0-1) des labels de classification d'une aide pris en compte dans le matching. Défaut : 0.8.",
+    example: "0.8",
+  })
+  @ApiQuery({
+    name: "projetThreshold",
+    required: false,
+    description:
+      "Seuil de confiance (0-1) des labels de classification du projet pris en compte dans le matching. Défaut : 0.8.",
+    example: "0.8",
+  })
   @ApiEndpointResponses({
     successStatus: 200,
     response: AidesListResponse,
@@ -118,6 +139,9 @@ export class AidesController {
     @Query("limit") limit?: string,
     @Query("projet_id") projetIdSnake?: string,
     @Query("textual") textualOverride?: string,
+    @Query("cutoff") cutoffRaw?: string,
+    @Query("aideThreshold") aideThresholdRaw?: string,
+    @Query("projetThreshold") projetThresholdRaw?: string,
   ): Promise<AidesListResponse | ClassificationPendingResponse> {
     const projetId = projetIdCamel ?? projetIdSnake;
     if (!projetId) {
@@ -130,6 +154,11 @@ export class AidesController {
     }
 
     const maxResults = parseInt(limit ?? "20", 10);
+    // Score de pertinence minimal — 0 si non fourni (= aucun filtrage par score).
+    const cutoff = this.parseUnitInterval("cutoff", cutoffRaw) ?? 0;
+    // Seuils de confiance des labels — undefined laisse le matcher appliquer son défaut (0.8).
+    const aideThreshold = this.parseUnitInterval("aideThreshold", aideThresholdRaw);
+    const projetThreshold = this.parseUnitInterval("projetThreshold", projetThresholdRaw);
 
     // 1. Load project (throws 404 if not found) + détecte la source pour
     //    pouvoir tagger correctement un éventuel job de classification.
@@ -170,7 +199,10 @@ export class AidesController {
     // 6. Thematic matching — pass allAides.length so nothing is pre-sliced
     //    before the (optional) textual combination below.
     const matchResults = new Map<string, AideMatchResult>();
-    const results = this.matchingService.match(projet.classificationScores, classifications, allAides.length);
+    const results = this.matchingService.match(projet.classificationScores, classifications, allAides.length, {
+      projet: projetThreshold,
+      aide: aideThreshold,
+    });
     for (const r of results) {
       matchResults.set(r.idAt, r);
     }
@@ -213,14 +245,20 @@ export class AidesController {
     if (textualEnabled) {
       // Rescue + booster : on garde tout match thématique, plus toute aide
       // dont le score textuel dépasse le plancher de rescue. Tri par score combiné.
+      // Le cutoff écarte les aides sous le score de pertinence minimal demandé.
       enriched = enriched
-        .filter((a) => a.matchingScore !== undefined || (a.textualScore ?? 0) >= MIN_TEXTUAL_RESCUE)
+        .filter(
+          (a) =>
+            (a.matchingScore !== undefined || (a.textualScore ?? 0) >= MIN_TEXTUAL_RESCUE) &&
+            (a.combinedScore ?? 0) >= cutoff,
+        )
         .sort((a, b) => (b.combinedScore ?? 0) - (a.combinedScore ?? 0))
         .slice(0, maxResults);
     } else {
       // Comportement historique : matching thématique seul.
+      // Le cutoff filtre sur le score de pertinence normalisé (0-1).
       enriched = enriched
-        .filter((a) => a.matchingScore !== undefined)
+        .filter((a) => a.matchingScore !== undefined && (a.normalizedScore ?? 0) >= cutoff)
         .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
         .slice(0, maxResults);
     }
@@ -240,6 +278,19 @@ export class AidesController {
     if (override === "true") return true;
     if (override === "false") return false;
     return this.configService.get<string>("AIDES_TEXTUAL_MATCHING_ENABLED") === "true";
+  }
+
+  /**
+   * Parse un paramètre de score dans [0, 1]. Renvoie undefined si absent,
+   * lève une 400 explicite si la valeur est invalide.
+   */
+  private parseUnitInterval(name: string, raw: string | undefined): number | undefined {
+    if (raw === undefined || raw === "") return undefined;
+    const value = Number(raw);
+    if (Number.isNaN(value) || value < 0 || value > 1) {
+      throw new BadRequestException(`Paramètre "${name}" invalide : attendu un nombre entre 0 et 1, reçu "${raw}"`);
+    }
+    return value;
   }
 
   /**

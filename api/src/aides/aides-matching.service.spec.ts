@@ -142,4 +142,41 @@ describe("AidesMatchingService", () => {
       expect(service.match(makeScores(), new Map())).toEqual([]);
     });
   });
+
+  describe("match — custom thresholds", () => {
+    it("includes a project label below 0.8 when projetThreshold is lowered", () => {
+      const projet = makeScores([{ label: "Energies renouvelables", score: 0.65 }]);
+      const aides = new Map([["aide-1", makeScores([{ label: "Energies renouvelables", score: 0.9 }])]]);
+
+      // Default (0.8) : le label projet à 0.65 est filtré → aucun match.
+      expect(service.match(projet, aides)).toHaveLength(0);
+
+      // projetThreshold abaissé à 0.6 : le label passe → match.
+      const results = service.match(projet, aides, 10, { projet: 0.6 });
+      expect(results).toHaveLength(1);
+      expect(results[0].idAt).toBe("aide-1");
+    });
+
+    it("includes an aide label below 0.8 when aideThreshold is lowered", () => {
+      const projet = makeScores([{ label: "Sobriété énergétique", score: 0.9 }]);
+      const aides = new Map([["aide-1", makeScores([{ label: "Sobriété énergétique", score: 0.55 }])]]);
+
+      expect(service.match(projet, aides)).toHaveLength(0);
+
+      const results = service.match(projet, aides, 10, { aide: 0.5 });
+      expect(results).toHaveLength(1);
+      expect(results[0].idAt).toBe("aide-1");
+    });
+
+    it("keeps thresholds independent for the project and aide sides", () => {
+      // Label projet à 0.9 (OK au défaut), label aide à 0.6 (sous le défaut).
+      const projet = makeScores([{ label: "Test", score: 0.9 }]);
+      const aides = new Map([["aide-1", makeScores([{ label: "Test", score: 0.6 }])]]);
+
+      // Abaisser seulement le seuil projet ne suffit pas — le label aide reste filtré.
+      expect(service.match(projet, aides, 10, { projet: 0.5 })).toHaveLength(0);
+      // Abaisser le seuil aide débloque le match.
+      expect(service.match(projet, aides, 10, { aide: 0.5 })).toHaveLength(1);
+    });
+  });
 });
