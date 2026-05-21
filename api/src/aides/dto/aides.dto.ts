@@ -194,7 +194,7 @@ export class AideWithClassification extends Aide {
   @ApiProperty({
     required: false,
     type: Number,
-    description: "Score du matching thématique (labels de classification)",
+    description: "Score de pertinence thématique de l'aide pour le projet",
   })
   matchingScore?: number;
 
@@ -210,18 +210,22 @@ export class AideWithClassification extends Aide {
   @ApiProperty({
     required: false,
     type: Number,
-    description: "Score du matching lexical (BM25 texte projet ↔ texte aide), 0-1",
+    description: "Score de pertinence textuelle (0-1). Présent si la recherche textuelle complémentaire est activée.",
   })
   textualScore?: number;
 
   @ApiProperty({
     required: false,
     type: Number,
-    description: "Score combiné thématique + textuel — c'est le critère de tri",
+    description: "Score de pertinence global de l'aide — critère de tri des résultats",
   })
   combinedScore?: number;
 
-  @ApiProperty({ required: false, type: [String], description: "Termes du projet retrouvés dans le texte de l'aide" })
+  @ApiProperty({
+    required: false,
+    type: [String],
+    description: "Termes du projet retrouvés dans le contenu de l'aide",
+  })
   matchedTerms?: string[];
 }
 
@@ -231,7 +235,7 @@ export class AidesListResponse {
   @ApiProperty({
     enum: ["ok", "no_match", "no_aides_on_perimeter"],
     description:
-      "Statut du résultat — `ok` : aides matchées triées par pertinence ; `no_match` : aides présentes sur le périmètre mais aucune ne partage de label de classification ≥ 0.8 avec le projet ; `no_aides_on_perimeter` : aucune aide AT n'a été trouvée pour les codes INSEE du projet.",
+      "Statut du résultat — `ok` : aides pertinentes trouvées, triées par pertinence ; `no_match` : des aides existent sur le périmètre mais aucune n'est jugée pertinente pour le projet ; `no_aides_on_perimeter` : aucune aide n'a été trouvée sur le territoire du projet.",
   })
   status!: AidesListStatus;
 

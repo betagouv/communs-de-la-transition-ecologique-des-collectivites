@@ -78,7 +78,7 @@ export class AidesController {
   @ApiOperation({
     summary: "Lister les aides enrichies avec classification",
     description:
-      "Proxy enrichi de l'API Aides-Territoires. Retourne les aides avec classification thématiques/sites/interventions, filtrées par les territoires du projet (union des collectivités) et triées par score de matching.\n\n**Statuts de réponse** :\n- `200 ok` : aides matchées trouvées\n- `200 no_match` : aides présentes sur le périmètre mais aucune ne partage de label ≥ 0.8\n- `200 no_aides_on_perimeter` : aucune aide AT trouvée pour les codes INSEE du projet\n- `202 classification_pending` : projet pas encore classifié, job de classification (re)déclenché — réessayer après `retryAfter` secondes\n- `404` : projet inexistant",
+      "Retourne les aides pertinentes pour un projet : filtrées par son territoire, classifiées par thématiques/sites/interventions, et triées par pertinence.\n\n**Statuts de réponse** :\n- `200 ok` : aides pertinentes trouvées\n- `200 no_match` : des aides existent sur le périmètre mais aucune n'est jugée pertinente pour le projet\n- `200 no_aides_on_perimeter` : aucune aide trouvée sur le territoire du projet\n- `202 classification_pending` : le projet n'est pas encore classifié — réessayer après `retryAfter` secondes\n- `404` : projet inexistant",
   })
   @ApiQuery({
     name: "projetId",
@@ -97,8 +97,8 @@ export class AidesController {
     name: "textual",
     required: false,
     description:
-      "Force l'activation/désactivation du matching textuel (BM25) en complément du thématique. " +
-      "Sans ce param, suit le flag d'env AIDES_TEXTUAL_MATCHING_ENABLED.",
+      "Active une recherche de pertinence textuelle complémentaire (sur le contenu du projet et des aides). " +
+      "Optionnel — désactivé par défaut.",
     example: "true",
   })
   @ApiEndpointResponses({
