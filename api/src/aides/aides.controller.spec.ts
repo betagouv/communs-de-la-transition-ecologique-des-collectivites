@@ -5,7 +5,9 @@ import { AidesController } from "./aides.controller";
 import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
+import { AidesTextualMatchingService } from "./aides-textual-matching.service";
 import { AidesCacheService, CacheResult } from "./aides-cache.service";
+import { ConfigService } from "@nestjs/config";
 import { AidesWarmupService } from "./aides-warmup.service";
 import { AidesFeedbackService } from "./aides-feedback.service";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
@@ -68,8 +70,10 @@ describe("AidesController", () => {
   let mockWarmupService: jest.Mocked<AidesWarmupService>;
   let mockClassificationService: jest.Mocked<AideClassificationService>;
   let mockMatchingService: jest.Mocked<AidesMatchingService>;
+  let mockTextualMatchingService: jest.Mocked<AidesTextualMatchingService>;
   let mockFeedbackService: jest.Mocked<AidesFeedbackService>;
   let mockProjetsService: jest.Mocked<GetProjetsService>;
+  let mockConfigService: jest.Mocked<ConfigService>;
   let mockQualificationQueue: jest.Mocked<Queue>;
   const mockLogger = {
     log: jest.fn(),
@@ -104,6 +108,15 @@ describe("AidesController", () => {
       match: jest.fn().mockReturnValue([]),
     } as unknown as jest.Mocked<AidesMatchingService>;
 
+    mockTextualMatchingService = {
+      score: jest.fn().mockReturnValue(new Map()),
+    } as unknown as jest.Mocked<AidesTextualMatchingService>;
+
+    // Flag textuel désactivé par défaut → chemin historique inchangé.
+    mockConfigService = {
+      get: jest.fn().mockReturnValue(undefined),
+    } as unknown as jest.Mocked<ConfigService>;
+
     mockProjetsService = {
       findOne: jest.fn().mockResolvedValue({
         id: "test-id",
@@ -127,10 +140,12 @@ describe("AidesController", () => {
       mockAtService,
       mockClassificationService,
       mockMatchingService,
+      mockTextualMatchingService,
       mockCacheService,
       mockWarmupService,
       mockFeedbackService,
       mockProjetsService,
+      mockConfigService,
       mockQualificationQueue,
       mockLogger,
     );
@@ -311,6 +326,91 @@ describe("AidesController", () => {
       expect(result.aides).toHaveLength(1);
       expect(result.aides[0].matchingScore).toBe(0.5);
       expect(result.total).toBe(2);
+    });
+  });
+
+  describe("listAides textual matching", () => {
+    it("should NOT call the textual service when the flag is off (default)", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
+
+      await controller.listAides("test-id", makeRes().res);
+
+      expect(mockTextualMatchingService.score).not.toHaveBeenCalled();
+    });
+
+    it("should call the textual service when AIDES_TEXTUAL_MATCHING_ENABLED is true", async () => {
+      mockConfigService.get.mockReturnValue("true");
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
+
+      await controller.listAides("test-id", makeRes().res);
+
+      expect(mockTextualMatchingService.score).toHaveBeenCalled();
+    });
+
+    it("should rescue an aide with no thematic match but a textual score above the floor", async () => {
+      mockConfigService.get.mockReturnValue("true");
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1), makeAide(2)], status: "fresh" });
+      mockMatchingService.match.mockReturnValue([]); // aucun match thématique
+      mockTextualMatchingService.score.mockReturnValue(
+        new Map([
+          ["1", { score: 0.5, matchedTerms: ["renovation"] }], // ≥ 0.2 → rescue
+          ["2", { score: 0.05, matchedTerms: [] }], // < 0.2 → écartée
+        ]),
+      );
+
+      const result = (await controller.listAides("test-id", makeRes().res)) as AidesListResponse;
+
+      expect(result.status).toBe("ok");
+      expect(result.aides).toHaveLength(1);
+      expect(result.aides[0].id).toBe(1);
+      expect(result.aides[0].textualScore).toBe(0.5);
+    });
+
+    it("should sort by combinedScore (thematic + textual)", async () => {
+      mockConfigService.get.mockReturnValue("true");
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1), makeAide(2)], status: "fresh" });
+      // Aide 2 a un meilleur score thématique, aide 1 un meilleur textuel.
+      mockMatchingService.match.mockReturnValue([
+        {
+          idAt: "2",
+          score: 0.9,
+          normalizedScore: 0.9,
+          scoreThematiques: 0.9,
+          scoreSites: 0,
+          scoreInterventions: 0,
+          axesMatched: 1,
+          labelsCommuns: { thematiques: ["X"], sites: [], interventions: [] },
+        },
+      ]);
+      mockTextualMatchingService.score.mockReturnValue(
+        new Map([
+          ["1", { score: 0.9, matchedTerms: ["a"] }],
+          ["2", { score: 0.1, matchedTerms: [] }],
+        ]),
+      );
+
+      const result = (await controller.listAides("test-id", makeRes().res)) as AidesListResponse;
+
+      // combiné : aide2 = 0.7*0.9 + 0.3*0.1 = 0.66 ; aide1 = 0.7*0 + 0.3*0.9 = 0.27
+      expect(result.aides.map((a) => a.id)).toEqual([2, 1]);
+    });
+
+    it("should honor ?textual=true override even when the env flag is off", async () => {
+      mockConfigService.get.mockReturnValue(undefined); // flag env off
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
+
+      await controller.listAides("test-id", makeRes().res, undefined, undefined, "true");
+
+      expect(mockTextualMatchingService.score).toHaveBeenCalled();
+    });
+
+    it("should honor ?textual=false override even when the env flag is on", async () => {
+      mockConfigService.get.mockReturnValue("true"); // flag env on
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
+
+      await controller.listAides("test-id", makeRes().res, undefined, undefined, "false");
+
+      expect(mockTextualMatchingService.score).not.toHaveBeenCalled();
     });
   });
 

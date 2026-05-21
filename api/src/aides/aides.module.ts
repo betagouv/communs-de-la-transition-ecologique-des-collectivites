@@ -12,6 +12,7 @@ import { AidesController } from "./aides.controller";
 import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
+import { AidesTextualMatchingService } from "./aides-textual-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
 import { AidesSyncProcessor, AIDES_SYNC_QUEUE_NAME, AIDES_SYNC_JOB_NAME } from "./aides-sync.processor";
 import { AidesWarmupService } from "./aides-warmup.service";
@@ -38,6 +39,7 @@ import { AidesFeedbackService } from "./aides-feedback.service";
     AidesTerritoiresService,
     AideClassificationService,
     AidesMatchingService,
+    AidesTextualMatchingService,
     AidesCacheService,
     AidesWarmupService,
     AidesFeedbackService,
