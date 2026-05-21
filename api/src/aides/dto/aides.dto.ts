@@ -191,7 +191,11 @@ export class AideWithClassification extends Aide {
   @ApiProperty({ required: false, type: AideClassification })
   classification?: AideClassification;
 
-  @ApiProperty({ required: false, type: Number })
+  @ApiProperty({
+    required: false,
+    type: Number,
+    description: "Score du matching thématique (labels de classification)",
+  })
   matchingScore?: number;
 
   @ApiProperty({ required: false, type: Number })
@@ -202,6 +206,23 @@ export class AideWithClassification extends Aide {
 
   @ApiProperty({ required: false, type: AideLabelsCommuns })
   labelsCommuns?: AideLabelsCommuns;
+
+  @ApiProperty({
+    required: false,
+    type: Number,
+    description: "Score du matching lexical (BM25 texte projet ↔ texte aide), 0-1",
+  })
+  textualScore?: number;
+
+  @ApiProperty({
+    required: false,
+    type: Number,
+    description: "Score combiné thématique + textuel — c'est le critère de tri",
+  })
+  combinedScore?: number;
+
+  @ApiProperty({ required: false, type: [String], description: "Termes du projet retrouvés dans le texte de l'aide" })
+  matchedTerms?: string[];
 }
 
 export type AidesListStatus = "ok" | "no_match" | "no_aides_on_perimeter";

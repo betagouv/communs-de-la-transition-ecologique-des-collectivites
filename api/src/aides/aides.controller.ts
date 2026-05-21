@@ -12,6 +12,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ConfigService } from "@nestjs/config";
 import { Response } from "express";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
@@ -27,6 +28,7 @@ import {
 import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
+import { AidesTextualMatchingService } from "./aides-textual-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
 import { AidesWarmupService } from "./aides-warmup.service";
 import { AidesFeedbackService } from "./aides-feedback.service";
@@ -42,6 +44,12 @@ import {
 
 const CLASSIFICATION_RETRY_AFTER_SECONDS = 15;
 
+// Matching textuel — pondération de la combinaison thématique / textuel et
+// plancher de "rescue" pour qu'une aide non matchée thématiquement remonte.
+const W_THEMATIC = 0.7;
+const W_TEXTUAL = 0.3;
+const MIN_TEXTUAL_RESCUE = 0.2;
+
 @ApiBearerAuth()
 @ApiTags("Aides")
 @Controller("aides")
@@ -53,10 +61,12 @@ export class AidesController {
     private readonly atService: AidesTerritoiresService,
     private readonly classificationService: AideClassificationService,
     private readonly matchingService: AidesMatchingService,
+    private readonly textualMatchingService: AidesTextualMatchingService,
     private readonly cacheService: AidesCacheService,
     private readonly warmupService: AidesWarmupService,
     private readonly feedbackService: AidesFeedbackService,
     private readonly projetsService: GetProjetsService,
+    private readonly configService: ConfigService,
     @InjectQueue(PROJECT_QUALIFICATION_QUEUE_NAME) private readonly qualificationQueue: Queue,
     private readonly logger: CustomLogger,
   ) {}
@@ -81,6 +91,14 @@ export class AidesController {
     description: "Déprécié — utiliser `projetId` (camelCase). Sera supprimé après migration des consommateurs.",
   })
   @ApiQuery({ name: "limit", required: false, description: "Nombre max de résultats (défaut: 20)" })
+  @ApiQuery({
+    name: "textual",
+    required: false,
+    description:
+      "Force l'activation/désactivation du matching textuel (BM25) en complément du thématique. " +
+      "Sans ce param, suit le flag d'env AIDES_TEXTUAL_MATCHING_ENABLED.",
+    example: "true",
+  })
   @ApiEndpointResponses({
     successStatus: 200,
     response: AidesListResponse,
@@ -97,6 +115,7 @@ export class AidesController {
     @Res({ passthrough: true }) res: Response,
     @Query("limit") limit?: string,
     @Query("projet_id") projetIdSnake?: string,
+    @Query("textual") textualOverride?: string,
   ): Promise<AidesListResponse | ClassificationPendingResponse> {
     const projetId = projetIdCamel ?? projetIdSnake;
     if (!projetId) {
@@ -146,20 +165,28 @@ export class AidesController {
     const aideIds = allAides.map((a) => String(a.id));
     const classifications = await this.classificationService.getCachedClassifications(aideIds);
 
-    // 6. Do matching
+    // 6. Thematic matching — pass allAides.length so nothing is pre-sliced
+    //    before the (optional) textual combination below.
     const matchResults = new Map<string, AideMatchResult>();
-    const results = this.matchingService.match(projet.classificationScores, classifications, maxResults);
+    const results = this.matchingService.match(projet.classificationScores, classifications, allAides.length);
     for (const r of results) {
       matchResults.set(r.idAt, r);
     }
 
-    // 7. Enrich and sort by matching score
+    // 6b. Textual matching (BM25) — opt-in via flag. Runs on ALL aides of the
+    //     territory, including those not yet classified.
+    const textualEnabled = this.isTextualMatchingEnabled(textualOverride);
+    const textualResults = textualEnabled
+      ? this.textualMatchingService.score(`${projet.nom} ${projet.description ?? ""}`, allAides)
+      : null;
+
+    // 7. Enrich
     let enriched: AideWithClassification[] = allAides.map((aide) => {
       const idAt = String(aide.id);
       const classification = classifications.get(idAt);
       const match = matchResults.get(idAt);
 
-      return {
+      const base: AideWithClassification = {
         ...aide,
         classification: classification ?? undefined,
         matchingScore: match?.score,
@@ -167,18 +194,50 @@ export class AidesController {
         axesMatched: match?.axesMatched,
         labelsCommuns: match?.labelsCommuns,
       };
+
+      if (!textualResults) return base;
+
+      const textual = textualResults.get(idAt);
+      const thematicScore = match?.normalizedScore ?? 0;
+      const textualScore = textual?.score ?? 0;
+      return {
+        ...base,
+        textualScore,
+        combinedScore: W_THEMATIC * thematicScore + W_TEXTUAL * textualScore,
+        matchedTerms: textual?.matchedTerms,
+      };
     });
 
-    enriched = enriched
-      .filter((a) => a.matchingScore !== undefined)
-      .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
-      .slice(0, maxResults);
+    if (textualEnabled) {
+      // Rescue + booster : on garde tout match thématique, plus toute aide
+      // dont le score textuel dépasse le plancher de rescue. Tri par score combiné.
+      enriched = enriched
+        .filter((a) => a.matchingScore !== undefined || (a.textualScore ?? 0) >= MIN_TEXTUAL_RESCUE)
+        .sort((a, b) => (b.combinedScore ?? 0) - (a.combinedScore ?? 0))
+        .slice(0, maxResults);
+    } else {
+      // Comportement historique : matching thématique seul.
+      enriched = enriched
+        .filter((a) => a.matchingScore !== undefined)
+        .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
+        .slice(0, maxResults);
+    }
 
     if (enriched.length === 0) {
       return { status: "no_match", aides: [], total: allAides.length };
     }
 
     return { status: "ok", aides: enriched, total: allAides.length };
+  }
+
+  /**
+   * Le matching textuel est opt-in. Override par requête (`?textual=true|false`)
+   * sinon flag d'env `AIDES_TEXTUAL_MATCHING_ENABLED` (défaut désactivé).
+   */
+  private isTextualMatchingEnabled(override?: string): boolean {
+    if (override === "true") return true;
+    if (override === "false") return false;
+    return this.configService.get<string>("AIDES_TEXTUAL_MATCHING_ENABLED") === "true";
   }
 
   /**
