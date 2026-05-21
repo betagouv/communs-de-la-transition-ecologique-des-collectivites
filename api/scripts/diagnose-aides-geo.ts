@@ -45,9 +45,9 @@ const SCORE_THRESHOLD = 0.8;
 const SCORE_OFFSET = 0.1;
 
 // Combinaison thématique/textuel — alignée sur aides.controller.ts.
-const W_THEMATIC = 0.7;
-const W_TEXTUAL = 0.3;
-const MIN_TEXTUAL_RESCUE = 0.2;
+const W_THEMATIC = 0.85;
+const W_TEXTUAL = 0.15;
+const MIN_TEXTUAL_RESCUE = 0.35;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

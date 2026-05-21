@@ -69,7 +69,7 @@ const DEFAULT_THRESHOLD = 0.8;
 const TERRITORY_PREFIX = "at:territory:";
 const AIDE_PREFIX = "at:aide:";
 // Plancher de rescue textuel — aligné sur aides.controller.ts.
-const MIN_TEXTUAL_RESCUE = 0.2;
+const MIN_TEXTUAL_RESCUE = 0.35;
 
 // ─── DB config (parse manuel pour ignorer sslmode de l'URL) ──────────────────
 

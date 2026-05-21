@@ -46,9 +46,11 @@ const CLASSIFICATION_RETRY_AFTER_SECONDS = 15;
 
 // Matching textuel — pondération de la combinaison thématique / textuel et
 // plancher de "rescue" pour qu'une aide non matchée thématiquement remonte.
-const W_THEMATIC = 0.7;
-const W_TEXTUAL = 0.3;
-const MIN_TEXTUAL_RESCUE = 0.2;
+// Le thématique (labels de classification) est plus fiable que le lexical :
+// il domine nettement le score combiné, le textuel reste un bonus + rescue.
+const W_THEMATIC = 0.85;
+const W_TEXTUAL = 0.15;
+const MIN_TEXTUAL_RESCUE = 0.35;
 
 @ApiBearerAuth()
 @ApiTags("Aides")
