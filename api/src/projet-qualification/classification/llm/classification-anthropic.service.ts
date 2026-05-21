@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import Anthropic from "@anthropic-ai/sdk";
 import { CustomLogger } from "@logging/logger.service";
 import { AnthropicModel, ClassificationAnalysisResult, ClassificationLLMResponse } from "./prompts/types";
-import { SYSTEM_PROMPT_CLASSIFICATION } from "./prompts/classification-base.prompts";
+import { SYSTEM_PROMPT_CLASSIFICATION, SYSTEM_PROMPT_CLASSIFICATION_AIDE } from "./prompts/classification-base.prompts";
 import { USER_PROMPT_THEMATIQUES, USER_PROMPT_THEMATIQUES_AIDE } from "./prompts/thematiques.prompts";
 import { USER_PROMPT_SITES, USER_PROMPT_SITES_AIDE } from "./prompts/sites.prompts";
 import { USER_PROMPT_INTERVENTIONS, USER_PROMPT_INTERVENTIONS_AIDE } from "./prompts/interventions.prompts";
@@ -74,7 +74,7 @@ export class ClassificationAnthropicService {
       system: [
         {
           type: "text",
-          text: SYSTEM_PROMPT_CLASSIFICATION,
+          text: type === "aide" ? SYSTEM_PROMPT_CLASSIFICATION_AIDE : SYSTEM_PROMPT_CLASSIFICATION,
           cache_control: { type: "ephemeral" },
         },
       ],

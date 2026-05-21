@@ -1,6 +1,7 @@
 import { ClassificationAnthropicService } from "./classification-anthropic.service";
 import { ConfigService } from "@nestjs/config";
 import { CustomLogger } from "@logging/logger.service";
+import { SYSTEM_PROMPT_CLASSIFICATION, SYSTEM_PROMPT_CLASSIFICATION_AIDE } from "./prompts/classification-base.prompts";
 
 describe("ClassificationAnthropicService", () => {
   let service: ClassificationAnthropicService;
@@ -153,6 +154,30 @@ Correction - uniquement les modalités autorisées :
       };
       expect(result.json.projet).toBe("v2");
       expect(result.json.items[0].label).toBe("New");
+    });
+  });
+
+  describe("buildMessageParams — system prompt", () => {
+    const systemText = (params: ReturnType<ClassificationAnthropicService["buildMessageParams"]>): string => {
+      const system = params.system;
+      if (typeof system === "string") return system;
+      const block = system?.[0];
+      return block?.type === "text" ? block.text : "";
+    };
+
+    it("uses the aide-specific system prompt when type is 'aide'", () => {
+      const params = service.buildMessageParams("Aide test", "thematiques", "aide");
+      expect(systemText(params)).toBe(SYSTEM_PROMPT_CLASSIFICATION_AIDE);
+    });
+
+    it("uses the generic system prompt when type is 'projet'", () => {
+      const params = service.buildMessageParams("Projet test", "thematiques", "projet");
+      expect(systemText(params)).toBe(SYSTEM_PROMPT_CLASSIFICATION);
+    });
+
+    it("defaults to the generic (projet) system prompt", () => {
+      const params = service.buildMessageParams("Projet test", "sites");
+      expect(systemText(params)).toBe(SYSTEM_PROMPT_CLASSIFICATION);
     });
   });
 });
