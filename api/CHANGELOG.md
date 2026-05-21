@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.82](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.81...v0.1.82) (2026-05-21)
+
+
+### Features
+
+* **aides:** matching textuel lexical (BM25) en complément du matching thématique ([b43e3f2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/b43e3f2d3137e467dbe6f18bed3b54b22092913d))
+* **aides:** params cutoff et seuils de confiance sur GET /aides ([954785a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/954785a4a2a51fae3e9ad9a2b354c5420caf69c9))
+* **classification:** prompt system dédié aux aides ([de68f1b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/de68f1b6a3f7aa03b62b64206b4575c91f051499))
+* **dashboard-te:** filtres site/intervention/thematique + scoreMin sur /projets ([b14b0b2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/b14b0b203f5cee66ce2fcde83ad47e9b307671a7))
+* **referentiel:** expose taxonomies sites/thematiques/interventions/leviers ([2affe42](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2affe42a8068327bc0dde7b2ccc5ac47bb9ca9af))
+
+
+### Bug Fixes
+
+* **aides:** fallback data_mec/data_tet sur findOne + routing des jobs de classification ([0ad04a8](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/0ad04a84a616ba3de4bb428520cea1b070dc52d7))
+* **api:** relâcher l'assertion du test E2E leviers (flaky post Haiku 4.5) ([2f5475e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2f5475e55a9574a019f176b169c5cd8fd75ac4d2))
+* **api:** stabiliser le test E2E leviers (description littérale) ([ec89065](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ec8906577cb5d02d4e12eb024beaae4a21991a39))
+
 ## [0.1.81](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.80...v0.1.81) (2026-05-08)
 
 
