@@ -405,8 +405,8 @@ describe("AidesController", () => {
       mockMatchingService.match.mockReturnValue([]); // aucun match thématique
       mockTextualMatchingService.score.mockReturnValue(
         new Map([
-          ["1", { score: 0.5, matchedTerms: ["renovation"] }], // ≥ 0.2 → rescue
-          ["2", { score: 0.05, matchedTerms: [] }], // < 0.2 → écartée
+          ["1", { score: 0.5, matchedTerms: ["renovation"] }], // ≥ 0.35 → rescue
+          ["2", { score: 0.05, matchedTerms: [] }], // < 0.35 → écartée
         ]),
       );
 
@@ -443,7 +443,7 @@ describe("AidesController", () => {
 
       const result = (await controller.listAides("test-id", makeRes().res)) as AidesListResponse;
 
-      // combiné : aide2 = 0.7*0.9 + 0.3*0.1 = 0.66 ; aide1 = 0.7*0 + 0.3*0.9 = 0.27
+      // combiné : aide2 = 0.85*0.9 + 0.15*0.1 = 0.78 ; aide1 = 0.85*0 + 0.15*0.9 = 0.135
       expect(result.aides.map((a) => a.id)).toEqual([2, 1]);
     });
 
