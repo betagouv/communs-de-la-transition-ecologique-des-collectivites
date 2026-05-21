@@ -466,6 +466,77 @@ describe("AidesController", () => {
     });
   });
 
+  describe("listAides cutoff & thresholds", () => {
+    const matchResult = (idAt: string, score: number, normalizedScore: number) => ({
+      idAt,
+      score,
+      normalizedScore,
+      scoreThematiques: score,
+      scoreSites: 0,
+      scoreInterventions: 0,
+      axesMatched: 1,
+      labelsCommuns: { thematiques: ["X"], sites: [], interventions: [] },
+    });
+
+    it("filters out aides whose normalized score is below the cutoff", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1), makeAide(2)], status: "fresh" });
+      mockMatchingService.match.mockReturnValue([
+        matchResult("1", 0.5, 0.5), // ≥ 0.1 → gardée
+        matchResult("2", 0.05, 0.05), // < 0.1 → écartée
+      ]);
+
+      // cutoff = 6e argument
+      const result = (await controller.listAides(
+        "test-id",
+        makeRes().res,
+        undefined,
+        undefined,
+        undefined,
+        "0.1",
+      )) as AidesListResponse;
+
+      expect(result.status).toBe("ok");
+      expect(result.aides.map((a) => a.id)).toEqual([1]);
+    });
+
+    it("keeps every matched aide when no cutoff is provided", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1), makeAide(2)], status: "fresh" });
+      mockMatchingService.match.mockReturnValue([matchResult("1", 0.5, 0.5), matchResult("2", 0.05, 0.05)]);
+
+      const result = (await controller.listAides("test-id", makeRes().res)) as AidesListResponse;
+
+      expect(result.aides.map((a) => a.id)).toEqual([1, 2]);
+    });
+
+    it("passes aideThreshold and projetThreshold to the matching service", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
+
+      await controller.listAides("test-id", makeRes().res, undefined, undefined, undefined, undefined, "0.7", "0.6");
+
+      expect(mockMatchingService.match).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.any(Number), {
+        projet: 0.6,
+        aide: 0.7,
+      });
+    });
+
+    it("leaves thresholds undefined when the params are absent (matcher applies its default)", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
+
+      await controller.listAides("test-id", makeRes().res);
+
+      expect(mockMatchingService.match).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.any(Number), {
+        projet: undefined,
+        aide: undefined,
+      });
+    });
+
+    it("rejects an out-of-range score parameter with 400", async () => {
+      await expect(
+        controller.listAides("test-id", makeRes().res, undefined, undefined, undefined, "1.5"),
+      ).rejects.toThrow();
+    });
+  });
+
   describe("syncClassifications", () => {
     it("should invalidate territories and trigger warmup in background", async () => {
       const result = await controller.syncClassifications();
