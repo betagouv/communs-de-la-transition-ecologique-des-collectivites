@@ -60,6 +60,8 @@ export interface ProjetsFilter {
   financement?: "avec" | "sans";
   montantMin?: number;
   montantMax?: number;
+  probaTeMin?: number;
+  probaTeMax?: number;
   q?: string;
 }
 
@@ -472,6 +474,14 @@ export class DashboardTeService {
     if (f.montantMax !== undefined) {
       conditions.push(sql`${cappedBudget(sql`p."budgetPrevisionnel"`)} <= ${f.montantMax}`);
     }
+    // probaTeMin/Max : filtre sur la probabilité de transition écologique (llm_probabilite_te,
+    // double precision sur 0–1). Un projet sans proba (NULL) ne matche aucun intervalle.
+    if (f.probaTeMin !== undefined) {
+      conditions.push(sql`p.llm_probabilite_te >= ${f.probaTeMin}`);
+    }
+    if (f.probaTeMax !== undefined) {
+      conditions.push(sql`p.llm_probabilite_te <= ${f.probaTeMax}`);
+    }
 
     const needsCommuneJoin = Boolean(f.commune ?? f.departement);
 
@@ -565,16 +575,22 @@ export class DashboardTeService {
     // Une ligne par projet : la jointure communes peut dédoubler les lignes.
     const filtered = sql`
       SELECT DISTINCT p.id, p.phase, p.source_origine,
-        p."budgetPrevisionnel", p.llm_thematiques, p."competencesM57", p."leviersSgpe"
+        p."budgetPrevisionnel", p.llm_thematiques, p."competencesM57", p."leviersSgpe",
+        p.llm_probabilite_te
       ${joinClause}
       ${whereClause}
     `;
 
-    const [totals] = await this.query<{ count: string; sumBudget: string }>(sql`
+    // probaTePondere = Σ(probaTE × budget) / Σ(budget), sur les projets ayant À LA
+    // FOIS une proba TE et un budget (plafonné) renseignés. NULL si aucun.
+    const [totals] = await this.query<{ count: string; sumBudget: string; probaTePondere: string | null }>(sql`
       WITH filtered AS (${filtered})
       SELECT
         count(*)::text AS count,
-        COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)::text AS "sumBudget"
+        COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)::text AS "sumBudget",
+        (SUM(llm_probabilite_te * ${cappedBudget(sql`"budgetPrevisionnel"`)})
+          / NULLIF(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)})
+              FILTER (WHERE llm_probabilite_te IS NOT NULL), 0))::text AS "probaTePondere"
       FROM filtered
     `);
 
@@ -631,6 +647,22 @@ export class DashboardTeService {
       LIMIT 25
     `);
 
+    // Répartition par tranche de proba TE : élevée ≥ 0.8, moyenne 0.5–0.8,
+    // faible < 0.5, plus les projets sans proba.
+    const parTrancheProbaTe = await this.query<{ key: string; count: string }>(sql`
+      WITH filtered AS (${filtered})
+      SELECT
+        CASE
+          WHEN llm_probabilite_te IS NULL THEN 'nonRenseigne'
+          WHEN llm_probabilite_te >= 0.8 THEN 'elevee'
+          WHEN llm_probabilite_te >= 0.5 THEN 'moyenne'
+          ELSE 'faible'
+        END AS key,
+        count(*)::text AS count
+      FROM filtered
+      GROUP BY 1
+    `);
+
     const toMap = (rows: { key: string; count: string }[]): Record<string, number> =>
       Object.fromEntries(rows.map((r) => [r.key, Number(r.count)]));
 
@@ -639,11 +671,13 @@ export class DashboardTeService {
       sumBudgetPrevisionnel: Number(totals?.sumBudget ?? 0),
       sumFinancementAttribue: Number(fin?.sumAttribue ?? 0),
       avecFinancementCount: Number(fin?.avecCount ?? 0),
+      probaTeMoyennePonderee: totals?.probaTePondere != null ? Number(totals.probaTePondere) : null,
       parPhase: toMap(parPhase),
       parSource: toMap(parSource),
       parThematique: toMap(parThematique),
       parCompetence: toMap(parCompetence),
       parLevier: toMap(parLevier),
+      parTrancheProbaTe: { elevee: 0, moyenne: 0, faible: 0, nonRenseigne: 0, ...toMap(parTrancheProbaTe) },
     };
   }
 

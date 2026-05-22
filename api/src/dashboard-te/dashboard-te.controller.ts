@@ -51,6 +51,8 @@ const first = (v: string | string[] | undefined): string | undefined => (Array.i
 const parseProjetsFilter = (raw: RawQuery) => {
   const montantMinNum = first(raw.montantMin) ? Number(first(raw.montantMin)) : undefined;
   const montantMaxNum = first(raw.montantMax) ? Number(first(raw.montantMax)) : undefined;
+  const probaTeMinNum = first(raw.probaTeMin) ? Number(first(raw.probaTeMin)) : undefined;
+  const probaTeMaxNum = first(raw.probaTeMax) ? Number(first(raw.probaTeMax)) : undefined;
   const financementRaw = first(raw.financement);
   const financement: "avec" | "sans" | undefined =
     financementRaw === "avec" || financementRaw === "sans" ? financementRaw : undefined;
@@ -70,6 +72,8 @@ const parseProjetsFilter = (raw: RawQuery) => {
     financement,
     montantMin: Number.isFinite(montantMinNum) && montantMinNum! >= 0 ? montantMinNum : undefined,
     montantMax: Number.isFinite(montantMaxNum) && montantMaxNum! >= 0 ? montantMaxNum : undefined,
+    probaTeMin: Number.isFinite(probaTeMinNum) ? probaTeMinNum : undefined,
+    probaTeMax: Number.isFinite(probaTeMaxNum) ? probaTeMaxNum : undefined,
     q: first(raw.q),
   };
 };
