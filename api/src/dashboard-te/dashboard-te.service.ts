@@ -454,9 +454,10 @@ export class DashboardTeService {
       conditions.push(sql`(${sql.join(labelPredicates, joiner)})`);
     }
 
-    // Financement filters. The financements table FK is inconsistent across rows
-    // (some use "projetId", some projet_id), so both are matched — same as projet().
-    const financementMatch = sql`(f."projetId" = p.id OR f.projet_id = p.id)`;
+    // Financement filters. The financements FK to a projet is the snake_case
+    // column projet_id — there is no "projetId" column (referencing it raised a
+    // 500 in the montant/financement filters).
+    const financementMatch = sql`f.projet_id = p.id`;
     if (financement === "avec") {
       conditions.push(sql`EXISTS (SELECT 1 FROM schema_commun_v2.financements f WHERE ${financementMatch})`);
     }
@@ -581,7 +582,7 @@ export class DashboardTeService {
         CAST(NULLIF("montantPaye", '') AS numeric) AS "montantPaye",
         statut
       FROM schema_commun_v2.financements
-      WHERE "projetId" = ${id} OR projet_id = ${id}
+      WHERE projet_id = ${id}
     `,
     ).catch(() => [] as Row[]);
 
