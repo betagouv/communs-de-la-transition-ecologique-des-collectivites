@@ -547,6 +547,7 @@ export class DashboardTeService {
         ${classifLabels(sql`p.llm_interventions`)} AS "classificationInterventions",
         p.llm_sites->0->>'label' AS "llmSite",
         p.llm_sites->0->>'nom_propre' AS "llmSiteNomPropre",
+        p.llm_probabilite_te AS "llmProbabiliteTe",
         cm.cluster_id AS "clusterId",
         c.confiance AS "clusterConfiance"
       ${joinClause}
@@ -720,6 +721,7 @@ export class DashboardTeService {
         p.llm_sites->0->>'nom_propre' AS "llmSiteNomPropre",
         p.llm_interventions->0->>'label' AS "llmIntervention",
         p.llm_thematiques->0->>'label' AS "llmThematique",
+        p.llm_probabilite_te AS "llmProbabiliteTe",
         cm.cluster_id AS "clusterId",
         c.confiance AS "clusterConfiance"
       FROM schema_commun_v2.projets_operationnels p
