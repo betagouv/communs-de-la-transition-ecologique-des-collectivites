@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.86](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.85...v0.1.86) (2026-05-22)
+
+
+### Features
+
+* **dashboard-te:** endpoint /projets/summary ([9d6df4b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/9d6df4b3562e397599eb1e4435109f528badf9b2))
+* **dashboard-te:** plafonner les montants aberrants à 100 M€ ([a9cc58b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/a9cc58b5c66112ea8899e7ec30639b4a868ec9fa))
+* **dashboard-te:** trier la liste des projets ([c4f6d12](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/c4f6d12785fd1bd4a5d1cde140b8664871e188f4))
+
+
+### Bug Fixes
+
+* **dashboard-te:** corriger le filtre montant/financement (colonne projet_id) ([9f9342d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/9f9342dd9233f52c579c2a9ac848e8c2df6d1ec1))
+
 ## [0.1.85](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.84...v0.1.85) (2026-05-22)
 
 
