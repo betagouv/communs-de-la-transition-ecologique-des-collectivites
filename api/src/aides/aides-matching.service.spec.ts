@@ -138,6 +138,30 @@ describe("AidesMatchingService", () => {
       expect(results[0].labelsCommuns.thematiques).toEqual(["A"]);
     });
 
+    it("should weight axes 45% thématiques / 35% sites / 20% interventions", () => {
+      // Project has one label per axis, all at the same confidence (0.9).
+      // Each aide is a perfect match (1.0) on exactly one axis, so its
+      // normalizedScore reflects that axis' relative weight.
+      const projet = makeScores(
+        [{ label: "Th", score: 0.9 }],
+        [{ label: "Si", score: 0.9 }],
+        [{ label: "In", score: 0.9 }],
+      );
+
+      const aides = new Map([
+        ["aide-th", makeScores([{ label: "Th", score: 1.0 }], [], [])],
+        ["aide-si", makeScores([], [{ label: "Si", score: 1.0 }], [])],
+        ["aide-in", makeScores([], [], [{ label: "In", score: 1.0 }])],
+      ]);
+
+      const results = service.match(projet, aides);
+      const byId = (id: string) => results.find((r) => r.idAt === id)!;
+
+      expect(byId("aide-th").normalizedScore).toBeCloseTo(0.45, 2);
+      expect(byId("aide-si").normalizedScore).toBeCloseTo(0.35, 2);
+      expect(byId("aide-in").normalizedScore).toBeCloseTo(0.2, 2);
+    });
+
     it("should handle empty inputs", () => {
       expect(service.match(makeScores(), new Map())).toEqual([]);
     });
