@@ -19,7 +19,9 @@
  *   4. Axis score = sum(terms) / number of project labels on this axis
  *      Division normalizes so projects with fewer labels aren't penalized
  *
- * Total score = score_thématiques + score_sites + score_interventions
+ * Total score = 0.45 × score_thématiques + 0.35 × score_sites + 0.20 × score_interventions
+ *   The axis weights make the thematic relevance dominant, the location
+ *   secondary, and the intervention type a lighter tie-breaker.
  */
 
 import { Injectable } from "@nestjs/common";
@@ -37,6 +39,11 @@ export class AidesMatchingService {
   /** Default confidence threshold (Gaëtan's script: THRESHOLD=80 on the 0-100 scale). */
   static readonly DEFAULT_THRESHOLD = 0.8;
   private readonly SCORE_OFFSET = 0.1;
+
+  // Relative weight of each axis in the total score (must sum to 1)
+  private readonly WEIGHT_THEMATIQUES = 0.45;
+  private readonly WEIGHT_SITES = 0.35;
+  private readonly WEIGHT_INTERVENTIONS = 0.2;
 
   constructor(private readonly logger: CustomLogger) {}
 
@@ -81,7 +88,10 @@ export class AidesMatchingService {
       const siResult = this.scoreAxis(pSites, aSites, projetThreshold, aideThreshold);
       const inResult = this.scoreAxis(pInterventions, aInterventions, projetThreshold, aideThreshold);
 
-      const totalScore = thResult.score + siResult.score + inResult.score;
+      const totalScore =
+        this.WEIGHT_THEMATIQUES * thResult.score +
+        this.WEIGHT_SITES * siResult.score +
+        this.WEIGHT_INTERVENTIONS * inResult.score;
 
       if (totalScore > 0) {
         const axesMatched =
@@ -113,7 +123,8 @@ export class AidesMatchingService {
 
   /**
    * Theoretical max score for a project: the score if a hypothetical aide
-   * matched every project label at confidence 1.0.
+   * matched every project label at confidence 1.0. Uses the same axis
+   * weights as the total score so normalizedScore stays in [0, 1].
    */
   private computeProjectMax(
     pThematiques: Map<string, number>,
@@ -123,9 +134,9 @@ export class AidesMatchingService {
     aideThreshold: number,
   ): number {
     return (
-      this.axisMax(pThematiques, projetThreshold, aideThreshold) +
-      this.axisMax(pSites, projetThreshold, aideThreshold) +
-      this.axisMax(pInterventions, projetThreshold, aideThreshold)
+      this.WEIGHT_THEMATIQUES * this.axisMax(pThematiques, projetThreshold, aideThreshold) +
+      this.WEIGHT_SITES * this.axisMax(pSites, projetThreshold, aideThreshold) +
+      this.WEIGHT_INTERVENTIONS * this.axisMax(pInterventions, projetThreshold, aideThreshold)
     );
   }
 

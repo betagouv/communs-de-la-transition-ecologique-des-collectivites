@@ -254,7 +254,9 @@ Le matching ne fait **aucun appel à l'IA**. C'est un calcul mathématique pur b
 3. Score axe = somme(termes) / nombre de labels du projet sur cet axe
 ```
 
-**Score total** = score thématiques + score sites + score interventions
+**Score total** = 0.45 × score thématiques + 0.35 × score sites + 0.20 × score interventions
+
+Les trois axes ne pèsent pas autant : la pertinence **thématique** est dominante (45 %), le **lieu** est secondaire (35 %) et le **type d'intervention** sert de critère d'appoint (20 %).
 
 **Pourquoi le `- 0.7` ?** C'est un décalage qui donne plus de poids aux labels dont le modèle est très sûr :
 
@@ -292,7 +294,7 @@ Score interventions :
   = (0.95 - 0.7) × (0.90 - 0.7) / 1 label projet
   = 0.25 × 0.20 = 0.05
 
-Score total = 0.0165 + 0 + 0.05 = 0.0665
+Score total = 0.45 × 0.0165 + 0.35 × 0 + 0.20 × 0.05 = 0.0174
 ```
 
 ### 4. Classifier un texte à la volée (optionnel)
