@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.83](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.82...v0.1.83) (2026-05-22)
+
+
+### Features
+
+* **aides:** pondérer les axes du matching aides/projets ([f60ece9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f60ece97a9c49985354db65746a181924ab1b0cc))
+* **dashboard-te:** filtrer les projets par financement et montant ([8e71a3e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/8e71a3ed8dcfbb068ccae6071e264da185fe0bbe))
+
 ## [0.1.82](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.81...v0.1.82) (2026-05-21)
 
 
