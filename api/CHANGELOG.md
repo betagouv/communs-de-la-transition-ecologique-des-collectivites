@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.88](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.87...v0.1.88) (2026-05-22)
+
+
+### Bug Fixes
+
+* **dashboard-te:** filtrer montantMin/Max sur le budget du projet ([3d5def1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3d5def1e76f11dc98d198e03368e5d1234ee410c))
+
 ## [0.1.87](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.86...v0.1.87) (2026-05-22)
 
 
