@@ -85,8 +85,8 @@ export class DashboardTeController {
   constructor(private readonly svc: DashboardTeService) {}
 
   @Get("stats/national")
-  statsNational() {
-    return this.svc.statsNational();
+  statsNational(@Query() query: RawQuery) {
+    return this.svc.statsNational(first(query.inclure_tet) === "true");
   }
 
   @Get("stats/departement/:code")

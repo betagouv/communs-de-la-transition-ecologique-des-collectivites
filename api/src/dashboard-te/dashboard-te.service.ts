@@ -78,7 +78,35 @@ export class DashboardTeService {
    * Rich national statistics matching V2's `StatsNational` shape.
    * Returns totals, plus aggregations parSource/parPhase/parDepartement/etc.
    */
-  async statsNational() {
+  // Source allégée pour les stats nationales : une ligne par projet — et, si
+  // inclureTet, par fiche action TeT racine — avec les seules colonnes agrégées.
+  private statsActions(inclureTet: boolean): SQL {
+    const projets = sql`
+      SELECT
+        source_origine AS "sourceOrigine",
+        phase,
+        ${cappedBudget(sql`"budgetPrevisionnel"`)} AS budget,
+        "competencesM57" AS competences,
+        "leviersSgpe" AS leviers,
+        "collectiviteResponsableSiren" AS siren
+      FROM schema_commun_v2.projets_operationnels`;
+    if (!inclureTet) return projets;
+    const fiches = sql`
+      SELECT
+        'TeT'::text AS "sourceOrigine",
+        f.source_metadata->>'phase' AS phase,
+        ${cappedBudget(sql`f.source_metadata->>'budgetPrevisionnel'`)} AS budget,
+        array_to_string(f.competences_m57, ',') AS competences,
+        array_to_string(f.leviers_sgpe, ',') AS leviers,
+        f.collectivite_responsable_siren AS siren
+      FROM data_tet.fiches_action f
+      WHERE f.parent_id IS NULL`;
+    return sql`${projets} UNION ALL ${fiches}`;
+  }
+
+  async statsNational(inclureTet = false) {
+    const actions = this.statsActions(inclureTet);
+
     // Totals
     const [totalsRow] = await this.query<{
       totalProjets: string;
@@ -90,13 +118,11 @@ export class DashboardTeService {
       totalFinancementAttribue: string;
       totalFinancementPaye: string;
     }>(sql`
+      WITH a AS (${actions})
       SELECT
-        (SELECT count(*) FROM schema_commun_v2.projets_operationnels)::text AS "totalProjets",
-        (SELECT COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)
-          FROM schema_commun_v2.projets_operationnels)::text AS "totalBudget",
-        (SELECT count(DISTINCT "collectiviteResponsableSiren")
-          FROM schema_commun_v2.projets_operationnels
-          WHERE "collectiviteResponsableSiren" IS NOT NULL)::text AS "totalCollectivites",
+        (SELECT count(*) FROM a)::text AS "totalProjets",
+        (SELECT COALESCE(SUM(budget), 0) FROM a)::text AS "totalBudget",
+        (SELECT count(DISTINCT siren) FROM a WHERE siren IS NOT NULL)::text AS "totalCollectivites",
         (SELECT count(*) FROM schema_commun_v2.plans_transition)::text AS "totalPlans",
         (SELECT count(*) FROM schema_commun_v2.fiches_action)::text AS "totalFiches",
         (SELECT count(*) FROM schema_commun_v2.financements)::text AS "totalFinancements",
@@ -129,21 +155,23 @@ export class DashboardTeService {
 
     // By source
     const parSource = await this.query<{ source: string; count: string; budget: string }>(sql`
-      SELECT source_origine AS source, count(*)::text AS count,
-        COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)::text AS budget
-      FROM schema_commun_v2.projets_operationnels
-      WHERE source_origine IS NOT NULL
-      GROUP BY source_origine
+      WITH a AS (${actions})
+      SELECT "sourceOrigine" AS source, count(*)::text AS count,
+        COALESCE(SUM(budget), 0)::text AS budget
+      FROM a
+      WHERE "sourceOrigine" IS NOT NULL
+      GROUP BY "sourceOrigine"
       ORDER BY count(*) DESC
     `);
 
     // By phase
     const parPhase = await this.query<{ phase: string; count: string; budget: string }>(sql`
+      WITH a AS (${actions})
       SELECT COALESCE(NULLIF(phase, ''), 'Non renseigné') AS phase,
         count(*)::text AS count,
-        COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)::text AS budget
-      FROM schema_commun_v2.projets_operationnels
-      GROUP BY phase
+        COALESCE(SUM(budget), 0)::text AS budget
+      FROM a
+      GROUP BY 1
       ORDER BY count(*) DESC
     `);
 
@@ -157,32 +185,44 @@ export class DashboardTeService {
       budgetTotal: string;
       nbPlans: string;
     }>(sql`
-      WITH projet_dept AS (
-        SELECT DISTINCT p.id, p."collectiviteResponsableSiren", p."budgetPrevisionnel",
-          ar.code_departement AS code_dept, ar.code_region AS code_reg
+      WITH action_dept AS (
+        SELECT DISTINCT p.id::text AS id, p."collectiviteResponsableSiren" AS siren,
+          ${cappedBudget(sql`p."budgetPrevisionnel"`)} AS budget,
+          ar.code_departement AS dept, ar.code_region AS reg
         FROM schema_commun_v2.projets_operationnels p
         JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id
         JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com
         WHERE ar.code_departement IS NOT NULL
+        ${
+          inclureTet
+            ? sql`
+        UNION ALL
+        SELECT DISTINCT f.id::text, f.collectivite_responsable_siren,
+          ${cappedBudget(sql`f.source_metadata->>'budgetPrevisionnel'`)},
+          ar.code_departement, ar.code_region
+        FROM data_tet.fiches_action f
+        JOIN api_referentiel.communes ar ON ar.code_insee = ANY(f.territoire_communes)
+        WHERE f.parent_id IS NULL AND ar.code_departement IS NOT NULL`
+            : sql``
+        }
       )
-      SELECT code_dept AS code,
-        code_dept AS nom,
-        COALESCE(MAX(code_reg), '') AS region,
+      SELECT dept AS code,
+        dept AS nom,
+        COALESCE(MAX(reg), '') AS region,
         count(DISTINCT id)::text AS "nbProjets",
-        count(DISTINCT "collectiviteResponsableSiren")::text AS "nbCollectivites",
-        COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)::text AS "budgetTotal",
+        count(DISTINCT siren)::text AS "nbCollectivites",
+        COALESCE(SUM(budget), 0)::text AS "budgetTotal",
         0::text AS "nbPlans"
-      FROM projet_dept
-      GROUP BY code_dept
-      ORDER BY code_dept
+      FROM action_dept
+      GROUP BY dept
+      ORDER BY dept
     `);
 
-    // Top leviers SGPE (text[] array unnested)
+    // Top leviers SGPE
     const parLevier = await this.query<{ levier: string; count: string }>(sql`
+      WITH a AS (${actions})
       SELECT levier, count(*)::text AS count
-      FROM schema_commun_v2.projets_operationnels, UNNEST(
-        string_to_array("leviersSgpe", ',')
-      ) AS levier
+      FROM a, UNNEST(string_to_array(leviers, ',')) AS levier
       WHERE levier IS NOT NULL AND trim(levier) <> ''
       GROUP BY levier
       ORDER BY count(*) DESC
@@ -191,10 +231,9 @@ export class DashboardTeService {
 
     // Top competences M57
     const parCompetence = await this.query<{ code: string; count: string }>(sql`
+      WITH a AS (${actions})
       SELECT code, count(*)::text AS count
-      FROM schema_commun_v2.projets_operationnels, UNNEST(
-        string_to_array("competencesM57", ',')
-      ) AS code
+      FROM a, UNNEST(string_to_array(competences, ',')) AS code
       WHERE code IS NOT NULL AND trim(code) <> ''
       GROUP BY code
       ORDER BY count(*) DESC
