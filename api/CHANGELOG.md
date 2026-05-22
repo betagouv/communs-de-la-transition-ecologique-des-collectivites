@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.91](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.90...v0.1.91) (2026-05-22)
+
+
+### Features
+
+* **dashboard-te:** flag inclure_tet — agréger les fiches action TeT ([a45bc54](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/a45bc545fcca856b8f9b46616314c73aa93cba5a))
+
 ## [0.1.90](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.89...v0.1.90) (2026-05-22)
 
 
