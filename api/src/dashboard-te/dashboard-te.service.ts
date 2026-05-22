@@ -503,17 +503,147 @@ export class DashboardTeService {
     return { joinClause, whereClause };
   }
 
-  async projets(params: ProjetsFilter & { sort?: string; order?: "asc" | "desc"; page: number; limit: number }) {
-    const { sort, order, page, limit } = params;
-    const { joinClause, whereClause } = this.buildProjetsFilter(params);
+  // Filtre pour les fiches action TeT (data_tet.fiches_action), parallèle à
+  // buildProjetsFilter. Renvoie null si le filtre exclut d'office toutes les fiches.
+  private buildFichesFilter(f: ProjetsFilter): { joinClause: SQL; whereClause: SQL } | null {
+    // Les fiches data_tet ont toutes la source « TeT » et n'ont aucun financement.
+    if (f.source && f.source !== "TeT") return null;
+    if (f.financement === "avec") return null;
 
-    // Whitelisted sort. `sort` from the request never reaches the SQL as raw text:
-    // it only picks one of these fixed output-column names. Ordering by an output
-    // column keeps it valid under SELECT DISTINCT and lets the budget sort follow
-    // the capped budget transparently. Plusieurs alias sont acceptés pour le tri
-    // budget (montant/budget/budgetPrevisionnel) car le param filtre s'appelle
-    // montantMin/Max et le champ de réponse budgetPrevisionnel. Unknown/missing
-    // `sort` falls back to nom; a secondary sort on nom keeps pagination stable.
+    const pattern = f.q ? `%${f.q}%` : null;
+    const pgArray = (vals: string[]): SQL =>
+      sql`ARRAY[${sql.join(
+        vals.map((v) => sql`${v}`),
+        sql`, `,
+      )}]::text[]`;
+
+    // Conditions toujours AND. parent_id IS NULL : seules les fiches racines sont
+    // comptées (les sous-actions gonfleraient les totaux).
+    const conditions: SQL[] = [sql`f.parent_id IS NULL`];
+    if (f.commune) conditions.push(sql`${f.commune} = ANY(f.territoire_communes)`);
+    if (f.departement) {
+      conditions.push(sql`EXISTS (
+        SELECT 1 FROM api_referentiel.communes ar
+        WHERE ar.code_insee = ANY(f.territoire_communes) AND ar.code_departement = ${f.departement}
+      )`);
+    }
+    if (f.siren) conditions.push(sql`f.collectivite_responsable_siren = ${f.siren}`);
+    if (f.phase) conditions.push(sql`f.source_metadata->>'phase' = ${f.phase}`);
+    if (pattern) conditions.push(sql`f.nom ILIKE ${pattern}`);
+
+    // Axes de labels — OR dans un axe, AND/OR entre axes selon match. Les fiches
+    // stockent leurs classifications en text[] (recouvrement via &&).
+    const labelPredicates: SQL[] = [];
+    if (f.competence && f.competence.length > 0) {
+      labelPredicates.push(sql`f.competences_m57 && ${pgArray(f.competence)}`);
+    }
+    if (f.levier && f.levier.length > 0) {
+      labelPredicates.push(sql`f.leviers_sgpe && ${pgArray(f.levier)}`);
+    }
+    const overlap = (col: SQL, entries: { label: string }[]): SQL =>
+      sql`${col} && ${pgArray(entries.map((e) => e.label))}`;
+    if (f.site && f.site.length > 0) labelPredicates.push(overlap(sql`f.classification_sites`, f.site));
+    if (f.intervention && f.intervention.length > 0) {
+      labelPredicates.push(overlap(sql`f.classification_interventions`, f.intervention));
+    }
+    if (f.thematique && f.thematique.length > 0) {
+      labelPredicates.push(overlap(sql`f.classification_thematiques`, f.thematique));
+    }
+    if (labelPredicates.length > 0) {
+      const joiner = f.match === "all" ? sql` AND ` : sql` OR `;
+      conditions.push(sql`(${sql.join(labelPredicates, joiner)})`);
+    }
+
+    const budget = cappedBudget(sql`f.source_metadata->>'budgetPrevisionnel'`);
+    if (f.montantMin !== undefined) conditions.push(sql`${budget} >= ${f.montantMin}`);
+    if (f.montantMax !== undefined) conditions.push(sql`${budget} <= ${f.montantMax}`);
+    const proba = sql`CAST(NULLIF(f.probabilite_te, '') AS double precision)`;
+    if (f.probaTeMin !== undefined) conditions.push(sql`${proba} >= ${f.probaTeMin}`);
+    if (f.probaTeMax !== undefined) conditions.push(sql`${proba} <= ${f.probaTeMax}`);
+
+    let whereClause = sql`WHERE `;
+    for (let i = 0; i < conditions.length; i++) {
+      if (i > 0) whereClause = sql`${whereClause} AND `;
+      whereClause = sql`${whereClause}${conditions[i]}`;
+    }
+    return { joinClause: sql`FROM data_tet.fiches_action f`, whereClause };
+  }
+
+  // Source normalisée « actions » : les projets_operationnels, et — si inclureTet —
+  // les fiches action TeT (data_tet) projetées sur la même forme. Discriminant `type`.
+  private actionsSource(filter: ProjetsFilter, inclureTet: boolean): SQL {
+    const pf = this.buildProjetsFilter(filter);
+    const projetBranch = sql`
+      SELECT DISTINCT
+        'projet'::text AS type,
+        p.id::text AS id,
+        p.nom,
+        p.description,
+        p.source_origine AS "sourceOrigine",
+        p.phase,
+        p."phaseStatut",
+        ${cappedBudget(sql`p."budgetPrevisionnel"`)} AS "budgetPrevisionnel",
+        p."dateDebut",
+        p."dateFin",
+        p."collectiviteResponsableSiren" AS "collectiviteSiren",
+        p."competencesM57",
+        p."leviersSgpe",
+        ${classifLabels(sql`p.llm_thematiques`)} AS "classificationThematiques",
+        ${classifLabels(sql`p.llm_sites`)} AS "classificationSites",
+        ${classifLabels(sql`p.llm_interventions`)} AS "classificationInterventions",
+        p.llm_sites->0->>'label' AS "llmSite",
+        p.llm_sites->0->>'nom_propre' AS "llmSiteNomPropre",
+        p.llm_interventions->0->>'label' AS "llmIntervention",
+        p.llm_thematiques->0->>'label' AS "llmThematique",
+        p.llm_probabilite_te AS "llmProbabiliteTe"
+      ${pf.joinClause}
+      ${pf.whereClause}
+    `;
+    const ff = inclureTet ? this.buildFichesFilter(filter) : null;
+    if (!ff) return projetBranch;
+    const ficheBranch = sql`
+      SELECT
+        'fiche'::text AS type,
+        f.id::text AS id,
+        f.nom,
+        f.description,
+        'TeT'::text AS "sourceOrigine",
+        f.source_metadata->>'phase' AS phase,
+        COALESCE(f.source_metadata->>'phaseStatut', f.statut) AS "phaseStatut",
+        ${cappedBudget(sql`f.source_metadata->>'budgetPrevisionnel'`)} AS "budgetPrevisionnel",
+        f.source_metadata->>'dateDebutPrevisionnelle' AS "dateDebut",
+        NULL::text AS "dateFin",
+        f.collectivite_responsable_siren AS "collectiviteSiren",
+        array_to_string(f.competences_m57, ',') AS "competencesM57",
+        array_to_string(f.leviers_sgpe, ',') AS "leviersSgpe",
+        to_jsonb(COALESCE(f.classification_thematiques, ARRAY[]::text[])) AS "classificationThematiques",
+        to_jsonb(COALESCE(f.classification_sites, ARRAY[]::text[])) AS "classificationSites",
+        to_jsonb(COALESCE(f.classification_interventions, ARRAY[]::text[])) AS "classificationInterventions",
+        f.classification_sites[1] AS "llmSite",
+        NULL::text AS "llmSiteNomPropre",
+        f.classification_interventions[1] AS "llmIntervention",
+        f.classification_thematiques[1] AS "llmThematique",
+        CAST(NULLIF(f.probabilite_te, '') AS double precision) AS "llmProbabiliteTe"
+      ${ff.joinClause}
+      ${ff.whereClause}
+    `;
+    return sql`${projetBranch} UNION ALL ${ficheBranch}`;
+  }
+
+  async projets(
+    params: ProjetsFilter & {
+      sort?: string;
+      order?: "asc" | "desc";
+      page: number;
+      limit: number;
+      inclureTet?: boolean;
+    },
+  ) {
+    const { sort, order, page, limit } = params;
+    const actions = this.actionsSource(params, params.inclureTet ?? false);
+
+    // Whitelisted sort — `sort` ne picke qu'une colonne de sortie fixe (anti-injection).
+    // Plusieurs alias pour le tri budget. Tri secondaire sur nom pour une pagination stable.
     const sortColumns: Record<string, SQL> = {
       nom: sql`nom`,
       montant: sql`"budgetPrevisionnel"`,
@@ -527,43 +657,25 @@ export class DashboardTeService {
     const orderClause = sql`ORDER BY ${sortColumn} ${sortDirection} NULLS LAST, nom ASC`;
 
     const items = await this.query(sql`
+      WITH a AS (${actions})
       SELECT DISTINCT
-        p.id,
-        p.nom,
-        p.description,
-        p.source_origine AS "sourceOrigine",
-        p.phase,
-        p."phaseStatut",
-        ${cappedBudget(sql`p."budgetPrevisionnel"`)} AS "budgetPrevisionnel",
-        p."dateDebut",
-        p."dateFin",
-        p."collectiviteResponsableSiren" AS "collectiviteSiren",
+        a.*,
         COALESCE(cref.nom, gref.nom) AS "collectiviteNom",
         cref.code_departement AS "codeDepartement",
-        p."competencesM57",
-        p."leviersSgpe",
-        ${classifLabels(sql`p.llm_thematiques`)} AS "classificationThematiques",
-        ${classifLabels(sql`p.llm_sites`)} AS "classificationSites",
-        ${classifLabels(sql`p.llm_interventions`)} AS "classificationInterventions",
-        p.llm_sites->0->>'label' AS "llmSite",
-        p.llm_sites->0->>'nom_propre' AS "llmSiteNomPropre",
-        p.llm_probabilite_te AS "llmProbabiliteTe",
         cm.cluster_id AS "clusterId",
         c.confiance AS "clusterConfiance"
-      ${joinClause}
-      LEFT JOIN api_referentiel.communes cref ON cref.siren = p."collectiviteResponsableSiren"
-      LEFT JOIN api_referentiel.groupements gref ON gref.siren = p."collectiviteResponsableSiren"
-      LEFT JOIN schema_commun_v2.clusters_membres cm ON cm.projet_id = p.id
+      FROM a
+      LEFT JOIN api_referentiel.communes cref ON cref.siren = a."collectiviteSiren"
+      LEFT JOIN api_referentiel.groupements gref ON gref.siren = a."collectiviteSiren"
+      LEFT JOIN schema_commun_v2.clusters_membres cm ON cm.projet_id::text = a.id
       LEFT JOIN schema_commun_v2.clusters c ON c.id = cm.cluster_id
-      ${whereClause}
       ${orderClause}
       LIMIT ${limit} OFFSET ${page * limit}
     `);
 
     const [{ total }] = await this.query<{ total: string }>(sql`
-      SELECT count(DISTINCT p.id)::text AS total
-      ${joinClause}
-      ${whereClause}
+      WITH a AS (${actions})
+      SELECT count(*)::text AS total FROM a
     `);
 
     return { items, total: Number(total) };
@@ -574,102 +686,91 @@ export class DashboardTeService {
    * que /projets : totaux, budget/financement, et répartitions (phase, source,
    * thématiques, compétences M57, leviers TE).
    */
-  async projetsSummary(filter: ProjetsFilter) {
-    const { joinClause, whereClause } = this.buildProjetsFilter(filter);
+  async projetsSummary(filter: ProjetsFilter, inclureTet: boolean) {
+    const actions = this.actionsSource(filter, inclureTet);
 
-    // Une ligne par projet : la jointure communes peut dédoubler les lignes.
-    const filtered = sql`
-      SELECT DISTINCT p.id, p.phase, p.source_origine,
-        p."budgetPrevisionnel", p.llm_thematiques, p.llm_sites, p.llm_interventions,
-        p."competencesM57", p."leviersSgpe", p.llm_probabilite_te
-      ${joinClause}
-      ${whereClause}
-    `;
-
-    // probaTePondere = Σ(probaTE × budget) / Σ(budget), sur les projets ayant À LA
-    // FOIS une proba TE et un budget (plafonné) renseignés. NULL si aucun.
+    // probaTePondere = Σ(probaTE × budget) / Σ(budget), sur les actions ayant À LA
+    // FOIS une proba TE et un budget (plafonné) renseignés. NULL si aucune.
     const [totals] = await this.query<{ count: string; sumBudget: string; probaTePondere: string | null }>(sql`
-      WITH filtered AS (${filtered})
+      WITH a AS (${actions})
       SELECT
         count(*)::text AS count,
-        COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)::text AS "sumBudget",
-        (SUM(llm_probabilite_te * ${cappedBudget(sql`"budgetPrevisionnel"`)})
-          / NULLIF(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)})
-              FILTER (WHERE llm_probabilite_te IS NOT NULL), 0))::text AS "probaTePondere"
-      FROM filtered
+        COALESCE(SUM("budgetPrevisionnel"), 0)::text AS "sumBudget",
+        (SUM("llmProbabiliteTe" * "budgetPrevisionnel")
+          / NULLIF(SUM("budgetPrevisionnel") FILTER (WHERE "llmProbabiliteTe" IS NOT NULL), 0))::text AS "probaTePondere"
+      FROM a
     `);
 
+    // Financements : seuls les projets en ont (jointure via liens_financements_projets).
     const [fin] = await this.query<{ sumAttribue: string; avecCount: string }>(sql`
-      WITH filtered AS (${filtered})
+      WITH a AS (${actions})
       SELECT
         COALESCE(SUM(CAST(NULLIF(f."montantAttribue", '') AS numeric)), 0)::text AS "sumAttribue",
         count(DISTINCT lfp.projet_id)::text AS "avecCount"
-      FROM filtered
-      JOIN schema_commun_v2.liens_financements_projets lfp ON lfp.projet_id = filtered.id
+      FROM a
+      JOIN schema_commun_v2.liens_financements_projets lfp ON lfp.projet_id::text = a.id
       JOIN schema_commun_v2.financements f ON f.id = lfp.financement_id
     `);
 
     const parPhase = await this.query<{ key: string; count: string }>(sql`
-      WITH filtered AS (${filtered})
+      WITH a AS (${actions})
       SELECT COALESCE(NULLIF(phase, ''), 'Non renseigné') AS key, count(*)::text AS count
-      FROM filtered GROUP BY 1 ORDER BY count(*) DESC
+      FROM a GROUP BY 1 ORDER BY count(*) DESC
     `);
 
     const parSource = await this.query<{ key: string; count: string }>(sql`
-      WITH filtered AS (${filtered})
-      SELECT COALESCE(NULLIF(source_origine, ''), 'Non renseigné') AS key, count(*)::text AS count
-      FROM filtered GROUP BY 1 ORDER BY count(*) DESC
+      WITH a AS (${actions})
+      SELECT COALESCE(NULLIF("sourceOrigine", ''), 'Non renseigné') AS key, count(*)::text AS count
+      FROM a GROUP BY 1 ORDER BY count(*) DESC
     `);
 
-    // Répartition par thématique / site / intervention : labels des JSONB
-    // llm_thematiques / llm_sites / llm_interventions (un projet peut en porter
-    // plusieurs → compté dans chaque). Top 25 chacun.
+    // Répartition par thématique / site / intervention : labels des tableaux JSON
+    // normalisés (un projet/fiche peut en porter plusieurs → compté dans chacun). Top 25.
     const parClassif = (col: SQL) =>
       this.query<{ key: string; count: string }>(sql`
-        WITH filtered AS (${filtered})
-        SELECT elem->>'label' AS key, count(*)::text AS count
-        FROM filtered, jsonb_array_elements(${jsonbArray(col)}) AS elem
-        WHERE elem->>'label' IS NOT NULL
+        WITH a AS (${actions})
+        SELECT elem AS key, count(*)::text AS count
+        FROM a, jsonb_array_elements_text(${jsonbArray(col)}) AS elem
+        WHERE elem IS NOT NULL AND elem <> ''
         GROUP BY 1 ORDER BY count(*) DESC, key
         LIMIT 25
       `);
-    const parThematique = await parClassif(sql`filtered.llm_thematiques`);
-    const parSite = await parClassif(sql`filtered.llm_sites`);
-    const parIntervention = await parClassif(sql`filtered.llm_interventions`);
+    const parThematique = await parClassif(sql`a."classificationThematiques"`);
+    const parSite = await parClassif(sql`a."classificationSites"`);
+    const parIntervention = await parClassif(sql`a."classificationInterventions"`);
 
-    // Répartition par compétence M57 / levier TE : colonnes CSV éclatées (même
-    // approche que statsNational). Top 25.
+    // Répartition par compétence M57 / levier TE : colonnes CSV éclatées. Top 25.
     const parCompetence = await this.query<{ key: string; count: string }>(sql`
-      WITH filtered AS (${filtered})
+      WITH a AS (${actions})
       SELECT trim(code) AS key, count(*)::text AS count
-      FROM filtered, UNNEST(string_to_array(filtered."competencesM57", ',')) AS code
+      FROM a, UNNEST(string_to_array(a."competencesM57", ',')) AS code
       WHERE trim(code) <> ''
       GROUP BY 1 ORDER BY count(*) DESC, key
       LIMIT 25
     `);
 
     const parLevier = await this.query<{ key: string; count: string }>(sql`
-      WITH filtered AS (${filtered})
+      WITH a AS (${actions})
       SELECT trim(levier) AS key, count(*)::text AS count
-      FROM filtered, UNNEST(string_to_array(filtered."leviersSgpe", ',')) AS levier
+      FROM a, UNNEST(string_to_array(a."leviersSgpe", ',')) AS levier
       WHERE trim(levier) <> ''
       GROUP BY 1 ORDER BY count(*) DESC, key
       LIMIT 25
     `);
 
     // Répartition par tranche de proba TE : élevée ≥ 0.8, moyenne 0.5–0.8,
-    // faible < 0.5, plus les projets sans proba.
+    // faible < 0.5, plus les actions sans proba.
     const parTrancheProbaTe = await this.query<{ key: string; count: string }>(sql`
-      WITH filtered AS (${filtered})
+      WITH a AS (${actions})
       SELECT
         CASE
-          WHEN llm_probabilite_te IS NULL THEN 'nonRenseigne'
-          WHEN llm_probabilite_te >= 0.8 THEN 'elevee'
-          WHEN llm_probabilite_te >= 0.5 THEN 'moyenne'
+          WHEN "llmProbabiliteTe" IS NULL THEN 'nonRenseigne'
+          WHEN "llmProbabiliteTe" >= 0.8 THEN 'elevee'
+          WHEN "llmProbabiliteTe" >= 0.5 THEN 'moyenne'
           ELSE 'faible'
         END AS key,
         count(*)::text AS count
-      FROM filtered
+      FROM a
       GROUP BY 1
     `);
 
@@ -696,7 +797,7 @@ export class DashboardTeService {
   /**
    * Full project detail with financements, cluster, linked plans, and collectivite.
    */
-  async projet(id: string) {
+  async projet(id: string, inclureTet = false) {
     const [projet] = await this.query(sql`
       SELECT
         p.id,
@@ -730,7 +831,7 @@ export class DashboardTeService {
       WHERE p.id = ${id}
       LIMIT 1
     `);
-    if (!projet) return null;
+    if (!projet) return inclureTet ? this.projetTet(id) : null;
 
     const financements = await this.query(sql`
       SELECT f.id, f.source,
@@ -763,8 +864,71 @@ export class DashboardTeService {
     `);
 
     return {
+      type: "projet",
       ...projet,
       financements,
+      collectivite: collectivite ?? null,
+      linkedPlans,
+    };
+  }
+
+  /**
+   * Détail d'une fiche action TeT (data_tet) — fallback de projet() quand l'id
+   * n'est pas un projet opérationnel et que inclure_tet est actif.
+   */
+  private async projetTet(id: string) {
+    const [fiche] = await this.query(sql`
+      SELECT
+        f.id::text AS id,
+        f.nom,
+        f.description,
+        f.objectifs,
+        'TeT' AS "sourceOrigine",
+        f.source_metadata->>'phase' AS phase,
+        COALESCE(f.source_metadata->>'phaseStatut', f.statut) AS "phaseStatut",
+        f.statut,
+        ${cappedBudget(sql`f.source_metadata->>'budgetPrevisionnel'`)} AS "budgetPrevisionnel",
+        f.source_metadata->>'dateDebutPrevisionnelle' AS "dateDebut",
+        f.collectivite_responsable_siren AS "collectiviteSiren",
+        f.territoire_communes AS "territoireCommunes",
+        array_to_string(f.competences_m57, ',') AS "competencesM57",
+        array_to_string(f.leviers_sgpe, ',') AS "leviersSgpe",
+        to_jsonb(COALESCE(f.classification_thematiques, ARRAY[]::text[])) AS "classificationThematiques",
+        to_jsonb(COALESCE(f.classification_sites, ARRAY[]::text[])) AS "classificationSites",
+        to_jsonb(COALESCE(f.classification_interventions, ARRAY[]::text[])) AS "classificationInterventions",
+        f.classification_sites[1] AS "llmSite",
+        f.classification_interventions[1] AS "llmIntervention",
+        f.classification_thematiques[1] AS "llmThematique",
+        CAST(NULLIF(f.probabilite_te, '') AS double precision) AS "llmProbabiliteTe",
+        f.classification_scores AS "classificationScores"
+      FROM data_tet.fiches_action f
+      WHERE f.id::text = ${id}
+      LIMIT 1
+    `);
+    if (!fiche) return null;
+
+    const ficheSiren = (fiche as { collectiviteSiren?: string }).collectiviteSiren;
+    const [collectivite] = ficheSiren
+      ? await this.query(sql`
+        SELECT siren, nom, code_departement AS "codeDepartement", code_region AS "codeRegion", population
+        FROM api_referentiel.communes
+        WHERE siren = ${ficheSiren}
+        LIMIT 1
+      `)
+      : [null];
+
+    const linkedPlans = await this.query(sql`
+      SELECT pl.id, pl.nom, pl.type
+      FROM data_tet.fiches_action_to_plans fap
+      JOIN data_tet.plans_transition pl ON pl.id = fap.plan_transition_id
+      WHERE fap.fiche_action_id::text = ${id}
+      LIMIT 10
+    `);
+
+    return {
+      type: "fiche",
+      ...fiche,
+      financements: [],
       collectivite: collectivite ?? null,
       linkedPlans,
     };

@@ -139,6 +139,7 @@ export class DashboardTeController {
       ...parseProjetsFilter(query),
       sort: first(query.sort) ?? first(query.orderBy),
       order: first(query.order) === "desc" ? "desc" : "asc",
+      inclureTet: first(query.inclure_tet) === "true",
       page: p,
       limit: l,
     });
@@ -148,12 +149,12 @@ export class DashboardTeController {
   // Déclaré avant projets/:id pour que "summary" ne soit pas capté comme un id.
   @Get("projets/summary")
   async projetsSummary(@Query() query: RawQuery) {
-    return this.svc.projetsSummary(parseProjetsFilter(query));
+    return this.svc.projetsSummary(parseProjetsFilter(query), first(query.inclure_tet) === "true");
   }
 
   @Get("projets/:id")
-  async projet(@Param("id") id: string) {
-    const projet = await this.svc.projet(id);
+  async projet(@Param("id") id: string, @Query() query: RawQuery) {
+    const projet = await this.svc.projet(id, first(query.inclure_tet) === "true");
     if (!projet) throw new NotFoundException("projet not found");
     return projet;
   }
