@@ -375,6 +375,8 @@ export class DashboardTeService {
     montantMin?: number;
     montantMax?: number;
     q?: string;
+    sort?: string;
+    order?: "asc" | "desc";
     page: number;
     limit: number;
   }) {
@@ -394,6 +396,8 @@ export class DashboardTeService {
       montantMin,
       montantMax,
       q,
+      sort,
+      order,
       page,
       limit,
     } = params;
@@ -496,6 +500,21 @@ export class DashboardTeService {
       ${departement ? sql`JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
     `;
 
+    // Whitelisted sort. `sort` from the request never reaches the SQL as raw text:
+    // it only picks one of these fixed expressions. Each expression must appear
+    // verbatim in the SELECT list below (required by SELECT DISTINCT). Unknown or
+    // missing `sort` falls back to nom. A secondary sort on nom keeps pagination
+    // stable when the primary column has ties.
+    const sortColumns: Record<string, SQL> = {
+      nom: sql`p.nom`,
+      montant: sql`CAST(NULLIF(p."budgetPrevisionnel", '') AS numeric)`,
+      dateDebut: sql`p."dateDebut"`,
+      dateFin: sql`p."dateFin"`,
+    };
+    const sortColumn = (sort ? sortColumns[sort] : undefined) ?? sortColumns.nom;
+    const sortDirection = order === "desc" ? sql`DESC` : sql`ASC`;
+    const orderClause = sql`ORDER BY ${sortColumn} ${sortDirection} NULLS LAST, p.nom ASC`;
+
     const items = await this.query(sql`
       SELECT DISTINCT
         p.id,
@@ -505,6 +524,8 @@ export class DashboardTeService {
         p.phase,
         p."phaseStatut",
         CAST(NULLIF(p."budgetPrevisionnel", '') AS numeric) AS "budgetPrevisionnel",
+        p."dateDebut",
+        p."dateFin",
         p."collectiviteResponsableSiren" AS "collectiviteSiren",
         COALESCE(cref.nom, gref.nom) AS "collectiviteNom",
         cref.code_departement AS "codeDepartement",
@@ -523,7 +544,7 @@ export class DashboardTeService {
       LEFT JOIN schema_commun_v2.clusters_membres cm ON cm.projet_id = p.id
       LEFT JOIN schema_commun_v2.clusters c ON c.id = cm.cluster_id
       ${whereClause}
-      ORDER BY p.nom
+      ${orderClause}
       LIMIT ${limit} OFFSET ${page * limit}
     `);
 
