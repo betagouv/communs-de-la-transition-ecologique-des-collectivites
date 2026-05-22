@@ -7,6 +7,16 @@ import { sql, SQL } from "drizzle-orm";
 
 type Row = Record<string, unknown>;
 
+// Aggregates the `label` of every element of a JSONB classification array
+// (llm_thematiques / llm_sites / llm_interventions) into a real JSON array.
+// Replaces the comma-joined-string representation, which is ambiguous for labels
+// that themselves contain commas (e.g. the theme "Voie douce, piste cyclable" is
+// a single label, indistinguishable from two labels once CSV-flattened).
+const classifLabels = (col: SQL): SQL =>
+  sql`(SELECT COALESCE(jsonb_agg(elem->>'label'), '[]'::jsonb)
+       FROM jsonb_array_elements((${col})::jsonb) AS elem
+       WHERE elem->>'label' IS NOT NULL)`;
+
 @Injectable()
 export class DashboardTeService {
   constructor(private readonly db: DatabaseService) {}
@@ -352,8 +362,9 @@ export class DashboardTeService {
     commune?: string;
     departement?: string;
     siren?: string;
-    levier?: string;
-    competence?: string;
+    levier?: string[];
+    competence?: string[];
+    match?: "all" | "any";
     site?: { label: string; scoreMin?: number }[];
     intervention?: { label: string; scoreMin?: number }[];
     thematique?: { label: string; scoreMin?: number }[];
@@ -373,6 +384,7 @@ export class DashboardTeService {
       siren,
       levier,
       competence,
+      match,
       site,
       intervention,
       thematique,
@@ -387,8 +399,6 @@ export class DashboardTeService {
     } = params;
     const scoreMin = params.scoreMin ?? 0.8;
     const pattern = q ? `%${q}%` : null;
-    const leviersPattern = levier ? `%${levier}%` : null;
-    const competencesPattern = competence ? `%${competence}%` : null;
 
     // Builds `(label=X1 AND score>=S1) OR (label=X2 AND score>=S2) ...`
     // where Sn falls back to the request-level scoreMin if not set per-entry.
@@ -400,6 +410,17 @@ export class DashboardTeService {
       return sql`(${sql.join(parts, sql` OR `)})`;
     };
 
+    // Token-exact match against a comma-separated text column (competencesM57,
+    // leviersSgpe). Wrapping the column value in commas turns substring matching
+    // into whole-token matching, so "90-51" no longer matches "90-512". Multiple
+    // values are OR'd; each value is bound as a parameter (no interpolation).
+    const csvTokenClause = (col: SQL, values: string[]): SQL | null => {
+      const tokens = values.map((v) => v.trim()).filter(Boolean);
+      if (tokens.length === 0) return null;
+      const parts = tokens.map((v) => sql`(',' || ${col} || ',') ILIKE ${`%,${v},%`}`);
+      return sql`(${sql.join(parts, sql` OR `)})`;
+    };
+
     const conditions: SQL[] = [];
     if (commune) conditions.push(sql`lpc.insee_com = ${commune}`);
     if (departement) conditions.push(sql`ar.code_departement = ${departement}`);
@@ -407,11 +428,31 @@ export class DashboardTeService {
     if (source) conditions.push(sql`p.source_origine = ${source}`);
     if (phase) conditions.push(sql`p.phase = ${phase}`);
     if (pattern) conditions.push(sql`p.nom ILIKE ${pattern}`);
-    if (leviersPattern) conditions.push(sql`p."leviersSgpe" ILIKE ${leviersPattern}`);
-    if (competencesPattern) conditions.push(sql`p."competencesM57" ILIKE ${competencesPattern}`);
-    if (site && site.length > 0) conditions.push(classifClause(sql`p.llm_sites`, site));
-    if (intervention && intervention.length > 0) conditions.push(classifClause(sql`p.llm_interventions`, intervention));
-    if (thematique && thematique.length > 0) conditions.push(classifClause(sql`p.llm_thematiques`, thematique));
+
+    // Label-axis predicates (competence, levier, site, intervention, thematique).
+    // Within an axis, multiple values are always OR'd. Across axes, they are joined
+    // with AND when match=all (a project must carry every selected label) or OR when
+    // match=any (≥ 1 label is enough). Non-label filters above always stay AND'd.
+    const labelPredicates: SQL[] = [];
+    if (competence && competence.length > 0) {
+      const pred = csvTokenClause(sql`p."competencesM57"`, competence);
+      if (pred) labelPredicates.push(pred);
+    }
+    if (levier && levier.length > 0) {
+      const pred = csvTokenClause(sql`p."leviersSgpe"`, levier);
+      if (pred) labelPredicates.push(pred);
+    }
+    if (site && site.length > 0) labelPredicates.push(classifClause(sql`p.llm_sites`, site));
+    if (intervention && intervention.length > 0) {
+      labelPredicates.push(classifClause(sql`p.llm_interventions`, intervention));
+    }
+    if (thematique && thematique.length > 0) {
+      labelPredicates.push(classifClause(sql`p.llm_thematiques`, thematique));
+    }
+    if (labelPredicates.length > 0) {
+      const joiner = match === "all" ? sql` AND ` : sql` OR `;
+      conditions.push(sql`(${sql.join(labelPredicates, joiner)})`);
+    }
 
     // Financement filters. The financements table FK is inconsistent across rows
     // (some use "projetId", some projet_id), so both are matched — same as projet().
@@ -468,7 +509,9 @@ export class DashboardTeService {
         cref.code_departement AS "codeDepartement",
         p."competencesM57",
         p."leviersSgpe",
-        p."classificationThematiques",
+        ${classifLabels(sql`p.llm_thematiques`)} AS "classificationThematiques",
+        ${classifLabels(sql`p.llm_sites`)} AS "classificationSites",
+        ${classifLabels(sql`p.llm_interventions`)} AS "classificationInterventions",
         p.llm_sites->0->>'label' AS "llmSite",
         p.llm_sites->0->>'nom_propre' AS "llmSiteNomPropre",
         cm.cluster_id AS "clusterId",
@@ -513,7 +556,9 @@ export class DashboardTeService {
         p."collectiviteResponsableSiren" AS "collectiviteSiren",
         p."competencesM57",
         p."leviersSgpe",
-        p."classificationThematiques",
+        ${classifLabels(sql`p.llm_thematiques`)} AS "classificationThematiques",
+        ${classifLabels(sql`p.llm_sites`)} AS "classificationSites",
+        ${classifLabels(sql`p.llm_interventions`)} AS "classificationInterventions",
         p.llm_sites->0->>'label' AS "llmSite",
         p.llm_sites->0->>'nom_propre' AS "llmSiteNomPropre",
         p.llm_interventions->0->>'label' AS "llmIntervention",
