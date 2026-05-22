@@ -103,6 +103,9 @@ export class DashboardTeController {
     @Query("scoreMin") scoreMin?: string,
     @Query("source") source?: string,
     @Query("phase") phase?: string,
+    @Query("financement") financement?: string,
+    @Query("montantMin") montantMin?: string,
+    @Query("montantMax") montantMax?: string,
     @Query("q") q?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
@@ -110,6 +113,9 @@ export class DashboardTeController {
     const p = toInt(page, 0);
     const l = Math.min(toInt(limit, 50), 200);
     const scoreMinNum = scoreMin != null && scoreMin !== "" ? Number(scoreMin) : undefined;
+    const montantMinNum = montantMin != null && montantMin !== "" ? Number(montantMin) : undefined;
+    const montantMaxNum = montantMax != null && montantMax !== "" ? Number(montantMax) : undefined;
+    const financementFilter = financement === "avec" || financement === "sans" ? financement : undefined;
     const result = await this.svc.projets({
       commune,
       departement,
@@ -122,6 +128,9 @@ export class DashboardTeController {
       scoreMin: Number.isFinite(scoreMinNum) ? scoreMinNum : undefined,
       source,
       phase,
+      financement: financementFilter,
+      montantMin: Number.isFinite(montantMinNum) && montantMinNum! >= 0 ? montantMinNum : undefined,
+      montantMax: Number.isFinite(montantMaxNum) && montantMaxNum! >= 0 ? montantMaxNum : undefined,
       q,
       page: p,
       limit: l,
