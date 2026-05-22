@@ -17,6 +17,16 @@ const classifLabels = (col: SQL): SQL =>
        FROM jsonb_array_elements((${col})::jsonb) AS elem
        WHERE elem->>'label' IS NOT NULL)`;
 
+// Plafond au-delà duquel le budget prévisionnel d'un projet est jugé aberrant
+// (saisie erronée) : il est alors écarté — nullifié dans les réponses projet et
+// exclu des sommes de budget des stats. Le projet lui-même reste compté/listé.
+const BUDGET_MAX = 100_000_000;
+
+// Budget prévisionnel plafonné : la valeur numérique si <= BUDGET_MAX, sinon NULL
+// (les SUM ignorent NULL, les réponses renvoient null).
+const cappedBudget = (col: SQL): SQL =>
+  sql`(CASE WHEN CAST(NULLIF(${col}, '') AS numeric) <= ${BUDGET_MAX} THEN CAST(NULLIF(${col}, '') AS numeric) END)`;
+
 @Injectable()
 export class DashboardTeService {
   constructor(private readonly db: DatabaseService) {}
@@ -44,7 +54,7 @@ export class DashboardTeService {
     }>(sql`
       SELECT
         (SELECT count(*) FROM schema_commun_v2.projets_operationnels)::text AS "totalProjets",
-        (SELECT COALESCE(SUM(CAST(NULLIF("budgetPrevisionnel", '') AS numeric)), 0)
+        (SELECT COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)
           FROM schema_commun_v2.projets_operationnels)::text AS "totalBudget",
         (SELECT count(DISTINCT "collectiviteResponsableSiren")
           FROM schema_commun_v2.projets_operationnels
@@ -82,7 +92,7 @@ export class DashboardTeService {
     // By source
     const parSource = await this.query<{ source: string; count: string; budget: string }>(sql`
       SELECT source_origine AS source, count(*)::text AS count,
-        COALESCE(SUM(CAST(NULLIF("budgetPrevisionnel", '') AS numeric)), 0)::text AS budget
+        COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)::text AS budget
       FROM schema_commun_v2.projets_operationnels
       WHERE source_origine IS NOT NULL
       GROUP BY source_origine
@@ -93,7 +103,7 @@ export class DashboardTeService {
     const parPhase = await this.query<{ phase: string; count: string; budget: string }>(sql`
       SELECT COALESCE(NULLIF(phase, ''), 'Non renseigné') AS phase,
         count(*)::text AS count,
-        COALESCE(SUM(CAST(NULLIF("budgetPrevisionnel", '') AS numeric)), 0)::text AS budget
+        COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)::text AS budget
       FROM schema_commun_v2.projets_operationnels
       GROUP BY phase
       ORDER BY count(*) DESC
@@ -122,7 +132,7 @@ export class DashboardTeService {
         COALESCE(MAX(code_reg), '') AS region,
         count(DISTINCT id)::text AS "nbProjets",
         count(DISTINCT "collectiviteResponsableSiren")::text AS "nbCollectivites",
-        COALESCE(SUM(CAST(NULLIF("budgetPrevisionnel", '') AS numeric)), 0)::text AS "budgetTotal",
+        COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)::text AS "budgetTotal",
         0::text AS "nbPlans"
       FROM projet_dept
       GROUP BY code_dept
@@ -246,7 +256,7 @@ export class DashboardTeService {
         (SELECT count(*) FROM projet_dept)::text AS "nbProjets",
         (SELECT count(DISTINCT "collectiviteResponsableSiren") FROM projet_dept)::text AS "nbCollectivites",
         (SELECT count(*) FROM plan_dept)::text AS "nbPlans",
-        (SELECT COALESCE(SUM(CAST(NULLIF("budgetPrevisionnel", '') AS numeric)), 0) FROM projet_dept)::text AS "budgetTotal"
+        (SELECT COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0) FROM projet_dept)::text AS "budgetTotal"
     `);
 
     const parSource = await this.query<{ source: string; count: string }>(sql`
@@ -501,19 +511,19 @@ export class DashboardTeService {
     `;
 
     // Whitelisted sort. `sort` from the request never reaches the SQL as raw text:
-    // it only picks one of these fixed expressions. Each expression must appear
-    // verbatim in the SELECT list below (required by SELECT DISTINCT). Unknown or
-    // missing `sort` falls back to nom. A secondary sort on nom keeps pagination
-    // stable when the primary column has ties.
+    // it only picks one of these fixed output-column names. Ordering by an output
+    // column keeps it valid under SELECT DISTINCT and lets `montant` follow the
+    // capped budget transparently. Unknown/missing `sort` falls back to nom; a
+    // secondary sort on nom keeps pagination stable when the primary column ties.
     const sortColumns: Record<string, SQL> = {
-      nom: sql`p.nom`,
-      montant: sql`CAST(NULLIF(p."budgetPrevisionnel", '') AS numeric)`,
-      dateDebut: sql`p."dateDebut"`,
-      dateFin: sql`p."dateFin"`,
+      nom: sql`nom`,
+      montant: sql`"budgetPrevisionnel"`,
+      dateDebut: sql`"dateDebut"`,
+      dateFin: sql`"dateFin"`,
     };
     const sortColumn = (sort ? sortColumns[sort] : undefined) ?? sortColumns.nom;
     const sortDirection = order === "desc" ? sql`DESC` : sql`ASC`;
-    const orderClause = sql`ORDER BY ${sortColumn} ${sortDirection} NULLS LAST, p.nom ASC`;
+    const orderClause = sql`ORDER BY ${sortColumn} ${sortDirection} NULLS LAST, nom ASC`;
 
     const items = await this.query(sql`
       SELECT DISTINCT
@@ -523,7 +533,7 @@ export class DashboardTeService {
         p.source_origine AS "sourceOrigine",
         p.phase,
         p."phaseStatut",
-        CAST(NULLIF(p."budgetPrevisionnel", '') AS numeric) AS "budgetPrevisionnel",
+        ${cappedBudget(sql`p."budgetPrevisionnel"`)} AS "budgetPrevisionnel",
         p."dateDebut",
         p."dateFin",
         p."collectiviteResponsableSiren" AS "collectiviteSiren",
@@ -569,7 +579,7 @@ export class DashboardTeService {
         p.source_origine AS "sourceOrigine",
         p.phase,
         p."phaseStatut",
-        CAST(NULLIF(p."budgetPrevisionnel", '') AS numeric) AS "budgetPrevisionnel",
+        ${cappedBudget(sql`p."budgetPrevisionnel"`)} AS "budgetPrevisionnel",
         p."dateDebut",
         p."dateFin",
         p."localisationAdresse" AS adresse,
