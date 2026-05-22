@@ -42,6 +42,38 @@ const toClassifList = (v: string | string[] | undefined): { label: string; score
   });
 };
 
+type RawQuery = Record<string, string | string[] | undefined>;
+
+const first = (v: string | string[] | undefined): string | undefined => (Array.isArray(v) ? v[0] : v);
+
+// Parses the project filters shared by /projets and /projets/summary so both
+// endpoints accept exactly the same filter params.
+const parseProjetsFilter = (raw: RawQuery) => {
+  const montantMinNum = first(raw.montantMin) ? Number(first(raw.montantMin)) : undefined;
+  const montantMaxNum = first(raw.montantMax) ? Number(first(raw.montantMax)) : undefined;
+  const financementRaw = first(raw.financement);
+  const financement: "avec" | "sans" | undefined =
+    financementRaw === "avec" || financementRaw === "sans" ? financementRaw : undefined;
+  return {
+    commune: first(raw.commune),
+    departement: first(raw.departement),
+    siren: first(raw.siren),
+    levier: toList(raw.levier),
+    competence: toList(raw.competence),
+    match: first(raw.match) === "all" ? ("all" as const) : ("any" as const),
+    site: toClassifList(raw.site),
+    intervention: toClassifList(raw.intervention),
+    thematique: toClassifList(raw.thematique),
+    scoreMin: parseScoreMin(first(raw.scoreMin)),
+    source: first(raw.source),
+    phase: first(raw.phase),
+    financement,
+    montantMin: Number.isFinite(montantMinNum) && montantMinNum! >= 0 ? montantMinNum : undefined,
+    montantMax: Number.isFinite(montantMaxNum) && montantMaxNum! >= 0 ? montantMaxNum : undefined,
+    q: first(raw.q),
+  };
+};
+
 @ApiTags("Dashboard TE")
 @Controller("dashboard-te")
 @UseGuards(ApiKeyGuard)
@@ -96,57 +128,23 @@ export class DashboardTeController {
   }
 
   @Get("projets")
-  async projets(
-    @Query("commune") commune?: string,
-    @Query("departement") departement?: string,
-    @Query("siren") siren?: string,
-    @Query("levier") levier?: string | string[],
-    @Query("competence") competence?: string | string[],
-    @Query("site") site?: string | string[],
-    @Query("intervention") intervention?: string | string[],
-    @Query("thematique") thematique?: string | string[],
-    @Query("scoreMin") scoreMin?: string,
-    @Query("source") source?: string,
-    @Query("phase") phase?: string,
-    @Query("financement") financement?: string,
-    @Query("montantMin") montantMin?: string,
-    @Query("montantMax") montantMax?: string,
-    @Query("q") q?: string,
-    @Query("match") match?: string,
-    @Query("sort") sort?: string,
-    @Query("order") order?: string,
-    @Query("page") page?: string,
-    @Query("limit") limit?: string,
-  ) {
-    const p = toInt(page, 0);
-    const l = Math.min(toInt(limit, 50), 200);
-    const scoreMinNum = scoreMin != null && scoreMin !== "" ? Number(scoreMin) : undefined;
-    const montantMinNum = montantMin != null && montantMin !== "" ? Number(montantMin) : undefined;
-    const montantMaxNum = montantMax != null && montantMax !== "" ? Number(montantMax) : undefined;
-    const financementFilter = financement === "avec" || financement === "sans" ? financement : undefined;
+  async projets(@Query() query: RawQuery) {
+    const p = toInt(first(query.page), 0);
+    const l = Math.min(toInt(first(query.limit), 50), 200);
     const result = await this.svc.projets({
-      commune,
-      departement,
-      siren,
-      levier: toList(levier),
-      competence: toList(competence),
-      match: match === "all" ? "all" : "any",
-      site: toClassifList(site),
-      intervention: toClassifList(intervention),
-      thematique: toClassifList(thematique),
-      scoreMin: Number.isFinite(scoreMinNum) ? scoreMinNum : undefined,
-      source,
-      phase,
-      financement: financementFilter,
-      montantMin: Number.isFinite(montantMinNum) && montantMinNum! >= 0 ? montantMinNum : undefined,
-      montantMax: Number.isFinite(montantMaxNum) && montantMaxNum! >= 0 ? montantMaxNum : undefined,
-      q,
-      sort,
-      order: order === "desc" ? "desc" : "asc",
+      ...parseProjetsFilter(query),
+      sort: first(query.sort),
+      order: first(query.order) === "desc" ? "desc" : "asc",
       page: p,
       limit: l,
     });
     return { ...result, page: p, limit: l };
+  }
+
+  // Déclaré avant projets/:id pour que "summary" ne soit pas capté comme un id.
+  @Get("projets/summary")
+  async projetsSummary(@Query() query: RawQuery) {
+    return this.svc.projetsSummary(parseProjetsFilter(query));
   }
 
   @Get("projets/:id")

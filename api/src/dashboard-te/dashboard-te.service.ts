@@ -7,6 +7,11 @@ import { sql, SQL } from "drizzle-orm";
 
 type Row = Record<string, unknown>;
 
+// Returns the JSONB value when it is genuinely an array, else '[]'.
+// jsonb_array_elements raises on a scalar/object, which would crash the query.
+const jsonbArray = (col: SQL): SQL =>
+  sql`(CASE WHEN jsonb_typeof((${col})::jsonb) = 'array' THEN (${col})::jsonb ELSE '[]'::jsonb END)`;
+
 // Aggregates the `label` of every element of a JSONB classification array
 // (llm_thematiques / llm_sites / llm_interventions) into a real JSON array.
 // Replaces the comma-joined-string representation, which is ambiguous for labels
@@ -14,7 +19,7 @@ type Row = Record<string, unknown>;
 // a single label, indistinguishable from two labels once CSV-flattened).
 const classifLabels = (col: SQL): SQL =>
   sql`(SELECT COALESCE(jsonb_agg(elem->>'label'), '[]'::jsonb)
-       FROM jsonb_array_elements((${col})::jsonb) AS elem
+       FROM jsonb_array_elements(${jsonbArray(col)}) AS elem
        WHERE elem->>'label' IS NOT NULL)`;
 
 // Plafond au-delà duquel le budget prévisionnel d'un projet est jugé aberrant
@@ -26,6 +31,37 @@ const BUDGET_MAX = 100_000_000;
 // (les SUM ignorent NULL, les réponses renvoient null).
 const cappedBudget = (col: SQL): SQL =>
   sql`(CASE WHEN CAST(NULLIF(${col}, '') AS numeric) <= ${BUDGET_MAX} THEN CAST(NULLIF(${col}, '') AS numeric) END)`;
+
+// Token-exact match against a comma-separated text column (competencesM57,
+// leviersSgpe). Wrapping the column value in commas turns substring matching into
+// whole-token matching, so "90-51" no longer matches "90-512". Multiple values
+// are OR'd; each value is bound as a parameter (no interpolation).
+const csvTokenClause = (col: SQL, values: string[]): SQL | null => {
+  const tokens = values.map((v) => v.trim()).filter(Boolean);
+  if (tokens.length === 0) return null;
+  const parts = tokens.map((v) => sql`(',' || ${col} || ',') ILIKE ${`%,${v},%`}`);
+  return sql`(${sql.join(parts, sql` OR `)})`;
+};
+
+// Filtres communs aux endpoints /projets et /projets/summary.
+export interface ProjetsFilter {
+  commune?: string;
+  departement?: string;
+  siren?: string;
+  levier?: string[];
+  competence?: string[];
+  match?: "all" | "any";
+  site?: { label: string; scoreMin?: number }[];
+  intervention?: { label: string; scoreMin?: number }[];
+  thematique?: { label: string; scoreMin?: number }[];
+  scoreMin?: number;
+  source?: string;
+  phase?: string;
+  financement?: "avec" | "sans";
+  montantMin?: number;
+  montantMax?: number;
+  q?: string;
+}
 
 @Injectable()
 export class DashboardTeService {
@@ -368,51 +404,11 @@ export class DashboardTeService {
     };
   }
 
-  async projets(params: {
-    commune?: string;
-    departement?: string;
-    siren?: string;
-    levier?: string[];
-    competence?: string[];
-    match?: "all" | "any";
-    site?: { label: string; scoreMin?: number }[];
-    intervention?: { label: string; scoreMin?: number }[];
-    thematique?: { label: string; scoreMin?: number }[];
-    scoreMin?: number;
-    source?: string;
-    phase?: string;
-    financement?: "avec" | "sans";
-    montantMin?: number;
-    montantMax?: number;
-    q?: string;
-    sort?: string;
-    order?: "asc" | "desc";
-    page: number;
-    limit: number;
-  }) {
-    const {
-      commune,
-      departement,
-      siren,
-      levier,
-      competence,
-      match,
-      site,
-      intervention,
-      thematique,
-      source,
-      phase,
-      financement,
-      montantMin,
-      montantMax,
-      q,
-      sort,
-      order,
-      page,
-      limit,
-    } = params;
-    const scoreMin = params.scoreMin ?? 0.8;
-    const pattern = q ? `%${q}%` : null;
+  // Builds the FROM/JOIN and WHERE clauses shared by /projets and
+  // /projets/summary, so both endpoints accept exactly the same filters.
+  private buildProjetsFilter(f: ProjetsFilter): { joinClause: SQL; whereClause: SQL } {
+    const scoreMin = f.scoreMin ?? 0.8;
+    const pattern = f.q ? `%${f.q}%` : null;
 
     // Builds `(label=X1 AND score>=S1) OR (label=X2 AND score>=S2) ...`
     // where Sn falls back to the request-level scoreMin if not set per-entry.
@@ -424,23 +420,12 @@ export class DashboardTeService {
       return sql`(${sql.join(parts, sql` OR `)})`;
     };
 
-    // Token-exact match against a comma-separated text column (competencesM57,
-    // leviersSgpe). Wrapping the column value in commas turns substring matching
-    // into whole-token matching, so "90-51" no longer matches "90-512". Multiple
-    // values are OR'd; each value is bound as a parameter (no interpolation).
-    const csvTokenClause = (col: SQL, values: string[]): SQL | null => {
-      const tokens = values.map((v) => v.trim()).filter(Boolean);
-      if (tokens.length === 0) return null;
-      const parts = tokens.map((v) => sql`(',' || ${col} || ',') ILIKE ${`%,${v},%`}`);
-      return sql`(${sql.join(parts, sql` OR `)})`;
-    };
-
     const conditions: SQL[] = [];
-    if (commune) conditions.push(sql`lpc.insee_com = ${commune}`);
-    if (departement) conditions.push(sql`ar.code_departement = ${departement}`);
-    if (siren) conditions.push(sql`p."collectiviteResponsableSiren" = ${siren}`);
-    if (source) conditions.push(sql`p.source_origine = ${source}`);
-    if (phase) conditions.push(sql`p.phase = ${phase}`);
+    if (f.commune) conditions.push(sql`lpc.insee_com = ${f.commune}`);
+    if (f.departement) conditions.push(sql`ar.code_departement = ${f.departement}`);
+    if (f.siren) conditions.push(sql`p."collectiviteResponsableSiren" = ${f.siren}`);
+    if (f.source) conditions.push(sql`p.source_origine = ${f.source}`);
+    if (f.phase) conditions.push(sql`p.phase = ${f.phase}`);
     if (pattern) conditions.push(sql`p.nom ILIKE ${pattern}`);
 
     // Label-axis predicates (competence, levier, site, intervention, thematique).
@@ -448,44 +433,43 @@ export class DashboardTeService {
     // with AND when match=all (a project must carry every selected label) or OR when
     // match=any (≥ 1 label is enough). Non-label filters above always stay AND'd.
     const labelPredicates: SQL[] = [];
-    if (competence && competence.length > 0) {
-      const pred = csvTokenClause(sql`p."competencesM57"`, competence);
+    if (f.competence && f.competence.length > 0) {
+      const pred = csvTokenClause(sql`p."competencesM57"`, f.competence);
       if (pred) labelPredicates.push(pred);
     }
-    if (levier && levier.length > 0) {
-      const pred = csvTokenClause(sql`p."leviersSgpe"`, levier);
+    if (f.levier && f.levier.length > 0) {
+      const pred = csvTokenClause(sql`p."leviersSgpe"`, f.levier);
       if (pred) labelPredicates.push(pred);
     }
-    if (site && site.length > 0) labelPredicates.push(classifClause(sql`p.llm_sites`, site));
-    if (intervention && intervention.length > 0) {
-      labelPredicates.push(classifClause(sql`p.llm_interventions`, intervention));
+    if (f.site && f.site.length > 0) labelPredicates.push(classifClause(sql`p.llm_sites`, f.site));
+    if (f.intervention && f.intervention.length > 0) {
+      labelPredicates.push(classifClause(sql`p.llm_interventions`, f.intervention));
     }
-    if (thematique && thematique.length > 0) {
-      labelPredicates.push(classifClause(sql`p.llm_thematiques`, thematique));
+    if (f.thematique && f.thematique.length > 0) {
+      labelPredicates.push(classifClause(sql`p.llm_thematiques`, f.thematique));
     }
     if (labelPredicates.length > 0) {
-      const joiner = match === "all" ? sql` AND ` : sql` OR `;
+      const joiner = f.match === "all" ? sql` AND ` : sql` OR `;
       conditions.push(sql`(${sql.join(labelPredicates, joiner)})`);
     }
 
     // Financement filters. The financements FK to a projet is the snake_case
-    // column projet_id — there is no "projetId" column (referencing it raised a
-    // 500 in the montant/financement filters).
+    // column projet_id — there is no "projetId" column.
     const financementMatch = sql`f.projet_id = p.id`;
-    if (financement === "avec") {
+    if (f.financement === "avec") {
       conditions.push(sql`EXISTS (SELECT 1 FROM schema_commun_v2.financements f WHERE ${financementMatch})`);
     }
-    if (financement === "sans") {
+    if (f.financement === "sans") {
       conditions.push(sql`NOT EXISTS (SELECT 1 FROM schema_commun_v2.financements f WHERE ${financementMatch})`);
     }
     // montantMin/Max filter on the total amount attributed per project (fallback:
     // amount requested). The aggregate over zero rows is NULL, so projects with no
     // financement never satisfy the HAVING — i.e. a montant filter implies financement=avec.
-    if (montantMin !== undefined || montantMax !== undefined) {
+    if (f.montantMin !== undefined || f.montantMax !== undefined) {
       const montantTotal = sql`SUM(COALESCE(CAST(NULLIF(f."montantAttribue", '') AS numeric), CAST(NULLIF(f."montantDemande", '') AS numeric), 0))`;
       const havingParts: SQL[] = [];
-      if (montantMin !== undefined) havingParts.push(sql`${montantTotal} >= ${montantMin}`);
-      if (montantMax !== undefined) havingParts.push(sql`${montantTotal} <= ${montantMax}`);
+      if (f.montantMin !== undefined) havingParts.push(sql`${montantTotal} >= ${f.montantMin}`);
+      if (f.montantMax !== undefined) havingParts.push(sql`${montantTotal} <= ${f.montantMax}`);
       conditions.push(sql`EXISTS (
         SELECT 1 FROM schema_commun_v2.financements f
         WHERE ${financementMatch}
@@ -493,7 +477,7 @@ export class DashboardTeService {
       )`);
     }
 
-    const needsCommuneJoin = Boolean(commune ?? departement);
+    const needsCommuneJoin = Boolean(f.commune ?? f.departement);
 
     let whereClause = sql``;
     if (conditions.length > 0) {
@@ -507,8 +491,15 @@ export class DashboardTeService {
     const joinClause = sql`
       FROM schema_commun_v2.projets_operationnels p
       ${needsCommuneJoin ? sql`JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id` : sql``}
-      ${departement ? sql`JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
+      ${f.departement ? sql`JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
     `;
+
+    return { joinClause, whereClause };
+  }
+
+  async projets(params: ProjetsFilter & { sort?: string; order?: "asc" | "desc"; page: number; limit: number }) {
+    const { sort, order, page, limit } = params;
+    const { joinClause, whereClause } = this.buildProjetsFilter(params);
 
     // Whitelisted sort. `sort` from the request never reaches the SQL as raw text:
     // it only picks one of these fixed output-column names. Ordering by an output
@@ -565,6 +556,98 @@ export class DashboardTeService {
     `);
 
     return { items, total: Number(total) };
+  }
+
+  /**
+   * Synthèse agrégée sur l'ensemble des projets correspondant aux mêmes filtres
+   * que /projets : totaux, budget/financement, et répartitions (phase, source,
+   * thématiques, compétences M57, leviers TE).
+   */
+  async projetsSummary(filter: ProjetsFilter) {
+    const { joinClause, whereClause } = this.buildProjetsFilter(filter);
+
+    // Une ligne par projet : la jointure communes peut dédoubler les lignes.
+    const filtered = sql`
+      SELECT DISTINCT p.id, p.phase, p.source_origine,
+        p."budgetPrevisionnel", p.llm_thematiques, p."competencesM57", p."leviersSgpe"
+      ${joinClause}
+      ${whereClause}
+    `;
+
+    const [totals] = await this.query<{ count: string; sumBudget: string }>(sql`
+      WITH filtered AS (${filtered})
+      SELECT
+        count(*)::text AS count,
+        COALESCE(SUM(${cappedBudget(sql`"budgetPrevisionnel"`)}), 0)::text AS "sumBudget"
+      FROM filtered
+    `);
+
+    const [fin] = await this.query<{ sumAttribue: string; avecCount: string }>(sql`
+      WITH filtered AS (${filtered})
+      SELECT
+        COALESCE(SUM(CAST(NULLIF(f."montantAttribue", '') AS numeric)), 0)::text AS "sumAttribue",
+        count(DISTINCT f.projet_id)::text AS "avecCount"
+      FROM filtered
+      JOIN schema_commun_v2.financements f ON f.projet_id = filtered.id
+    `);
+
+    const parPhase = await this.query<{ key: string; count: string }>(sql`
+      WITH filtered AS (${filtered})
+      SELECT COALESCE(NULLIF(phase, ''), 'Non renseigné') AS key, count(*)::text AS count
+      FROM filtered GROUP BY 1 ORDER BY count(*) DESC
+    `);
+
+    const parSource = await this.query<{ key: string; count: string }>(sql`
+      WITH filtered AS (${filtered})
+      SELECT COALESCE(NULLIF(source_origine, ''), 'Non renseigné') AS key, count(*)::text AS count
+      FROM filtered GROUP BY 1 ORDER BY count(*) DESC
+    `);
+
+    // Répartition par thématique : labels du JSONB llm_thematiques (un projet peut
+    // en porter plusieurs → compté dans chaque). Top 25.
+    const parThematique = await this.query<{ key: string; count: string }>(sql`
+      WITH filtered AS (${filtered})
+      SELECT elem->>'label' AS key, count(*)::text AS count
+      FROM filtered, jsonb_array_elements(${jsonbArray(sql`filtered.llm_thematiques`)}) AS elem
+      WHERE elem->>'label' IS NOT NULL
+      GROUP BY 1 ORDER BY count(*) DESC, key
+      LIMIT 25
+    `);
+
+    // Répartition par compétence M57 / levier TE : colonnes CSV éclatées (même
+    // approche que statsNational). Top 25.
+    const parCompetence = await this.query<{ key: string; count: string }>(sql`
+      WITH filtered AS (${filtered})
+      SELECT trim(code) AS key, count(*)::text AS count
+      FROM filtered, UNNEST(string_to_array(filtered."competencesM57", ',')) AS code
+      WHERE trim(code) <> ''
+      GROUP BY 1 ORDER BY count(*) DESC, key
+      LIMIT 25
+    `);
+
+    const parLevier = await this.query<{ key: string; count: string }>(sql`
+      WITH filtered AS (${filtered})
+      SELECT trim(levier) AS key, count(*)::text AS count
+      FROM filtered, UNNEST(string_to_array(filtered."leviersSgpe", ',')) AS levier
+      WHERE trim(levier) <> ''
+      GROUP BY 1 ORDER BY count(*) DESC, key
+      LIMIT 25
+    `);
+
+    const toMap = (rows: { key: string; count: string }[]): Record<string, number> =>
+      Object.fromEntries(rows.map((r) => [r.key, Number(r.count)]));
+
+    return {
+      count: Number(totals?.count ?? 0),
+      sumBudgetPrevisionnel: Number(totals?.sumBudget ?? 0),
+      sumFinancementAttribue: Number(fin?.sumAttribue ?? 0),
+      avecFinancementCount: Number(fin?.avecCount ?? 0),
+      parPhase: toMap(parPhase),
+      parSource: toMap(parSource),
+      parThematique: toMap(parThematique),
+      parCompetence: toMap(parCompetence),
+      parLevier: toMap(parLevier),
+    };
   }
 
   /**
