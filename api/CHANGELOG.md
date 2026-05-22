@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.85](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.84...v0.1.85) (2026-05-22)
+
+
+### Features
+
+* **dashboard-te:** filtres labels multi-valeurs, match all/any et sortie en tableaux ([91ae20e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/91ae20e36c912ce6b49942d3225c5e537890d441))
+
 ## [0.1.84](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.83...v0.1.84) (2026-05-22)
 
 ## [0.1.83](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.82...v0.1.83) (2026-05-22)
