@@ -463,21 +463,14 @@ export class DashboardTeService {
       )`;
       conditions.push(f.financement === "avec" ? aFinancement : sql`NOT ${aFinancement}`);
     }
-    // montantMin/Max filter on the total amount attributed per project (fallback:
-    // amount requested). The aggregate over zero rows is NULL, so projects with no
-    // financement never satisfy the HAVING — i.e. a montant filter implies financement=avec.
-    if (f.montantMin !== undefined || f.montantMax !== undefined) {
-      const montantTotal = sql`SUM(COALESCE(CAST(NULLIF(f."montantAttribue", '') AS numeric), CAST(NULLIF(f."montantDemande", '') AS numeric), 0))`;
-      const havingParts: SQL[] = [];
-      if (f.montantMin !== undefined) havingParts.push(sql`${montantTotal} >= ${f.montantMin}`);
-      if (f.montantMax !== undefined) havingParts.push(sql`${montantTotal} <= ${f.montantMax}`);
-      conditions.push(sql`EXISTS (
-        SELECT 1
-        FROM schema_commun_v2.liens_financements_projets lfp
-        JOIN schema_commun_v2.financements f ON f.id = lfp.financement_id
-        WHERE lfp.projet_id = p.id
-        HAVING ${sql.join(havingParts, sql` AND `)}
-      )`);
+    // montantMin/Max : filtre sur le budget prévisionnel du projet (et non sur les
+    // financements). Budget plafonné — un budget aberrant (> BUDGET_MAX) devient
+    // NULL et ne matche alors aucun intervalle.
+    if (f.montantMin !== undefined) {
+      conditions.push(sql`${cappedBudget(sql`p."budgetPrevisionnel"`)} >= ${f.montantMin}`);
+    }
+    if (f.montantMax !== undefined) {
+      conditions.push(sql`${cappedBudget(sql`p."budgetPrevisionnel"`)} <= ${f.montantMax}`);
     }
 
     const needsCommuneJoin = Boolean(f.commune ?? f.departement);
