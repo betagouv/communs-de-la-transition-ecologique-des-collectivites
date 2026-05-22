@@ -113,6 +113,8 @@ export class DashboardTeController {
     @Query("montantMax") montantMax?: string,
     @Query("q") q?: string,
     @Query("match") match?: string,
+    @Query("sort") sort?: string,
+    @Query("order") order?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
@@ -139,6 +141,8 @@ export class DashboardTeController {
       montantMin: Number.isFinite(montantMinNum) && montantMinNum! >= 0 ? montantMinNum : undefined,
       montantMax: Number.isFinite(montantMaxNum) && montantMaxNum! >= 0 ? montantMaxNum : undefined,
       q,
+      sort,
+      order: order === "desc" ? "desc" : "asc",
       page: p,
       limit: l,
     });
