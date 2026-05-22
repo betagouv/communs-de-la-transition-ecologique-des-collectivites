@@ -133,7 +133,7 @@ export class DashboardTeController {
     const l = Math.min(toInt(first(query.limit), 50), 200);
     const result = await this.svc.projets({
       ...parseProjetsFilter(query),
-      sort: first(query.sort),
+      sort: first(query.sort) ?? first(query.orderBy),
       order: first(query.order) === "desc" ? "desc" : "asc",
       page: p,
       limit: l,
