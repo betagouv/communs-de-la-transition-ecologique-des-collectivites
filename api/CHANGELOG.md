@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.90](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.89...v0.1.90) (2026-05-22)
+
+
+### Features
+
+* **dashboard-te:** exposer la proba TE par projet ([50072aa](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/50072aa90c2fe857cefa8cd7fc7b38666cd22244))
+* **dashboard-te:** summary — répartitions parSite et parIntervention ([dba2f84](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/dba2f849972c7637ca41581a334055da45a4291c))
+
 ## [0.1.89](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.88...v0.1.89) (2026-05-22)
 
 
