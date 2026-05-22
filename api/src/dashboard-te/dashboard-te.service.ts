@@ -579,8 +579,8 @@ export class DashboardTeService {
     // Une ligne par projet : la jointure communes peut dédoubler les lignes.
     const filtered = sql`
       SELECT DISTINCT p.id, p.phase, p.source_origine,
-        p."budgetPrevisionnel", p.llm_thematiques, p."competencesM57", p."leviersSgpe",
-        p.llm_probabilite_te
+        p."budgetPrevisionnel", p.llm_thematiques, p.llm_sites, p.llm_interventions,
+        p."competencesM57", p."leviersSgpe", p.llm_probabilite_te
       ${joinClause}
       ${whereClause}
     `;
@@ -620,16 +620,21 @@ export class DashboardTeService {
       FROM filtered GROUP BY 1 ORDER BY count(*) DESC
     `);
 
-    // Répartition par thématique : labels du JSONB llm_thematiques (un projet peut
-    // en porter plusieurs → compté dans chaque). Top 25.
-    const parThematique = await this.query<{ key: string; count: string }>(sql`
-      WITH filtered AS (${filtered})
-      SELECT elem->>'label' AS key, count(*)::text AS count
-      FROM filtered, jsonb_array_elements(${jsonbArray(sql`filtered.llm_thematiques`)}) AS elem
-      WHERE elem->>'label' IS NOT NULL
-      GROUP BY 1 ORDER BY count(*) DESC, key
-      LIMIT 25
-    `);
+    // Répartition par thématique / site / intervention : labels des JSONB
+    // llm_thematiques / llm_sites / llm_interventions (un projet peut en porter
+    // plusieurs → compté dans chaque). Top 25 chacun.
+    const parClassif = (col: SQL) =>
+      this.query<{ key: string; count: string }>(sql`
+        WITH filtered AS (${filtered})
+        SELECT elem->>'label' AS key, count(*)::text AS count
+        FROM filtered, jsonb_array_elements(${jsonbArray(col)}) AS elem
+        WHERE elem->>'label' IS NOT NULL
+        GROUP BY 1 ORDER BY count(*) DESC, key
+        LIMIT 25
+      `);
+    const parThematique = await parClassif(sql`filtered.llm_thematiques`);
+    const parSite = await parClassif(sql`filtered.llm_sites`);
+    const parIntervention = await parClassif(sql`filtered.llm_interventions`);
 
     // Répartition par compétence M57 / levier TE : colonnes CSV éclatées (même
     // approche que statsNational). Top 25.
@@ -679,6 +684,8 @@ export class DashboardTeService {
       parPhase: toMap(parPhase),
       parSource: toMap(parSource),
       parThematique: toMap(parThematique),
+      parSite: toMap(parSite),
+      parIntervention: toMap(parIntervention),
       parCompetence: toMap(parCompetence),
       parLevier: toMap(parLevier),
       parTrancheProbaTe: { elevee: 0, moyenne: 0, faible: 0, nonRenseigne: 0, ...toMap(parTrancheProbaTe) },
