@@ -360,6 +360,9 @@ export class DashboardTeService {
     scoreMin?: number;
     source?: string;
     phase?: string;
+    financement?: "avec" | "sans";
+    montantMin?: number;
+    montantMax?: number;
     q?: string;
     page: number;
     limit: number;
@@ -375,6 +378,9 @@ export class DashboardTeService {
       thematique,
       source,
       phase,
+      financement,
+      montantMin,
+      montantMax,
       q,
       page,
       limit,
@@ -406,6 +412,30 @@ export class DashboardTeService {
     if (site && site.length > 0) conditions.push(classifClause(sql`p.llm_sites`, site));
     if (intervention && intervention.length > 0) conditions.push(classifClause(sql`p.llm_interventions`, intervention));
     if (thematique && thematique.length > 0) conditions.push(classifClause(sql`p.llm_thematiques`, thematique));
+
+    // Financement filters. The financements table FK is inconsistent across rows
+    // (some use "projetId", some projet_id), so both are matched — same as projet().
+    const financementMatch = sql`(f."projetId" = p.id OR f.projet_id = p.id)`;
+    if (financement === "avec") {
+      conditions.push(sql`EXISTS (SELECT 1 FROM schema_commun_v2.financements f WHERE ${financementMatch})`);
+    }
+    if (financement === "sans") {
+      conditions.push(sql`NOT EXISTS (SELECT 1 FROM schema_commun_v2.financements f WHERE ${financementMatch})`);
+    }
+    // montantMin/Max filter on the total amount attributed per project (fallback:
+    // amount requested). The aggregate over zero rows is NULL, so projects with no
+    // financement never satisfy the HAVING — i.e. a montant filter implies financement=avec.
+    if (montantMin !== undefined || montantMax !== undefined) {
+      const montantTotal = sql`SUM(COALESCE(CAST(NULLIF(f."montantAttribue", '') AS numeric), CAST(NULLIF(f."montantDemande", '') AS numeric), 0))`;
+      const havingParts: SQL[] = [];
+      if (montantMin !== undefined) havingParts.push(sql`${montantTotal} >= ${montantMin}`);
+      if (montantMax !== undefined) havingParts.push(sql`${montantTotal} <= ${montantMax}`);
+      conditions.push(sql`EXISTS (
+        SELECT 1 FROM schema_commun_v2.financements f
+        WHERE ${financementMatch}
+        HAVING ${sql.join(havingParts, sql` AND `)}
+      )`);
+    }
 
     const needsCommuneJoin = Boolean(commune ?? departement);
 
