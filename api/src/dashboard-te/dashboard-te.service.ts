@@ -692,8 +692,7 @@ export class DashboardTeService {
     `);
     if (!projet) return null;
 
-    const financements = await this.query(
-      sql`
+    const financements = await this.query(sql`
       SELECT f.id, f.source,
         CAST(NULLIF(f."montantDemande", '') AS numeric) AS "montantDemande",
         CAST(NULLIF(f."montantAttribue", '') AS numeric) AS "montantAttribue",
@@ -702,8 +701,7 @@ export class DashboardTeService {
       FROM schema_commun_v2.financements f
       JOIN schema_commun_v2.liens_financements_projets lfp ON lfp.financement_id = f.id
       WHERE lfp.projet_id = ${id}
-    `,
-    ).catch(() => [] as Row[]);
+    `);
 
     const collectiviteSiren = (projet as { collectiviteSiren?: string }).collectiviteSiren;
     const [collectivite] = collectiviteSiren
