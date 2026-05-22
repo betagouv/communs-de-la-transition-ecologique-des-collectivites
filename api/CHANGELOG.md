@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.89](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.88...v0.1.89) (2026-05-22)
+
+
+### Features
+
+* **dashboard-te:** alias de tri intuitifs (budget, orderBy) ([d07f1e3](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d07f1e3aeb10e72bd1f5ccbc054ce3a87fed8a76))
+* **dashboard-te:** filtre et synthèse par probabilité de transition écologique ([6dafb99](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6dafb99ddc8d9fbd66e422be13f430d313e0f9ee))
+
 ## [0.1.88](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.87...v0.1.88) (2026-05-22)
 
 
