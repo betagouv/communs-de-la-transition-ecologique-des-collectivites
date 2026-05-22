@@ -453,14 +453,15 @@ export class DashboardTeService {
       conditions.push(sql`(${sql.join(labelPredicates, joiner)})`);
     }
 
-    // Financement filters. The financements FK to a projet is the snake_case
-    // column projet_id — there is no "projetId" column.
-    const financementMatch = sql`f.projet_id = p.id`;
-    if (f.financement === "avec") {
-      conditions.push(sql`EXISTS (SELECT 1 FROM schema_commun_v2.financements f WHERE ${financementMatch})`);
-    }
-    if (f.financement === "sans") {
-      conditions.push(sql`NOT EXISTS (SELECT 1 FROM schema_commun_v2.financements f WHERE ${financementMatch})`);
+    // Financement filters. financements n'a pas de FK vers le projet : le lien
+    // passe par la table de jointure liens_financements_projets(projet_id,
+    // financement_id).
+    if (f.financement === "avec" || f.financement === "sans") {
+      const aFinancement = sql`EXISTS (
+        SELECT 1 FROM schema_commun_v2.liens_financements_projets lfp
+        WHERE lfp.projet_id = p.id
+      )`;
+      conditions.push(f.financement === "avec" ? aFinancement : sql`NOT ${aFinancement}`);
     }
     // montantMin/Max filter on the total amount attributed per project (fallback:
     // amount requested). The aggregate over zero rows is NULL, so projects with no
@@ -471,8 +472,10 @@ export class DashboardTeService {
       if (f.montantMin !== undefined) havingParts.push(sql`${montantTotal} >= ${f.montantMin}`);
       if (f.montantMax !== undefined) havingParts.push(sql`${montantTotal} <= ${f.montantMax}`);
       conditions.push(sql`EXISTS (
-        SELECT 1 FROM schema_commun_v2.financements f
-        WHERE ${financementMatch}
+        SELECT 1
+        FROM schema_commun_v2.liens_financements_projets lfp
+        JOIN schema_commun_v2.financements f ON f.id = lfp.financement_id
+        WHERE lfp.projet_id = p.id
         HAVING ${sql.join(havingParts, sql` AND `)}
       )`);
     }
@@ -586,9 +589,10 @@ export class DashboardTeService {
       WITH filtered AS (${filtered})
       SELECT
         COALESCE(SUM(CAST(NULLIF(f."montantAttribue", '') AS numeric)), 0)::text AS "sumAttribue",
-        count(DISTINCT f.projet_id)::text AS "avecCount"
+        count(DISTINCT lfp.projet_id)::text AS "avecCount"
       FROM filtered
-      JOIN schema_commun_v2.financements f ON f.projet_id = filtered.id
+      JOIN schema_commun_v2.liens_financements_projets lfp ON lfp.projet_id = filtered.id
+      JOIN schema_commun_v2.financements f ON f.id = lfp.financement_id
     `);
 
     const parPhase = await this.query<{ key: string; count: string }>(sql`
@@ -690,13 +694,14 @@ export class DashboardTeService {
 
     const financements = await this.query(
       sql`
-      SELECT id, source,
-        CAST(NULLIF("montantDemande", '') AS numeric) AS "montantDemande",
-        CAST(NULLIF("montantAttribue", '') AS numeric) AS "montantAttribue",
-        CAST(NULLIF("montantPaye", '') AS numeric) AS "montantPaye",
-        statut
-      FROM schema_commun_v2.financements
-      WHERE projet_id = ${id}
+      SELECT f.id, f.source,
+        CAST(NULLIF(f."montantDemande", '') AS numeric) AS "montantDemande",
+        CAST(NULLIF(f."montantAttribue", '') AS numeric) AS "montantAttribue",
+        CAST(NULLIF(f."montantPaye", '') AS numeric) AS "montantPaye",
+        f.statut
+      FROM schema_commun_v2.financements f
+      JOIN schema_commun_v2.liens_financements_projets lfp ON lfp.financement_id = f.id
+      WHERE lfp.projet_id = ${id}
     `,
     ).catch(() => [] as Row[]);
 
