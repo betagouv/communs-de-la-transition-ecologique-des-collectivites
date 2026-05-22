@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.87](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.86...v0.1.87) (2026-05-22)
+
+
+### Bug Fixes
+
+* **dashboard-te:** lier financements et projets via la table de jointure ([f3d35e3](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f3d35e35263dcd9885ca0d0aa7136c88cf4d918b))
+* **dashboard-te:** ne plus masquer les erreurs de requête financements ([ca4c65e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ca4c65e9bd6c14106ac5ed97eafc83a242732146))
+
 ## [0.1.86](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.85...v0.1.86) (2026-05-22)
 
 
