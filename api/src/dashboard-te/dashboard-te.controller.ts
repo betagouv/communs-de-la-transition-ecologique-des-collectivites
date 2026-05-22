@@ -8,9 +8,14 @@ const toInt = (v: string | undefined, def: number) => {
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : def;
 };
 
+// Normalizes a query param to a list of values. Multiplicity comes ONLY from
+// repeated params (`?x=a&x=b`), never from comma-splitting: classification labels
+// (e.g. the theme "Voie douce, piste cyclable") and leviers can contain commas, so
+// a comma is not a safe separator. A single occurrence arrives as a string and is
+// kept whole.
 const toList = (v: string | string[] | undefined): string[] | undefined => {
   if (v == null) return undefined;
-  const arr = (Array.isArray(v) ? v : v.split(",")).map((s) => s.trim()).filter(Boolean);
+  const arr = (Array.isArray(v) ? v : [v]).map((s) => s.trim()).filter(Boolean);
   return arr.length > 0 ? arr : undefined;
 };
 
@@ -95,8 +100,8 @@ export class DashboardTeController {
     @Query("commune") commune?: string,
     @Query("departement") departement?: string,
     @Query("siren") siren?: string,
-    @Query("levier") levier?: string,
-    @Query("competence") competence?: string,
+    @Query("levier") levier?: string | string[],
+    @Query("competence") competence?: string | string[],
     @Query("site") site?: string | string[],
     @Query("intervention") intervention?: string | string[],
     @Query("thematique") thematique?: string | string[],
@@ -107,6 +112,7 @@ export class DashboardTeController {
     @Query("montantMin") montantMin?: string,
     @Query("montantMax") montantMax?: string,
     @Query("q") q?: string,
+    @Query("match") match?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
@@ -120,8 +126,9 @@ export class DashboardTeController {
       commune,
       departement,
       siren,
-      levier,
-      competence,
+      levier: toList(levier),
+      competence: toList(competence),
+      match: match === "all" ? "all" : "any",
       site: toClassifList(site),
       intervention: toClassifList(intervention),
       thematique: toClassifList(thematique),
