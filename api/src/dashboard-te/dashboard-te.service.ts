@@ -499,12 +499,16 @@ export class DashboardTeService {
 
     // Whitelisted sort. `sort` from the request never reaches the SQL as raw text:
     // it only picks one of these fixed output-column names. Ordering by an output
-    // column keeps it valid under SELECT DISTINCT and lets `montant` follow the
-    // capped budget transparently. Unknown/missing `sort` falls back to nom; a
-    // secondary sort on nom keeps pagination stable when the primary column ties.
+    // column keeps it valid under SELECT DISTINCT and lets the budget sort follow
+    // the capped budget transparently. Plusieurs alias sont acceptés pour le tri
+    // budget (montant/budget/budgetPrevisionnel) car le param filtre s'appelle
+    // montantMin/Max et le champ de réponse budgetPrevisionnel. Unknown/missing
+    // `sort` falls back to nom; a secondary sort on nom keeps pagination stable.
     const sortColumns: Record<string, SQL> = {
       nom: sql`nom`,
       montant: sql`"budgetPrevisionnel"`,
+      budget: sql`"budgetPrevisionnel"`,
+      budgetPrevisionnel: sql`"budgetPrevisionnel"`,
       dateDebut: sql`"dateDebut"`,
       dateFin: sql`"dateFin"`,
     };
