@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.92](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.91...v0.1.92) (2026-05-26)
+
+
+### Features
+
+* **dashboard-te:** flag inclure_tet sur /stats/national ([963ac30](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/963ac303cd3267fa8a2e74536a1668f3295af9c4))
+
+
+### Bug Fixes
+
+* **api:** améliorer typing OpenAPI sur les endpoints /aides/feedback ([cdccc82](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/cdccc82b8525e4067641c258ae5c786813c2289a))
+
 ## [0.1.91](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.90...v0.1.91) (2026-05-22)
 
 
