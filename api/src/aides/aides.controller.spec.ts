@@ -381,6 +381,118 @@ describe("AidesController", () => {
     });
   });
 
+  describe("searchAides (POST /aides/recherche)", () => {
+    const baseDto = {
+      thematiques: [{ label: "Rénovation énergétique", score: 0.9 }],
+      sites: [],
+      interventions: [],
+      communes: ["44109"],
+    };
+
+    it("fetches aides by commune INSEE perimeter code (not via a projet)", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
+
+      await controller.searchAides({ ...baseDto });
+
+      // Pas de résolution de projet : on ne touche pas au registre projets.
+      expect(mockProjetsService.findOneWithSource).not.toHaveBeenCalled();
+      // Le matching reçoit bien la classification fournie en entrée.
+      expect(mockMatchingService.match).toHaveBeenCalledWith(
+        { thematiques: baseDto.thematiques, sites: [], interventions: [] },
+        expect.any(Map),
+        expect.any(Number),
+        expect.any(Object),
+      );
+    });
+
+    it("dedupes communes and queries AT once per unique perimeter code", async () => {
+      // Cache miss → fetch synchrone par code de périmètre.
+      mockCacheService.get.mockResolvedValue(null);
+      mockAtService.fetchAides.mockResolvedValue([makeAide(1)]);
+
+      await controller.searchAides({ ...baseDto, communes: ["44109", "44109", "75056"] });
+
+      // 2 codes uniques → 2 appels AT.
+      expect(mockAtService.fetchAides).toHaveBeenCalledTimes(2);
+      expect(mockAtService.fetchAides).toHaveBeenCalledWith({ "perimeter_codes[]": "44109" });
+      expect(mockAtService.fetchAides).toHaveBeenCalledWith({ "perimeter_codes[]": "75056" });
+    });
+
+    it("returns no_aides_on_perimeter when AT returns nothing on the communes", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [], status: "fresh" });
+      mockAtService.fetchAides.mockResolvedValue([]);
+
+      const result = await controller.searchAides({ ...baseDto });
+
+      expect(result.status).toBe("no_aides_on_perimeter");
+      expect(result.total).toBe(0);
+    });
+
+    it("returns no_match when aides exist but none is relevant", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1), makeAide(2)], status: "fresh" });
+      mockMatchingService.match.mockReturnValue([]);
+
+      const result = await controller.searchAides({ ...baseDto });
+
+      expect(result.status).toBe("no_match");
+      expect(result.total).toBe(2);
+    });
+
+    it("returns ok with aides sorted by relevance", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1), makeAide(2)], status: "fresh" });
+      mockMatchingService.match.mockReturnValue([
+        {
+          idAt: "2",
+          score: 0.8,
+          normalizedScore: 0.8,
+          scoreThematiques: 0.8,
+          scoreSites: 0,
+          scoreInterventions: 0,
+          axesMatched: 1,
+          labelsCommuns: { thematiques: ["Rénovation énergétique"], sites: [], interventions: [] },
+        },
+        {
+          idAt: "1",
+          score: 0.3,
+          normalizedScore: 0.3,
+          scoreThematiques: 0.3,
+          scoreSites: 0,
+          scoreInterventions: 0,
+          axesMatched: 1,
+          labelsCommuns: { thematiques: ["Rénovation énergétique"], sites: [], interventions: [] },
+        },
+      ]);
+
+      const result = await controller.searchAides({ ...baseDto });
+
+      expect(result.status).toBe("ok");
+      expect(result.aides).toHaveLength(2);
+      expect(result.aides[0].id).toBe(2); // meilleur score en tête
+      expect(result.total).toBe(2);
+    });
+
+    it("forwards the per-side thresholds to the matching service", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
+
+      await controller.searchAides({ ...baseDto, aideThreshold: 0.7, projetThreshold: 0.3 });
+
+      expect(mockMatchingService.match).toHaveBeenCalledWith(expect.anything(), expect.any(Map), expect.any(Number), {
+        projet: 0.3,
+        aide: 0.7,
+      });
+    });
+
+    it("runs textual matching only when textual=true", async () => {
+      mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
+
+      await controller.searchAides({ ...baseDto, textual: false });
+      expect(mockTextualMatchingService.score).not.toHaveBeenCalled();
+
+      await controller.searchAides({ ...baseDto, textual: true, query: "rénovation" });
+      expect(mockTextualMatchingService.score).toHaveBeenCalledWith("rénovation", expect.any(Array));
+    });
+  });
+
   describe("listAides textual matching", () => {
     it("should NOT call the textual service when the flag is off (default)", async () => {
       mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
