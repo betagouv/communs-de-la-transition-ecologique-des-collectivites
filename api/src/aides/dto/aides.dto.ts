@@ -1,4 +1,16 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  ValidateNested,
+} from "class-validator";
 
 export class AideFinancerFull {
   @ApiProperty()
@@ -275,4 +287,115 @@ export class AidesSyncResponse {
 
   @ApiProperty()
   warmupStarted!: boolean;
+}
+
+/**
+ * Un label de classification fourni en entrée de la recherche d'aides
+ * (POST /aides/recherche), avec son niveau de confiance (0-1). Provient
+ * typiquement de POST /qualification/classification sur un texte libre.
+ */
+export class AidesSearchLabel {
+  @ApiProperty({ description: "Libellé du label", example: "Rénovation énergétique" })
+  @IsString()
+  label!: string;
+
+  @ApiProperty({ description: "Niveau de confiance du label (0-1)", example: 0.85 })
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  score!: number;
+}
+
+/**
+ * Recherche d'aides à partir d'une classification (thématiques / sites /
+ * interventions) et d'un périmètre de communes — sans projet de référence.
+ * Le matching et le tri par pertinence reprennent la même logique que GET /aides
+ * (même périmètre par code INSEE de commune, donc même cache).
+ */
+export class AidesSearchRequest {
+  @ApiPropertyOptional({ type: [AidesSearchLabel], description: "Thématiques recherchées (label + score)" })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AidesSearchLabel)
+  thematiques?: AidesSearchLabel[];
+
+  @ApiPropertyOptional({ type: [AidesSearchLabel], description: "Sites / lieux recherchés (label + score)" })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AidesSearchLabel)
+  sites?: AidesSearchLabel[];
+
+  @ApiPropertyOptional({
+    type: [AidesSearchLabel],
+    description: "Interventions / modalités recherchées (label + score)",
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AidesSearchLabel)
+  interventions?: AidesSearchLabel[];
+
+  @ApiProperty({
+    type: [String],
+    description: "Codes INSEE des communes à couvrir (périmètre Aides-Territoires). Au moins une.",
+    example: ["44109"],
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  communes!: string[];
+
+  @ApiPropertyOptional({ description: "Nombre max de résultats (défaut: 20)", example: 20 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  limit?: number;
+
+  @ApiPropertyOptional({
+    description: "Active une recherche de pertinence textuelle complémentaire (nécessite `query`).",
+    example: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  textual?: boolean;
+
+  @ApiPropertyOptional({
+    description: "Texte libre support du matching textuel complémentaire (utilisé si `textual` est activé).",
+  })
+  @IsOptional()
+  @IsString()
+  query?: string;
+
+  @ApiPropertyOptional({
+    description: "Score de pertinence minimal (0-1) sous lequel une aide est écartée. Défaut : aucun seuil.",
+    example: 0,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  cutoff?: number;
+
+  @ApiPropertyOptional({
+    description: "Seuil de confiance (0-1) des labels d'une aide pris en compte. Défaut : 0.8.",
+    example: 0.8,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  aideThreshold?: number;
+
+  @ApiPropertyOptional({
+    description:
+      "Seuil de confiance (0-1) des labels recherchés pris en compte. Défaut bas conseillé pour le texte libre (ex. 0.3).",
+    example: 0.3,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  projetThreshold?: number;
 }

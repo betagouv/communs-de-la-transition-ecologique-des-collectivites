@@ -35,12 +35,15 @@ import { AidesFeedbackService } from "./aides-feedback.service";
 import { AideFeedbackResponse, CreateAideFeedbackRequest, DeleteAideFeedbackRequest } from "./dto/aide-feedback.dto";
 import {
   Aide,
+  AideClassification,
   AideMatchResult,
   AidesListResponse,
+  AidesSearchRequest,
   AidesSyncResponse,
   AideWithClassification,
   ClassificationPendingResponse,
 } from "./dto/aides.dto";
+import { MatchThresholds } from "./aides-matching.service";
 
 const CLASSIFICATION_RETRY_AFTER_SECONDS = 15;
 
@@ -186,7 +189,7 @@ export class AidesController {
     }
 
     // 4. Fetch aides for each territory (union) — deduplicate by aide id
-    const allAides = await this.fetchAidesForTerritories(codesInsee);
+    const allAides = await this.fetchAidesForPerimeterCodes(codesInsee);
 
     if (allAides.length === 0) {
       return { status: "no_aides_on_perimeter", aides: [], total: 0 };
@@ -196,25 +199,95 @@ export class AidesController {
     const aideIds = allAides.map((a) => String(a.id));
     const classifications = await this.classificationService.getCachedClassifications(aideIds);
 
-    // 6. Thematic matching — pass allAides.length so nothing is pre-sliced
-    //    before the (optional) textual combination below.
-    const matchResults = new Map<string, AideMatchResult>();
-    const results = this.matchingService.match(projet.classificationScores, classifications, allAides.length, {
-      projet: projetThreshold,
-      aide: aideThreshold,
+    // 6-7. Matching thématique (+ textuel optionnel), enrichissement et tri —
+    //      logique partagée avec POST /aides/recherche.
+    const textualEnabled = this.isTextualMatchingEnabled(textualOverride);
+    return this.buildMatchedResponse(projet.classificationScores, allAides, classifications, {
+      maxResults,
+      cutoff,
+      thresholds: { projet: projetThreshold, aide: aideThreshold },
+      textualEnabled,
+      textualText: `${projet.nom} ${projet.description ?? ""}`,
     });
-    for (const r of results) {
+  }
+
+  @TrackApiUsage()
+  @Post("recherche")
+  @ApiOperation({
+    summary: "Rechercher des aides par classification et communes",
+    description:
+      "Variante de `GET /aides` sans projet de référence : on fournit directement une classification (thématiques / sites / interventions, typiquement issue de `POST /qualification/classification`) et un périmètre de communes (codes INSEE). Les aides du périmètre sont matchées contre cette classification et triées par pertinence. Même périmètre par INSEE que `GET /aides`, donc même cache.\n\n**Statuts** :\n- `200 ok` : aides pertinentes trouvées\n- `200 no_match` : des aides existent sur le périmètre mais aucune n'est jugée pertinente\n- `200 no_aides_on_perimeter` : aucune aide trouvée sur les communes demandées",
+  })
+  @ApiEndpointResponses({
+    successStatus: 200,
+    response: AidesListResponse,
+    description: "Aides enrichies avec score de matching (status: ok | no_match | no_aides_on_perimeter)",
+  })
+  async searchAides(@Body() dto: AidesSearchRequest): Promise<AidesListResponse> {
+    const maxResults = dto.limit ?? 20;
+    const cutoff = dto.cutoff ?? 0;
+
+    // Classification recherchée — reconstruite à partir des labels fournis.
+    const searchScores: AideClassification = {
+      thematiques: dto.thematiques ?? [],
+      sites: dto.sites ?? [],
+      interventions: dto.interventions ?? [],
+    };
+
+    // Périmètre : union des aides disponibles sur les communes demandées
+    // (codes INSEE — mêmes clés de cache que GET /aides).
+    const communes = [...new Set(dto.communes.map((c) => c.trim()).filter(Boolean))];
+    const allAides = await this.fetchAidesForPerimeterCodes(communes);
+
+    if (allAides.length === 0) {
+      return { status: "no_aides_on_perimeter", aides: [], total: 0 };
+    }
+
+    const aideIds = allAides.map((a) => String(a.id));
+    const classifications = await this.classificationService.getCachedClassifications(aideIds);
+
+    // Le texte libre ne sert qu'au matching textuel optionnel.
+    const textualEnabled = dto.textual === true;
+    return this.buildMatchedResponse(searchScores, allAides, classifications, {
+      maxResults,
+      cutoff,
+      thresholds: { projet: dto.projetThreshold, aide: dto.aideThreshold },
+      textualEnabled,
+      textualText: dto.query ?? "",
+    });
+  }
+
+  /**
+   * Matching thématique (+ textuel optionnel), enrichissement et tri d'un
+   * ensemble d'aides contre une classification. Partagé par GET /aides et
+   * POST /aides/recherche. `total` reflète le nombre d'aides du périmètre
+   * avant filtrage par le matching.
+   */
+  private buildMatchedResponse(
+    scores: AideClassification,
+    allAides: Aide[],
+    classifications: Map<string, AideClassification>,
+    options: {
+      maxResults: number;
+      cutoff: number;
+      thresholds: MatchThresholds;
+      textualEnabled: boolean;
+      textualText: string;
+    },
+  ): AidesListResponse {
+    const { maxResults, cutoff, thresholds, textualEnabled, textualText } = options;
+
+    // Matching thématique — on passe allAides.length pour ne rien pré-trancher
+    // avant la combinaison textuelle optionnelle.
+    const matchResults = new Map<string, AideMatchResult>();
+    for (const r of this.matchingService.match(scores, classifications, allAides.length, thresholds)) {
       matchResults.set(r.idAt, r);
     }
 
-    // 6b. Textual matching (BM25) — opt-in via flag. Runs on ALL aides of the
-    //     territory, including those not yet classified.
-    const textualEnabled = this.isTextualMatchingEnabled(textualOverride);
-    const textualResults = textualEnabled
-      ? this.textualMatchingService.score(`${projet.nom} ${projet.description ?? ""}`, allAides)
-      : null;
+    // Matching textuel (BM25) — opt-in. Tourne sur toutes les aides du
+    // périmètre, y compris celles non encore classifiées.
+    const textualResults = textualEnabled ? this.textualMatchingService.score(textualText, allAides) : null;
 
-    // 7. Enrich
     let enriched: AideWithClassification[] = allAides.map((aide) => {
       const idAt = String(aide.id);
       const classification = classifications.get(idAt);
@@ -462,19 +535,20 @@ export class AidesController {
 
   /**
    * Fetch aides for multiple territories (union). Deduplicates by aide id.
-   * Uses AT's perimeter_codes[] parameter which accepts code INSEE directly.
+   * Uses AT's perimeter_codes[] parameter which accepts any perimeter code
+   * (code INSEE de commune, code département…) directly.
    */
-  private async fetchAidesForTerritories(codesInsee: string[]): Promise<Aide[]> {
-    if (codesInsee.length === 0) {
+  private async fetchAidesForPerimeterCodes(codes: string[]): Promise<Aide[]> {
+    if (codes.length === 0) {
       return this.fetchAidesForTerritory({}, "no territory filter");
     }
 
     const seenIds = new Set<number>();
     const allAides: Aide[] = [];
 
-    for (const codeInsee of codesInsee) {
-      const params = { "perimeter_codes[]": codeInsee };
-      const aides = await this.fetchAidesForTerritory(params, `code_insee=${codeInsee}`);
+    for (const code of codes) {
+      const params = { "perimeter_codes[]": code };
+      const aides = await this.fetchAidesForTerritory(params, `perimeter_code=${code}`);
 
       // Deduplicate across territories
       for (const aide of aides) {
@@ -485,7 +559,7 @@ export class AidesController {
       }
     }
 
-    this.logger.log(`Fetched ${allAides.length} unique aides across ${codesInsee.length} territories`);
+    this.logger.log(`Fetched ${allAides.length} unique aides across ${codes.length} territories`);
     return allAides;
   }
 }
