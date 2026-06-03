@@ -813,6 +813,22 @@ export class DashboardTeService {
       GROUP BY 1
     `);
 
+    // Répartition par millésime (année de début / fin). Les dates sont
+    // stockées en texte ISO (YYYY-..., parfois avec heure) et souvent absentes
+    // (≈22 % début, ≈12 % fin, nulles sur ACV/PVD) : on n'extrait l'année que
+    // des valeurs au format année valide ; le frontend déduit la couverture
+    // en comparant la somme des compteurs au total des projets filtrés.
+    const parAnnee = (col: SQL) =>
+      this.query<{ key: string; count: string }>(sql`
+        WITH a AS (${actions})
+        SELECT substring(${col} FROM 1 FOR 4) AS key, count(*)::text AS count
+        FROM a
+        WHERE ${col} IS NOT NULL AND substring(${col} FROM 1 FOR 4) ~ '^[12][0-9]{3}$'
+        GROUP BY 1 ORDER BY key
+      `);
+    const parAnneeDebut = await parAnnee(sql`a."dateDebut"`);
+    const parAnneeFin = await parAnnee(sql`a."dateFin"`);
+
     const toMap = (rows: { key: string; count: string }[]): Record<string, number> =>
       Object.fromEntries(rows.map((r) => [r.key, Number(r.count)]));
 
@@ -830,6 +846,10 @@ export class DashboardTeService {
       parCompetence: toMap(parCompetence),
       parLevier: toMap(parLevier),
       parTrancheProbaTe: { elevee: 0, moyenne: 0, faible: 0, nonRenseigne: 0, ...toMap(parTrancheProbaTe) },
+      // Millésimes (année → nombre de projets). Ne contient que les projets
+      // dont la date est renseignée et au format année valide.
+      parAnneeDebut: toMap(parAnneeDebut),
+      parAnneeFin: toMap(parAnneeFin),
     };
   }
 
