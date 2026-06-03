@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.94](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.93...v0.1.94) (2026-06-03)
+
+
+### Features
+
+* **dashboard-te:** millésimes des projets dans /projets/summary ([106d343](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/106d343c2eae065bab517a6f5924a6bda640072b))
+
 ## [0.1.93](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.92...v0.1.93) (2026-06-02)
 
 
