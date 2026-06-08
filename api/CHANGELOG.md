@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.95](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.94...v0.1.95) (2026-06-08)
+
+
+### Features
+
+* **dashboard-te:** paramètre inclure_dgcl (exclut les projets DGCL par défaut) ([e48fecc](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e48fecc5cab9356706031335f3b10e301401c170))
+
 ## [0.1.94](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.93...v0.1.94) (2026-06-03)
 
 
