@@ -63,6 +63,9 @@ export interface ProjetsFilter {
   probaTeMin?: number;
   probaTeMax?: number;
   q?: string;
+  // false (défaut) : exclut les projets DGCL (source_origine LIKE 'DGCL%'),
+  // non synchronisés / non qualifiés / non dédoublonnés. true : les inclut.
+  inclureDgcl?: boolean;
 }
 
 @Injectable()
@@ -462,6 +465,11 @@ export class DashboardTeService {
     };
 
     const conditions: SQL[] = [];
+    // Les projets DGCL (data.gouv) sont exclus par défaut : non synchronisés,
+    // non qualifiés, non dédoublonnés. inclure_dgcl=true les réintègre.
+    if (!f.inclureDgcl) {
+      conditions.push(sql`(p.source_origine IS NULL OR p.source_origine NOT LIKE 'DGCL%')`);
+    }
     if (f.commune) conditions.push(sql`lpc.insee_com = ${f.commune}`);
     if (f.departement) conditions.push(sql`ar.code_departement = ${f.departement}`);
     if (f.siren) conditions.push(sql`p."collectiviteResponsableSiren" = ${f.siren}`);

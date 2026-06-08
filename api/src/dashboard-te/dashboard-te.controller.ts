@@ -75,6 +75,7 @@ const parseProjetsFilter = (raw: RawQuery) => {
     probaTeMin: Number.isFinite(probaTeMinNum) ? probaTeMinNum : undefined,
     probaTeMax: Number.isFinite(probaTeMaxNum) ? probaTeMaxNum : undefined,
     q: first(raw.q),
+    inclureDgcl: first(raw.inclure_dgcl) === "true",
   };
 };
 
