@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.96](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.95...v0.1.96) (2026-06-15)
+
+
+### Features
+
+* **dashboard-te:** exposer les communes (INSEE) du projet dans le détail ([c90bf97](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/c90bf97aaa296a6f0750cab8253ffca04dac7e79))
+
 ## [0.1.95](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.94...v0.1.95) (2026-06-08)
 
 
