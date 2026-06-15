@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.97](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.96...v0.1.97) (2026-06-15)
+
+
+### Features
+
+* **dashboard-te:** filtre EPCI sur /projets et /projets/summary ([42096e2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/42096e2f013a5e949cdf57990a17bd5b656eb938))
+
 ## [0.1.96](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.95...v0.1.96) (2026-06-15)
 
 
