@@ -48,6 +48,9 @@ export interface ProjetsFilter {
   commune?: string;
   departement?: string;
   siren?: string;
+  // EPCI (SIREN de groupement) : développé en ses communes membres via
+  // api_referentiel.perimetres pour agréger tous les projets du territoire.
+  epci?: string;
   levier?: string[];
   competence?: string[];
   match?: "all" | "any";
@@ -473,6 +476,11 @@ export class DashboardTeService {
     if (f.commune) conditions.push(sql`lpc.insee_com = ${f.commune}`);
     if (f.departement) conditions.push(sql`ar.code_departement = ${f.departement}`);
     if (f.siren) conditions.push(sql`p."collectiviteResponsableSiren" = ${f.siren}`);
+    // EPCI : projets rattachés à une commune membre du groupement.
+    if (f.epci)
+      conditions.push(
+        sql`lpc.insee_com IN (SELECT code_insee_commune FROM api_referentiel.perimetres WHERE siren_groupement = ${f.epci})`,
+      );
     if (f.source) conditions.push(sql`p.source_origine = ${f.source}`);
     if (f.phase) conditions.push(sql`p.phase = ${f.phase}`);
     if (pattern) conditions.push(sql`p.nom ILIKE ${pattern}`);
@@ -530,7 +538,7 @@ export class DashboardTeService {
       conditions.push(sql`p.llm_probabilite_te <= ${f.probaTeMax}`);
     }
 
-    const needsCommuneJoin = Boolean(f.commune ?? f.departement);
+    const needsCommuneJoin = Boolean(f.commune ?? f.departement ?? f.epci);
 
     let whereClause = sql``;
     if (conditions.length > 0) {
@@ -575,6 +583,11 @@ export class DashboardTeService {
       )`);
     }
     if (f.siren) conditions.push(sql`f.collectivite_responsable_siren = ${f.siren}`);
+    // EPCI : fiche dont le territoire chevauche les communes membres du groupement.
+    if (f.epci)
+      conditions.push(
+        sql`f.territoire_communes && (SELECT array_agg(code_insee_commune) FROM api_referentiel.perimetres WHERE siren_groupement = ${f.epci})`,
+      );
     if (f.phase) conditions.push(sql`f.source_metadata->>'phase' = ${f.phase}`);
     if (pattern) conditions.push(sql`f.nom ILIKE ${pattern}`);
 
