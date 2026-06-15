@@ -583,10 +583,11 @@ export class DashboardTeService {
       )`);
     }
     if (f.siren) conditions.push(sql`f.collectivite_responsable_siren = ${f.siren}`);
-    // EPCI : fiche dont le territoire chevauche les communes membres du groupement.
+    // EPCI : fiche dont le territoire inclut une commune membre du groupement.
+    // (EXISTS + ANY plutôt que && : évite le conflit de type text[] && varchar[].)
     if (f.epci)
       conditions.push(
-        sql`f.territoire_communes && (SELECT array_agg(code_insee_commune) FROM api_referentiel.perimetres WHERE siren_groupement = ${f.epci})`,
+        sql`EXISTS (SELECT 1 FROM api_referentiel.perimetres pp WHERE pp.siren_groupement = ${f.epci} AND pp.code_insee_commune = ANY(f.territoire_communes))`,
       );
     if (f.phase) conditions.push(sql`f.source_metadata->>'phase' = ${f.phase}`);
     if (pattern) conditions.push(sql`f.nom ILIKE ${pattern}`);
