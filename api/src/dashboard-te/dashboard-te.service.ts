@@ -890,6 +890,17 @@ export class DashboardTeService {
         p.llm_interventions->0->>'label' AS "llmIntervention",
         p.llm_thematiques->0->>'label' AS "llmThematique",
         p.llm_probabilite_te AS "llmProbabiliteTe",
+        -- Communes (INSEE) du projet : union des liens explicites et du champ
+        -- territoireCommunes (CSV). Sert au moteur d'aides par lieu+labels
+        -- (POST /aides/recherche) pour les projets hors registre natif.
+        (
+          SELECT array_agg(DISTINCT cc) FROM (
+            SELECT unnest(
+              COALESCE((SELECT array_agg(l.insee_com) FROM schema_commun_v2.liens_projets_communes l WHERE l.projet_id = p.id), ARRAY[]::text[])
+              || COALESCE(string_to_array(NULLIF(p."territoireCommunes", ''), ','), ARRAY[]::text[])
+            ) AS cc
+          ) s WHERE cc <> ''
+        ) AS "communesInsee",
         cm.cluster_id AS "clusterId",
         c.confiance AS "clusterConfiance"
       FROM schema_commun_v2.projets_operationnels p
