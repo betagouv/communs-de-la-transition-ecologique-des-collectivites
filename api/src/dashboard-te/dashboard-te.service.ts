@@ -890,6 +890,13 @@ export class DashboardTeService {
         p.llm_interventions->0->>'label' AS "llmIntervention",
         p.llm_thematiques->0->>'label' AS "llmThematique",
         p.llm_probabilite_te AS "llmProbabiliteTe",
+        -- Classification SCORÉE ({label, score} par axe) pour le matching d'aides
+        -- par lieu+labels (qualité du tri) — même forme que la fiche TeT.
+        jsonb_build_object(
+          'thematiques', COALESCE(p.llm_thematiques, '[]'::jsonb),
+          'sites', COALESCE(p.llm_sites, '[]'::jsonb),
+          'interventions', COALESCE(p.llm_interventions, '[]'::jsonb)
+        ) AS "classificationScores",
         -- Communes (INSEE) du projet : union des liens explicites et du champ
         -- territoireCommunes (CSV). Sert au moteur d'aides par lieu+labels
         -- (POST /aides/recherche) pour les projets hors registre natif.
