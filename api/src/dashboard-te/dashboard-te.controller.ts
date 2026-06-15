@@ -60,6 +60,7 @@ const parseProjetsFilter = (raw: RawQuery) => {
     commune: first(raw.commune),
     departement: first(raw.departement),
     siren: first(raw.siren),
+    epci: first(raw.epci),
     levier: toList(raw.levier),
     competence: toList(raw.competence),
     match: first(raw.match) === "all" ? ("all" as const) : ("any" as const),
