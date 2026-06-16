@@ -57,7 +57,7 @@ const parseProjetsFilter = (raw: RawQuery) => {
   const financement: "avec" | "sans" | undefined =
     financementRaw === "avec" || financementRaw === "sans" ? financementRaw : undefined;
   return {
-    commune: first(raw.commune),
+    commune: toList(raw.commune),
     departement: toList(raw.departement),
     siren: first(raw.siren),
     epci: first(raw.epci),
