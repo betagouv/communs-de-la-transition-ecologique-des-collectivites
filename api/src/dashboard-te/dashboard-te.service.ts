@@ -45,7 +45,8 @@ const csvTokenClause = (col: SQL, values: string[]): SQL | null => {
 
 // Filtres communs aux endpoints /projets et /projets/summary.
 export interface ProjetsFilter {
-  commune?: string;
+  // Une ou plusieurs communes (params répétés) — OR via insee_com = ANY(...).
+  commune?: string[];
   // Un ou plusieurs départements (params répétés) — OR via code_departement = ANY(...).
   departement?: string[];
   siren?: string;
@@ -458,9 +459,10 @@ export class DashboardTeService {
   private buildProjetsFilter(f: ProjetsFilter): { joinClause: SQL; whereClause: SQL } {
     const scoreMin = f.scoreMin ?? 0.8;
     const pattern = f.q ? `%${f.q}%` : null;
-    // Filtres multi-valeurs département / source (params répétés). ARRAY[...]::text[]
-    // explicite (comme buildFichesFilter) plutôt que de dépendre du binding d'array
-    // du driver, puis `col = ANY(...)`.
+    // Filtres multi-valeurs commune / département / source (params répétés).
+    // ARRAY[...]::text[] explicite (comme buildFichesFilter) plutôt que de
+    // dépendre du binding d'array du driver, puis `col = ANY(...)`.
+    const hasCommune = !!(f.commune && f.commune.length > 0);
     const hasDept = !!(f.departement && f.departement.length > 0);
     const hasSource = !!(f.source && f.source.length > 0);
     const textArray = (vals: string[]): SQL =>
@@ -482,7 +484,7 @@ export class DashboardTeService {
     if (!f.inclureDgcl) {
       conditions.push(sql`(p.source_origine IS NULL OR p.source_origine NOT LIKE 'DGCL%')`);
     }
-    if (f.commune) conditions.push(sql`lpc.insee_com = ${f.commune}`);
+    if (hasCommune) conditions.push(sql`lpc.insee_com = ANY(${textArray(f.commune!)})`);
     if (hasDept) conditions.push(sql`ar.code_departement = ANY(${textArray(f.departement!)})`);
     if (f.siren) conditions.push(sql`p."collectiviteResponsableSiren" = ${f.siren}`);
     // EPCI : projets rattachés à une commune membre du groupement.
@@ -547,7 +549,7 @@ export class DashboardTeService {
       conditions.push(sql`p.llm_probabilite_te <= ${f.probaTeMax}`);
     }
 
-    const needsCommuneJoin = Boolean(f.commune ?? f.epci) || hasDept;
+    const needsCommuneJoin = hasCommune || Boolean(f.epci) || hasDept;
 
     let whereClause = sql``;
     if (conditions.length > 0) {
@@ -586,7 +588,9 @@ export class DashboardTeService {
     // Conditions toujours AND. parent_id IS NULL : seules les fiches racines sont
     // comptées (les sous-actions gonfleraient les totaux).
     const conditions: SQL[] = [sql`f.parent_id IS NULL`];
-    if (f.commune) conditions.push(sql`${f.commune} = ANY(f.territoire_communes)`);
+    // Recouvrement de tableaux : au moins une commune de la sélection ∈ territoire de la fiche.
+    if (f.commune && f.commune.length > 0)
+      conditions.push(sql`f.territoire_communes && ${pgArray(f.commune)}`);
     if (f.departement && f.departement.length > 0) {
       conditions.push(sql`EXISTS (
         SELECT 1 FROM api_referentiel.communes ar
