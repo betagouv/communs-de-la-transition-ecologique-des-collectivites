@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.100](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.99...v0.1.100) (2026-06-16)
+
+
+### Features
+
+* **dashboard-te:** filtres departement et source multi-valeurs ([a260edf](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/a260edf4be45539438548e382f583bb42d872e15))
+
 ## [0.1.99](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.98...v0.1.99) (2026-06-16)
 
 
