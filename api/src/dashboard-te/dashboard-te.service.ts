@@ -46,7 +46,8 @@ const csvTokenClause = (col: SQL, values: string[]): SQL | null => {
 // Filtres communs aux endpoints /projets et /projets/summary.
 export interface ProjetsFilter {
   commune?: string;
-  departement?: string;
+  // Un ou plusieurs départements (params répétés) — OR via code_departement = ANY(...).
+  departement?: string[];
   siren?: string;
   // EPCI (SIREN de groupement) : développé en ses communes membres via
   // api_referentiel.perimetres pour agréger tous les projets du territoire.
@@ -58,7 +59,8 @@ export interface ProjetsFilter {
   intervention?: { label: string; scoreMin?: number }[];
   thematique?: { label: string; scoreMin?: number }[];
   scoreMin?: number;
-  source?: string;
+  // Une ou plusieurs sources (params répétés) — OR via source_origine = ANY(...).
+  source?: string[];
   phase?: string;
   financement?: "avec" | "sans";
   montantMin?: number;
@@ -456,6 +458,13 @@ export class DashboardTeService {
   private buildProjetsFilter(f: ProjetsFilter): { joinClause: SQL; whereClause: SQL } {
     const scoreMin = f.scoreMin ?? 0.8;
     const pattern = f.q ? `%${f.q}%` : null;
+    // Filtres multi-valeurs département / source (params répétés). ARRAY[...]::text[]
+    // explicite (comme buildFichesFilter) plutôt que de dépendre du binding d'array
+    // du driver, puis `col = ANY(...)`.
+    const hasDept = !!(f.departement && f.departement.length > 0);
+    const hasSource = !!(f.source && f.source.length > 0);
+    const textArray = (vals: string[]): SQL =>
+      sql`ARRAY[${sql.join(vals.map((v) => sql`${v}`), sql`, `)}]::text[]`;
 
     // Builds `(label=X1 AND score>=S1) OR (label=X2 AND score>=S2) ...`
     // where Sn falls back to the request-level scoreMin if not set per-entry.
@@ -474,14 +483,14 @@ export class DashboardTeService {
       conditions.push(sql`(p.source_origine IS NULL OR p.source_origine NOT LIKE 'DGCL%')`);
     }
     if (f.commune) conditions.push(sql`lpc.insee_com = ${f.commune}`);
-    if (f.departement) conditions.push(sql`ar.code_departement = ${f.departement}`);
+    if (hasDept) conditions.push(sql`ar.code_departement = ANY(${textArray(f.departement!)})`);
     if (f.siren) conditions.push(sql`p."collectiviteResponsableSiren" = ${f.siren}`);
     // EPCI : projets rattachés à une commune membre du groupement.
     if (f.epci)
       conditions.push(
         sql`lpc.insee_com IN (SELECT code_insee_commune FROM api_referentiel.perimetres WHERE siren_groupement = ${f.epci})`,
       );
-    if (f.source) conditions.push(sql`p.source_origine = ${f.source}`);
+    if (hasSource) conditions.push(sql`p.source_origine = ANY(${textArray(f.source!)})`);
     if (f.phase) conditions.push(sql`p.phase = ${f.phase}`);
     if (pattern) conditions.push(sql`p.nom ILIKE ${pattern}`);
 
@@ -538,7 +547,7 @@ export class DashboardTeService {
       conditions.push(sql`p.llm_probabilite_te <= ${f.probaTeMax}`);
     }
 
-    const needsCommuneJoin = Boolean(f.commune ?? f.departement ?? f.epci);
+    const needsCommuneJoin = Boolean(f.commune ?? f.epci) || hasDept;
 
     let whereClause = sql``;
     if (conditions.length > 0) {
@@ -552,7 +561,7 @@ export class DashboardTeService {
     const joinClause = sql`
       FROM schema_commun_v2.projets_operationnels p
       ${needsCommuneJoin ? sql`JOIN schema_commun_v2.liens_projets_communes lpc ON lpc.projet_id = p.id` : sql``}
-      ${f.departement ? sql`JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
+      ${hasDept ? sql`JOIN api_referentiel.communes ar ON ar.code_insee = lpc.insee_com` : sql``}
     `;
 
     return { joinClause, whereClause };
@@ -562,7 +571,9 @@ export class DashboardTeService {
   // buildProjetsFilter. Renvoie null si le filtre exclut d'office toutes les fiches.
   private buildFichesFilter(f: ProjetsFilter): { joinClause: SQL; whereClause: SQL } | null {
     // Les fiches data_tet ont toutes la source « TeT » et n'ont aucun financement.
-    if (f.source && f.source !== "TeT") return null;
+    // Avec un filtre source multi-valeurs : si « TeT » n'en fait pas partie,
+    // aucune fiche ne peut matcher → on court-circuite.
+    if (f.source && f.source.length > 0 && !f.source.includes("TeT")) return null;
     if (f.financement === "avec") return null;
 
     const pattern = f.q ? `%${f.q}%` : null;
@@ -576,10 +587,10 @@ export class DashboardTeService {
     // comptées (les sous-actions gonfleraient les totaux).
     const conditions: SQL[] = [sql`f.parent_id IS NULL`];
     if (f.commune) conditions.push(sql`${f.commune} = ANY(f.territoire_communes)`);
-    if (f.departement) {
+    if (f.departement && f.departement.length > 0) {
       conditions.push(sql`EXISTS (
         SELECT 1 FROM api_referentiel.communes ar
-        WHERE ar.code_insee = ANY(f.territoire_communes) AND ar.code_departement = ${f.departement}
+        WHERE ar.code_insee = ANY(f.territoire_communes) AND ar.code_departement = ANY(${pgArray(f.departement)})
       )`);
     }
     if (f.siren) conditions.push(sql`f.collectivite_responsable_siren = ${f.siren}`);

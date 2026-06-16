@@ -58,7 +58,7 @@ const parseProjetsFilter = (raw: RawQuery) => {
     financementRaw === "avec" || financementRaw === "sans" ? financementRaw : undefined;
   return {
     commune: first(raw.commune),
-    departement: first(raw.departement),
+    departement: toList(raw.departement),
     siren: first(raw.siren),
     epci: first(raw.epci),
     levier: toList(raw.levier),
@@ -68,7 +68,7 @@ const parseProjetsFilter = (raw: RawQuery) => {
     intervention: toClassifList(raw.intervention),
     thematique: toClassifList(raw.thematique),
     scoreMin: parseScoreMin(first(raw.scoreMin)),
-    source: first(raw.source),
+    source: toList(raw.source),
     phase: first(raw.phase),
     financement,
     montantMin: Number.isFinite(montantMinNum) && montantMinNum! >= 0 ? montantMinNum : undefined,
