@@ -161,11 +161,22 @@ describe("TerritoiresService", () => {
       expect(result).toEqual({ pcaet: [], fichesActionSuggerees: [] });
     });
 
+    it("renvoie pcaet vide quand la table de référence n'existe pas encore (chantier T4)", async () => {
+      selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
+      execute
+        .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence projet
+        .mockResolvedValueOnce({ rows: [{ insee: "01001" }] }) // communes du projet
+        .mockResolvedValueOnce({ rows: [{ present: false }] }); // pcaet_reference absente en prod
+      const result = await service.planFichesTerritoire("mec-123");
+      expect(result).toEqual({ pcaet: [], fichesActionSuggerees: [] });
+    });
+
     it("mappe les PCAET couvrant les communes du projet", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
       execute
         .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence projet
         .mockResolvedValueOnce({ rows: [{ insee: "01001" }] }) // communes du projet
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // pcaet_reference présente
         .mockResolvedValueOnce({
           rows: [
             {

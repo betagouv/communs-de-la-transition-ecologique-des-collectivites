@@ -243,6 +243,14 @@ export class TerritoiresService {
       return { pcaet: [], fichesActionSuggerees: [] };
     }
 
+    // pcaet_reference est produite par un chantier distinct (T4) et peut ne pas encore
+    // exister en production : on dégrade en liste vide plutôt que de renvoyer un 500
+    // "relation does not exist". Une fois la table créée, l'endpoint sert les données
+    // sans changement de code. (Même esprit que la garde IF EXISTS de la migration.)
+    if (!(await this.pcaetReferenceExists())) {
+      return { pcaet: [], fichesActionSuggerees: [] };
+    }
+
     const pcaetRows = await this.query<{
       nom: string | null;
       sirenPorteur: string | null;
@@ -367,6 +375,15 @@ export class TerritoiresService {
     if (rows.length === 0) {
       throw new NotFoundException(this.orphanMessage(projetId));
     }
+  }
+
+  // La table de référence PCAET est un livrable du chantier T4, déployé indépendamment.
+  // to_regclass renvoie NULL si la relation n'existe pas (lookup catalogue, sans erreur).
+  private async pcaetReferenceExists(): Promise<boolean> {
+    const [row] = await this.query<{ present: boolean }>(
+      sql`SELECT to_regclass('schema_commun_v2.pcaet_reference') IS NOT NULL AS present`,
+    );
+    return row?.present === true;
   }
 
   private orphanMessage(projetId: string): string {

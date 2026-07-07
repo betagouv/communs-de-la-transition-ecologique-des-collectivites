@@ -146,7 +146,9 @@ Règles :
 
 - Vivier COP : Hauts-de-France uniquement (millésimes 2024 atténuation+biodiv, 2025 adaptation) ;
   ~10 % des lignes portent un rattachement territorial `needs_review` côté pipeline.
-- PCAET : canal TeT-live exclu (bug d'ingestion webhook, issue #497) — couverture actuelle
-  50,7 % des projets MEC.
+- PCAET : la table de référence (`pcaet_reference`) est un livrable du chantier T4 déployé
+  séparément ; tant qu'elle n'est pas en production, `plans-territoire` renvoie `pcaet: []`
+  (pas d'erreur — dégradation propre). Couverture cible une fois livrée : 50,7 % des projets
+  MEC. Canal TeT-live exclu (bug d'ingestion webhook, issue #497).
 - Les groupes reflètent l'état de la déduplication : des doublons intra-MEC (~6 200 connus
   côté MEC) apparaissent comme des groupes distincts tant qu'ils ne sont pas fusionnés.
