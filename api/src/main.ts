@@ -11,6 +11,7 @@ import { setupOpendataDoc } from "@/plans-fiches/opendata-doc.setup";
 import { setupDashboardTeDoc } from "@/dashboard-te/dashboard-te-doc.setup";
 import { setupSwaggerHub } from "@/swagger-hub";
 import { serveLandingPages } from "@/landing/landing-pages";
+import { installUncaughtErrorHandlers } from "@/shared/process/uncaught-error-handlers";
 
 async function bootstrap() {
   // Initialize Sentry - this not following their doc here : https://docs.sentry.io/platforms/javascript/guides/nestjs/
@@ -20,6 +21,11 @@ async function bootstrap() {
     tracesSampleRate: 0.25,
     environment: process.env.SCALINGO_ENV,
   });
+
+  // Neutralise l'AssertionError node:assert de fond d'undici (issue #507) sans
+  // crasher le process ; laisse crasher tout le reste. À installer après l'init
+  // Sentry pour que la remontée fonctionne.
+  installUncaughtErrorHandlers();
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
