@@ -56,8 +56,22 @@ const isNodeAssertionError = (error: unknown): error is AssertionError => {
   return candidate.code === "ERR_ASSERTION" && candidate.name === "AssertionError";
 };
 
-/** Vrai si la stack référence undici (origine réseau du `fetch` intégré). */
+/**
+ * Vrai si l'erreur a été LEVÉE dans undici (le `fetch` intégré de Node, exposé
+ * sous `node:internal/deps/undici`, ou un `node_modules/undici` bundlé).
+ *
+ * On exige que la PREMIÈRE frame d'appel de la stack soit dans undici, et non
+ * une simple présence d'undici n'importe où : sinon un `assert(<falsy>)` levé
+ * par du code tiers abonné aux canaux `diagnostics_channel` d'undici (ex.
+ * l'instrumentation fetch de Sentry) hériterait des frames undici du publisher
+ * et serait avalé à tort. La vraie erreur #507 est levée DANS ces frames, sa
+ * première frame est donc bien undici.
+ */
 const originatesFromUndici = (error: Error): boolean => {
   const stack = typeof error.stack === "string" ? error.stack : "";
-  return /undici/i.test(stack);
+  const firstFrame = stack.split("\n").find((line) => /^\s*at\s/.test(line));
+  if (!firstFrame) {
+    return false;
+  }
+  return /node:internal[/\\]deps[/\\]undici|[/\\]node_modules[/\\]undici[/\\]/.test(firstFrame);
 };

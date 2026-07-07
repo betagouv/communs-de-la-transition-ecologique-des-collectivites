@@ -53,6 +53,26 @@ describe("isBackgroundAssertionError", () => {
     expect(isBackgroundAssertionError(testAssertion)).toBe(false);
   });
 
+  it("ne matche PAS un assert(false) levé par du code tiers dont la stack ne TRAVERSE undici qu'après la 1re frame", () => {
+    // Cas d'un subscriber diagnostics_channel (ex. instrumentation fetch Sentry)
+    // qui `assert(false)` : la 1re frame est le subscriber, undici n'apparaît que
+    // dans les frames du publisher plus bas → ne doit PAS être avalé.
+    let subscriberAssertion: AssertionError | undefined;
+    try {
+      assert(false);
+    } catch (err) {
+      subscriberAssertion = err as AssertionError;
+      subscriberAssertion.stack = [
+        "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:",
+        "    at Object.subscriber (/home/app/instrumentation.js:12:5)",
+        "    at Channel.publish (node:diagnostics_channel:150:12)",
+        "    at Request.onHeaders (node:internal/deps/undici/undici:8123:20)",
+      ].join("\n");
+    }
+
+    expect(isBackgroundAssertionError(subscriberAssertion)).toBe(false);
+  });
+
   it("ne matche PAS un assert(x, message) applicatif (generatedMessage=false)", () => {
     let customMessageError: AssertionError | undefined;
     try {
