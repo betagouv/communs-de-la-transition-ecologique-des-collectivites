@@ -13,6 +13,8 @@ import { AidesModule } from "@/aides/aides.module";
 import { FichesActionModule } from "@/fiches-action/fiches-action.module";
 import { AnalyticsModule } from "@/analytics/analytics.module";
 import { MecModule } from "@/mec/mec.module";
+import { DecisionsModule } from "@/decisions/decisions.module";
+import { TerritoiresModule } from "@/territoires/territoires.module";
 
 export function setupApp(app: INestApplication) {
   const logger = app.get(CustomLogger);
@@ -63,6 +65,8 @@ function setupProjetsDoc(app: INestApplication) {
         FichesActionModule,
         AnalyticsModule,
         MecModule,
+        DecisionsModule,
+        TerritoiresModule,
       ],
     });
   SwaggerModule.setup("api/projets", app, documentFactory, {
