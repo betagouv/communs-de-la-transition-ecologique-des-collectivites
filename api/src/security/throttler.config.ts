@@ -5,11 +5,13 @@ import { ThrottlerModuleOptions } from "@nestjs/throttler";
 // responding a 429 error.
 // NB: @nestjs/throttler 6.x expresses ttl in MILLISECONDS — 60_000 = 1 minute.
 
+// Surcharge par env pour les environnements de test (la suite e2e dépasse 50 req/min
+// depuis une seule IP — cf. e2e-global-setup qui pose THROTTLER_LIMIT).
 export const throttlerConfig: ThrottlerModuleOptions = {
   throttlers: [
     {
-      ttl: 60000, // 1 minute (ms)
-      limit: 50,
+      ttl: Number(process.env.THROTTLER_TTL_MS ?? 60000), // 1 minute (ms)
+      limit: Number(process.env.THROTTLER_LIMIT ?? 50),
     },
   ],
 };
