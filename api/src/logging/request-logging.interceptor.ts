@@ -24,14 +24,19 @@ export class RequestLoggingInterceptor implements NestInterceptor {
 
     const shouldTrackApiUsage = this.reflector.get<boolean>(TRACK_API_USAGE_KEY, context.getHandler());
 
+    // Décisions humaines : le corps porte des données personnelles (auteur, commentaire).
+    // On ne le journalise pas — redaction ciblée par chemin, minimalement invasive.
+    const isSensitiveBody = originalUrl.split("?")[0].startsWith("/decisions");
+
     this.logger.log("Incoming Request", {
       method,
       url: originalUrl,
       ip,
       tracked: shouldTrackApiUsage,
-      // we have no sensitive information to be hidden from the logs. And this helps a lot in term of debugging
-      // might have to revise this implementation in the future when addressing logs in a more structured manner
-      body: (body as Record<string, unknown>) ?? null,
+      // we have no sensitive information to be hidden from the logs (except sensitive routes,
+      // see isSensitiveBody). And this helps a lot in term of debugging — might have to revise
+      // this implementation in the future when addressing logs in a more structured manner
+      body: isSensitiveBody ? { redacted: true } : ((body as Record<string, unknown>) ?? null),
     });
 
     return next.handle().pipe(

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { mecExternalIds } from "@database/schema";
 import { and, eq, sql, SQL } from "drizzle-orm";
@@ -13,11 +13,27 @@ type Row = Record<string, unknown>;
 // suffisent pas, à elles seules, à matérialiser un projet sur le territoire.
 const FINANCEMENT_SOURCES = ["DGCL DETR", "DGCL DSIL", "DGCL DPV", "Fonds Vert"] as const;
 
+// Valeurs autorisées des filtres COP (validées → 400 sinon).
+const COP_MILLESIMES = ["2024", "2025"] as const;
+const COP_STATUTS_VIVIER = ["a_remonter", "a_travailler", "hors_cop_mais_crte", "non_remonte"] as const;
+
+// Code INSEE de commune : 5 chiffres, ou code corse 2A/2B + 3 chiffres.
+const CODE_INSEE_REGEX = /^(\d{5}|2[AB]\d{3})$/;
+const SIREN_REGEX = /^\d{9}$/;
+
 // Aligné sur dashboard-te.service : budget prévisionnel plafonné (les valeurs
 // aberrantes deviennent NULL). Le budget est stocké en TEXT dans schema_commun_v2.
 const BUDGET_MAX = 100_000_000;
+
+// Cast numérique GARDÉ par une regex : une donnée sale (colonne TEXT réécrite par
+// l'ETL) ne fait jamais planter la requête — elle devient NULL. Le cast n'est
+// évalué qu'après validation du motif (CASE imbriqué, pas de AND non court-circuité).
+const numericGuard = (col: SQL): SQL =>
+  sql`(CASE WHEN ${col} ~ '^[0-9]+([.][0-9]+)?$' THEN CAST(${col} AS numeric) END)`;
 const cappedBudget = (col: SQL): SQL =>
-  sql`(CASE WHEN CAST(NULLIF(${col}, '') AS numeric) <= ${BUDGET_MAX} THEN CAST(NULLIF(${col}, '') AS numeric) END)`;
+  sql`(CASE WHEN ${col} ~ '^[0-9]+([.][0-9]+)?$'
+       THEN (CASE WHEN CAST(${col} AS numeric) <= ${BUDGET_MAX} THEN CAST(${col} AS numeric) END)
+       END)`;
 
 // Tableau text[] bindé (chaque valeur en paramètre, jamais interpolée).
 const textArray = (values: string[]): SQL =>
@@ -29,7 +45,7 @@ const textArray = (values: string[]): SQL =>
 export interface TerritoireProjetsParams {
   sources?: string[];
   copMillesime?: string;
-  statut?: string;
+  copStatutVivier?: string;
   limit: number;
   offset: number;
   inclureFinancementsSeuls: boolean;
@@ -46,10 +62,21 @@ export class TerritoiresService {
 
   /**
    * Projets de transition écologique d'un territoire, regroupés par cluster de
-   * déduplication. `code` = INSEE commune (5 chiffres) ou SIREN EPCI (9 chiffres).
+   * déduplication. `code` = INSEE commune (5 chiffres / 2A|2B + 3) ou SIREN EPCI (9 chiffres).
    */
   async territoireProjets(code: string, params: TerritoireProjetsParams): Promise<TerritoireProjetsResponse> {
-    const { sources, copMillesime, statut, limit, offset, inclureFinancementsSeuls } = params;
+    const { sources, copMillesime, copStatutVivier, limit, offset, inclureFinancementsSeuls } = params;
+
+    if (copMillesime !== undefined && !COP_MILLESIMES.includes(copMillesime as (typeof COP_MILLESIMES)[number])) {
+      throw new BadRequestException(`copMillesime invalide (attendu : ${COP_MILLESIMES.join(", ")})`);
+    }
+    if (
+      copStatutVivier !== undefined &&
+      !COP_STATUTS_VIVIER.includes(copStatutVivier as (typeof COP_STATUTS_VIVIER)[number])
+    ) {
+      throw new BadRequestException(`copStatutVivier invalide (attendu : ${COP_STATUTS_VIVIER.join(", ")})`);
+    }
+
     const communes = await this.resolveCommunes(code);
 
     // Filtres appliqués aux SEULS projets du territoire (avant expansion en cluster
@@ -59,15 +86,16 @@ export class TerritoiresService {
       filterConditions.push(sql`p.source_origine = ANY(${textArray(sources)})`);
     }
     if (copMillesime) filterConditions.push(sql`p.cop_millesime = ${copMillesime}`);
-    if (statut) filterConditions.push(sql`p.cop_statut_vivier = ${statut}`);
+    if (copStatutVivier) filterConditions.push(sql`p.cop_statut_vivier = ${copStatutVivier}`);
     let filterWhere: SQL = sql``;
     for (const cond of filterConditions) filterWhere = sql`${filterWhere} AND ${cond}`;
 
     // Rôle d'une trace : financement si sa source est une source de financement, sinon projet.
     const roleExpr = sql`CASE WHEN p.source_origine = ANY(${textArray([...FINANCEMENT_SOURCES])}) THEN 'financement' ELSE 'projet' END`;
 
-    const rows = await this.query<{ confiance: string | null; traces: unknown; total: string }>(sql`
-      WITH territory_pids AS (
+    // Chaîne de CTE partagée entre la requête de page et le COUNT de repli.
+    const cteBody = sql`
+      territory_pids AS (
         SELECT DISTINCT lpc.projet_id AS pid
         FROM schema_commun_v2.liens_projets_communes lpc
         WHERE lpc.insee_com = ANY(${textArray(communes)})
@@ -93,18 +121,19 @@ export class TerritoiresService {
       ),
       -- Tous les membres du groupe : membres du cluster (même hors territoire) OU le singleton lui-même.
       group_members AS (
-        SELECT g.group_key, cm.projet_id AS pid
+        SELECT g.group_key, g.cluster_id, cm.projet_id AS pid
         FROM groups g
         JOIN schema_commun_v2.clusters_membres cm ON cm.cluster_id = g.cluster_id
         WHERE g.cluster_id IS NOT NULL
         UNION
-        SELECT g.group_key, g.group_key AS pid
+        SELECT g.group_key, g.cluster_id, g.group_key AS pid
         FROM groups g
         WHERE g.cluster_id IS NULL
       ),
       member_rows AS (
         SELECT
           gm.group_key,
+          gm.cluster_id,
           p.id,
           ${roleExpr} AS role,
           p.source_origine AS source,
@@ -112,6 +141,14 @@ export class TerritoiresService {
           p."phaseStatut" AS statut,
           p.phase,
           ${cappedBudget(sql`p."budgetPrevisionnel"`)} AS budget,
+          -- Subvention attribuée : somme des montants attribués des financements liés au projet.
+          -- Sous-requête (et non JOIN) pour éviter de multiplier les traces si plusieurs financements.
+          (
+            SELECT SUM(${numericGuard(sql`f."montantAttribue"`)})
+            FROM schema_commun_v2.liens_financements_projets lfp
+            JOIN schema_commun_v2.financements f ON f.id = lfp.financement_id
+            WHERE lfp.projet_id = p.id
+          ) AS montant_attribue,
           p.cop_millesime,
           p.cop_statut_vivier,
           -- external_id résolu pour les seules traces MEC ; cast ::uuid réservé à ce cas
@@ -127,6 +164,7 @@ export class TerritoiresService {
       group_agg AS (
         SELECT
           mr.group_key,
+          MAX(mr.cluster_id) AS cluster_id,
           MIN(mr.id) AS min_id,
           bool_and(mr.role = 'financement') AS all_financement,
           jsonb_agg(
@@ -138,6 +176,7 @@ export class TerritoiresService {
               'statut', mr.statut,
               'phase', mr.phase,
               'budgetPrevisionnel', mr.budget,
+              'montantAttribue', mr.montant_attribue,
               'copMillesime', mr.cop_millesime,
               'copStatutVivier', mr.cop_statut_vivier,
               'externalId', mr.external_id
@@ -150,16 +189,34 @@ export class TerritoiresService {
       group_final AS (
         SELECT ga.min_id, ga.all_financement, ga.traces, c.confiance
         FROM group_agg ga
-        LEFT JOIN schema_commun_v2.clusters c ON c.id = ga.group_key
+        LEFT JOIN schema_commun_v2.clusters c ON c.id = ga.cluster_id
+      ),
+      filtered_groups AS (
+        SELECT confiance, traces, min_id
+        FROM group_final
+        WHERE ${inclureFinancementsSeuls ? sql`TRUE` : sql`all_financement = FALSE`}
       )
+    `;
+
+    const rows = await this.query<{ confiance: string | null; traces: unknown; total: string }>(sql`
+      WITH ${cteBody}
       SELECT confiance, traces, count(*) OVER() AS total
-      FROM group_final
-      WHERE ${inclureFinancementsSeuls ? sql`TRUE` : sql`all_financement = FALSE`}
+      FROM filtered_groups
       ORDER BY min_id
       LIMIT ${limit} OFFSET ${offset}
     `);
 
-    const total = rows.length > 0 ? Number(rows[0].total) : 0;
+    let total = rows.length > 0 ? Number(rows[0].total) : 0;
+    // Page vide au-delà du 1er offset : count(*) OVER() ne renvoie aucune ligne,
+    // donc aucun total. On le récupère par un COUNT dédié pour ne pas mentir avec 0.
+    if (rows.length === 0 && offset > 0) {
+      const [countRow] = await this.query<{ total: string }>(sql`
+        WITH ${cteBody}
+        SELECT count(*)::text AS total FROM filtered_groups
+      `);
+      total = Number(countRow?.total ?? 0);
+    }
+
     const groupes: TerritoireGroupeDto[] = rows.map((r) => ({
       confiance: (r.confiance as TerritoireGroupeDto["confiance"]) ?? null,
       traces: (r.traces as TerritoireTraceDto[]) ?? [],
@@ -174,6 +231,7 @@ export class TerritoiresService {
    */
   async planFichesTerritoire(externalId: string): Promise<PlansTerritoireResponse> {
     const projetId = await this.resolveMecProjetId(externalId);
+    await this.assertProjetInSchemaCommun(projetId);
 
     const communeRows = await this.query<{ insee: string }>(sql`
       SELECT insee_com AS insee
@@ -239,34 +297,50 @@ export class TerritoiresService {
       LIMIT 1
     `);
 
+    // external_id orphelin : résout vers un objet absent de schema_commun_v2
+    // (non synchronisé). 404 explicite plutôt qu'un 200 vide indiscernable.
+    if (!row) {
+      throw new NotFoundException(this.orphanMessage(projetId));
+    }
+
     return {
       externalId,
       projetId,
-      leviersSgpe: splitLeviersCsv(row?.leviersSgpe ?? null),
-      llmThematiques: row?.llmThematiques ?? null,
-      llmProbabiliteTe: row?.llmProbabiliteTe != null ? Number(row.llmProbabiliteTe) : null,
-      llmClassifiedAt: this.toIso(row?.llmClassifiedAt ?? null),
+      leviersSgpe: splitLeviersCsv(row.leviersSgpe ?? null),
+      llmThematiques: row.llmThematiques ?? null,
+      llmProbabiliteTe: row.llmProbabiliteTe != null ? Number(row.llmProbabiliteTe) : null,
+      llmClassifiedAt: this.toIso(row.llmClassifiedAt ?? null),
     };
   }
 
   // Résout le code territoire en liste de communes INSEE.
-  // 5 chiffres → commune telle quelle ; 9 chiffres → communes membres de l'EPCI
-  // (404 si aucune) ; autre → 404 (format invalide).
+  // 5 chiffres (ou 2A/2B + 3) → commune ; 9 chiffres → communes membres de l'EPCI.
+  // 404 si commune ou EPCI inconnu du référentiel ; autre format → 404.
   private async resolveCommunes(code: string): Promise<string[]> {
-    if (/^\d{5}$/.test(code)) return [code];
-    if (/^\d{9}$/.test(code)) {
+    // Normalise la casse pour les codes corses (2A/2B stockés en majuscules).
+    const normalized = code.toUpperCase();
+    if (CODE_INSEE_REGEX.test(normalized)) {
+      const rows = await this.query<{ ok: number }>(sql`
+        SELECT 1 AS ok FROM api_referentiel.communes WHERE code_insee = ${normalized} LIMIT 1
+      `);
+      if (rows.length === 0) {
+        throw new NotFoundException(`Commune inconnue au référentiel : ${normalized}`);
+      }
+      return [normalized];
+    }
+    if (SIREN_REGEX.test(normalized)) {
       const rows = await this.query<{ insee: string }>(sql`
         SELECT code_insee_commune AS insee
         FROM api_referentiel.perimetres
-        WHERE siren_groupement = ${code}
+        WHERE siren_groupement = ${normalized}
       `);
       if (rows.length === 0) {
-        throw new NotFoundException(`Aucune commune trouvée pour le territoire ${code}`);
+        throw new NotFoundException(`Aucune commune trouvée pour le territoire ${normalized}`);
       }
       return rows.map((r) => r.insee);
     }
     throw new NotFoundException(
-      `Code territoire invalide : ${code} (attendu : INSEE commune 5 chiffres ou SIREN EPCI 9 chiffres)`,
+      `Code territoire invalide : ${code} (attendu : INSEE commune 5 chiffres / 2A|2B+3, ou SIREN EPCI 9 chiffres)`,
     );
   }
 
@@ -282,6 +356,21 @@ export class TerritoiresService {
       throw new NotFoundException(`Projet MEC inconnu pour l'external_id ${externalId}`);
     }
     return row.objetId;
+  }
+
+  // ~1 053 external_ids MEC pointent vers un objet absent de schema_commun_v2
+  // (non synchronisé). On matérialise ce cas par un 404 explicite.
+  private async assertProjetInSchemaCommun(projetId: string): Promise<void> {
+    const rows = await this.query<{ ok: number }>(sql`
+      SELECT 1 AS ok FROM schema_commun_v2.projets_operationnels WHERE id = ${projetId} LIMIT 1
+    `);
+    if (rows.length === 0) {
+      throw new NotFoundException(this.orphanMessage(projetId));
+    }
+  }
+
+  private orphanMessage(projetId: string): string {
+    return `Projet ${projetId} hors du schéma commun — non synchronisé.`;
   }
 
   private toIso(value: Date | string | null): string | null {

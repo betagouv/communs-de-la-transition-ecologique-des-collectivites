@@ -1,0 +1,198 @@
+openapi: 3.0.3
+info:
+  title: API Projets Collectivités — vue territoriale & décisions
+  description: >
+    Sous-ensemble de l'API communs consommé par MEC (vue territoriale DDT, lecture seule
+    + journal de décisions). Voir INTEGRATION_MEC.md pour la sémantique détaillée.
+    Les identifiants d'objets (`traces[].id`) sont stables et contractuels ; la composition
+    des groupes et la confiance sont recalculées à chaque run du pipeline.
+  version: "1.0.0"
+security:
+  - bearerAuth: []
+paths:
+  /territoires/{code}/projets:
+    get:
+      summary: Projets d'un territoire, regroupés par projet réel (déduplication)
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema: { type: string, pattern: '^\d{5}$|^\d{9}$' }
+          description: Code INSEE commune (5 chiffres) ou SIREN EPCI (9 chiffres)
+        - name: sources
+          in: query
+          schema: { type: string }
+          description: "Filtre source_origine, CSV (ex. `MEC,Vivier COP`)"
+        - name: copMillesime
+          in: query
+          schema: { type: string, enum: ["2024", "2025"] }
+        - name: copStatutVivier
+          in: query
+          schema: { type: string, enum: [a_remonter, a_travailler, hors_cop_mais_crte, non_remonte] }
+          description: Statut vivier COP
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: inclureFinancementsSeuls
+          in: query
+          schema: { type: boolean, default: false }
+          description: Inclure les groupes composés uniquement de financements DGCL/Fonds Vert
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total: { type: integer }
+                  limit: { type: integer }
+                  offset: { type: integer }
+                  groupes:
+                    type: array
+                    items: { $ref: "#/components/schemas/Groupe" }
+          description: Groupes de traces du territoire
+        "404": { description: Territoire inconnu ou code invalide }
+  /projets/mec/{externalId}/plans-territoire:
+    get:
+      summary: PCAET couvrant les communes d'un projet MEC
+      parameters:
+        - name: externalId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pcaet:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        nom: { type: string, nullable: true }
+                        sirenPorteur: { type: string }
+                        presentDansTet: { type: boolean }
+                        tetExternalId: { type: string, nullable: true }
+                        source: { type: string, enum: [snapshot, opendata], description: Canal live exclu en V1 (issue #497) }
+                  fichesActionSuggerees:
+                    type: array
+                    items: { type: object }
+                    description: Vide en V1
+          description: PCAET du territoire du projet
+        "404": { description: externalId MEC inconnu }
+  /projets/mec/{externalId}/qualification:
+    get:
+      summary: Qualification pipeline d'un projet MEC (leviers, thématiques, probabilité TE)
+      parameters:
+        - name: externalId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  externalId: { type: string }
+                  projetId: { type: string, description: ID pivot stable }
+                  leviersSgpe:
+                    type: array
+                    items: { type: string }
+                  llmThematiques:
+                    type: array
+                    nullable: true
+                    items:
+                      type: object
+                      properties:
+                        label: { type: string }
+                        score: { type: number }
+                  llmProbabiliteTe: { type: number, nullable: true }
+                  llmClassifiedAt: { type: string, format: date-time, nullable: true }
+          description: Qualification
+        "404": { description: externalId MEC inconnu }
+  /decisions:
+    post:
+      summary: Enregistrer une décision humaine (journal append-only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateDecision" }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+                  createdAt: { type: string, format: date-time }
+          description: Décision enregistrée
+        "400": { description: Corps invalide }
+    get:
+      summary: Décisions référençant un objet (audit)
+      parameters:
+        - name: objetId
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: "Décisions du service authentifié uniquement (max 100, plus récentes d'abord)" }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer }
+  schemas:
+    Groupe:
+      type: object
+      description: >
+        Traces d'un même projet réel dans les différentes sources. Aucun identifiant de
+        groupe n'est exposé (les identifiants de clusters sont instables entre deux runs).
+      properties:
+        confiance:
+          type: string
+          nullable: true
+          enum: [CERTAIN, PROBABLE, null]
+          description: CERTAIN = lien établi · PROBABLE = suggestion · null = singleton
+        traces:
+          type: array
+          items: { $ref: "#/components/schemas/Trace" }
+    Trace:
+      type: object
+      properties:
+        role: { type: string, enum: [projet, financement] }
+        source: { type: string, description: "source_origine (MEC, Vivier COP, DGCL DSIL…)" }
+        id: { type: string, description: ID objet STABLE — seule référence à persister }
+        externalId: { type: string, nullable: true, description: Renseigné pour les traces MEC }
+        nom: { type: string, nullable: true }
+        statut: { type: string, nullable: true }
+        phase: { type: string, nullable: true }
+        budgetPrevisionnel: { type: number, nullable: true, description: Montant demandé / coût du dossier }
+        montantAttribue: { type: number, nullable: true, description: Subvention attribuée (traces financement DGCL) }
+        copMillesime: { type: string, nullable: true }
+        copStatutVivier: { type: string, nullable: true }
+    CreateDecision:
+      type: object
+      required: [typeDecision, objetAType, objetAId]
+      properties:
+        typeDecision:
+          type: string
+          description: lien_confirme | lien_infirme | doublon_signale | projet_valide | projet_obsolete | rattachement_pcaet | …
+        objetAType: { type: string, enum: [projet, fiche_action, plan, financement] }
+        objetAId: { type: string, description: ID objet stable (JAMAIS un identifiant de groupe) }
+        objetBType: { type: string, enum: [projet, fiche_action, plan, financement], nullable: true }
+        objetBId: { type: string, nullable: true }
+        verdict: { type: string, nullable: true, description: confirme | infirme | fusionner | … }
+        auteur: { type: string, nullable: true }
+        commentaire: { type: string, nullable: true }
+        payload: { type: object, nullable: true, description: "Max ~10 ko sérialisé" }
+        supersedes: { type: string, format: uuid, nullable: true, description: Décision révoquée par cet événement }
+      description: >
+        plateforme_source n'est PAS dans le corps — elle est dérivée du service authentifié.

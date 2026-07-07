@@ -22,8 +22,21 @@ export class TerritoireTraceDto {
   @ApiPropertyOptional({ nullable: true })
   phase!: string | null;
 
-  @ApiPropertyOptional({ type: Number, nullable: true, description: "Budget prévisionnel plafonné." })
+  @ApiPropertyOptional({
+    type: Number,
+    nullable: true,
+    description: "Coût du projet / montant demandé (budget prévisionnel plafonné).",
+  })
   budgetPrevisionnel!: number | null;
+
+  @ApiPropertyOptional({
+    type: Number,
+    nullable: true,
+    description:
+      "Subvention attribuée (somme des montants attribués des financements liés). " +
+      "Renseigné surtout pour les traces de financement (DGCL). À distinguer de budgetPrevisionnel (coût/montant demandé).",
+  })
+  montantAttribue!: number | null;
 
   @ApiPropertyOptional({ nullable: true, description: "Millésime COP (cop_millesime)." })
   copMillesime!: string | null;

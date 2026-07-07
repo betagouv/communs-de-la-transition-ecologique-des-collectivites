@@ -7,14 +7,19 @@ export class PcaetReferenceDto {
   @ApiPropertyOptional({ nullable: true, description: "SIREN du porteur du PCAET." })
   sirenPorteur!: string | null;
 
-  @ApiProperty({ description: "Le PCAET est-il présent dans TeT (tet_external_id renseigné) ?" })
+  @ApiProperty({
+    description:
+      "Le PCAET est-il présent dans le snapshot TeT (tet_external_id renseigné) ? " +
+      "Indique la présence dans le snapshot, sans garantir un deep-link exploitable.",
+  })
   presentDansTet!: boolean;
 
-  @ApiPropertyOptional({ nullable: true, description: "External ID TeT du PCAET, si présent dans TeT." })
+  @ApiPropertyOptional({ nullable: true, description: "External ID TeT du PCAET, si présent dans le snapshot TeT." })
   tetExternalId?: string | null;
 
   @ApiPropertyOptional({
-    enum: ["live", "snapshot", "opendata"],
+    // Canal 'live' exclu de facto : seuls 'snapshot' et 'opendata' alimentent la référence.
+    enum: ["snapshot", "opendata"],
     nullable: true,
     description: "Source de la fiche PCAET de référence (source_nom).",
   })

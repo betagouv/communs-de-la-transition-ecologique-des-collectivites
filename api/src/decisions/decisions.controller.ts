@@ -36,7 +36,9 @@ export class DecisionsController {
   @Get()
   @ApiOperation({
     summary: "Lister les décisions portant sur un objet",
-    description: "Retourne les décisions référençant l'objet (en A ou en B), triées anté-chronologiquement (max 100).",
+    description:
+      "Retourne les décisions référençant l'objet (en A ou en B), triées anté-chronologiquement (max 100). " +
+      "Cloisonnement : chaque plateforme ne voit QUE ses propres décisions (celles émises avec sa clé API).",
   })
   @ApiQuery({ name: "objetId", required: true, description: "ID stable de l'objet à inspecter." })
   @ApiEndpointResponses({
@@ -44,10 +46,10 @@ export class DecisionsController {
     response: DecisionListResponse,
     description: "Décisions portant sur l'objet",
   })
-  findByObjet(@Query("objetId") objetId?: string) {
+  findByObjet(@Req() request: Request, @Query("objetId") objetId?: string) {
     if (!objetId) {
       throw new BadRequestException("objetId requis");
     }
-    return this.decisionsService.findByObjet(objetId);
+    return this.decisionsService.findByObjet(objetId, request.serviceType!);
   }
 }

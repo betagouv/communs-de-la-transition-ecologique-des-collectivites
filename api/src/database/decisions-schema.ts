@@ -10,8 +10,9 @@ import { index, jsonb, pgSchema, text, timestamp, uuid, type AnyPgColumn } from 
 // CRITICAL INVARIANTS:
 // - This schema lives OUTSIDE the schema_commun_v2 blue-green rebuild cycle:
 //   decisions MUST survive every ETL re-run.
-// - Append-only at the application level: never UPDATE / DELETE. A revocation
-//   is a new event referencing the revoked one via superseded_by.
+// - Append-only at the application level: never UPDATE / DELETE. A revocation is
+//   a NEW event that points, via `supersedes`, to the older event it revokes.
+//   (The pointer is on the new row, so no existing row is ever mutated.)
 // - objet_*_id always reference STABLE object IDs (source UUIDs, cop_* ids…),
 //   NEVER cluster ids (cluster ids are recomputed on every pipeline run).
 
@@ -38,8 +39,9 @@ export const decisions = decisionsHumainesSchema.table(
     plateformeSource: text("plateforme_source").notNull(),
     commentaire: text("commentaire"),
     payload: jsonb("payload"),
-    // Revocation chain: a new event supersedes an older one (no UPDATE/DELETE)
-    supersededBy: uuid("superseded_by").references((): AnyPgColumn => decisions.id),
+    // Revocation chain: THIS (new) event supersedes an older one it points to.
+    // The pointer lives on the new row → append-only preserved (no UPDATE/DELETE).
+    supersedes: uuid("supersedes").references((): AnyPgColumn => decisions.id),
   },
   (t) => [
     index("decisions_objet_a_idx").on(t.objetAId),

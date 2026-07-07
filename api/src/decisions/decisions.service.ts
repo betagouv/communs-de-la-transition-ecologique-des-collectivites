@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { decisions } from "@database/schema";
-import { desc, eq, or } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { CreateDecisionDto, DecisionCreatedResponse } from "./dto/create-decision.dto";
 
 // Journal append-only des décisions humaines (schema decisions_humaines).
@@ -30,6 +30,7 @@ export class DecisionsService {
         plateformeSource,
         commentaire: dto.commentaire ?? null,
         payload: dto.payload ?? null,
+        supersedes: dto.supersedes ?? null,
       })
       .returning({ id: decisions.id, createdAt: decisions.createdAt });
 
@@ -39,12 +40,19 @@ export class DecisionsService {
   /**
    * Décisions référençant un objet, en A ou en B. Tri anté-chronologique,
    * bornée à 100 — vérification/audit d'un objet, pas de pagination.
+   * Cloisonnement : chaque plateforme ne lit QUE ses propres décisions
+   * (plateformeSource = service authentifié).
    */
-  async findByObjet(objetId: string) {
+  async findByObjet(objetId: string, plateformeSource: string) {
     const rows = await this.dbService.database
       .select()
       .from(decisions)
-      .where(or(eq(decisions.objetAId, objetId), eq(decisions.objetBId, objetId)))
+      .where(
+        and(
+          eq(decisions.plateformeSource, plateformeSource),
+          or(eq(decisions.objetAId, objetId), eq(decisions.objetBId, objetId)),
+        ),
+      )
       .orderBy(desc(decisions.createdAt))
       .limit(100);
 
