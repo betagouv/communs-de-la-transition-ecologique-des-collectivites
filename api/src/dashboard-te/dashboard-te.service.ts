@@ -466,7 +466,10 @@ export class DashboardTeService {
     const hasDept = !!(f.departement && f.departement.length > 0);
     const hasSource = !!(f.source && f.source.length > 0);
     const textArray = (vals: string[]): SQL =>
-      sql`ARRAY[${sql.join(vals.map((v) => sql`${v}`), sql`, `)}]::text[]`;
+      sql`ARRAY[${sql.join(
+        vals.map((v) => sql`${v}`),
+        sql`, `,
+      )}]::text[]`;
 
     // Builds `(label=X1 AND score>=S1) OR (label=X2 AND score>=S2) ...`
     // where Sn falls back to the request-level scoreMin if not set per-entry.
@@ -589,8 +592,7 @@ export class DashboardTeService {
     // comptées (les sous-actions gonfleraient les totaux).
     const conditions: SQL[] = [sql`f.parent_id IS NULL`];
     // Recouvrement de tableaux : au moins une commune de la sélection ∈ territoire de la fiche.
-    if (f.commune && f.commune.length > 0)
-      conditions.push(sql`f.territoire_communes && ${pgArray(f.commune)}`);
+    if (f.commune && f.commune.length > 0) conditions.push(sql`f.territoire_communes && ${pgArray(f.commune)}`);
     if (f.departement && f.departement.length > 0) {
       conditions.push(sql`EXISTS (
         SELECT 1 FROM api_referentiel.communes ar
