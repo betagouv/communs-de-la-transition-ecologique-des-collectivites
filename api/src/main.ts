@@ -11,7 +11,7 @@ import { setupOpendataDoc } from "@/plans-fiches/opendata-doc.setup";
 import { setupDashboardTeDoc } from "@/dashboard-te/dashboard-te-doc.setup";
 import { setupSwaggerHub } from "@/swagger-hub";
 import { serveLandingPages } from "@/landing/landing-pages";
-import { installUncaughtErrorHandlers } from "@/shared/process/uncaught-error-handlers";
+import { handleFatalError, installUncaughtErrorHandlers } from "@/shared/process/uncaught-error-handlers";
 
 async function bootstrap() {
   // Initialize Sentry - this not following their doc here : https://docs.sentry.io/platforms/javascript/guides/nestjs/
@@ -23,8 +23,10 @@ async function bootstrap() {
   });
 
   // Neutralise l'AssertionError node:assert de fond d'undici (issue #507) sans
-  // crasher le process ; laisse crasher tout le reste. À installer après l'init
-  // Sentry pour que la remontée fonctionne.
+  // crasher le process ; toute autre uncaughtException reste fatale (log + flush
+  // Sentry puis exit). À installer après l'init Sentry pour que la remontée
+  // fonctionne. On ne touche PAS aux unhandledRejection (couvertes par le mode
+  // 'warn' de Sentry, comportement prod inchangé).
   installUncaughtErrorHandlers();
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -42,4 +44,9 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 3000);
 }
 
-void bootstrap();
+// Un échec au démarrage ne doit pas laisser un process zombie : on journalise,
+// on flushe Sentry, puis on quitte (fail-fast ciblé sur le boot, sans politique
+// globale sur les rejections).
+bootstrap().catch((error) => {
+  void handleFatalError("bootstrap", error);
+});

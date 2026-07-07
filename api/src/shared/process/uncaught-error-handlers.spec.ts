@@ -1,8 +1,10 @@
 import assert, { AssertionError } from "node:assert";
 import {
-  handleUncaughtProcessError,
+  FORCE_EXIT_TIMEOUT_MS,
+  handleUncaughtException,
   installUncaughtErrorHandlers,
-  UncaughtErrorHandlerDeps,
+  reportFatalAndExit,
+  SENTRY_FLUSH_TIMEOUT_MS,
 } from "@/shared/process/uncaught-error-handlers";
 
 const UNDICI_STACK = [
@@ -21,56 +23,140 @@ const buildUndiciBackgroundError = (): AssertionError => {
   }
 };
 
-const buildDeps = (): jest.Mocked<UncaughtErrorHandlerDeps> => ({
+interface MockedDeps {
+  logger: { error: jest.Mock };
+  captureException: jest.Mock;
+  flush: jest.Mock;
+  exit: jest.Mock;
+}
+
+const buildDeps = (): MockedDeps => ({
   logger: { error: jest.fn() },
   captureException: jest.fn(),
+  flush: jest.fn().mockResolvedValue(true),
   exit: jest.fn(),
 });
 
-describe("handleUncaughtProcessError", () => {
-  it("journalise + remonte à Sentry mais NE quitte PAS sur l'erreur de fond undici", () => {
+const INSTALLED = Symbol.for("api.uncaught-error-handlers.installed");
+const resetInstallGuard = (): void => {
+  delete (process as unknown as Record<symbol, unknown>)[INSTALLED];
+};
+
+describe("handleUncaughtException", () => {
+  it("neutralise l'erreur de fond undici : log + Sentry (warning), sans flush ni exit", async () => {
     const deps = buildDeps();
     const error = buildUndiciBackgroundError();
 
-    handleUncaughtProcessError("uncaughtException", error, deps);
+    await handleUncaughtException(error, deps);
 
     expect(deps.logger.error).toHaveBeenCalledTimes(1);
-    expect(deps.captureException).toHaveBeenCalledWith(error);
+    expect(deps.captureException).toHaveBeenCalledWith(error, "warning");
+    expect(deps.flush).not.toHaveBeenCalled();
     expect(deps.exit).not.toHaveBeenCalled();
   });
 
-  it("traite de la même façon une unhandledRejection undici de fond", () => {
+  it("ne crashe JAMAIS sur le chemin neutralisé, même si le logger lève", async () => {
     const deps = buildDeps();
+    deps.logger.error.mockImplementation(() => {
+      throw new Error("logger down");
+    });
     const error = buildUndiciBackgroundError();
 
-    handleUncaughtProcessError("unhandledRejection", error, deps);
-
+    await expect(handleUncaughtException(error, deps)).resolves.toBeUndefined();
     expect(deps.exit).not.toHaveBeenCalled();
-    expect(deps.captureException).toHaveBeenCalledWith(error);
   });
 
-  it("quitte avec exit(1) sur toute autre erreur (comportement par défaut préservé)", () => {
+  it("quitte avec exit(1) sur toute autre erreur (comportement fatal préservé)", async () => {
     const deps = buildDeps();
     const error = new Error("état corrompu");
 
-    handleUncaughtProcessError("uncaughtException", error, deps);
+    await handleUncaughtException(error, deps);
 
     expect(deps.logger.error).toHaveBeenCalledTimes(1);
-    expect(deps.captureException).toHaveBeenCalledWith(error);
+    expect(deps.captureException).toHaveBeenCalledWith(error, "fatal");
+    expect(deps.exit).toHaveBeenCalledWith(1);
+  });
+});
+
+describe("reportFatalAndExit", () => {
+  it("flushe Sentry AVANT de quitter (exit après résolution du flush)", async () => {
+    const deps = buildDeps();
+    let resolveFlush: (value: boolean) => void = () => undefined;
+    deps.flush.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        resolveFlush = resolve;
+      }),
+    );
+
+    const pending = reportFatalAndExit("uncaughtException", new Error("boom"), deps);
+    await Promise.resolve();
+
+    expect(deps.flush).toHaveBeenCalledWith(SENTRY_FLUSH_TIMEOUT_MS);
+    expect(deps.exit).not.toHaveBeenCalled();
+
+    resolveFlush(true);
+    await pending;
+
+    expect(deps.exit).toHaveBeenCalledTimes(1);
     expect(deps.exit).toHaveBeenCalledWith(1);
   });
 
-  it("quitte aussi sur une valeur rejetée non-Error", () => {
-    const deps = buildDeps();
+  it("force la sortie via le garde-fou si le flush pend indéfiniment", async () => {
+    jest.useFakeTimers();
+    try {
+      const deps = buildDeps();
+      deps.flush.mockReturnValue(new Promise<boolean>(() => undefined));
 
-    handleUncaughtProcessError("unhandledRejection", "boom", deps);
+      void reportFatalAndExit("uncaughtException", new Error("boom"), deps);
+      await Promise.resolve();
+
+      expect(deps.exit).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(FORCE_EXIT_TIMEOUT_MS);
+
+      expect(deps.exit).toHaveBeenCalledWith(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("quitte même si le flush rejette", async () => {
+    const deps = buildDeps();
+    deps.flush.mockRejectedValue(new Error("transport down"));
+
+    await reportFatalAndExit("uncaughtException", new Error("boom"), deps);
 
     expect(deps.exit).toHaveBeenCalledWith(1);
   });
 });
 
 describe("installUncaughtErrorHandlers", () => {
-  it("enregistre un handler pour uncaughtException et unhandledRejection", () => {
+  beforeEach(resetInstallGuard);
+  afterEach(resetInstallGuard);
+
+  it("enregistre un seul handler uncaughtException, même en cas de double appel (idempotent)", () => {
+    const registered = new Map<string | symbol, (...args: unknown[]) => void>();
+    const onSpy = jest
+      .spyOn(process, "on")
+      .mockImplementation((event: string | symbol, listener: (...args: unknown[]) => void) => {
+        registered.set(event, listener);
+        return process;
+      });
+
+    try {
+      const deps = buildDeps();
+      installUncaughtErrorHandlers(deps);
+      installUncaughtErrorHandlers(deps);
+
+      const uncaughtRegistrations = onSpy.mock.calls.filter(([event]) => event === "uncaughtException");
+      expect(uncaughtRegistrations).toHaveLength(1);
+      expect(registered.has("unhandledRejection")).toBe(false);
+    } finally {
+      onSpy.mockRestore();
+    }
+  });
+
+  it("le listener enregistré délègue au handler (erreur de fond undici → pas d'exit)", async () => {
     const registered = new Map<string | symbol, (...args: unknown[]) => void>();
     const onSpy = jest
       .spyOn(process, "on")
@@ -83,17 +169,14 @@ describe("installUncaughtErrorHandlers", () => {
       const deps = buildDeps();
       installUncaughtErrorHandlers(deps);
 
-      expect(registered.has("uncaughtException")).toBe(true);
-      expect(registered.has("unhandledRejection")).toBe(true);
+      const listener = registered.get("uncaughtException");
+      expect(listener).toBeDefined();
 
-      // Le listener enregistré délègue bien au handler (ici : erreur non-undici → exit).
-      registered.get("uncaughtException")?.(new Error("corrompu"));
-      expect(deps.exit).toHaveBeenCalledWith(1);
+      listener?.(buildUndiciBackgroundError());
+      await Promise.resolve();
 
-      // Et ignore l'erreur de fond undici sans quitter.
-      deps.exit.mockClear();
-      registered.get("unhandledRejection")?.(buildUndiciBackgroundError());
       expect(deps.exit).not.toHaveBeenCalled();
+      expect(deps.captureException).toHaveBeenCalledWith(expect.any(AssertionError), "warning");
     } finally {
       onSpy.mockRestore();
     }
