@@ -23,22 +23,21 @@
  * s'exécute dans le vrai processus. On y patche donc `process.on` pour
  * envelopper CHAQUE écouteur uncaughtException/unhandledRejection (dont ceux
  * (ré)installés par jest-circus à chaque fichier) avec un filtre : les
- * AssertionError node:assert qui ne proviennent pas du code de test sont
- * journalisées puis ignorées ; tout le reste est transmis à l'écouteur d'origine,
- * préservant le comportement d'échec normal.
+ * AssertionError node:assert de fond d'undici (même signature qu'en prod, voir
+ * `isBackgroundAssertionError`) qui ne proviennent pas du code de test sont
+ * journalisées puis ignorées ; tout le reste est transmis à l'écouteur
+ * d'origine, préservant le comportement d'échec normal.
+ *
+ * La signature de l'erreur est définie UNE seule fois, côté application
+ * (`src/shared/utils/is-background-assertion-error.ts`), et partagée ici : le
+ * handler de prod (issue #507) et cette garde e2e reconnaissent exactement la
+ * même erreur.
  */
+
+import { isBackgroundAssertionError } from "@/shared/utils/is-background-assertion-error";
 
 type Listener = (...args: unknown[]) => void;
 const GUARDED_EVENTS = new Set(["uncaughtException", "unhandledRejection"]);
-
-/** Une erreur d'assertion node:assert (et pas une erreur de matcher Jest). */
-const isNodeAssertionError = (err: unknown): err is Error & { code?: string } => {
-  if (!err || typeof err !== "object") {
-    return false;
-  }
-  const candidate = err as { code?: string; name?: string };
-  return candidate.code === "ERR_ASSERTION" || candidate.name === "AssertionError";
-};
 
 /** Vrai si la stack référence du code de test (spec ou helpers e2e). */
 const originatesFromTestCode = (err: unknown): boolean => {
@@ -46,7 +45,7 @@ const originatesFromTestCode = (err: unknown): boolean => {
   return /\.e2e-spec\.ts|[/\\]test[/\\]helpers[/\\]/.test(stack);
 };
 
-const shouldIgnore = (err: unknown): boolean => isNodeAssertionError(err) && !originatesFromTestCode(err);
+const shouldIgnore = (err: unknown): boolean => isBackgroundAssertionError(err) && !originatesFromTestCode(err);
 
 const WRAPPED = Symbol("e2e-uncaught-guard-wrapped");
 const INSTALLED = Symbol.for("e2e-uncaught-guard-installed");
