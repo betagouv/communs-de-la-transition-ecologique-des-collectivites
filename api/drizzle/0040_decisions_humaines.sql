@@ -3,7 +3,9 @@
 -- les décisions survivent aux re-runs de l'ETL.
 --
 -- Invariants applicatifs (non contraints en base) :
---   - append-only : jamais d'UPDATE/DELETE ; une révocation = nouvel événement + superseded_by
+--   - append-only : jamais d'UPDATE/DELETE ; une révocation = NOUVEL événement dont
+--     la colonne `supersedes` pointe vers l'événement révoqué (le pointeur est sur la
+--     nouvelle ligne → aucune ligne existante n'est mutée)
 --   - objet_*_id = IDs objets STABLES (UUID sources, cop_*…), JAMAIS un cluster_id
 CREATE SCHEMA IF NOT EXISTS "decisions_humaines";
 
@@ -20,7 +22,7 @@ CREATE TABLE "decisions_humaines"."decisions" (
   "plateforme_source" text NOT NULL,
   "commentaire" text,
   "payload" jsonb,
-  "superseded_by" uuid REFERENCES "decisions_humaines"."decisions"("id")
+  "supersedes" uuid REFERENCES "decisions_humaines"."decisions"("id")
 );
 
 CREATE INDEX "decisions_objet_a_idx" ON "decisions_humaines"."decisions" ("objet_a_id");
