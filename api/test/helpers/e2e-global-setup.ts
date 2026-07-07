@@ -20,6 +20,9 @@ export default async function globalSetup() {
   const DATABASE_URL = "postgres://postgres:mypassword@localhost:5433/e2e_test_db";
   process.env.DATABASE_URL = DATABASE_URL;
   process.env.REDIS_URL = "redis://localhost:6380";
+  // La suite e2e enchaîne >50 requêtes/min depuis une seule IP : depuis la correction du
+  // throttler (ttl en ms), la limite prod ferait des 429 en cascade dans les tests.
+  process.env.THROTTLER_LIMIT = process.env.THROTTLER_LIMIT ?? "10000";
 
   execSync("npm run db:migrate:drizzle", {
     env: {
