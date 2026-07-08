@@ -86,8 +86,18 @@ curl -H "Authorization: Bearer $MEC_API_KEY" "$BASE/projets/mec/181/plans-territ
 ```
 
 ⚠️ `presentDansTet`/`tetExternalId` : le deep-link TeT n'est possible que pour les plans
-connus de l'API TeT (~1/3 des cas) — prévoir l'affichage sans lien.
-`fichesActionSuggerees` : vide en V1 (bonus à venir).
+connus de l'API TeT — aujourd'hui `tet_external_id` n'est renseigné pour aucun PCAET de la
+référence (seul le canal opendata l'alimente ; canaux snapshot/live TeT non branchés, issue #497).
+Prévoir l'affichage sans lien. `fichesActionSuggerees` : vide en V1 (bonus à venir).
+
+### Ce que fait TeT de son côté (symétrie)
+
+Le même rattachement projet ↔ PCAET s'écrit et se lit **dans les deux sens**, sur le **même journal**.
+Côté TeT, l'endpoint miroir part du **PCAET** et liste les projets de son territoire :
+`GET /plans/{cle}/projets-territoire` (`cle` = SIREN porteur ou plan_id), avec par groupe un champ
+`rattachement` (`confirme`|`infirme`|`suggere`|`aucun`). Un rattachement coché depuis TeT
+(`POST /decisions`, `rattachement_pcaet`) est donc **immédiatement visible ici** (et réciproquement) —
+c'est la même décision. Détails côté TeT : [`INTEGRATION_TET.md`](./INTEGRATION_TET.md).
 
 ## 3. `GET /projets/mec/{externalId}/qualification`
 

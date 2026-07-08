@@ -12,6 +12,7 @@ import {
   TerritoireTraceDto,
 } from "./dto/territoire-projets.dto";
 import { PlansTerritoireResponse } from "./dto/plans-territoire.dto";
+import { PlansProjetsTerritoireResponse, TerritoireGroupeRattacheDto } from "./dto/plans-projets-territoire.dto";
 import { QualificationResponse } from "./dto/qualification.dto";
 
 type Row = Record<string, unknown>;
@@ -81,9 +82,16 @@ export class TerritoiresService {
    * déduplication. `code` = INSEE commune (5 chiffres / 2A|2B + 3) ou SIREN EPCI (9 chiffres).
    */
   async territoireProjets(code: string, params: TerritoireProjetsParams): Promise<TerritoireProjetsResponse> {
-    const { sources, copMillesime, copStatutVivier, limit, offset, inclureFinancementsSeuls, masquerObsoletes } =
-      params;
+    this.validateCopFilters(params);
+    const communes = await this.resolveCommunes(code);
+    return this.projetsGroupes(communes, params);
+  }
 
+  // Valide les filtres COP (millésime, statut vivier) — 400 explicite sinon. Appelé AVANT
+  // toute requête (résolution du territoire incluse) par les deux points d'entrée
+  // (territoireProjets, plansProjetsTerritoire).
+  private validateCopFilters(params: TerritoireProjetsParams): void {
+    const { copMillesime, copStatutVivier } = params;
     if (copMillesime !== undefined && !COP_MILLESIMES.includes(copMillesime as (typeof COP_MILLESIMES)[number])) {
       throw new BadRequestException(`copMillesime invalide (attendu : ${COP_MILLESIMES.join(", ")})`);
     }
@@ -93,8 +101,20 @@ export class TerritoiresService {
     ) {
       throw new BadRequestException(`copStatutVivier invalide (attendu : ${COP_STATUTS_VIVIER.join(", ")})`);
     }
+  }
 
-    const communes = await this.resolveCommunes(code);
+  /**
+   * Cœur de la vue territoriale : regroupe par cluster de déduplication les projets des
+   * `communes` fournies, applique les filtres et enrichit chaque groupe de ses décisions
+   * actives. Partagé par `territoireProjets` (code → communes) et `plansProjetsTerritoire`
+   * (PCAET → communes couvertes). Suppose les filtres COP déjà validés (validateCopFilters).
+   */
+  private async projetsGroupes(
+    communes: string[],
+    params: TerritoireProjetsParams,
+  ): Promise<TerritoireProjetsResponse> {
+    const { sources, copMillesime, copStatutVivier, limit, offset, inclureFinancementsSeuls, masquerObsoletes } =
+      params;
 
     // Filtres appliqués aux SEULS projets du territoire (avant expansion en cluster
     // complet — les membres hors territoire du même cluster sont conservés).
@@ -336,6 +356,140 @@ export class TerritoiresService {
         if (g.decisions.length < DECISIONS_PER_GROUP_CAP) g.decisions.push(decision);
       }
     }
+  }
+
+  /**
+   * Miroir de `territoireProjets` côté TeT : projets du territoire COUVERT par un PCAET,
+   * regroupés par cluster, augmentés — par groupe — de leur `rattachement` à CE PCAET.
+   * `cle` = SIREN du porteur (clé stable, 9 chiffres) OU un plan_id de la référence
+   * (opendata/snapshot/live) résolu vers la même ligne. 404 si la clé ne résout aucun PCAET.
+   * Flux d'écriture symétrique (le « je coche » côté TeT) = POST /decisions type
+   * rattachement_pcaet (objetA = trace du groupe, objetB = SIREN porteur) — rien à coder ici.
+   */
+  async plansProjetsTerritoire(cle: string, params: TerritoireProjetsParams): Promise<PlansProjetsTerritoireResponse> {
+    this.validateCopFilters(params);
+    const pcaet = await this.resolvePcaet(cle);
+    const base = await this.projetsGroupes(pcaet.communes, params);
+    const groupes = await this.attachRattachements(base.groupes, pcaet.sirenPorteur);
+    return {
+      pcaet: { sirenPorteur: pcaet.sirenPorteur, nom: pcaet.nom, source: pcaet.source },
+      total: base.total,
+      limit: base.limit,
+      offset: base.offset,
+      groupes,
+    };
+  }
+
+  /**
+   * Résout une clé PCAET en sa ligne de référence (SIREN porteur, nom, source, communes).
+   * `cle` = SIREN porteur (clé stable) OU un des plan_id (opendata/snapshot/live). Les
+   * plan_id vides ('' — canaux non alimentés) sont neutralisés par NULLIF pour qu'une clé
+   * vide/absente ne matche jamais. 404 si la référence est absente (matérialisation non
+   * déployée) ou si la clé ne correspond à aucun PCAET.
+   */
+  private async resolvePcaet(
+    cle: string,
+  ): Promise<{ sirenPorteur: string; nom: string | null; source: string | null; communes: string[] }> {
+    // pcaet_reference (matview) est un livrable ETL déployé séparément : garde to_regclass
+    // (cf. planFichesTerritoire) — 404 explicite plutôt qu'un 500 « relation does not exist ».
+    if (!(await this.pcaetReferenceExists())) {
+      throw new NotFoundException(
+        "Référence PCAET indisponible (matérialisation schema_commun_v2.pcaet_reference non déployée).",
+      );
+    }
+
+    const [row] = await this.query<{
+      sirenPorteur: string;
+      nom: string | null;
+      source: string | null;
+      communes: string[] | null;
+    }>(sql`
+      SELECT pr.siren_porteur AS "sirenPorteur", pr.nom, pr.source_nom AS source, pr.communes
+      FROM schema_commun_v2.pcaet_reference pr
+      WHERE pr.siren_porteur = ${cle}
+         OR NULLIF(pr.plan_id_opendata, '') = ${cle}
+         OR NULLIF(pr.plan_id_snapshot, '') = ${cle}
+         OR NULLIF(pr.plan_id_live, '') = ${cle}
+      -- Départage déterministe si une clé coïncidait avec un SIREN ET un plan_id (jamais
+      -- observé : SIREN à 9 chiffres, plan_id en UUID) : la correspondance SIREN prime.
+      ORDER BY (pr.siren_porteur = ${cle}) DESC
+      LIMIT 1
+    `);
+
+    if (!row) {
+      throw new NotFoundException(
+        `PCAET introuvable pour la clé « ${cle} » (attendu : SIREN du porteur — 9 chiffres — ou un plan_id de la référence).`,
+      );
+    }
+    return { sirenPorteur: row.sirenPorteur, nom: row.nom, source: row.source, communes: row.communes ?? [] };
+  }
+
+  /**
+   * Calcule, pour chaque groupe, son rattachement à UN pcaet (SIREN porteur donné), et
+   * renvoie les groupes augmentés du champ `rattachement`. Deux requêtes (journal + signal),
+   * jamais de N+1 :
+   * - décision : `rattachement_pcaet` ACTIVE la plus récente (created_at, id DESC) entre une
+   *   trace du groupe et ce PCAET → verdict confirme|infirme (la plus récente prime en cas de
+   *   décisions actives contradictoires) ; pierres tombales (verdict='annule') exclues ;
+   * - signal : à défaut de décision, `pcaet_operation_inscrite='true'` sur une trace → 'suggere'
+   *   (indicatif — une décision humaine prime toujours) ; sinon 'aucun'.
+   */
+  private async attachRattachements(
+    groupes: TerritoireGroupeDto[],
+    sirenPorteur: string,
+  ): Promise<TerritoireGroupeRattacheDto[]> {
+    // Un id de trace n'appartient qu'à un seul groupe (un projet est dans un seul cluster).
+    const groupByTraceId = new Map<string, TerritoireGroupeDto>();
+    for (const g of groupes) {
+      for (const t of g.traces) {
+        if (t.id != null) groupByTraceId.set(t.id, g);
+      }
+    }
+    const ids = [...groupByTraceId.keys()];
+    if (ids.length === 0) return groupes.map((g) => ({ ...g, rattachement: "aucun" as const }));
+
+    // Décisions de rattachement à CE pcaet, portant sur une trace de la page, actives et
+    // non révoquées, triées de la plus récente à la plus ancienne (départage id DESC).
+    const decisionRows = await this.query<{ objetAId: string; verdict: string | null }>(sql`
+      SELECT d.objet_a_id AS "objetAId", d.verdict
+      FROM decisions_humaines.decisions d
+      WHERE d.type_decision = 'rattachement_pcaet'
+        AND d.objet_b_type = 'pcaet'
+        AND d.objet_b_id = ${sirenPorteur}
+        AND d.objet_a_id = ANY(${textArray(ids)})
+        AND ${activeDecisionPredicate("d")}
+        -- Révocations (verdict='annule') exclues : une décision annulée ne rattache rien.
+        AND ${notTombstonePredicate("d")}
+      ORDER BY d.created_at DESC, d.id DESC
+    `);
+    // « La plus récente prime » : on fige chaque groupe à sa 1re décision rencontrée (la plus
+    // récente), verdict confirme|infirme retenu. Un groupe non figé reste candidat au signal.
+    const decided = new Map<TerritoireGroupeDto, "confirme" | "infirme">();
+    const resolved = new Set<TerritoireGroupeDto>();
+    for (const r of decisionRows) {
+      const g = groupByTraceId.get(r.objetAId);
+      if (!g || resolved.has(g)) continue;
+      resolved.add(g);
+      if (r.verdict === "confirme" || r.verdict === "infirme") decided.set(g, r.verdict);
+    }
+
+    // Signal indicatif 'suggere' : une trace du groupe est marquée opération PCAET par le
+    // pipeline. Ne concerne que les groupes SANS décision (une décision humaine prime).
+    const signalRows = await this.query<{ id: string }>(sql`
+      SELECT p.id
+      FROM schema_commun_v2.projets_operationnels p
+      WHERE p.id = ANY(${textArray(ids)}) AND p.pcaet_operation_inscrite = 'true'
+    `);
+    const signalGroups = new Set<TerritoireGroupeDto>();
+    for (const r of signalRows) {
+      const g = groupByTraceId.get(r.id);
+      if (g) signalGroups.add(g);
+    }
+
+    return groupes.map((g) => ({
+      ...g,
+      rattachement: decided.get(g) ?? (signalGroups.has(g) ? ("suggere" as const) : ("aucun" as const)),
+    }));
   }
 
   /**
