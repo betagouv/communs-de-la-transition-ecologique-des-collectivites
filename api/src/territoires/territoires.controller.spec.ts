@@ -3,7 +3,7 @@ import { TerritoiresService } from "./territoires.service";
 
 describe("TerritoiresController", () => {
   let controller: TerritoiresController;
-  let service: { territoireProjets: jest.Mock };
+  let service: { territoireProjets: jest.Mock; plansProjetsTerritoire: jest.Mock };
 
   const lastParams = (): Record<string, unknown> => {
     const calls = service.territoireProjets.mock.calls as unknown[][];
@@ -11,7 +11,16 @@ describe("TerritoiresController", () => {
   };
 
   beforeEach(() => {
-    service = { territoireProjets: jest.fn().mockResolvedValue({ total: 0, limit: 50, offset: 0, groupes: [] }) };
+    service = {
+      territoireProjets: jest.fn().mockResolvedValue({ total: 0, limit: 50, offset: 0, groupes: [] }),
+      plansProjetsTerritoire: jest.fn().mockResolvedValue({
+        pcaet: { sirenPorteur: "244400404", nom: "PCAET", source: "opendata" },
+        total: 0,
+        limit: 50,
+        offset: 0,
+        groupes: [],
+      }),
+    };
     controller = new TerritoiresController(service as unknown as TerritoiresService);
   });
 
@@ -71,6 +80,26 @@ describe("TerritoiresController", () => {
     it("valeur autre que 'true' → false", async () => {
       await controller.territoireProjets("01001", { masquerObsoletes: "1" });
       expect(lastParams().masquerObsoletes).toBe(false);
+    });
+  });
+
+  describe("plans/:cle/projets-territoire", () => {
+    const lastPlansCall = (): { cle: string; params: Record<string, unknown> } => {
+      const calls = service.plansProjetsTerritoire.mock.calls as unknown[][];
+      return { cle: calls[0][0] as string, params: calls[0][1] as Record<string, unknown> };
+    };
+
+    it("transmet la clé et les mêmes paramètres de filtrage (bornes limit, sources CSV) au service", async () => {
+      await controller.plansProjetsTerritoire("244400404", { sources: "MEC,Vivier COP", limit: "500" });
+      const { cle, params } = lastPlansCall();
+      expect(cle).toBe("244400404");
+      // Parsing mutualisé avec territoires/:code/projets : mêmes bornes et découpage.
+      expect(params).toMatchObject({ sources: ["MEC", "Vivier COP"], limit: 200 });
+    });
+
+    it("renvoie la réponse du service (en-tête pcaet + groupes)", async () => {
+      const result = await controller.plansProjetsTerritoire("019ce410-84fe-7174-a27c-4cec8c632cf4", {});
+      expect(result).toMatchObject({ pcaet: { sirenPorteur: "244400404" }, total: 0, groupes: [] });
     });
   });
 });

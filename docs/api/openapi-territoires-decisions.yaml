@@ -59,6 +59,62 @@ paths:
                     items: { $ref: "#/components/schemas/Groupe" }
           description: Groupes de traces du territoire
         "404": { description: Territoire inconnu ou code invalide }
+  /plans/{cle}/projets-territoire:
+    get:
+      summary: Projets du territoire couvert par un PCAET (miroir TeT), rattachement par groupe
+      description: >
+        Miroir de /territoires/{code}/projets côté TeT : part d'un PCAET, liste les projets des
+        communes qu'il couvre, regroupés par projet réel, avec par groupe le rattachement à CE PCAET.
+        Écriture symétrique via POST /decisions (rattachement_pcaet). Voir INTEGRATION_TET.md.
+      parameters:
+        - name: cle
+          in: path
+          required: true
+          schema: { type: string }
+          description: SIREN du porteur du PCAET (clé stable, 9 chiffres) ou un plan_id de la référence (opendata/snapshot/live)
+        - name: sources
+          in: query
+          schema: { type: string }
+          description: "Filtre source_origine, CSV (ex. `MEC,Vivier COP`)"
+        - name: copMillesime
+          in: query
+          schema: { type: string, enum: ["2024", "2025"] }
+        - name: copStatutVivier
+          in: query
+          schema: { type: string, enum: [a_remonter, a_travailler, hors_cop_mais_crte, non_remonte] }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: inclureFinancementsSeuls
+          in: query
+          schema: { type: boolean, default: false }
+        - name: masquerObsoletes
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pcaet:
+                    type: object
+                    properties:
+                      sirenPorteur: { type: string }
+                      nom: { type: string, nullable: true }
+                      source: { type: string, enum: [snapshot, opendata], nullable: true }
+                  total: { type: integer }
+                  limit: { type: integer }
+                  offset: { type: integer }
+                  groupes:
+                    type: array
+                    items: { $ref: "#/components/schemas/GroupeRattache" }
+          description: Projets du territoire du PCAET, avec rattachement par groupe
+        "404": { description: Clé ne résolvant aucun PCAET, ou référence PCAET non matérialisée }
   /projets/mec/{externalId}/plans-territoire:
     get:
       summary: PCAET couvrant les communes d'un projet MEC
@@ -189,6 +245,21 @@ components:
             confondues, SANS l'agent auteur (PII + cloisonnement inter-plateformes). Les révocations
             (verdict='annule') et les décisions supersédées sont exclues.
           items: { $ref: "#/components/schemas/Decision" }
+    GroupeRattache:
+      description: >
+        Groupe augmenté de son rattachement au PCAET interrogé (endpoint /plans/{cle}/projets-territoire).
+      allOf:
+        - $ref: "#/components/schemas/Groupe"
+        - type: object
+          properties:
+            rattachement:
+              type: string
+              enum: [confirme, infirme, suggere, aucun]
+              description: >
+                confirme|infirme = décision active rattachement_pcaet la plus récente entre une trace
+                du groupe et ce PCAET (SIREN porteur) ; suggere = pas de décision mais une trace est
+                marquée opération PCAET (pcaet_operation_inscrite) — indicatif, une décision prime ;
+                aucun = ni décision ni signal.
     Decision:
       type: object
       properties:

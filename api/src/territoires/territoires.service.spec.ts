@@ -323,4 +323,152 @@ describe("TerritoiresService", () => {
       expect(result.pcaet[0].rattachement).toBe("aucun");
     });
   });
+
+  describe("plansProjetsTerritoire", () => {
+    const params = { limit: 50, offset: 0, inclureFinancementsSeuls: false, masquerObsoletes: false };
+    // Ligne de référence PCAET renvoyée par resolvePcaet (Nantes Métropole, un des 5 EPCI POC).
+    const pcaetRow = {
+      sirenPorteur: "244400404",
+      nom: "PCAET de Nantes Métropole",
+      source: "opendata",
+      communes: ["44109"],
+    };
+
+    it("résout une clé SIREN, renvoie l'en-tête pcaet + les groupes + le rattachement par groupe", async () => {
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // pcaet_reference présente
+        .mockResolvedValueOnce({ rows: [pcaetRow] }) // résolution de la clé
+        .mockResolvedValueOnce({
+          rows: [{ confiance: "CERTAIN", traces: [{ role: "projet", source: "MEC", id: "p1" }], total: "1" }],
+        }) // page de groupes
+        .mockResolvedValueOnce({ rows: [] }) // décisions actives de la page (decisions[])
+        .mockResolvedValueOnce({ rows: [{ objetAId: "p1", verdict: "confirme" }] }) // rattachement à ce PCAET
+        .mockResolvedValueOnce({ rows: [] }); // signal pcaet_operation_inscrite (aucun)
+
+      const result = await service.plansProjetsTerritoire("244400404", params);
+
+      expect(result).toEqual({
+        pcaet: { sirenPorteur: "244400404", nom: "PCAET de Nantes Métropole", source: "opendata" },
+        total: 1,
+        limit: 50,
+        offset: 0,
+        groupes: [
+          {
+            confiance: "CERTAIN",
+            traces: [{ role: "projet", source: "MEC", id: "p1" }],
+            decisions: [],
+            rattachement: "confirme",
+          },
+        ],
+      });
+      // 6 requêtes : existence + résolution + page + decisions[] + rattachement + signal.
+      expect(execute).toHaveBeenCalledTimes(6);
+      // La requête de rattachement cible CE pcaet, départage les created_at égaux (id DESC)
+      // et exclut les révocations (verdict='annule').
+      const rattachementSql = renderSql((execute.mock.calls[4] as unknown[])[0]);
+      expect(rattachementSql).toContain("rattachement_pcaet");
+      expect(rattachementSql).toContain("d.objet_b_id");
+      expect(rattachementSql).toContain("d.id DESC");
+      expect(rattachementSql).toContain("verdict IS DISTINCT FROM");
+    });
+
+    it("résout aussi une clé plan_id (NULLIF neutralise les canaux vides)", async () => {
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] })
+        .mockResolvedValueOnce({ rows: [pcaetRow] })
+        .mockResolvedValueOnce({ rows: [] }); // page vide → pas d'enrichissement ni de rattachement
+
+      const result = await service.plansProjetsTerritoire("019ce410-84fe-7174-a27c-4cec8c632cf4", params);
+
+      expect(result.pcaet.sirenPorteur).toBe("244400404");
+      expect(result).toMatchObject({ total: 0, groupes: [] });
+      // Page vide → aucune requête de décisions/rattachement/signal.
+      expect(execute).toHaveBeenCalledTimes(3);
+      // La résolution accepte SIREN OU plan_id, en neutralisant les canaux vides.
+      const resolveSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
+      expect(resolveSql).toContain("siren_porteur");
+      expect(resolveSql).toContain("plan_id_opendata");
+      expect(resolveSql).toContain("NULLIF");
+    });
+
+    it("404 quand la clé ne résout aucun PCAET", async () => {
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // référence présente
+        .mockResolvedValueOnce({ rows: [] }); // clé inconnue
+      await expect(service.plansProjetsTerritoire("999999999", params)).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it("404 quand la référence PCAET n'est pas encore matérialisée", async () => {
+      execute.mockResolvedValueOnce({ rows: [{ present: false }] });
+      await expect(service.plansProjetsTerritoire("244400404", params)).rejects.toBeInstanceOf(NotFoundException);
+      // Aucune requête de résolution lancée quand la matview est absente.
+      expect(execute).toHaveBeenCalledTimes(1);
+    });
+
+    it("rattachement='suggere' à défaut de décision, sur le signal pcaet_operation_inscrite", async () => {
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] })
+        .mockResolvedValueOnce({ rows: [pcaetRow] })
+        .mockResolvedValueOnce({
+          rows: [{ confiance: null, traces: [{ role: "projet", source: "MEC", id: "p1" }], total: "1" }],
+        })
+        .mockResolvedValueOnce({ rows: [] }) // decisions[]
+        .mockResolvedValueOnce({ rows: [] }) // aucune décision de rattachement
+        .mockResolvedValueOnce({ rows: [{ id: "p1" }] }); // p1 marqué opération PCAET
+
+      const result = await service.plansProjetsTerritoire("244400404", params);
+      expect(result.groupes[0].rattachement).toBe("suggere");
+    });
+
+    it("rattachement='aucun' sans décision ni signal", async () => {
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] })
+        .mockResolvedValueOnce({ rows: [pcaetRow] })
+        .mockResolvedValueOnce({
+          rows: [{ confiance: null, traces: [{ role: "projet", source: "MEC", id: "p1" }], total: "1" }],
+        })
+        .mockResolvedValueOnce({ rows: [] }) // decisions[]
+        .mockResolvedValueOnce({ rows: [] }) // rattachement : aucun
+        .mockResolvedValueOnce({ rows: [] }); // signal : aucun
+
+      const result = await service.plansProjetsTerritoire("244400404", params);
+      expect(result.groupes[0].rattachement).toBe("aucun");
+    });
+
+    it("une décision humaine prime toujours sur le signal (infirme > suggere)", async () => {
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] })
+        .mockResolvedValueOnce({ rows: [pcaetRow] })
+        .mockResolvedValueOnce({
+          rows: [{ confiance: null, traces: [{ role: "projet", source: "MEC", id: "p1" }], total: "1" }],
+        })
+        .mockResolvedValueOnce({ rows: [] }) // decisions[]
+        .mockResolvedValueOnce({ rows: [{ objetAId: "p1", verdict: "infirme" }] }) // décision infirme
+        .mockResolvedValueOnce({ rows: [{ id: "p1" }] }); // signal présent, mais dominé
+
+      const result = await service.plansProjetsTerritoire("244400404", params);
+      expect(result.groupes[0].rattachement).toBe("infirme");
+    });
+
+    it("la décision la plus récente prime en cas de décisions actives contradictoires", async () => {
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] })
+        .mockResolvedValueOnce({ rows: [pcaetRow] })
+        .mockResolvedValueOnce({
+          rows: [{ confiance: null, traces: [{ role: "projet", source: "MEC", id: "p1" }], total: "1" }],
+        })
+        .mockResolvedValueOnce({ rows: [] }) // decisions[]
+        // Triées de la plus récente à la plus ancienne par la requête : infirme (récente) gagne.
+        .mockResolvedValueOnce({
+          rows: [
+            { objetAId: "p1", verdict: "infirme" },
+            { objetAId: "p1", verdict: "confirme" },
+          ],
+        })
+        .mockResolvedValueOnce({ rows: [] }); // signal
+
+      const result = await service.plansProjetsTerritoire("244400404", params);
+      expect(result.groupes[0].rattachement).toBe("infirme");
+    });
+  });
 });
