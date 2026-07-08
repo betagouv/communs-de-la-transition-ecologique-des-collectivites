@@ -59,6 +59,8 @@ describe("ServicesService", () => {
         id: expect.any(String),
         createdAt: expect.any(Date),
         ...serviceDTO,
+        // Colonne data_scopes (doctrine d'accès) : défaut '{}' → tableau vide.
+        dataScopes: [],
       });
     });
 
