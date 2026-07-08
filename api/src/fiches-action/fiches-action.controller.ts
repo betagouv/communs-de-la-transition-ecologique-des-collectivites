@@ -1,3 +1,4 @@
+import { Throttle } from "@nestjs/throttler";
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
@@ -8,6 +9,9 @@ import { FichesActionService } from "./fiches-action.service";
 
 @ApiBearerAuth()
 @ApiTags("TeT")
+// Routes d'ingestion partenaires (webhooks MEC/TeT) : les resyncs dépassent largement
+// la limite globale 50/min — surcharge à 500/min (absorbe le burst observé).
+@Throttle({ default: { limit: 500, ttl: 60000 } })
 @Controller("tet/v1/actions")
 @UseGuards(ApiKeyGuard)
 export class FichesActionController {

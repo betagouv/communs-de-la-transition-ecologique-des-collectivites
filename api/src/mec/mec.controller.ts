@@ -1,3 +1,4 @@
+import { Throttle } from "@nestjs/throttler";
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
@@ -14,6 +15,9 @@ import { MecService } from "./mec.service";
 
 @ApiBearerAuth()
 @ApiTags("MEC")
+// Routes d'ingestion partenaires (webhooks MEC/TeT) : les resyncs dépassent largement
+// la limite globale 50/min — surcharge à 500/min (absorbe le burst observé).
+@Throttle({ default: { limit: 500, ttl: 60000 } })
 @Controller("mec/v1/projets")
 @UseGuards(ApiKeyGuard)
 export class MecController {
