@@ -99,6 +99,17 @@ Query params : `sources` (CSV de `source_origine` : `MEC`, `Vivier COP`, `Fonds 
 `inclureFinancementsSeuls` (défaut `false` : masque les groupes 100 % financements),
 `masquerObsoletes` (défaut `false` : masque les groupes marqués obsolètes).
 
+**Portée des filtres et sens de `total`** :
+
+- Les filtres (`sources`, `copMillesime`, `copStatutVivier`) portent sur les projets **du
+  territoire** : un groupe est renvoyé dès qu'**au moins une** de ses traces sur le territoire
+  matche. Le groupe est alors renvoyé **complet** — _toutes_ ses traces, y compris celles qui **ne
+  matchent pas** le filtre (autres sources, mais aussi autres `copMillesime`/`copStatutVivier`) et
+  les membres du cluster hors territoire.
+- `total` = nombre de **groupes**, pas de projets : plusieurs projets matchants fusionnés dans un
+  même cluster ne comptent que pour 1 (ex. réel : 29 projets Vivier COP `a_remonter` sur la CU
+  d'Arras → `total` 27).
+
 **Sémantique UX convenue** : `CERTAIN` → **lien établi** ; `PROBABLE` → **suggestion** (à confirmer
 par l'agent) ; `null` → singleton. `role: "financement"` → présenter comme financement du groupe.
 ⚠ `budgetPrevisionnel` = montant **demandé** (coût du dossier) ; `montantAttribue` = subvention
