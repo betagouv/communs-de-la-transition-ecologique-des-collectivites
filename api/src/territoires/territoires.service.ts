@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { DatabaseService } from "@database/database.service";
 import { mecExternalIds } from "@database/schema";
 import { and, eq, sql, SQL } from "drizzle-orm";
-import { activeDecisionPredicate } from "@/decisions/active-decisions";
+import { activeDecisionPredicate, notTombstonePredicate } from "@/decisions/active-decisions";
 import { DECISION_TYPES } from "@/decisions/decision-contract";
 import { splitLeviersCsv } from "./leviers-csv";
 import {
@@ -121,7 +121,11 @@ export class TerritoiresService {
         FROM (
           SELECT DISTINCT ON (d.objet_a_id) d.objet_a_id AS oid, d.verdict
           FROM decisions_humaines.decisions d
-          WHERE d.type_decision = 'projet_statut' AND ${activeDecisionPredicate("d")}
+          WHERE d.type_decision = 'projet_statut'
+            AND ${activeDecisionPredicate("d")}
+            -- Les révocations (verdict='annule') ne participent pas au « plus récent gagne » :
+            -- exclues, sinon une révocation d'une décision sans lien masquerait un obsolète actif.
+            AND ${notTombstonePredicate("d")}
           -- Départage déterministe des created_at égaux (import/backfill en une
           -- transaction ⇒ now() figé) : id DESC, aligné sur le pipeline.
           ORDER BY d.objet_a_id, d.created_at DESC, d.id DESC
@@ -304,6 +308,8 @@ export class TerritoiresService {
       WHERE (d.objet_a_id = ANY(${textArray(ids)}) OR d.objet_b_id = ANY(${textArray(ids)}))
         AND d.type_decision = ANY(${textArray([...DECISION_TYPES])})
         AND ${activeDecisionPredicate("d")}
+        -- Pierres tombales (verdict='annule') exclues : elles ne font que révoquer leur cible.
+        AND ${notTombstonePredicate("d")}
       ORDER BY d.created_at DESC, d.id DESC
       LIMIT ${DECISIONS_QUERY_LIMIT}
     `);
@@ -407,6 +413,8 @@ export class TerritoiresService {
         AND d.objet_a_id = ${projetId}
         AND d.objet_b_type = 'pcaet'
         AND ${activeDecisionPredicate("d")}
+        -- Révocations (verdict='annule') exclues : une décision annulée ne rattache rien.
+        AND ${notTombstonePredicate("d")}
       -- id DESC départage les created_at égaux (cf. obsolete_pids), aligné sur le pipeline.
       ORDER BY d.objet_b_id, d.created_at DESC, d.id DESC
     `);

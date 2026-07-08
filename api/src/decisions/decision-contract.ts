@@ -34,6 +34,16 @@ export const DECISION_TYPES = [
 ] as const;
 export type DecisionType = (typeof DECISION_TYPES)[number];
 
+// Verdict de RÉVOCATION universel. Valide pour TOUS les types, à la seule condition
+// que `supersedes` désigne la décision cible (400 sinon). Sémantique : retire la cible
+// sans rien affirmer. Les décisions verdict='annule' sont des pierres tombales :
+// exclues de tous les effets de lecture (decisions[], rattachement, obsolètes) — elles
+// ne servent qu'à désactiver leur cible via la chaîne `supersedes`.
+// (Nécessaire car pour les doublons `verdict` est sinon interdit : sans ce mécanisme,
+// la ligne qui supersède serait elle-même une décision active du même type, donc le
+// verrou persisterait — la révocation serait inexprimable.)
+export const ANNULE_VERDICT = "annule";
+
 // SIREN du porteur PCAET : 9 chiffres.
 const SIREN_REGEX = /^\d{9}$/;
 
@@ -116,6 +126,7 @@ export interface DecisionContractInput {
   objetBId?: string | null;
   verdict?: string | null;
   payload?: Record<string, unknown> | null;
+  supersedes?: string | null;
 }
 
 /**
@@ -160,6 +171,21 @@ export function validateDecisionContract(dto: DecisionContractInput): void {
     throw new BadRequestException(`objetBType/objetBId interdits ${forType}`);
   }
 
+  // Révocation universelle : verdict='annule' est valide pour TOUS les types, à la
+  // seule condition qu'une cible soit désignée. Il court-circuite les règles de verdict
+  // ET de payload propres au type (une révocation n'affirme rien : ni verdict métier,
+  // ni charge de correction). La compatibilité de la cible (même plateforme, même type)
+  // est vérifiée côté service via `supersedes`.
+  const isAnnule = dto.verdict === ANNULE_VERDICT;
+  if (isAnnule) {
+    if (dto.supersedes == null || dto.supersedes === "") {
+      throw new BadRequestException(
+        `verdict "${ANNULE_VERDICT}" exige supersedes (décision cible à révoquer) ${forType}`,
+      );
+    }
+    return;
+  }
+
   // Verdict : requis (valeur contrainte) ou interdit selon le type.
   if (spec.verdict.required) {
     if (dto.verdict == null) {
@@ -167,11 +193,13 @@ export function validateDecisionContract(dto: DecisionContractInput): void {
     }
     if (!spec.verdict.values.includes(dto.verdict)) {
       throw new BadRequestException(
-        `verdict "${dto.verdict}" invalide ${forType} (attendu : ${spec.verdict.values.join(", ")})`,
+        `verdict "${dto.verdict}" invalide ${forType} (attendu : ${spec.verdict.values.join(", ")}, ou "${ANNULE_VERDICT}" avec supersedes)`,
       );
     }
   } else if (dto.verdict != null) {
-    throw new BadRequestException(`verdict interdit ${forType}`);
+    throw new BadRequestException(
+      `verdict interdit ${forType} (sauf "${ANNULE_VERDICT}" avec supersedes pour révoquer)`,
+    );
   }
 
   // Payload : forme imposée pour correction_signalee, libre sinon.

@@ -162,4 +162,60 @@ describe("validateDecisionContract", () => {
       expectRejects({ ...base, payload: { champ: "nom", valeurProposee: "x", source: 12 } }, /payload\.source/);
     });
   });
+
+  describe("verdict 'annule' (révocation universelle)", () => {
+    const target = "3f2504e0-4f89-41d3-9a0c-0305e82c3301";
+    const doublon = {
+      typeDecision: "doublon_confirme",
+      objetAType: "projet",
+      objetAId: "a",
+      objetBType: "projet",
+      objetBId: "b",
+    };
+    const statut = { typeDecision: "projet_statut", objetAType: "projet", objetAId: "a" };
+    const pcaet = {
+      typeDecision: "rattachement_pcaet",
+      objetAType: "projet",
+      objetAId: "a",
+      objetBType: "pcaet",
+      objetBId: "200000172",
+    };
+    const correction = { typeDecision: "correction_signalee", objetAType: "projet", objetAId: "a" };
+
+    it("400 pour 'annule' sans supersedes, quel que soit le type", () => {
+      expectRejects({ ...doublon, verdict: "annule" }, /annule.*exige supersedes/);
+      expectRejects({ ...statut, verdict: "annule" }, /annule.*exige supersedes/);
+      expectRejects({ ...pcaet, verdict: "annule" }, /annule.*exige supersedes/);
+      // correction_signalee sans payload : 'annule' court-circuite la règle payload → c'est
+      // bien supersedes qui manque (et non le payload) qui est signalé.
+      expectRejects({ ...correction, verdict: "annule" }, /annule.*exige supersedes/);
+    });
+
+    it("accepte 'annule' + supersedes pour tous les types (bypass verdict/payload métier)", () => {
+      expect(ok({ ...doublon, verdict: "annule", supersedes: target })).not.toThrow();
+      expect(ok({ ...statut, verdict: "annule", supersedes: target })).not.toThrow();
+      expect(ok({ ...pcaet, verdict: "annule", supersedes: target })).not.toThrow();
+      // Pas de payload de correction requis pour révoquer une correction_signalee.
+      expect(ok({ ...correction, verdict: "annule", supersedes: target })).not.toThrow();
+    });
+
+    it("conserve les contraintes structurelles d'objet B propres au type", () => {
+      // Un doublon révoqué reste structurellement un doublon : objetB requis.
+      expectRejects(
+        {
+          typeDecision: "doublon_confirme",
+          objetAType: "projet",
+          objetAId: "a",
+          verdict: "annule",
+          supersedes: target,
+        },
+        /objetBType et objetBId requis/,
+      );
+      // projet_statut interdit toujours objetB, même en révocation.
+      expectRejects(
+        { ...statut, objetBType: "projet", objetBId: "b", verdict: "annule", supersedes: target },
+        /objetBType\/objetBId interdits/,
+      );
+    });
+  });
 });

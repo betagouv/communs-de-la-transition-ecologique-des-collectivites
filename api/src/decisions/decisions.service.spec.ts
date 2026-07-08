@@ -120,6 +120,28 @@ describe("DecisionsService", () => {
       expect(insertedValues).toBeUndefined();
     });
 
+    it("persiste une révocation verdict='annule' quand la cible est compatible", async () => {
+      service = buildService({
+        returning: [{ id: "dec-9", createdAt }],
+        selectRows: [{ plateformeSource: "MEC", typeDecision: "doublon_confirme" }],
+      });
+
+      await service.create(
+        {
+          typeDecision: "doublon_confirme",
+          objetAType: "projet",
+          objetAId: "a",
+          objetBType: "projet",
+          objetBId: "b",
+          verdict: "annule",
+          supersedes: "dec-1",
+        },
+        "MEC",
+      );
+
+      expect(insertedValues).toMatchObject({ verdict: "annule", supersedes: "dec-1" });
+    });
+
     it("normalise les champs optionnels absents en null (dont supersedes)", async () => {
       service = buildService({ returning: [{ id: "dec-2", createdAt }] });
 

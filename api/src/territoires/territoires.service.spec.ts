@@ -110,6 +110,8 @@ describe("TerritoiresService", () => {
       expect(decisionsSql).toContain("type_decision = ANY");
       expect(decisionsSql).toContain("d.id DESC");
       expect(decisionsSql).toContain("LIMIT");
+      // Les révocations (verdict='annule') sont exclues des décisions exposées.
+      expect(decisionsSql).toContain("verdict IS DISTINCT FROM");
     });
 
     it("ne lance pas de requête de décisions quand la page est vide", async () => {
@@ -127,6 +129,8 @@ describe("TerritoiresService", () => {
       expect(pageSql).toContain("has_obsolete = FALSE");
       // Départage déterministe des created_at égaux dans obsolete_pids.
       expect(pageSql).toContain("d.id DESC");
+      // Les révocations projet_statut (verdict='annule') ne comptent pas comme obsolètes.
+      expect(pageSql).toContain("verdict IS DISTINCT FROM");
     });
 
     it("masquerObsoletes=false (défaut) n'ajoute pas le filtre has_obsolete", async () => {
@@ -288,9 +292,11 @@ describe("TerritoiresService", () => {
         ],
         fichesActionSuggerees: [],
       });
-      // La requête de rattachement départage les created_at égaux (id DESC).
+      // La requête de rattachement départage les created_at égaux (id DESC) et exclut
+      // les révocations (verdict='annule').
       const rattachementSql = renderSql((execute.mock.calls[4] as unknown[])[0]);
       expect(rattachementSql).toContain("d.id DESC");
+      expect(rattachementSql).toContain("verdict IS DISTINCT FROM");
     });
 
     it("rattachement='aucun' quand aucune décision active", async () => {

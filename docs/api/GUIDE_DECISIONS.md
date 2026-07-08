@@ -158,6 +158,10 @@ type impose ses contraintes ; un champ manquant ou interdit donne un `400` nomma
 | `projet_statut`       | `projet`                 | interdit                                          | `valide`\|`obsolete`\|`termine` | libre                                             |
 | `correction_signalee` | tout type                | interdit                                          | interdit                        | **requis** : `{ champ, valeurProposee, source? }` |
 
+**Révocation transverse** : quel que soit le type, `verdict: "annule"` **avec** `supersedes` est
+accepté et retire la décision cible sans rien affirmer (voir « Revenir sur une décision » ci-dessous).
+Les lignes `annule` sont exclues de tous les effets de lecture.
+
 **Effet immédiat vs effet au rebuild.** Toute décision est **immédiatement** lisible
 (`decisions[]`, `rattachement`, `masquerObsoletes` lisent le journal en direct). En revanche,
 la **composition des groupes** et la **confiance** ne changent qu'au prochain **rebuild** du
@@ -184,34 +188,39 @@ regroupement est différée.
   Immédiat : la proposition est journalisée et visible dans `decisions[]`. Au rebuild / en revue :
   elle alimente l'arbitrage sur la donnée de référence. Elle **ne réécrit pas** la source.
 
-### Revenir sur une décision
+### Revenir sur une décision — la révocation `annule`
 
-On ne modifie ni ne supprime. Pour révoquer, réémettez en pointant l'ancienne via `supersedes` :
+On ne modifie ni ne supprime. Pour **révoquer** une décision (revenir à « je n'ai rien dit »),
+réémettez-la à l'identique avec **`verdict: "annule"`** et **`supersedes`** pointant la décision à
+retirer :
 
-```jsonc
-// POST /decisions
-{
-  "typeDecision": "doublon_infirme",
-  "objetAType": "projet",
-  "objetAId": "019dab94-…",
-  "objetBType": "projet",
-  "objetBId": "cop_20687601",
-  "supersedes": "77b096d7-…",
-}
+```bash
+curl -X POST -H "Authorization: Bearer $CLE" -H "Content-Type: application/json" \
+  "https://api.collectivites.beta.gouv.fr/decisions" -d '{
+    "typeDecision": "doublon_confirme",
+    "objetAType": "projet", "objetAId": "019dab94-c75e-7ef8-b7ec-7971a538bdd8",
+    "objetBType": "projet", "objetBId": "cop_20687601",
+    "verdict": "annule",
+    "supersedes": "77b096d7-…"
+  }'
+# → 201 { "id": "…", "createdAt": "…" }
 ```
 
-La décision supersédée cesse d'être « active » : elle disparaît de `decisions[]`, du `rattachement`
-et du filtre obsolètes. En cas de décisions actives contradictoires sur les mêmes objets (sans lien
-`supersedes`), **la plus récente prime**.
+`verdict: "annule"` est valide pour **tous** les types **à la seule condition** que `supersedes` soit
+renseigné (sinon 400 : « annule exige supersedes »). Sa sémantique : **retirer la cible sans rien
+affirmer**. C'est le SEUL moyen de lever un `doublon_signale/confirme/infirme` (dont le `verdict` est
+sinon interdit).
 
-Une révision est **contrainte** (400 sinon) : elle doit être de **votre** plateforme (vous ne
-révoquez pas la décision d'un autre service) **et du même `typeDecision`** que la décision visée.
-Ce garde-fou évite qu'une décision anodine désactive silencieusement un verrou d'un autre type.
+Effets : la décision cible **et** la ligne `annule` elle-même **disparaissent de tous les effets de
+lecture** (`decisions[]`, `rattachement`, filtre obsolètes) — une `annule` ne sert qu'à désactiver sa
+cible. Une révocation est **contrainte** (400 sinon) : elle doit être de **votre** plateforme (vous ne
+révoquez pas la décision d'un autre service) **et du même `typeDecision`** que la cible.
 
-**Une paire de doublon est NON ordonnée** : `(A, B)` et `(B, A)` désignent **la même** paire pour
-le référentiel (le pipeline la canonicalise). Pour revenir sur un `doublon_confirme(A, B)`, **supersédez-le**
-(même paire, `supersedes`) plutôt que de reposter `doublon_infirme(B, A)` : sans `supersedes`, les deux
-resteraient « actives » et c'est la récence qui trancherait — moins lisible dans `decisions[]`.
+- **Changer d'avis** (p. ex. passer de `confirme` à `infirme`) : postez simplement la nouvelle
+  décision. Sur les mêmes objets, en l'absence de `supersedes`, **la plus récente prime**.
+- **Une paire de doublon est NON ordonnée** : `(A, B)` et `(B, A)` désignent **la même** paire (le
+  pipeline la canonicalise). Pour révoquer, réémettez avec `annule` + `supersedes` plutôt que de
+  reposter dans l'ordre inverse — plus lisible et sans ambiguïté dans `decisions[]`.
 
 ## 5. Ce qui vous appartient
 
@@ -267,9 +276,9 @@ votre clé API.
 **Puis-je poster une décision sur une trace DGCL ?** Non recommandé — leurs `id` ne sont pas
 stables (voir §6). Attachez la décision à une trace `projet` du groupe.
 
-**Comment corriger une erreur de saisie de mon agent ?** Réémettez avec `supersedes` pointant la
-décision fautive ; la précédente devient inactive. La révision doit être de **votre** plateforme et
-du **même type** que la décision visée (400 sinon).
+**Comment annuler une décision de mon agent ?** Réémettez-la avec `verdict: "annule"` et `supersedes`
+pointant la décision fautive : la cible **et** la ligne d'annulation sortent de tous les effets de
+lecture. La révocation doit être de **votre** plateforme et du **même type** que la cible (400 sinon).
 
 **Je poste `doublon_confirme` mais le groupe ne fusionne pas tout de suite. Normal ?** Oui : le
 signal est immédiat (`decisions[]`), la fusion se fait au prochain rebuild (§4, §6).
