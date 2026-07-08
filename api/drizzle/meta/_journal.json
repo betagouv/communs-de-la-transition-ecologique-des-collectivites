@@ -288,6 +288,13 @@
       "when": 1783419912637,
       "tag": "0040_decisions_humaines",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1783507993444,
+      "tag": "0041_services_data_scopes",
+      "breakpoints": true
     }
   ]
 }

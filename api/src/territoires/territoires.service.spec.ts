@@ -44,7 +44,7 @@ describe("TerritoiresService", () => {
         })
         .mockResolvedValueOnce({ rows: [] }); // décisions actives de la page (aucune)
 
-      const result = await service.territoireProjets("01001", params);
+      const result = await service.territoireProjets("01001", params, "MEC");
 
       expect(result).toEqual({
         total: 1,
@@ -85,7 +85,7 @@ describe("TerritoiresService", () => {
           ],
         });
 
-      const result = await service.territoireProjets("01001", params);
+      const result = await service.territoireProjets("01001", params, "MEC");
 
       // Une seule requête de décisions pour toute la page.
       expect(execute).toHaveBeenCalledTimes(3);
@@ -116,14 +116,14 @@ describe("TerritoiresService", () => {
 
     it("ne lance pas de requête de décisions quand la page est vide", async () => {
       execute.mockResolvedValueOnce({ rows: [{ ok: 1 }] }).mockResolvedValueOnce({ rows: [] });
-      const result = await service.territoireProjets("01001", params);
+      const result = await service.territoireProjets("01001", params, "MEC");
       expect(result).toEqual({ total: 0, limit: 50, offset: 0, groupes: [] });
       expect(execute).toHaveBeenCalledTimes(2);
     });
 
     it("masquerObsoletes=true ajoute le filtre has_obsolete à la requête de page", async () => {
       execute.mockResolvedValueOnce({ rows: [{ ok: 1 }] }).mockResolvedValueOnce({ rows: [] });
-      await service.territoireProjets("01001", { ...params, masquerObsoletes: true });
+      await service.territoireProjets("01001", { ...params, masquerObsoletes: true }, "MEC");
       const pageSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
       expect(pageSql).toContain("obsolete_pids");
       expect(pageSql).toContain("has_obsolete = FALSE");
@@ -135,22 +135,50 @@ describe("TerritoiresService", () => {
 
     it("masquerObsoletes=false (défaut) n'ajoute pas le filtre has_obsolete", async () => {
       execute.mockResolvedValueOnce({ rows: [{ ok: 1 }] }).mockResolvedValueOnce({ rows: [] });
-      await service.territoireProjets("01001", params);
+      await service.territoireProjets("01001", params, "MEC");
       const pageSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
       // obsolete_pids reste calculé, mais le filtre n'est pas appliqué.
       expect(pageSql).toContain("obsolete_pids");
       expect(pageSql).not.toContain("has_obsolete = FALSE");
     });
 
+    describe("doctrine d'accès (data_scopes)", () => {
+      it("registre vide : aucune clause restreinte ni lookup de scope (non-régression)", async () => {
+        execute.mockResolvedValueOnce({ rows: [{ ok: 1 }] }).mockResolvedValueOnce({ rows: [] });
+        await service.territoireProjets("01001", params, "MEC");
+        const pageSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
+        expect(pageSql).not.toContain("source_origine <> ALL");
+        // Court-circuit registre vide : aucune requête services.data_scopes.
+        expect(selectLimit).not.toHaveBeenCalled();
+      });
+
+      it("source restreinte sans scope : clause d'exclusion sur graines ET membres", async () => {
+        jest
+          .spyOn(
+            service as unknown as { resolveForbiddenSources: (s: string) => Promise<string[]> },
+            "resolveForbiddenSources",
+          )
+          .mockResolvedValue(["DGCL non financés"]);
+        execute.mockResolvedValueOnce({ rows: [{ ok: 1 }] }).mockResolvedValueOnce({ rows: [] });
+
+        await service.territoireProjets("01001", params, "MEC");
+
+        const pageSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
+        // Injectée dans filtered_pids (graines) ET dans member_rows (membres de cluster).
+        const occurrences = pageSql.split("source_origine <> ALL").length - 1;
+        expect(occurrences).toBeGreaterThanOrEqual(2);
+      });
+    });
+
     it("accepte un code commune corse (2A/2B + 3)", async () => {
       execute.mockResolvedValueOnce({ rows: [{ ok: 1 }] }).mockResolvedValueOnce({ rows: [] });
-      const result = await service.territoireProjets("2a004", params);
+      const result = await service.territoireProjets("2a004", params, "MEC");
       expect(result.total).toBe(0);
     });
 
     it("404 pour une commune de format valide mais inconnue du référentiel", async () => {
       execute.mockResolvedValueOnce({ rows: [] });
-      await expect(service.territoireProjets("99999", params)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.territoireProjets("99999", params, "MEC")).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it("récupère le vrai total via un COUNT quand la page est vide au-delà de l'offset", async () => {
@@ -158,7 +186,7 @@ describe("TerritoiresService", () => {
         .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence commune
         .mockResolvedValueOnce({ rows: [] }) // page vide
         .mockResolvedValueOnce({ rows: [{ total: "12" }] }); // COUNT de repli
-      const result = await service.territoireProjets("01001", { ...params, offset: 100 });
+      const result = await service.territoireProjets("01001", { ...params, offset: 100 }, "MEC");
       expect(result.total).toBe(12);
       // Page vide → pas de requête de décisions.
       expect(execute).toHaveBeenCalledTimes(3);
@@ -166,24 +194,24 @@ describe("TerritoiresService", () => {
 
     it("résout un EPCI (SIREN 9 chiffres) en ses communes, 404 si aucune", async () => {
       execute.mockResolvedValueOnce({ rows: [] }); // périmètre vide
-      await expect(service.territoireProjets("200000172", params)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.territoireProjets("200000172", params, "MEC")).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it("404 pour un code de format invalide (aucune requête)", async () => {
-      await expect(service.territoireProjets("abc", params)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.territoireProjets("abc", params, "MEC")).rejects.toBeInstanceOf(NotFoundException);
       expect(execute).not.toHaveBeenCalled();
     });
 
     it("400 si copMillesime invalide", async () => {
-      await expect(service.territoireProjets("01001", { ...params, copMillesime: "2099" })).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(
+        service.territoireProjets("01001", { ...params, copMillesime: "2099" }, "MEC"),
+      ).rejects.toBeInstanceOf(BadRequestException);
       expect(execute).not.toHaveBeenCalled();
     });
 
     it("400 si copStatutVivier invalide", async () => {
       await expect(
-        service.territoireProjets("01001", { ...params, copStatutVivier: "peut_etre" }),
+        service.territoireProjets("01001", { ...params, copStatutVivier: "peut_etre" }, "MEC"),
       ).rejects.toBeInstanceOf(BadRequestException);
       expect(execute).not.toHaveBeenCalled();
     });
@@ -297,6 +325,11 @@ describe("TerritoiresService", () => {
       const rattachementSql = renderSql((execute.mock.calls[4] as unknown[])[0]);
       expect(rattachementSql).toContain("d.id DESC");
       expect(rattachementSql).toContain("verdict IS DISTINCT FROM");
+
+      // presentDansTet / tetExternalId neutralisent la chaîne vide (tet_external_id='' sur
+      // les fiches sans deep-link TeT ⇒ absence réelle, pas présence).
+      const pcaetSql = renderSql((execute.mock.calls[3] as unknown[])[0]);
+      expect(pcaetSql).toContain("NULLIF(pr.tet_external_id, '')");
     });
 
     it("rattachement='aucun' quand aucune décision active", async () => {
@@ -345,7 +378,7 @@ describe("TerritoiresService", () => {
         .mockResolvedValueOnce({ rows: [{ objetAId: "p1", verdict: "confirme" }] }) // rattachement à ce PCAET
         .mockResolvedValueOnce({ rows: [] }); // signal pcaet_operation_inscrite (aucun)
 
-      const result = await service.plansProjetsTerritoire("244400404", params);
+      const result = await service.plansProjetsTerritoire("244400404", params, "MEC");
 
       expect(result).toEqual({
         pcaet: { sirenPorteur: "244400404", nom: "PCAET de Nantes Métropole", source: "opendata" },
@@ -378,7 +411,7 @@ describe("TerritoiresService", () => {
         .mockResolvedValueOnce({ rows: [pcaetRow] })
         .mockResolvedValueOnce({ rows: [] }); // page vide → pas d'enrichissement ni de rattachement
 
-      const result = await service.plansProjetsTerritoire("019ce410-84fe-7174-a27c-4cec8c632cf4", params);
+      const result = await service.plansProjetsTerritoire("019ce410-84fe-7174-a27c-4cec8c632cf4", params, "MEC");
 
       expect(result.pcaet.sirenPorteur).toBe("244400404");
       expect(result).toMatchObject({ total: 0, groupes: [] });
@@ -395,12 +428,16 @@ describe("TerritoiresService", () => {
       execute
         .mockResolvedValueOnce({ rows: [{ present: true }] }) // référence présente
         .mockResolvedValueOnce({ rows: [] }); // clé inconnue
-      await expect(service.plansProjetsTerritoire("999999999", params)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.plansProjetsTerritoire("999999999", params, "MEC")).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
 
     it("404 quand la référence PCAET n'est pas encore matérialisée", async () => {
       execute.mockResolvedValueOnce({ rows: [{ present: false }] });
-      await expect(service.plansProjetsTerritoire("244400404", params)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.plansProjetsTerritoire("244400404", params, "MEC")).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
       // Aucune requête de résolution lancée quand la matview est absente.
       expect(execute).toHaveBeenCalledTimes(1);
     });
@@ -416,7 +453,7 @@ describe("TerritoiresService", () => {
         .mockResolvedValueOnce({ rows: [] }) // aucune décision de rattachement
         .mockResolvedValueOnce({ rows: [{ id: "p1" }] }); // p1 marqué opération PCAET
 
-      const result = await service.plansProjetsTerritoire("244400404", params);
+      const result = await service.plansProjetsTerritoire("244400404", params, "MEC");
       expect(result.groupes[0].rattachement).toBe("suggere");
     });
 
@@ -431,7 +468,7 @@ describe("TerritoiresService", () => {
         .mockResolvedValueOnce({ rows: [] }) // rattachement : aucun
         .mockResolvedValueOnce({ rows: [] }); // signal : aucun
 
-      const result = await service.plansProjetsTerritoire("244400404", params);
+      const result = await service.plansProjetsTerritoire("244400404", params, "MEC");
       expect(result.groupes[0].rattachement).toBe("aucun");
     });
 
@@ -446,7 +483,7 @@ describe("TerritoiresService", () => {
         .mockResolvedValueOnce({ rows: [{ objetAId: "p1", verdict: "infirme" }] }) // décision infirme
         .mockResolvedValueOnce({ rows: [{ id: "p1" }] }); // signal présent, mais dominé
 
-      const result = await service.plansProjetsTerritoire("244400404", params);
+      const result = await service.plansProjetsTerritoire("244400404", params, "MEC");
       expect(result.groupes[0].rattachement).toBe("infirme");
     });
 
@@ -467,7 +504,7 @@ describe("TerritoiresService", () => {
         })
         .mockResolvedValueOnce({ rows: [] }); // signal
 
-      const result = await service.plansProjetsTerritoire("244400404", params);
+      const result = await service.plansProjetsTerritoire("244400404", params, "MEC");
       expect(result.groupes[0].rattachement).toBe("infirme");
     });
   });
