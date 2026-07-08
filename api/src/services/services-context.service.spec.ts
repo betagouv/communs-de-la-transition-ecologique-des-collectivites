@@ -87,6 +87,7 @@ describe("ServiceContextService", () => {
         extendLabel: createContextDto.extendLabel,
         iframeUrl: null,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -117,6 +118,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         description: createContextDto.description,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -149,6 +151,7 @@ describe("ServiceContextService", () => {
         name: service.name,
         description: "Context Description",
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -189,6 +192,7 @@ describe("ServiceContextService", () => {
         extendLabel: service.extendLabel,
         iframeUrl: service.iframeUrl,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -237,6 +241,7 @@ describe("ServiceContextService", () => {
         extendLabel: createContextDto.extendLabel,
         iframeUrl: createContextDto.iframeUrl,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -275,6 +280,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         isListed: true,
         iframeUrl: null,
+        dataScopes: [],
         extraFields: [],
       });
 
@@ -385,6 +391,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
 
@@ -428,6 +435,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -466,6 +474,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -501,6 +510,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
 
@@ -607,6 +617,7 @@ describe("ServiceContextService", () => {
         createdAt: expect.any(Date),
         description: createContextDto.description,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -643,6 +654,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -863,6 +875,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -900,6 +913,7 @@ describe("ServiceContextService", () => {
         extendLabel: null,
         iframeUrl: null,
         isListed: true,
+        dataScopes: [],
         extraFields: [],
       });
     });
@@ -1092,6 +1106,7 @@ describe("ServiceContextService", () => {
         serviceId: service.id,
         ...validServiceContext,
         iframeUrl: null,
+        dataScopes: [],
         extraFields: [],
         regions: [],
         name: null,
