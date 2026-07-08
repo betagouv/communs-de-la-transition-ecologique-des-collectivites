@@ -1,3 +1,4 @@
+import { Throttle } from "@nestjs/throttler";
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { CreateOrUpdateProjetResponse, CreateProjetRequest } from "./dto/create-projet.dto";
 import { UpdateProjetRequest } from "./dto/update-projet.dto";
@@ -21,6 +22,9 @@ import { ProjectId, ProjectIdType } from "@/shared/decorator/projetId-decorator"
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 
 @ApiBearerAuth()
+// Routes d'ingestion partenaires (webhooks MEC/TeT) : les resyncs dépassent largement
+// la limite globale 50/min — surcharge à 500/min (absorbe le burst observé).
+@Throttle({ default: { limit: 500, ttl: 60000 } })
 @Controller("projets")
 @UseGuards(ApiKeyGuard)
 export class ProjetsController {
