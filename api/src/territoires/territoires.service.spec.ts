@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { PgDialect } from "drizzle-orm/pg-core";
 import { TerritoiresService } from "./territoires.service";
 import { DatabaseService } from "@database/database.service";
 
@@ -6,6 +7,10 @@ describe("TerritoiresService", () => {
   let execute: jest.Mock;
   let selectLimit: jest.Mock;
   let service: TerritoiresService;
+
+  // Rend le SQL généré en texte : permet d'asserter la présence/absence de clauses
+  // conditionnelles (filtre obsolètes) sans base de données.
+  const renderSql = (q: unknown) => new PgDialect().sqlToQuery(q as never).sql;
 
   // execute() sert les requêtes SQL brutes ; select().from().where().limit() la résolution external_id.
   const makeDb = () => {
@@ -23,9 +28,9 @@ describe("TerritoiresService", () => {
   });
 
   describe("territoireProjets", () => {
-    const params = { limit: 50, offset: 0, inclureFinancementsSeuls: false };
+    const params = { limit: 50, offset: 0, inclureFinancementsSeuls: false, masquerObsoletes: false };
 
-    it("renvoie la forme { total, limit, offset, groupes } pour une commune (INSEE 5 chiffres)", async () => {
+    it("renvoie la forme { total, limit, offset, groupes } (chaque groupe a decisions[])", async () => {
       execute
         .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence de la commune au référentiel
         .mockResolvedValueOnce({
@@ -36,7 +41,8 @@ describe("TerritoiresService", () => {
               total: "1",
             },
           ],
-        });
+        })
+        .mockResolvedValueOnce({ rows: [] }); // décisions actives de la page (aucune)
 
       const result = await service.territoireProjets("01001", params);
 
@@ -44,10 +50,83 @@ describe("TerritoiresService", () => {
         total: 1,
         limit: 50,
         offset: 0,
-        groupes: [{ confiance: "CERTAIN", traces: [{ role: "projet", source: "MEC", id: "p1" }] }],
+        groupes: [{ confiance: "CERTAIN", traces: [{ role: "projet", source: "MEC", id: "p1" }], decisions: [] }],
       });
-      // 1 requête d'existence commune + 1 requête de groupes.
+      // existence commune + groupes + décisions de la page.
+      expect(execute).toHaveBeenCalledTimes(3);
+    });
+
+    it("attache les décisions actives au groupe, sans l'auteur, en une seule requête", async () => {
+      execute
+        .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence commune
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              confiance: "PROBABLE",
+              traces: [
+                { role: "projet", source: "MEC", id: "p1" },
+                { role: "projet", source: "Vivier COP", id: "cop_2" },
+              ],
+              total: "1",
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              type: "doublon_confirme",
+              verdict: null,
+              plateforme: "MEC",
+              createdAt: new Date("2026-07-01T08:00:00.000Z"),
+              objetAId: "p1",
+              objetBId: "cop_2",
+              commentaire: "même projet",
+            },
+          ],
+        });
+
+      const result = await service.territoireProjets("01001", params);
+
+      // Une seule requête de décisions pour toute la page.
+      expect(execute).toHaveBeenCalledTimes(3);
+      // La décision touche p1 (A) ET cop_2 (B), tous deux dans le groupe → attachée UNE fois.
+      expect(result.groupes[0].decisions).toEqual([
+        {
+          type: "doublon_confirme",
+          verdict: null,
+          plateforme: "MEC",
+          createdAt: "2026-07-01T08:00:00.000Z",
+          objetAId: "p1",
+          objetBId: "cop_2",
+          commentaire: "même projet",
+        },
+      ]);
+      // Aucun champ auteur exposé.
+      expect(result.groupes[0].decisions[0]).not.toHaveProperty("auteur");
+    });
+
+    it("ne lance pas de requête de décisions quand la page est vide", async () => {
+      execute.mockResolvedValueOnce({ rows: [{ ok: 1 }] }).mockResolvedValueOnce({ rows: [] });
+      const result = await service.territoireProjets("01001", params);
+      expect(result).toEqual({ total: 0, limit: 50, offset: 0, groupes: [] });
       expect(execute).toHaveBeenCalledTimes(2);
+    });
+
+    it("masquerObsoletes=true ajoute le filtre has_obsolete à la requête de page", async () => {
+      execute.mockResolvedValueOnce({ rows: [{ ok: 1 }] }).mockResolvedValueOnce({ rows: [] });
+      await service.territoireProjets("01001", { ...params, masquerObsoletes: true });
+      const pageSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
+      expect(pageSql).toContain("obsolete_pids");
+      expect(pageSql).toContain("has_obsolete = FALSE");
+    });
+
+    it("masquerObsoletes=false (défaut) n'ajoute pas le filtre has_obsolete", async () => {
+      execute.mockResolvedValueOnce({ rows: [{ ok: 1 }] }).mockResolvedValueOnce({ rows: [] });
+      await service.territoireProjets("01001", params);
+      const pageSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
+      // obsolete_pids reste calculé, mais le filtre n'est pas appliqué.
+      expect(pageSql).toContain("obsolete_pids");
+      expect(pageSql).not.toContain("has_obsolete = FALSE");
     });
 
     it("accepte un code commune corse (2A/2B + 3)", async () => {
@@ -61,12 +140,6 @@ describe("TerritoiresService", () => {
       await expect(service.territoireProjets("99999", params)).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it("total = 0 et groupes = [] quand aucun groupe (offset 0)", async () => {
-      execute.mockResolvedValueOnce({ rows: [{ ok: 1 }] }).mockResolvedValueOnce({ rows: [] });
-      const result = await service.territoireProjets("01001", params);
-      expect(result).toEqual({ total: 0, limit: 50, offset: 0, groupes: [] });
-    });
-
     it("récupère le vrai total via un COUNT quand la page est vide au-delà de l'offset", async () => {
       execute
         .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence commune
@@ -74,6 +147,7 @@ describe("TerritoiresService", () => {
         .mockResolvedValueOnce({ rows: [{ total: "12" }] }); // COUNT de repli
       const result = await service.territoireProjets("01001", { ...params, offset: 100 });
       expect(result.total).toBe(12);
+      // Page vide → pas de requête de décisions.
       expect(execute).toHaveBeenCalledTimes(3);
     });
 
@@ -171,7 +245,7 @@ describe("TerritoiresService", () => {
       expect(result).toEqual({ pcaet: [], fichesActionSuggerees: [] });
     });
 
-    it("mappe les PCAET couvrant les communes du projet", async () => {
+    it("mappe les PCAET et leur rattachement (décision active la plus récente)", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
       execute
         .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence projet
@@ -187,7 +261,8 @@ describe("TerritoiresService", () => {
               source: "snapshot",
             },
           ],
-        });
+        })
+        .mockResolvedValueOnce({ rows: [{ siren: "200000172", verdict: "confirme" }] }); // rattachement
 
       const result = await service.planFichesTerritoire("mec-123");
 
@@ -199,10 +274,35 @@ describe("TerritoiresService", () => {
             presentDansTet: true,
             tetExternalId: "tet-9",
             source: "snapshot",
+            rattachement: "confirme",
           },
         ],
         fichesActionSuggerees: [],
       });
+    });
+
+    it("rattachement='aucun' quand aucune décision active", async () => {
+      selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
+      execute
+        .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence projet
+        .mockResolvedValueOnce({ rows: [{ insee: "01001" }] }) // communes
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // pcaet_reference présente
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              nom: "PCAET Sans Décision",
+              sirenPorteur: "244400404",
+              presentDansTet: false,
+              tetExternalId: null,
+              source: "opendata",
+            },
+          ],
+        })
+        .mockResolvedValueOnce({ rows: [] }); // aucune décision de rattachement
+
+      const result = await service.planFichesTerritoire("mec-123");
+
+      expect(result.pcaet[0].rattachement).toBe("aucun");
     });
   });
 });

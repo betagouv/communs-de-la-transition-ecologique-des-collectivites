@@ -3,8 +3,11 @@ import { plainToInstance } from "class-transformer";
 import { validateSync } from "class-validator";
 import { CreateDecisionDto, PAYLOAD_MAX_BYTES } from "./create-decision.dto";
 
+// Validation au niveau DTO (class-validator) uniquement : enum de typeDecision,
+// types d'objets, longueurs, UUID, taille du payload. Les contraintes CROISÉES par
+// type (objetB/verdict/payload requis vs interdit) sont couvertes dans decision-contract.spec.ts.
 const validBase = {
-  typeDecision: "lien_confirme",
+  typeDecision: "doublon_signale",
   objetAType: "projet",
   objetAId: "proj-a",
 };
@@ -21,12 +24,21 @@ describe("CreateDecisionDto validation", () => {
     expect(validate(validBase)).toHaveLength(0);
   });
 
+  it("rejette typeDecision hors de l'enum fermée", () => {
+    expect(errorsOn({ ...validBase, typeDecision: "lien_confirme" })).toContain("typeDecision");
+    expect(errorsOn({ ...validBase, typeDecision: "doublon_signale" })).not.toContain("typeDecision");
+  });
+
   it("rejette objetAType hors énumération", () => {
     expect(errorsOn({ ...validBase, objetAType: "cluster" })).toContain("objetAType");
   });
 
-  it("applique MaxLength(100) sur typeDecision", () => {
-    expect(errorsOn({ ...validBase, typeDecision: "x".repeat(101) })).toContain("typeDecision");
+  it("accepte objetBType='pcaet' (réservé au rattachement)", () => {
+    expect(errorsOn({ ...validBase, objetBType: "pcaet", objetBId: "200000172" })).not.toContain("objetBType");
+  });
+
+  it("rejette objetBType hors énumération (objetB)", () => {
+    expect(errorsOn({ ...validBase, objetBType: "cluster" })).toContain("objetBType");
   });
 
   it("applique MaxLength(200) sur objetAId", () => {

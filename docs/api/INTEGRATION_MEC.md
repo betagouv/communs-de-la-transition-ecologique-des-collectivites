@@ -106,15 +106,19 @@ Le « GET leviers » : qualification calculée par le pipeline.
 
 Journal **append-only** : chaque validation/infirmation d'un agent (DDT, collectivité)
 est un événement qui **survit aux recalculs du pipeline**. Implémentation côté MEC prévue
-à la rentrée — le contrat est figé dès maintenant.
+à la rentrée — le contrat est figé dès maintenant. **Détails, parcours et exemples : voir
+[`GUIDE_DECISIONS.md`](./GUIDE_DECISIONS.md).**
+
+`typeDecision` est désormais un **vocabulaire fermé** (toute autre valeur → `400`), et chaque
+type impose ses contraintes (objetB/verdict/payload requis ou interdits) : `doublon_signale`,
+`doublon_confirme`, `doublon_infirme`, `rattachement_pcaet`, `projet_statut`, `correction_signalee`.
 
 ```bash
 curl -X POST -H "Authorization: Bearer $MEC_API_KEY" -H "Content-Type: application/json" \
   "$BASE/decisions" -d '{
-    "typeDecision": "lien_confirme",
+    "typeDecision": "doublon_confirme",
     "objetAType": "projet", "objetAId": "019dab93-f4cc-7641-8bd6-3f69a44c49f3",
     "objetBType": "projet", "objetBId": "cop_20675265",
-    "verdict": "confirme",
     "auteur": "agent-ddtm-59",
     "commentaire": "Même projet, confirmé avec la collectivité"
   }'
@@ -124,13 +128,14 @@ curl -X POST -H "Authorization: Bearer $MEC_API_KEY" -H "Content-Type: applicati
 Règles :
 - `objetAId`/`objetBId` = **toujours les `traces[].id`** (jamais un identifiant de groupe,
   qui n'existe d'ailleurs pas dans l'API) ;
-- `typeDecision` libre mais convenu : `lien_confirme`, `lien_infirme`, `doublon_signale`,
-  `projet_valide`, `projet_obsolete`, `rattachement_pcaet` ;
+- pour un doublon, `verdict` est **interdit** (le type porte le sens) ; `verdict` n'existe que
+  pour `rattachement_pcaet` (`confirme`|`infirme`) et `projet_statut` (`valide`|`obsolete`|`termine`) ;
 - pas de modification/suppression : pour revenir sur une décision, poster un nouvel
   événement avec `supersedes: "<uuid de la décision révoquée>"` (le pipeline apprendra à les
-  consommer — un lien `infirme` ne sera pas recréé) ;
-- `GET /decisions?objetId=<id>` pour relire les décisions d'un objet — **chaque service ne
-  voit que ses propres décisions** (filtrées sur la plateforme authentifiée).
+  consommer — un doublon `infirme` ne sera pas recréé) ;
+- `GET /decisions?objetId=<id>` (ou `?type=<type>`) pour relire les décisions — **chaque service
+  ne voit que ses propres décisions** (filtrées sur la plateforme authentifiée). En vue territoire,
+  `decisions[]` agrège toutes les plateformes, sans l'auteur.
 
 ## Cadrage POC PCAET — 5 EPCI (feature flag côté MEC)
 

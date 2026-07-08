@@ -1,3 +1,4 @@
+import { BadRequestException } from "@nestjs/common";
 import { DecisionsService } from "./decisions.service";
 import { DatabaseService } from "@database/database.service";
 import { CreateDecisionDto } from "./dto/create-decision.dto";
@@ -41,12 +42,14 @@ describe("DecisionsService", () => {
   });
 
   describe("create", () => {
+    // rattachement_pcaet : porte à la fois objetB (pcaet + SIREN) et verdict → couvre
+    // la persistance de tous les champs binaires.
     const dto: CreateDecisionDto = {
-      typeDecision: "lien_confirme",
+      typeDecision: "rattachement_pcaet",
       objetAType: "projet",
       objetAId: "proj-a",
-      objetBType: "projet",
-      objetBId: "proj-b",
+      objetBType: "pcaet",
+      objetBId: "200000172",
       verdict: "confirme",
     };
 
@@ -57,14 +60,24 @@ describe("DecisionsService", () => {
 
       expect(result).toEqual({ id: "dec-1", createdAt: "2026-07-07T10:00:00.000Z" });
       expect(insertedValues).toMatchObject({
-        typeDecision: "lien_confirme",
+        typeDecision: "rattachement_pcaet",
         objetAType: "projet",
         objetAId: "proj-a",
-        objetBType: "projet",
-        objetBId: "proj-b",
+        objetBType: "pcaet",
+        objetBId: "200000172",
         verdict: "confirme",
         plateformeSource: "MEC",
       });
+    });
+
+    it("valide le contrat AVANT d'insérer : 400 et aucune insertion si le type est violé", async () => {
+      service = buildService({ returning: [{ id: "dec-x", createdAt }] });
+
+      // doublon_confirme sans objetB → interdit par le contrat.
+      await expect(
+        service.create({ typeDecision: "doublon_confirme", objetAType: "projet", objetAId: "proj-a" }, "MEC"),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(insertedValues).toBeUndefined();
     });
 
     it("persiste supersedes quand fourni (chaîne de révocation)", async () => {
@@ -78,12 +91,14 @@ describe("DecisionsService", () => {
     it("normalise les champs optionnels absents en null (dont supersedes)", async () => {
       service = buildService({ returning: [{ id: "dec-2", createdAt }] });
 
-      await service.create({ typeDecision: "projet_valide", objetAType: "projet", objetAId: "proj-a" }, "TeT");
+      await service.create(
+        { typeDecision: "projet_statut", objetAType: "projet", objetAId: "proj-a", verdict: "valide" },
+        "TeT",
+      );
 
       expect(insertedValues).toMatchObject({
         objetBType: null,
         objetBId: null,
-        verdict: null,
         auteur: null,
         commentaire: null,
         payload: null,
@@ -93,15 +108,24 @@ describe("DecisionsService", () => {
     });
   });
 
-  describe("findByObjet", () => {
+  describe("find", () => {
     it("renvoie les décisions trouvées sous forme { items } et applique un filtre WHERE (cloisonnement)", async () => {
       const rows = [{ id: "dec-1" }, { id: "dec-2" }];
       service = buildService({ selectRows: rows });
 
-      const result = await service.findByObjet("proj-a", "MEC");
+      const result = await service.find({ objetId: "proj-a" }, "MEC");
 
       expect(result).toEqual({ items: rows });
       // Le cloisonnement par plateforme est appliqué dans la clause WHERE.
+      expect(whereArg).toBeDefined();
+    });
+
+    it("accepte un filtre par type seul (sans objetId)", async () => {
+      service = buildService({ selectRows: [] });
+
+      const result = await service.find({ type: "projet_statut" }, "TeT");
+
+      expect(result).toEqual({ items: [] });
       expect(whereArg).toBeDefined();
     });
   });

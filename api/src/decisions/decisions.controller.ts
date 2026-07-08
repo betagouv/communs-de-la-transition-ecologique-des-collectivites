@@ -6,6 +6,7 @@ import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator"
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 import { DecisionsService } from "./decisions.service";
 import { CreateDecisionDto, DecisionCreatedResponse, DecisionListResponse } from "./dto/create-decision.dto";
+import { DECISION_TYPES, type DecisionType } from "./decision-contract";
 
 @ApiBearerAuth()
 @ApiTags("Décisions")
@@ -35,21 +36,31 @@ export class DecisionsController {
   @TrackApiUsage()
   @Get()
   @ApiOperation({
-    summary: "Lister les décisions portant sur un objet",
+    summary: "Lister les décisions par objet et/ou par type",
     description:
-      "Retourne les décisions référençant l'objet (en A ou en B), triées anté-chronologiquement (max 100). " +
+      "Retourne les décisions filtrées par objetId (référencé en A ou en B) ET/OU par type, " +
+      "triées anté-chronologiquement (max 100). Au moins un des deux filtres est requis. " +
       "Cloisonnement : chaque plateforme ne voit QUE ses propres décisions (celles émises avec sa clé API).",
   })
-  @ApiQuery({ name: "objetId", required: true, description: "ID stable de l'objet à inspecter." })
+  @ApiQuery({ name: "objetId", required: false, description: "ID stable de l'objet à inspecter." })
+  @ApiQuery({
+    name: "type",
+    required: false,
+    enum: DECISION_TYPES,
+    description: "Type de décision à filtrer (vocabulaire fermé).",
+  })
   @ApiEndpointResponses({
     successStatus: 200,
     response: DecisionListResponse,
-    description: "Décisions portant sur l'objet",
+    description: "Décisions correspondant aux filtres",
   })
-  findByObjet(@Req() request: Request, @Query("objetId") objetId?: string) {
-    if (!objetId) {
-      throw new BadRequestException("objetId requis");
+  find(@Req() request: Request, @Query("objetId") objetId?: string, @Query("type") type?: string) {
+    if (!objetId && !type) {
+      throw new BadRequestException("Au moins un filtre requis : objetId et/ou type");
     }
-    return this.decisionsService.findByObjet(objetId, request.serviceType!);
+    if (type && !DECISION_TYPES.includes(type as DecisionType)) {
+      throw new BadRequestException(`type invalide (attendu : ${DECISION_TYPES.join(", ")})`);
+    }
+    return this.decisionsService.find({ objetId, type }, request.serviceType!);
   }
 }

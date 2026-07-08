@@ -48,6 +48,35 @@ export class TerritoireTraceDto {
   externalId!: string | null;
 }
 
+// Décision humaine ACTIVE portant sur au moins une trace du groupe. L'agent auteur
+// n'est PAS exposé (PII + cloisonnement inter-plateformes) : on expose la décision,
+// pas qui l'a prise. La `plateforme` émettrice, elle, est exposée.
+export class TerritoireDecisionDto {
+  @ApiProperty({ description: "Type de décision (vocabulaire fermé)." })
+  type!: string;
+
+  @ApiPropertyOptional({ nullable: true, description: "Verdict associé, selon le type." })
+  verdict!: string | null;
+
+  @ApiProperty({ description: "Plateforme émettrice de la décision." })
+  plateforme!: string;
+
+  @ApiProperty({ description: "Horodatage de création (ISO 8601)." })
+  createdAt!: string;
+
+  @ApiProperty({ description: "ID de l'objet A visé par la décision (une trace du groupe, ou son pair)." })
+  objetAId!: string;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "ID de l'objet B (doublons, ou SIREN PCAET pour un rattachement).",
+  })
+  objetBId!: string | null;
+
+  @ApiPropertyOptional({ nullable: true, description: "Commentaire libre attaché à la décision." })
+  commentaire!: string | null;
+}
+
 export class TerritoireGroupeDto {
   @ApiPropertyOptional({
     enum: ["CERTAIN", "PROBABLE"],
@@ -58,6 +87,14 @@ export class TerritoireGroupeDto {
 
   @ApiProperty({ type: [TerritoireTraceDto] })
   traces!: TerritoireTraceDto[];
+
+  @ApiProperty({
+    type: [TerritoireDecisionDto],
+    description:
+      "Décisions humaines ACTIVES portant sur une trace du groupe (toutes plateformes confondues, sans l'auteur). " +
+      "Tableau vide si aucune décision.",
+  })
+  decisions!: TerritoireDecisionDto[];
 }
 
 export class TerritoireProjetsResponse {

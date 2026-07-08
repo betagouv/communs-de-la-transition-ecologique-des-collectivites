@@ -56,4 +56,21 @@ describe("TerritoiresController", () => {
     });
     expect(lastParams()).toMatchObject({ copStatutVivier: "a_remonter", inclureFinancementsSeuls: true });
   });
+
+  describe("masquerObsoletes (défaut false)", () => {
+    it("masquerObsoletes='true' → true", async () => {
+      await controller.territoireProjets("01001", { masquerObsoletes: "true" });
+      expect(lastParams().masquerObsoletes).toBe(true);
+    });
+
+    it("absent → false", async () => {
+      await controller.territoireProjets("01001", {});
+      expect(lastParams().masquerObsoletes).toBe(false);
+    });
+
+    it("valeur autre que 'true' → false", async () => {
+      await controller.territoireProjets("01001", { masquerObsoletes: "1" });
+      expect(lastParams().masquerObsoletes).toBe(false);
+    });
+  });
 });
