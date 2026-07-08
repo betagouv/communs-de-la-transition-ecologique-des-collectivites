@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.102](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.101...v0.1.102) (2026-07-08)
+
+
+### Features
+
+* endpoints territoires + décisions (vue territoriale DDT via MEC) ([5dc85ba](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/5dc85ba4595105037a01f22d4e29c158b119b5d4))
+* schéma decisions_humaines — journal append-only des décisions humaines ([4efb308](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/4efb308ed32f9b9d8749455dc2f218df5f5cc122))
+
+
+### Bug Fixes
+
+* correctifs revue adversariale endpoints + doc intégration MEC ([8800615](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/88006159b22b79e65e4a223613b47fc29e07ca80))
+* dégrader proprement plans-territoire quand pcaet_reference est absente ([cd23a0b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/cd23a0b32af279158710588f72f67a342c113ef7))
+* durcir le handler crash undici suite à la revue ([#507](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/507)) ([8c1e9b9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/8c1e9b9a279706cb9a4bd928b455f23aa7bf94dc)), closes [#508](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/508)
+* neutraliser l'AssertionError undici de fond au bootstrap prod ([#507](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/507)) ([6ba6f75](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6ba6f75f9f5cfdc506883ef16ece2d0078de5db3)), closes [#506](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/506)
+* neutraliser les erreurs node:assert de fond non rattrapées en e2e ([f3a0801](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f3a0801bfa70c6c9720f37187a8f76c6cbb3d2c2))
+* poser THROTTLER_LIMIT avant l'évaluation des imports e2e ([e6e5932](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e6e5932a2e6bf8fcba34b3b112fab836f67ef6ab))
+* surcharge throttler 500/min sur les routes d'ingestion partenaires ([429c49d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/429c49dc37bc9fd3f406fe420749a1b0ca9765af)), closes [#498](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/498)
+* throttler configurable par env — limite haute pour la suite e2e ([e6a4893](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e6a48933b4a19d58375dfaea5aeace2bef9fab19))
+
 ## [0.1.101](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.100...v0.1.101) (2026-06-16)
 
 
