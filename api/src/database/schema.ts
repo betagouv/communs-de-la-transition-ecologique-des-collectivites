@@ -140,6 +140,11 @@ export const services = pgTable("services", {
   redirectionLabel: text("redirection_label"),
   iframeUrl: text("iframe_url"),
   extendLabel: text("extend_label"),
+  // Doctrine d'accès aux données : scopes détenus par ce service. Un service ne voit
+  // une source restreinte (RESTRICTED_SOURCES) que s'il porte le scope requis. La
+  // correspondance service appelant → ligne se fait par `name` = serviceType du guard
+  // (voir docs/api/DOCTRINE_ACCES_DONNEES.md). Vide par défaut → aucun accès restreint.
+  dataScopes: text("data_scopes").array().notNull().default([]),
 });
 
 export const serviceContext = pgTable(

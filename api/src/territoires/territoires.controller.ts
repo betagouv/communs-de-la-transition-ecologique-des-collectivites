@@ -1,5 +1,6 @@
-import { Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, Query, Req, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Request } from "express";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
@@ -91,8 +92,13 @@ export class TerritoiresController {
     response: TerritoireProjetsResponse,
     description: "Groupes de projets du territoire",
   })
-  territoireProjets(@Param("code") code: string, @Query() query: RawQuery): Promise<TerritoireProjetsResponse> {
-    return this.territoiresService.territoireProjets(code, parseProjetsParams(query));
+  territoireProjets(
+    @Req() request: Request,
+    @Param("code") code: string,
+    @Query() query: RawQuery,
+  ): Promise<TerritoireProjetsResponse> {
+    // serviceType dérivé de la clé API (doctrine d'accès : résout les scopes du service).
+    return this.territoiresService.territoireProjets(code, parseProjetsParams(query), request.serviceType!);
   }
 
   @TrackApiUsage()
@@ -138,8 +144,12 @@ export class TerritoiresController {
     response: PlansProjetsTerritoireResponse,
     description: "Projets du territoire du PCAET, avec rattachement par groupe",
   })
-  plansProjetsTerritoire(@Param("cle") cle: string, @Query() query: RawQuery): Promise<PlansProjetsTerritoireResponse> {
-    return this.territoiresService.plansProjetsTerritoire(cle, parseProjetsParams(query));
+  plansProjetsTerritoire(
+    @Req() request: Request,
+    @Param("cle") cle: string,
+    @Query() query: RawQuery,
+  ): Promise<PlansProjetsTerritoireResponse> {
+    return this.territoiresService.plansProjetsTerritoire(cle, parseProjetsParams(query), request.serviceType!);
   }
 
   @TrackApiUsage()

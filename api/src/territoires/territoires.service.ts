@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { mecExternalIds } from "@database/schema";
+import { mecExternalIds, services } from "@database/schema";
 import { and, eq, sql, SQL } from "drizzle-orm";
 import { activeDecisionPredicate, notTombstonePredicate } from "@/decisions/active-decisions";
 import { DECISION_TYPES } from "@/decisions/decision-contract";
+import { forbiddenSourcesFor, hasRestrictedSources } from "@/security/restricted-sources";
 import { splitLeviersCsv } from "./leviers-csv";
 import {
   TerritoireDecisionDto,
@@ -81,10 +82,14 @@ export class TerritoiresService {
    * Projets de transition écologique d'un territoire, regroupés par cluster de
    * déduplication. `code` = INSEE commune (5 chiffres / 2A|2B + 3) ou SIREN EPCI (9 chiffres).
    */
-  async territoireProjets(code: string, params: TerritoireProjetsParams): Promise<TerritoireProjetsResponse> {
+  async territoireProjets(
+    code: string,
+    params: TerritoireProjetsParams,
+    serviceType: string,
+  ): Promise<TerritoireProjetsResponse> {
     this.validateCopFilters(params);
     const communes = await this.resolveCommunes(code);
-    return this.projetsGroupes(communes, params);
+    return this.projetsGroupes(communes, params, serviceType);
   }
 
   // Valide les filtres COP (millésime, statut vivier) — 400 explicite sinon. Appelé AVANT
@@ -112,9 +117,15 @@ export class TerritoiresService {
   private async projetsGroupes(
     communes: string[],
     params: TerritoireProjetsParams,
+    serviceType: string,
   ): Promise<TerritoireProjetsResponse> {
     const { sources, copMillesime, copStatutVivier, limit, offset, inclureFinancementsSeuls, masquerObsoletes } =
       params;
+
+    // Doctrine d'accès : sources restreintes que ce service N'A PAS le droit de voir.
+    // Registre vide (aujourd'hui) → [] SANS aucune requête → SQL strictement inchangé.
+    // Partagé par les deux points d'entrée (territoireProjets, plansProjetsTerritoire).
+    const forbiddenSources = await this.resolveForbiddenSources(serviceType);
 
     // Filtres appliqués aux SEULS projets du territoire (avant expansion en cluster
     // complet — les membres hors territoire du même cluster sont conservés).
@@ -124,8 +135,19 @@ export class TerritoiresService {
     }
     if (copMillesime) filterConditions.push(sql`p.cop_millesime = ${copMillesime}`);
     if (copStatutVivier) filterConditions.push(sql`p.cop_statut_vivier = ${copStatutVivier}`);
+    // Exclut les sources restreintes de la sélection des projets-graines (filtered_pids).
+    // Non poussé quand la liste est vide → aucune clause ajoutée.
+    if (forbiddenSources.length > 0) {
+      filterConditions.push(sql`p.source_origine <> ALL(${textArray(forbiddenSources)})`);
+    }
     let filterWhere: SQL = sql``;
     for (const cond of filterConditions) filterWhere = sql`${filterWhere} AND ${cond}`;
+
+    // Exclut aussi les traces restreintes des MEMBRES de cluster (un cluster mixte ne doit
+    // pas laisser fuiter une trace restreinte via un projet-graine autorisé). Fragment vide
+    // quand rien n'est restreint → JOIN inchangé (byte-identique).
+    const memberRestrictedAnd: SQL =
+      forbiddenSources.length > 0 ? sql` AND p.source_origine <> ALL(${textArray(forbiddenSources)})` : sql``;
 
     // Rôle d'une trace : financement si sa source est une source de financement, sinon projet.
     const roleExpr = sql`CASE WHEN p.source_origine = ANY(${textArray([...FINANCEMENT_SOURCES])}) THEN 'financement' ELSE 'projet' END`;
@@ -218,7 +240,7 @@ export class TerritoiresService {
           -- La trace porte-t-elle une décision projet_statut active 'obsolete' ?
           EXISTS (SELECT 1 FROM obsolete_pids op WHERE op.oid = p.id) AS is_obsolete
         FROM group_members gm
-        JOIN schema_commun_v2.projets_operationnels p ON p.id = gm.pid
+        JOIN schema_commun_v2.projets_operationnels p ON p.id = gm.pid${memberRestrictedAnd}
       ),
       group_agg AS (
         SELECT
@@ -359,6 +381,33 @@ export class TerritoiresService {
   }
 
   /**
+   * Sources restreintes que le service appelant N'A PAS le droit de voir.
+   * Court-circuit strict : registre vide → `[]` SANS requête (SQL inchangé, non-régression).
+   * Sinon, un SEUL lookup des scopes du service (par nom) puis calcul pur.
+   */
+  private async resolveForbiddenSources(serviceType: string): Promise<string[]> {
+    if (!hasRestrictedSources()) return [];
+    const scopes = await this.getServiceScopes(serviceType);
+    return forbiddenSourcesFor(scopes);
+  }
+
+  /**
+   * Scopes de données d'un service, résolus par NOM (services.name = serviceType du
+   * guard). public.services est le catalogue du widget, pas la couche d'auth : la
+   * plupart des partenaires API (MEC, TeT, DashboardTE…) n'y ont pas de ligne → aucun
+   * scope → fail-closed (ils ne voient aucune source restreinte). Voir
+   * docs/api/DOCTRINE_ACCES_DONNEES.md pour la procédure d'attribution.
+   */
+  private async getServiceScopes(serviceType: string): Promise<string[]> {
+    const [row] = await this.dbService.database
+      .select({ dataScopes: services.dataScopes })
+      .from(services)
+      .where(eq(services.name, serviceType))
+      .limit(1);
+    return row?.dataScopes ?? [];
+  }
+
+  /**
    * Miroir de `territoireProjets` côté TeT : projets du territoire COUVERT par un PCAET,
    * regroupés par cluster, augmentés — par groupe — de leur `rattachement` à CE PCAET.
    * `cle` = SIREN du porteur (clé stable, 9 chiffres) OU un plan_id de la référence
@@ -366,10 +415,15 @@ export class TerritoiresService {
    * Flux d'écriture symétrique (le « je coche » côté TeT) = POST /decisions type
    * rattachement_pcaet (objetA = trace du groupe, objetB = SIREN porteur) — rien à coder ici.
    */
-  async plansProjetsTerritoire(cle: string, params: TerritoireProjetsParams): Promise<PlansProjetsTerritoireResponse> {
+  async plansProjetsTerritoire(
+    cle: string,
+    params: TerritoireProjetsParams,
+    serviceType: string,
+  ): Promise<PlansProjetsTerritoireResponse> {
     this.validateCopFilters(params);
     const pcaet = await this.resolvePcaet(cle);
-    const base = await this.projetsGroupes(pcaet.communes, params);
+    // Même doctrine d'accès que la vue territoriale (le filtre vit dans projetsGroupes).
+    const base = await this.projetsGroupes(pcaet.communes, params, serviceType);
     const groupes = await this.attachRattachements(base.groupes, pcaet.sirenPorteur);
     return {
       pcaet: { sirenPorteur: pcaet.sirenPorteur, nom: pcaet.nom, source: pcaet.source },
@@ -528,8 +582,10 @@ export class TerritoiresService {
       SELECT
         pr.nom,
         pr.siren_porteur AS "sirenPorteur",
-        (pr.tet_external_id IS NOT NULL) AS "presentDansTet",
-        pr.tet_external_id AS "tetExternalId",
+        -- tet_external_id vaut '' (chaîne vide) sur les lignes sans deep-link TeT, pas NULL :
+        -- neutralisé par NULLIF pour que presentDansTet/tetExternalId reflètent l'absence réelle.
+        (NULLIF(pr.tet_external_id, '') IS NOT NULL) AS "presentDansTet",
+        NULLIF(pr.tet_external_id, '') AS "tetExternalId",
         pr.source_nom AS source
       FROM schema_commun_v2.pcaet_reference pr
       WHERE pr.communes && ${textArray(communes)}
