@@ -10,7 +10,8 @@ describe("DecisionsService", () => {
 
   const createdAt = new Date("2026-07-07T10:00:00.000Z");
 
-  // Chaîne Drizzle : insert().values().returning() et select().from().where().orderBy().limit()
+  // Chaîne Drizzle : insert().values().returning() ; select().from().where().limit()
+  // (lookup supersedes) ET select().from().where().orderBy().limit() (find).
   const makeDb = (opts: { returning?: unknown[]; selectRows?: unknown[] }) => {
     const returning = jest.fn().mockResolvedValue(opts.returning ?? []);
     const values = jest.fn().mockImplementation((v: Record<string, unknown>) => {
@@ -23,7 +24,7 @@ describe("DecisionsService", () => {
     const orderBy = jest.fn().mockReturnValue({ limit });
     const where = jest.fn().mockImplementation((w: unknown) => {
       whereArg = w;
-      return { orderBy };
+      return { orderBy, limit };
     });
     const from = jest.fn().mockReturnValue({ where });
     const select = jest.fn().mockReturnValue({ from });
@@ -80,12 +81,43 @@ describe("DecisionsService", () => {
       expect(insertedValues).toBeUndefined();
     });
 
-    it("persiste supersedes quand fourni (chaîne de révocation)", async () => {
-      service = buildService({ returning: [{ id: "dec-3", createdAt }] });
+    it("persiste supersedes quand la cible est compatible (même plateforme + même type)", async () => {
+      service = buildService({
+        returning: [{ id: "dec-3", createdAt }],
+        // Décision cible chargée par assertSupersedesCompatible.
+        selectRows: [{ plateformeSource: "MEC", typeDecision: "rattachement_pcaet" }],
+      });
 
       await service.create({ ...dto, supersedes: "dec-1" }, "MEC");
 
       expect(insertedValues).toMatchObject({ supersedes: "dec-1" });
+    });
+
+    it("400 si supersedes vise une décision d'une AUTRE plateforme (aucune insertion)", async () => {
+      service = buildService({
+        returning: [{ id: "dec-x", createdAt }],
+        selectRows: [{ plateformeSource: "TeT", typeDecision: "rattachement_pcaet" }],
+      });
+
+      await expect(service.create({ ...dto, supersedes: "dec-1" }, "MEC")).rejects.toBeInstanceOf(BadRequestException);
+      expect(insertedValues).toBeUndefined();
+    });
+
+    it("400 si supersedes vise une décision d'un AUTRE type (aucune insertion)", async () => {
+      service = buildService({
+        returning: [{ id: "dec-x", createdAt }],
+        selectRows: [{ plateformeSource: "MEC", typeDecision: "doublon_infirme" }],
+      });
+
+      await expect(service.create({ ...dto, supersedes: "dec-1" }, "MEC")).rejects.toBeInstanceOf(BadRequestException);
+      expect(insertedValues).toBeUndefined();
+    });
+
+    it("400 si la décision cible de supersedes est introuvable (aucune insertion)", async () => {
+      service = buildService({ returning: [{ id: "dec-x", createdAt }], selectRows: [] });
+
+      await expect(service.create({ ...dto, supersedes: "dec-1" }, "MEC")).rejects.toBeInstanceOf(BadRequestException);
+      expect(insertedValues).toBeUndefined();
     });
 
     it("normalise les champs optionnels absents en null (dont supersedes)", async () => {
