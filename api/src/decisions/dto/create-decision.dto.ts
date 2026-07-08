@@ -11,11 +11,7 @@ import {
   ValidationArguments,
   ValidationOptions,
 } from "class-validator";
-
-// Types d'objets référençables. Les IDs pointés doivent TOUJOURS être des IDs
-// objets stables (UUID sources, ids cop_*, dgcl-*…), jamais un cluster_id.
-export const OBJET_TYPES = ["projet", "fiche_action", "plan", "financement"] as const;
-export type ObjetType = (typeof OBJET_TYPES)[number];
+import { DECISION_TYPES, OBJET_B_TYPES, OBJET_TYPES, type ObjetBType, type ObjetType } from "../decision-contract";
 
 // Taille maximale du payload jsonb (protège la base et les logs d'un abus).
 export const PAYLOAD_MAX_BYTES = 10_240;
@@ -47,15 +43,14 @@ function MaxJsonBytes(maxBytes: number, validationOptions?: ValidationOptions) {
 export class CreateDecisionDto {
   @ApiProperty({
     description:
-      "Type de décision. Vocabulaire évolutif, non contraint par une enum stricte " +
-      "(ex. lien_confirme, lien_infirme, doublon_signale, projet_valide, projet_obsolete, rattachement_pcaet).",
-    example: "lien_confirme",
-    maxLength: 100,
+      "Type de décision — ENUM FERMÉE (toute autre valeur est rejetée en 400). " +
+      "Chaque type impose ses contraintes croisées sur objetB, verdict et payload " +
+      "(voir docs/api/GUIDE_DECISIONS.md).",
+    enum: DECISION_TYPES,
+    example: "doublon_signale",
   })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  typeDecision!: string;
+  @IsIn(DECISION_TYPES)
+  typeDecision!: (typeof DECISION_TYPES)[number];
 
   @ApiProperty({
     description: "Type de l'objet A concerné par la décision.",
@@ -76,15 +71,19 @@ export class CreateDecisionDto {
   objetAId!: string;
 
   @ApiPropertyOptional({
-    description: "Type de l'objet B (décisions binaires, ex. lien entre deux objets).",
-    enum: OBJET_TYPES,
+    description:
+      "Type de l'objet B (décisions binaires). Inclut 'pcaet' : pour rattachement_pcaet, " +
+      "objetB désigne un PCAET par le SIREN de son porteur (objetBId = 9 chiffres).",
+    enum: OBJET_B_TYPES,
   })
   @IsOptional()
-  @IsIn(OBJET_TYPES)
-  objetBType?: ObjetType;
+  @IsIn(OBJET_B_TYPES)
+  objetBType?: ObjetBType;
 
   @ApiPropertyOptional({
-    description: "ID STABLE de l'objet B (mêmes règles que objetAId — jamais un cluster_id).",
+    description:
+      "ID STABLE de l'objet B (mêmes règles que objetAId — jamais un cluster_id). " +
+      "Pour objetBType='pcaet' : SIREN du porteur (9 chiffres).",
     maxLength: 200,
   })
   @IsOptional()
@@ -92,7 +91,12 @@ export class CreateDecisionDto {
   @MaxLength(200)
   objetBId?: string;
 
-  @ApiPropertyOptional({ description: "Verdict associé (ex. confirme, infirme, fusionner).", maxLength: 100 })
+  @ApiPropertyOptional({
+    description:
+      "Verdict associé. Valeurs contraintes par type : confirme|infirme (rattachement_pcaet), " +
+      "valide|obsolete|termine (projet_statut) ; interdit pour les doublons et correction_signalee.",
+    maxLength: 100,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -121,7 +125,9 @@ export class CreateDecisionDto {
 
   @ApiPropertyOptional({
     type: Object,
-    description: `Charge utile structurée additionnelle propre à la décision (max ${PAYLOAD_MAX_BYTES} octets sérialisés).`,
+    description:
+      `Charge utile structurée additionnelle propre à la décision (max ${PAYLOAD_MAX_BYTES} octets sérialisés). ` +
+      "REQUISE et de forme imposée pour correction_signalee : { champ: string, valeurProposee: string, source?: string }.",
   })
   @IsOptional()
   @IsObject()
@@ -153,7 +159,7 @@ export class DecisionRecordResponse {
   @ApiProperty()
   objetAId!: string;
 
-  @ApiPropertyOptional({ enum: OBJET_TYPES, nullable: true })
+  @ApiPropertyOptional({ enum: OBJET_B_TYPES, nullable: true })
   objetBType!: string | null;
 
   @ApiPropertyOptional({ nullable: true })

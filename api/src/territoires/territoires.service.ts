@@ -2,8 +2,14 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { DatabaseService } from "@database/database.service";
 import { mecExternalIds } from "@database/schema";
 import { and, eq, sql, SQL } from "drizzle-orm";
+import { activeDecisionPredicate } from "@/decisions/active-decisions";
 import { splitLeviersCsv } from "./leviers-csv";
-import { TerritoireGroupeDto, TerritoireProjetsResponse, TerritoireTraceDto } from "./dto/territoire-projets.dto";
+import {
+  TerritoireDecisionDto,
+  TerritoireGroupeDto,
+  TerritoireProjetsResponse,
+  TerritoireTraceDto,
+} from "./dto/territoire-projets.dto";
 import { PlansTerritoireResponse } from "./dto/plans-territoire.dto";
 import { QualificationResponse } from "./dto/qualification.dto";
 
@@ -49,6 +55,9 @@ export interface TerritoireProjetsParams {
   limit: number;
   offset: number;
   inclureFinancementsSeuls: boolean;
+  // Exclut les groupes dont une trace est marquée obsolète (décision active
+  // projet_statut, verdict 'obsolete'). Défaut false.
+  masquerObsoletes: boolean;
 }
 
 @Injectable()
@@ -65,7 +74,8 @@ export class TerritoiresService {
    * déduplication. `code` = INSEE commune (5 chiffres / 2A|2B + 3) ou SIREN EPCI (9 chiffres).
    */
   async territoireProjets(code: string, params: TerritoireProjetsParams): Promise<TerritoireProjetsResponse> {
-    const { sources, copMillesime, copStatutVivier, limit, offset, inclureFinancementsSeuls } = params;
+    const { sources, copMillesime, copStatutVivier, limit, offset, inclureFinancementsSeuls, masquerObsoletes } =
+      params;
 
     if (copMillesime !== undefined && !COP_MILLESIMES.includes(copMillesime as (typeof COP_MILLESIMES)[number])) {
       throw new BadRequestException(`copMillesime invalide (attendu : ${COP_MILLESIMES.join(", ")})`);
@@ -93,8 +103,22 @@ export class TerritoiresService {
     // Rôle d'une trace : financement si sa source est une source de financement, sinon projet.
     const roleExpr = sql`CASE WHEN p.source_origine = ANY(${textArray([...FINANCEMENT_SOURCES])}) THEN 'financement' ELSE 'projet' END`;
 
+    // Projets actuellement marqués obsolètes : dernière décision projet_statut ACTIVE
+    // (non supersédée) de verdict 'obsolete' par projet (la plus récente prime). Table
+    // decisions_humaines à l'échelle humaine (faible volume) : toujours calculée, seul
+    // le filtre `masquerObsoletes` la consomme — la vue « vivant/mort » ANCT.
     // Chaîne de CTE partagée entre la requête de page et le COUNT de repli.
     const cteBody = sql`
+      obsolete_pids AS (
+        SELECT s.oid
+        FROM (
+          SELECT DISTINCT ON (d.objet_a_id) d.objet_a_id AS oid, d.verdict
+          FROM decisions_humaines.decisions d
+          WHERE d.type_decision = 'projet_statut' AND ${activeDecisionPredicate("d")}
+          ORDER BY d.objet_a_id, d.created_at DESC
+        ) s
+        WHERE s.verdict = 'obsolete'
+      ),
       territory_pids AS (
         SELECT DISTINCT lpc.projet_id AS pid
         FROM schema_commun_v2.liens_projets_communes lpc
@@ -157,7 +181,9 @@ export class TerritoiresService {
             SELECT ext.external_id FROM data_mec.external_ids ext
             WHERE ext.service_type = 'MEC' AND ext.objet_id = p.id::uuid
             LIMIT 1
-          ) END AS external_id
+          ) END AS external_id,
+          -- La trace porte-t-elle une décision projet_statut active 'obsolete' ?
+          EXISTS (SELECT 1 FROM obsolete_pids op WHERE op.oid = p.id) AS is_obsolete
         FROM group_members gm
         JOIN schema_commun_v2.projets_operationnels p ON p.id = gm.pid
       ),
@@ -167,6 +193,7 @@ export class TerritoiresService {
           MAX(mr.cluster_id) AS cluster_id,
           MIN(mr.id) AS min_id,
           bool_and(mr.role = 'financement') AS all_financement,
+          bool_or(mr.is_obsolete) AS has_obsolete,
           jsonb_agg(
             jsonb_build_object(
               'role', mr.role,
@@ -187,7 +214,7 @@ export class TerritoiresService {
         GROUP BY mr.group_key
       ),
       group_final AS (
-        SELECT ga.min_id, ga.all_financement, ga.traces, c.confiance
+        SELECT ga.min_id, ga.all_financement, ga.has_obsolete, ga.traces, c.confiance
         FROM group_agg ga
         LEFT JOIN schema_commun_v2.clusters c ON c.id = ga.cluster_id
       ),
@@ -195,6 +222,7 @@ export class TerritoiresService {
         SELECT confiance, traces, min_id
         FROM group_final
         WHERE ${inclureFinancementsSeuls ? sql`TRUE` : sql`all_financement = FALSE`}
+          ${masquerObsoletes ? sql`AND has_obsolete = FALSE` : sql``}
       )
     `;
 
@@ -220,9 +248,74 @@ export class TerritoiresService {
     const groupes: TerritoireGroupeDto[] = rows.map((r) => ({
       confiance: (r.confiance as TerritoireGroupeDto["confiance"]) ?? null,
       traces: (r.traces as TerritoireTraceDto[]) ?? [],
+      decisions: [],
     }));
 
+    await this.attachActiveDecisions(groupes);
+
     return { total, limit, offset, groupes };
+  }
+
+  /**
+   * Enrichit chaque groupe de la page avec ses décisions humaines ACTIVES, en UNE seule
+   * requête pour toute la page (pas de N+1 ; jointure sur les index objet_a/b_id). Une
+   * décision est rattachée au groupe dès que son objet A OU son objet B est l'une des
+   * traces du groupe. Toutes plateformes confondues (vue référentiel partagée), mais
+   * l'agent auteur n'est JAMAIS exposé (PII + cloisonnement inter-plateformes).
+   */
+  private async attachActiveDecisions(groupes: TerritoireGroupeDto[]): Promise<void> {
+    // Un id de trace appartient à un seul groupe (un projet est dans un seul cluster).
+    const groupByTraceId = new Map<string, TerritoireGroupeDto>();
+    for (const g of groupes) {
+      for (const t of g.traces) {
+        if (t.id != null) groupByTraceId.set(t.id, g);
+      }
+    }
+    const ids = [...groupByTraceId.keys()];
+    if (ids.length === 0) return;
+
+    const rows = await this.query<{
+      type: string;
+      verdict: string | null;
+      plateforme: string;
+      createdAt: Date | string;
+      objetAId: string;
+      objetBId: string | null;
+      commentaire: string | null;
+    }>(sql`
+      SELECT
+        d.type_decision AS type,
+        d.verdict,
+        d.plateforme_source AS plateforme,
+        d.created_at AS "createdAt",
+        d.objet_a_id AS "objetAId",
+        d.objet_b_id AS "objetBId",
+        d.commentaire
+      FROM decisions_humaines.decisions d
+      WHERE (d.objet_a_id = ANY(${textArray(ids)}) OR d.objet_b_id = ANY(${textArray(ids)}))
+        AND ${activeDecisionPredicate("d")}
+      ORDER BY d.created_at DESC
+    `);
+
+    for (const r of rows) {
+      const decision: TerritoireDecisionDto = {
+        type: r.type,
+        verdict: r.verdict,
+        plateforme: r.plateforme,
+        createdAt: this.toIso(r.createdAt)!,
+        objetAId: r.objetAId,
+        objetBId: r.objetBId,
+        commentaire: r.commentaire,
+      };
+      // Une décision de doublon touche deux traces (A↔B) potentiellement dans deux
+      // groupes distincts : l'attacher à chacun, une seule fois par groupe.
+      const touched = new Set<TerritoireGroupeDto>();
+      const groupA = groupByTraceId.get(r.objetAId);
+      const groupB = r.objetBId != null ? groupByTraceId.get(r.objetBId) : undefined;
+      if (groupA) touched.add(groupA);
+      if (groupB) touched.add(groupB);
+      for (const g of touched) g.decisions.push(decision);
+    }
   }
 
   /**
@@ -269,6 +362,10 @@ export class TerritoiresService {
       ORDER BY pr.nom
     `);
 
+    // Rattachements décidés par la plateforme (décision active la plus récente projet ↔ PCAET).
+    const rattachements =
+      pcaetRows.length > 0 ? await this.rattachementsByPcaet(projetId) : new Map<string, "confirme" | "infirme">();
+
     return {
       pcaet: pcaetRows.map((r) => ({
         nom: r.nom,
@@ -276,10 +373,33 @@ export class TerritoiresService {
         presentDansTet: r.presentDansTet,
         tetExternalId: r.tetExternalId ?? null,
         source: r.source,
+        rattachement: (r.sirenPorteur != null ? rattachements.get(r.sirenPorteur) : undefined) ?? "aucun",
       })),
       // TODO(T4+): dériver des fiches action suggérées depuis les PCAET rattachés (bonus hors scope immédiat).
       fichesActionSuggerees: [],
     };
+  }
+
+  /**
+   * Verdict de rattachement PCAET par SIREN porteur pour un projet : dernière décision
+   * rattachement_pcaet ACTIVE (non supersédée) par PCAET (la plus récente prime en cas
+   * de décisions actives contradictoires). Seuls les verdicts confirme/infirme sont retenus.
+   */
+  private async rattachementsByPcaet(projetId: string): Promise<Map<string, "confirme" | "infirme">> {
+    const rows = await this.query<{ siren: string; verdict: string | null }>(sql`
+      SELECT DISTINCT ON (d.objet_b_id) d.objet_b_id AS siren, d.verdict
+      FROM decisions_humaines.decisions d
+      WHERE d.type_decision = 'rattachement_pcaet'
+        AND d.objet_a_id = ${projetId}
+        AND d.objet_b_type = 'pcaet'
+        AND ${activeDecisionPredicate("d")}
+      ORDER BY d.objet_b_id, d.created_at DESC
+    `);
+    const map = new Map<string, "confirme" | "infirme">();
+    for (const r of rows) {
+      if (r.verdict === "confirme" || r.verdict === "infirme") map.set(r.siren, r.verdict);
+    }
+    return map;
   }
 
   /**

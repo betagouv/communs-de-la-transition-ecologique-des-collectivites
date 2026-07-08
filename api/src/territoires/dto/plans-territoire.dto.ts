@@ -24,6 +24,14 @@ export class PcaetReferenceDto {
     description: "Source de la fiche PCAET de référence (source_nom).",
   })
   source!: string | null;
+
+  @ApiProperty({
+    enum: ["confirme", "infirme", "aucun"],
+    description:
+      "État du rattachement projet ↔ PCAET, dérivé de la décision active rattachement_pcaet la plus récente " +
+      "entre ce projet et ce PCAET (SIREN porteur). 'aucun' si aucune décision active.",
+  })
+  rattachement!: "confirme" | "infirme" | "aucun";
 }
 
 export class PlansTerritoireResponse {

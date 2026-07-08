@@ -66,6 +66,12 @@ export class TerritoiresController {
     required: false,
     description: "Inclure les groupes dont toutes les traces sont des financements (défaut false).",
   })
+  @ApiQuery({
+    name: "masquerObsoletes",
+    required: false,
+    description:
+      "Exclure les groupes dont une trace est marquée obsolète (décision active projet_statut, verdict 'obsolete'). Défaut false.",
+  })
   @ApiEndpointResponses({
     successStatus: 200,
     response: TerritoireProjetsResponse,
@@ -80,6 +86,7 @@ export class TerritoiresController {
       limit: Math.min(Math.max(toInt(first(query.limit), 50), 1), 200),
       offset: toInt(first(query.offset), 0),
       inclureFinancementsSeuls: first(query.inclureFinancementsSeuls) === "true",
+      masquerObsoletes: first(query.masquerObsoletes) === "true",
     });
   }
 
