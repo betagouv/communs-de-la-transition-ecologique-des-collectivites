@@ -1106,7 +1106,6 @@ describe("ServiceContextService", () => {
         serviceId: service.id,
         ...validServiceContext,
         iframeUrl: null,
-        dataScopes: [],
         extraFields: [],
         regions: [],
         name: null,
