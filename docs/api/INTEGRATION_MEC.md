@@ -14,7 +14,7 @@ plateforme — `POST /decisions` enregistre automatiquement `plateforme_source =
 
 | Donnée | Stabilité |
 |---|---|
-| `traces[].id` (UUID/ID objet) | **Stable et contractuel** — c'est la seule référence à persister côté MEC (et la seule acceptée par `POST /decisions`) |
+| `traces[].id` (UUID/ID objet) | **Stable et contractuel** — c'est la seule référence à persister côté MEC (et la seule acceptée par `POST /decisions`). **Exception : les ids des traces DGCL** (`role: "financement"`, sources `DGCL *`) ne sont **pas contractuels** — ne jamais les persister ni les référencer dans une décision (une partie changera au prochain recalcul du pipeline ; réévaluation à la rentrée selon le deal DGCL) |
 | `traces[].externalId` | Stable (c'est votre propre id) |
 | Composition des groupes, `confiance` | **Recalculées à chaque run du pipeline** — ne jamais persister ; c'est pourquoi aucun identifiant de groupe n'est exposé |
 | `copMillesime`, `copStatutVivier`, leviers | Stables entre deux livraisons DREAL/référentiel |
