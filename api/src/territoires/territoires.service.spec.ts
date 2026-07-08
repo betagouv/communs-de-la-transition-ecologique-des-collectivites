@@ -103,6 +103,13 @@ describe("TerritoiresService", () => {
       ]);
       // Aucun champ auteur exposé.
       expect(result.groupes[0].decisions[0]).not.toHaveProperty("auteur");
+
+      // La requête d'enrichissement filtre le vocabulaire fermé, borne le résultat
+      // et départage les created_at égaux (id DESC).
+      const decisionsSql = renderSql((execute.mock.calls[2] as unknown[])[0]);
+      expect(decisionsSql).toContain("type_decision = ANY");
+      expect(decisionsSql).toContain("d.id DESC");
+      expect(decisionsSql).toContain("LIMIT");
     });
 
     it("ne lance pas de requête de décisions quand la page est vide", async () => {
@@ -118,6 +125,8 @@ describe("TerritoiresService", () => {
       const pageSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
       expect(pageSql).toContain("obsolete_pids");
       expect(pageSql).toContain("has_obsolete = FALSE");
+      // Départage déterministe des created_at égaux dans obsolete_pids.
+      expect(pageSql).toContain("d.id DESC");
     });
 
     it("masquerObsoletes=false (défaut) n'ajoute pas le filtre has_obsolete", async () => {
@@ -279,6 +288,9 @@ describe("TerritoiresService", () => {
         ],
         fichesActionSuggerees: [],
       });
+      // La requête de rattachement départage les created_at égaux (id DESC).
+      const rattachementSql = renderSql((execute.mock.calls[4] as unknown[])[0]);
+      expect(rattachementSql).toContain("d.id DESC");
     });
 
     it("rattachement='aucun' quand aucune décision active", async () => {

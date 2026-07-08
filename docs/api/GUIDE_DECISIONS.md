@@ -170,7 +170,8 @@ regroupement est différée.
   Au rebuild : un `_confirme` pousse le pipeline à fusionner, un `_infirme` l'empêche de refusionner.
 
 - **Rattachement PCAET** (`rattachement_pcaet`, `verdict` `confirme`/`infirme`). L'objet B est le
-  PCAET, désigné par le **SIREN de son porteur** (`objetBType: "pcaet"`, `objetBId` = 9 chiffres).
+  PCAET, désigné par le **SIREN de son porteur** (`objetBType: "pcaet"`, `objetBId` = 9 chiffres) —
+  reprenez le `sirenPorteur` de `plans-territoire` **lorsqu'il est un SIREN** (voir la limite PCAET en §6).
   Immédiat : `GET /projets/mec/{externalId}/plans-territoire` renvoie sur chaque PCAET un champ
   `rattachement` = `confirme` | `infirme` | `aucun`, dérivé de votre décision active la plus récente.
 
@@ -202,6 +203,15 @@ On ne modifie ni ne supprime. Pour révoquer, réémettez en pointant l'ancienne
 La décision supersédée cesse d'être « active » : elle disparaît de `decisions[]`, du `rattachement`
 et du filtre obsolètes. En cas de décisions actives contradictoires sur les mêmes objets (sans lien
 `supersedes`), **la plus récente prime**.
+
+Une révision est **contrainte** (400 sinon) : elle doit être de **votre** plateforme (vous ne
+révoquez pas la décision d'un autre service) **et du même `typeDecision`** que la décision visée.
+Ce garde-fou évite qu'une décision anodine désactive silencieusement un verrou d'un autre type.
+
+**Une paire de doublon est NON ordonnée** : `(A, B)` et `(B, A)` désignent **la même** paire pour
+le référentiel (le pipeline la canonicalise). Pour revenir sur un `doublon_confirme(A, B)`, **supersédez-le**
+(même paire, `supersedes`) plutôt que de reposter `doublon_infirme(B, A)` : sans `supersedes`, les deux
+resteraient « actives » et c'est la récence qui trancherait — moins lisible dans `decisions[]`.
 
 ## 5. Ce qui vous appartient
 
@@ -235,11 +245,19 @@ Chaque limite est dite ici **avant** que vous ne la rencontriez.
   `rattachement`, obsolètes) est, elle, immédiate. La consommation « à chaud » du regroupement
   viendra avec l'**immatriculation** des objets (chantier en cours) ; d'ici là, raisonnez « signal
   immédiat, refonte différée ».
-- **PCAET** : `plans-territoire` s'appuie sur une table de référence livrée par un chantier séparé.
-  Tant qu'elle n'est pas en production, l'endpoint renvoie `pcaet: []` (dégradation propre, pas
-  d'erreur) ; le champ `rattachement` vaudra donc `aucun` par défaut.
+- **PCAET / rattachement** : la table de référence PCAET est **en production**. Le `rattachement`
+  s'appuie sur le **SIREN du porteur** (`objetBType: "pcaet"`, `objetBId` = 9 chiffres) : il ne
+  fonctionne donc que pour les PCAET dont le porteur est identifié par un vrai SIREN (aujourd'hui les
+  fiches `source: "opendata"`). Les fiches `source: "snapshot"` exposent encore un identifiant non-SIREN
+  côté `sirenPorteur` — le référentiel PCAET est en cours de normalisation côté pipeline ; d'ici là,
+  `rattachement` reste `aucun` pour ces fiches et une décision `rattachement_pcaet` avec un `objetBId`
+  non-SIREN est refusée (400). Par ailleurs, si la table de référence était absente, `plans-territoire`
+  dégrade proprement en `pcaet: []` (pas d'erreur).
 - **Cloisonnement.** `GET /decisions` ne montre que vos décisions. `decisions[]` (vue territoire)
   montre celles de toutes les plateformes **sans l'auteur** — on partage la décision, jamais l'agent.
+- **`commentaire` traverse la frontière inter-plateformes.** Le `commentaire` d'une décision est exposé
+  dans `decisions[]` à **toutes** les plateformes (contrairement à l'auteur, masqué). N'y mettez **aucune
+  donnée personnelle** (nom, e-mail, téléphone d'un porteur) : réservez-le à une justification factuelle.
 
 ## 7. FAQ + contact
 
@@ -250,7 +268,8 @@ votre clé API.
 stables (voir §6). Attachez la décision à une trace `projet` du groupe.
 
 **Comment corriger une erreur de saisie de mon agent ?** Réémettez avec `supersedes` pointant la
-décision fautive ; la précédente devient inactive.
+décision fautive ; la précédente devient inactive. La révision doit être de **votre** plateforme et
+du **même type** que la décision visée (400 sinon).
 
 **Je poste `doublon_confirme` mais le groupe ne fusionne pas tout de suite. Normal ?** Oui : le
 signal est immédiat (`decisions[]`), la fusion se fait au prochain rebuild (§4, §6).

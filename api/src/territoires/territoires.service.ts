@@ -3,6 +3,7 @@ import { DatabaseService } from "@database/database.service";
 import { mecExternalIds } from "@database/schema";
 import { and, eq, sql, SQL } from "drizzle-orm";
 import { activeDecisionPredicate } from "@/decisions/active-decisions";
+import { DECISION_TYPES } from "@/decisions/decision-contract";
 import { splitLeviersCsv } from "./leviers-csv";
 import {
   TerritoireDecisionDto,
@@ -26,6 +27,12 @@ const COP_STATUTS_VIVIER = ["a_remonter", "a_travailler", "hors_cop_mais_crte", 
 // Code INSEE de commune : 5 chiffres, ou code corse 2A/2B + 3 chiffres.
 const CODE_INSEE_REGEX = /^(\d{5}|2[AB]\d{3})$/;
 const SIREN_REGEX = /^\d{9}$/;
+
+// Bornes de l'enrichissement decisions[] (journal à l'échelle humaine, mais append-only) :
+// - garde-fou global sur la requête (taille du result-set),
+// - plafond par groupe sur la réponse exposée (les plus récentes d'abord).
+const DECISIONS_QUERY_LIMIT = 2000;
+const DECISIONS_PER_GROUP_CAP = 100;
 
 // Aligné sur dashboard-te.service : budget prévisionnel plafonné (les valeurs
 // aberrantes deviennent NULL). Le budget est stocké en TEXT dans schema_commun_v2.
@@ -115,7 +122,9 @@ export class TerritoiresService {
           SELECT DISTINCT ON (d.objet_a_id) d.objet_a_id AS oid, d.verdict
           FROM decisions_humaines.decisions d
           WHERE d.type_decision = 'projet_statut' AND ${activeDecisionPredicate("d")}
-          ORDER BY d.objet_a_id, d.created_at DESC
+          -- Départage déterministe des created_at égaux (import/backfill en une
+          -- transaction ⇒ now() figé) : id DESC, aligné sur le pipeline.
+          ORDER BY d.objet_a_id, d.created_at DESC, d.id DESC
         ) s
         WHERE s.verdict = 'obsolete'
       ),
@@ -293,8 +302,10 @@ export class TerritoiresService {
         d.commentaire
       FROM decisions_humaines.decisions d
       WHERE (d.objet_a_id = ANY(${textArray(ids)}) OR d.objet_b_id = ANY(${textArray(ids)}))
+        AND d.type_decision = ANY(${textArray([...DECISION_TYPES])})
         AND ${activeDecisionPredicate("d")}
-      ORDER BY d.created_at DESC
+      ORDER BY d.created_at DESC, d.id DESC
+      LIMIT ${DECISIONS_QUERY_LIMIT}
     `);
 
     for (const r of rows) {
@@ -308,13 +319,16 @@ export class TerritoiresService {
         commentaire: r.commentaire,
       };
       // Une décision de doublon touche deux traces (A↔B) potentiellement dans deux
-      // groupes distincts : l'attacher à chacun, une seule fois par groupe.
+      // groupes distincts : l'attacher à chacun, une seule fois par groupe, dans la
+      // limite du plafond par groupe (les plus récentes d'abord, déjà triées).
       const touched = new Set<TerritoireGroupeDto>();
       const groupA = groupByTraceId.get(r.objetAId);
       const groupB = r.objetBId != null ? groupByTraceId.get(r.objetBId) : undefined;
       if (groupA) touched.add(groupA);
       if (groupB) touched.add(groupB);
-      for (const g of touched) g.decisions.push(decision);
+      for (const g of touched) {
+        if (g.decisions.length < DECISIONS_PER_GROUP_CAP) g.decisions.push(decision);
+      }
     }
   }
 
@@ -393,7 +407,8 @@ export class TerritoiresService {
         AND d.objet_a_id = ${projetId}
         AND d.objet_b_type = 'pcaet'
         AND ${activeDecisionPredicate("d")}
-      ORDER BY d.objet_b_id, d.created_at DESC
+      -- id DESC départage les created_at égaux (cf. obsolete_pids), aligné sur le pipeline.
+      ORDER BY d.objet_b_id, d.created_at DESC, d.id DESC
     `);
     const map = new Map<string, "confirme" | "infirme">();
     for (const r of rows) {

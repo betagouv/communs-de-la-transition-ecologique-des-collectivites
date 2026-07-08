@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { decisions } from "@database/schema";
 import { and, desc, eq, or, SQL } from "drizzle-orm";
@@ -20,6 +20,9 @@ export class DecisionsService {
    */
   async create(dto: CreateDecisionDto, plateformeSource: string): Promise<DecisionCreatedResponse> {
     validateDecisionContract(dto);
+    if (dto.supersedes) {
+      await this.assertSupersedesCompatible(dto.supersedes, dto.typeDecision, plateformeSource);
+    }
 
     const [row] = await this.dbService.database
       .insert(decisions)
@@ -39,6 +42,41 @@ export class DecisionsService {
       .returning({ id: decisions.id, createdAt: decisions.createdAt });
 
     return { id: row.id, createdAt: row.createdAt.toISOString() };
+  }
+
+  /**
+   * Une révision (`supersedes`) ne peut désactiver qu'une décision COMPATIBLE : même
+   * plateforme émettrice (cloisonnement — on ne révoque pas la décision d'un autre
+   * service) ET même `typeDecision`. Sans ce garde-fou, une décision anodine
+   * (ex. correction_signalee) pourrait désactiver silencieusement un verrou dur d'une
+   * autre plateforme (ex. doublon_infirme), car le prédicat « décision active » est
+   * type-agnostique. 400 explicite sinon.
+   */
+  private async assertSupersedesCompatible(
+    supersedesId: string,
+    typeDecision: string,
+    plateformeSource: string,
+  ): Promise<void> {
+    const [target] = await this.dbService.database
+      .select({ plateformeSource: decisions.plateformeSource, typeDecision: decisions.typeDecision })
+      .from(decisions)
+      .where(eq(decisions.id, supersedesId))
+      .limit(1);
+
+    if (!target) {
+      throw new BadRequestException(`supersedes : décision cible ${supersedesId} introuvable`);
+    }
+    if (target.plateformeSource !== plateformeSource) {
+      throw new BadRequestException(
+        "supersedes : une décision ne peut réviser que les décisions de sa propre plateforme",
+      );
+    }
+    if (target.typeDecision !== typeDecision) {
+      throw new BadRequestException(
+        `supersedes : type incompatible (cible « ${target.typeDecision} », révision « ${typeDecision} ») — ` +
+          "une révision doit être du même type que la décision révoquée",
+      );
+    }
   }
 
   /**
