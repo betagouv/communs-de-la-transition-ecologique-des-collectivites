@@ -186,7 +186,8 @@ components:
           type: array
           description: >
             Décisions humaines ACTIVES portant sur une trace du groupe, toutes plateformes
-            confondues, SANS l'agent auteur (PII + cloisonnement inter-plateformes).
+            confondues, SANS l'agent auteur (PII + cloisonnement inter-plateformes). Les révocations
+            (verdict='annule') et les décisions supersédées sont exclues.
           items: { $ref: "#/components/schemas/Decision" }
     Decision:
       type: object
@@ -232,7 +233,13 @@ components:
           nullable: true
           description: "'pcaet' réservé à rattachement_pcaet (objetBId = SIREN porteur, 9 chiffres)"
         objetBId: { type: string, nullable: true }
-        verdict: { type: string, nullable: true, description: Valeurs contraintes par type (voir typeDecision) }
+        verdict:
+          type: string
+          nullable: true
+          description: >
+            Valeurs contraintes par type (voir typeDecision). Cas spécial : 'annule' est valide pour
+            TOUS les types SI supersedes est fourni (400 sinon) — révocation qui retire la cible sans
+            rien affirmer ; les lignes verdict='annule' sont exclues de tous les effets de lecture.
         auteur: { type: string, nullable: true }
         commentaire: { type: string, nullable: true, description: "Exposé cross-plateforme dans decisions[] — pas de PII" }
         payload: { type: object, nullable: true, description: "Max ~10 ko sérialisé ; forme imposée pour correction_signalee" }

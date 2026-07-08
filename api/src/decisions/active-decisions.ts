@@ -1,4 +1,5 @@
 import { sql, SQL } from "drizzle-orm";
+import { ANNULE_VERDICT } from "./decision-contract";
 
 // ============================================================
 // Helper SQL réutilisable : « décision active »
@@ -25,3 +26,13 @@ export const activeDecisionPredicate = (alias = "d"): SQL =>
     SELECT 1 FROM decisions_humaines.decisions sup
     WHERE sup.supersedes = ${sql.raw(alias)}.id
   )`;
+
+/**
+ * Prédicat SQL à injecter dans un WHERE : exclut les décisions « pierre tombale »
+ * (verdict='annule'), qui ne servent qu'à révoquer leur cible via `supersedes` et
+ * n'affirment rien. À combiner avec `activeDecisionPredicate` dans tout effet de
+ * lecture (decisions[], rattachement, obsolètes). `IS DISTINCT FROM` conserve les
+ * verdicts NULL (aucun verdict ≠ annule).
+ */
+export const notTombstonePredicate = (alias = "d"): SQL =>
+  sql`${sql.raw(alias)}.verdict IS DISTINCT FROM ${ANNULE_VERDICT}`;

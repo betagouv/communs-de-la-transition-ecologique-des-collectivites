@@ -94,7 +94,9 @@ export class CreateDecisionDto {
   @ApiPropertyOptional({
     description:
       "Verdict associé. Valeurs contraintes par type : confirme|infirme (rattachement_pcaet), " +
-      "valide|obsolete|termine (projet_statut) ; interdit pour les doublons et correction_signalee.",
+      "valide|obsolete|termine (projet_statut) ; interdit pour les doublons et correction_signalee. " +
+      "Cas spécial : 'annule' est valide pour TOUS les types si supersedes est fourni (révocation " +
+      "sans rien affirmer ; ces lignes sont exclues des effets de lecture).",
     maxLength: 100,
   })
   @IsOptional()
