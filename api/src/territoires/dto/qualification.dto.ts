@@ -20,7 +20,8 @@ export class QualificationResponse {
   @ApiPropertyOptional({
     type: Object,
     nullable: true,
-    description: "Sites LLM (jsonb tel quel : [{ label, score }] — taxonomie des sites, 60 labels).",
+    description:
+      "Sites LLM (jsonb tel quel — taxonomie des sites, 60 labels). Éléments : { label, score }, avec une clé additionnelle possible `nom_propre` (nom propre du site). Ne parsez pas en mode strict.",
   })
   llmSites!: unknown;
 

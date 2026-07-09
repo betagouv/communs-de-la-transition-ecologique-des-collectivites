@@ -182,7 +182,8 @@ curl -H "$AUTH" "$BASE/projets/mec/48345/qualification"
   est prévu (le champ portera alors une nouvelle version, remplacement propre côté pipeline).
 - **`llmThematiques` / `llmSites` / `llmInterventions`** : classifications prédites `[{ label, score }]`.
   `llmSites` suit la taxonomie des **sites** (60 labels), `llmInterventions` celle des **interventions**
-  (15 labels).
+  (15 labels). ⚠ Les éléments de `llmSites` peuvent porter une clé **additionnelle** `nom_propre` (nom
+  propre du site) : ne parsez pas ces objets en mode strict (n'échouez pas sur des clés en plus).
 
 `404` si l'`externalId` est inconnu (projet non encore synchronisé via le webhook).
 
