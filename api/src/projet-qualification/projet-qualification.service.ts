@@ -9,6 +9,7 @@ import {
   PROJECT_QUALIFICATION_COMPETENCES_JOB,
   PROJECT_QUALIFICATION_LEVIERS_JOB,
   PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
+  PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB,
 } from "@/projet-qualification/const";
 import { ClassificationService } from "@/projet-qualification/classification/classification.service";
 import { DatabaseService } from "@database/database.service";
@@ -64,8 +65,10 @@ export class ProjetQualificationService extends WorkerHost {
         return;
       }
 
-      // Handle data_mec leviers prediction directly (writes data_mec.llm_leviers, never public.projets)
-      if (schema === "data_mec" && job.name === PROJECT_QUALIFICATION_LEVIERS_JOB) {
+      // Handle data_mec leviers prediction directly (writes data_mec.llm_leviers, never public.projets).
+      // Distinct job name (pas LEVIERS_JOB + schema) : robuste au rolling deploy — un ancien
+      // container ne peut pas router ce job vers le chemin legacy public.projets.
+      if (job.name === PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB) {
         await this.predictMecProjetLeviers(projetId);
         return;
       }

@@ -1,10 +1,10 @@
 import { Queue } from "bullmq";
 import { MecService } from "./mec.service";
 import { DatabaseService } from "@database/database.service";
-import { CreateMecProjetRequest } from "./dto/create-mec-projet.dto";
+import { CreateMecProjetRequest, UpdateMecProjetRequest } from "./dto/create-mec-projet.dto";
 import {
   PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
-  PROJECT_QUALIFICATION_LEVIERS_JOB,
+  PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB,
 } from "@/projet-qualification/const";
 
 // Test unitaire pur (DB + queue mockées) de l'enqueue de la prédiction leviers sur /mec/v1.
@@ -47,17 +47,20 @@ describe("MecService — enqueue prédiction leviers (/mec/v1)", () => {
 
   const jobNames = (): string[] => (add.mock.calls as [string, unknown][]).map((c) => c[0]);
 
-  it("enqueue la prédiction leviers (data_mec) à la création d'un projet", async () => {
+  it("enqueue la prédiction leviers (data_mec) à la création, avec retry", async () => {
     selectLimit
       .mockResolvedValueOnce([{ siren: "218000217" }]) // resolveCollectivite (Commune)
       .mockResolvedValueOnce([]); // existingExternal → aucun (nouveau projet)
 
     await service.createOrUpdate(baseDto());
 
-    expect(jobNames()).toContain(PROJECT_QUALIFICATION_LEVIERS_JOB);
+    expect(jobNames()).toContain(PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB);
+    // Nom de job DISTINCT (robuste au rolling deploy) + options de retry alignées sur les
+    // autres producteurs (un échec LLM transitoire ne laisse pas llm_leviers NULL à vie).
     expect(add).toHaveBeenCalledWith(
-      PROJECT_QUALIFICATION_LEVIERS_JOB,
+      PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB,
       expect.objectContaining({ schema: "data_mec" }),
+      expect.objectContaining({ attempts: 3, backoff: { type: "exponential", delay: 5000 } }),
     );
   });
 
@@ -66,7 +69,7 @@ describe("MecService — enqueue prédiction leviers (/mec/v1)", () => {
 
     await service.createOrUpdate(baseDto({ leviers: ["Vélo"] }));
 
-    expect(jobNames()).toContain(PROJECT_QUALIFICATION_LEVIERS_JOB);
+    expect(jobNames()).toContain(PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB);
   });
 
   it("enqueue classification + leviers quand le contenu d'un projet existant change", async () => {
@@ -78,7 +81,45 @@ describe("MecService — enqueue prédiction leviers (/mec/v1)", () => {
     await service.createOrUpdate(baseDto());
 
     expect(jobNames()).toEqual(
-      expect.arrayContaining([PROJECT_QUALIFICATION_CLASSIFICATION_JOB, PROJECT_QUALIFICATION_LEVIERS_JOB]),
+      expect.arrayContaining([PROJECT_QUALIFICATION_CLASSIFICATION_JOB, PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB]),
     );
+  });
+
+  describe("update (PATCH /mec/v1/projets/:id)", () => {
+    const patch = (dto: UpdateMecProjetRequest) => service.update("p1", dto);
+
+    it("recalcule le hash et ré-enqueue classification + leviers quand le texte change", async () => {
+      selectLimit.mockResolvedValueOnce([
+        { id: "p1", nom: "Ancien nom", description: "ancienne desc", contentHash: "ancien-hash" },
+      ]);
+
+      await patch({ nom: "Nouveau nom de projet" });
+
+      expect(jobNames()).toEqual(
+        expect.arrayContaining([PROJECT_QUALIFICATION_CLASSIFICATION_JOB, PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB]),
+      );
+    });
+
+    it("ne ré-enqueue rien quand le PATCH ne touche pas nom/description", async () => {
+      selectLimit.mockResolvedValueOnce([{ id: "p1", nom: "Nom", description: "desc", contentHash: "hash" }]);
+
+      await patch({ budgetPrevisionnel: 1000 });
+
+      expect(add).not.toHaveBeenCalled();
+    });
+
+    it("ne ré-enqueue rien quand le texte fourni est identique (hash inchangé)", async () => {
+      // Le hash existant correspond au (nom, description) qui seront réappliqués.
+      const nom = "Nom identique";
+      const description = "desc identique";
+      const computeHash = (
+        service as unknown as { computeContentHash(n: string, d: string | null): string }
+      ).computeContentHash.bind(service);
+      selectLimit.mockResolvedValueOnce([{ id: "p1", nom, description, contentHash: computeHash(nom, description) }]);
+
+      await patch({ nom, description });
+
+      expect(add).not.toHaveBeenCalled();
+    });
   });
 });
