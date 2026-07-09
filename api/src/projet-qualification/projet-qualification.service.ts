@@ -267,8 +267,10 @@ export class ProjetQualificationService extends WorkerHost {
       );
     }
 
-    // Threshold 0 : on stocke toute la distribution prédite (validée contre le référentiel
-    // canonique), le consommateur filtre selon ses propres seuils (cf. INTEGRATION_MEC.md).
+    // Seuil 0 (et NON LEVIER_SCORE_TRESHOLD=0,7 du flux legacy) : on stocke TOUS les leviers
+    // valides avec leur score BRUT ∈ [0,1] — alignement de contrat avec le batch de stock. Aucun
+    // pré-filtrage : le consommateur applique son propre seuil (référence legacy = 0,7 ;
+    // cf. INTEGRATION_MEC.md). validateAndCorrect ne fait que corriger/valider contre le référentiel.
     const validatedLeviers = this.leviersValidationService.validateAndCorrect(analysisResult.json, 0);
     const llmLeviers = validatedLeviers.map((levier) => ({ label: levier.nom, score: levier.score }));
 
