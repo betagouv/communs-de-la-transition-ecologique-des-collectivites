@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bullmq";
-import { Queue } from "bullmq";
+import { Queue, JobsOptions } from "bullmq";
 import { DatabaseService } from "@database/database.service";
 import {
   mecProjetsOperationnels,
@@ -18,8 +18,19 @@ import { uuidv7 } from "uuidv7";
 import {
   PROJECT_QUALIFICATION_QUEUE_NAME,
   PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
-  PROJECT_QUALIFICATION_LEVIERS_JOB,
+  PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB,
 } from "@/projet-qualification/const";
+
+// Options d'enqueue alignées sur les autres producteurs de la queue (create/update-projets,
+// fiches-action, aides) : retry des échecs LLM transitoires (429/529/timeout/parse), sinon un
+// seul échec laisserait llm_leviers NULL définitivement. + purge Redis : un resync bulk
+// enfilerait ~160k jobs, on ne garde pas les complétés et on plafonne les échoués.
+const QUALIFICATION_JOB_OPTS: JobsOptions = {
+  attempts: 3,
+  backoff: { type: "exponential", delay: 5000 },
+  removeOnComplete: true,
+  removeOnFail: { count: 1000 },
+};
 
 @Injectable()
 export class MecService {
@@ -201,7 +212,12 @@ export class MecService {
     const db = this.dbService.database;
 
     const [existing] = await db
-      .select({ id: mecProjetsOperationnels.id })
+      .select({
+        id: mecProjetsOperationnels.id,
+        nom: mecProjetsOperationnels.nom,
+        description: mecProjetsOperationnels.description,
+        contentHash: mecProjetsOperationnels.contentHash,
+      })
       .from(mecProjetsOperationnels)
       .where(eq(mecProjetsOperationnels.id, id))
       .limit(1);
@@ -247,8 +263,27 @@ export class MecService {
     if (dto.besoins !== undefined) fieldsToUpdate.besoins = dto.besoins;
     if (dto.planRattachement !== undefined) fieldsToUpdate.planRattachement = dto.planRattachement;
 
+    // Recalcule le content hash et ré-enclenche la qualification quand nom/description changent
+    // (même logique que createOrUpdate). Sinon le PATCH laisserait classification et leviers
+    // prédits sur l'ANCIEN texte — servis par le GET qualification, indiscernables de frais.
+    let contentChanged = false;
+    if (dto.nom !== undefined || dto.description !== undefined) {
+      const newNom = dto.nom ?? existing.nom;
+      const newDescription = dto.description !== undefined ? dto.description : existing.description;
+      const newHash = this.computeContentHash(newNom, newDescription);
+      if (newHash !== existing.contentHash) {
+        fieldsToUpdate.contentHash = newHash;
+        contentChanged = true;
+      }
+    }
+
     if (Object.keys(fieldsToUpdate).length > 0) {
       await db.update(mecProjetsOperationnels).set(fieldsToUpdate).where(eq(mecProjetsOperationnels.id, id));
+    }
+
+    if (contentChanged) {
+      this.scheduleClassification(id);
+      this.scheduleLeviersPrediction(id);
     }
 
     // Auto-create CRTE plan if crteId is provided in the update
@@ -378,7 +413,7 @@ export class MecService {
 
   private scheduleClassification(projetId: string): void {
     this.qualificationQueue
-      .add(PROJECT_QUALIFICATION_CLASSIFICATION_JOB, { projetId, schema: "data_mec" })
+      .add(PROJECT_QUALIFICATION_CLASSIFICATION_JOB, { projetId, schema: "data_mec" }, QUALIFICATION_JOB_OPTS)
       .then(() => this.logger.log(`Classification scheduled for MEC projet ${projetId}`))
       .catch((err) =>
         this.logger.error(
@@ -389,7 +424,7 @@ export class MecService {
 
   private scheduleLeviersPrediction(projetId: string): void {
     this.qualificationQueue
-      .add(PROJECT_QUALIFICATION_LEVIERS_JOB, { projetId, schema: "data_mec" })
+      .add(PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB, { projetId, schema: "data_mec" }, QUALIFICATION_JOB_OPTS)
       .then(() => this.logger.log(`Leviers prediction scheduled for MEC projet ${projetId}`))
       .catch((err) =>
         this.logger.error(

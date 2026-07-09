@@ -1,7 +1,7 @@
 import { InternalServerErrorException } from "@nestjs/common";
 import { Job } from "bullmq";
 import { ProjetQualificationService } from "./projet-qualification.service";
-import { PROJECT_QUALIFICATION_LEVIERS_JOB } from "./const";
+import { PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB } from "./const";
 import { LEVIERS_PREDICTION_VERSION } from "@/shared/const/leviers";
 import { AnthropicService } from "@/projet-qualification/llm/anthropic.service";
 import { LeviersValidationService } from "@/projet-qualification/llm/validation/leviers-validation.service";
@@ -21,7 +21,7 @@ describe("ProjetQualificationService — prédiction leviers data_mec", () => {
   let database: DatabaseService["database"];
 
   const makeJob = (projetId: string): Job<{ projetId: string; schema: string }> =>
-    ({ name: PROJECT_QUALIFICATION_LEVIERS_JOB, data: { projetId, schema: "data_mec" } }) as Job<{
+    ({ name: PROJECT_QUALIFICATION_LEVIERS_DATA_MEC_JOB, data: { projetId, schema: "data_mec" } }) as Job<{
       projetId: string;
       schema: string;
     }>;
