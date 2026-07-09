@@ -24,6 +24,7 @@ import * as Sentry from "@sentry/node";
 import { AnthropicService } from "@/projet-qualification/llm/anthropic.service";
 import { LeviersValidationService } from "@/projet-qualification/llm/validation/leviers-validation.service";
 import { CompetencesValidationService } from "@/projet-qualification/llm/validation/competences-validation.service";
+import { LEVIERS_PREDICTION_VERSION } from "@/shared/const/leviers";
 
 @Processor("project-qualification")
 export class ProjetQualificationService extends WorkerHost {
@@ -60,6 +61,12 @@ export class ProjetQualificationService extends WorkerHost {
       // Handle data_mec classification directly (bypass public.projets read/write)
       if (schema === "data_mec" && job.name === PROJECT_QUALIFICATION_CLASSIFICATION_JOB) {
         await this.classifyMecProjet(projetId);
+        return;
+      }
+
+      // Handle data_mec leviers prediction directly (writes data_mec.llm_leviers, never public.projets)
+      if (schema === "data_mec" && job.name === PROJECT_QUALIFICATION_LEVIERS_JOB) {
+        await this.predictMecProjetLeviers(projetId);
         return;
       }
 
@@ -226,6 +233,55 @@ export class ProjetQualificationService extends WorkerHost {
       .where(eq(mecProjetsOperationnels.id, projetId));
 
     this.logger.log(`Successfully classified MEC projet ${projetId}`);
+  }
+
+  /**
+   * Prédit les leviers d'un projet MEC et les écrit dans data_mec.llm_leviers (jsonb
+   * [{ label, score }], scores [0,1]) + data_mec.llm_leviers_version. Modèle exact de
+   * classifyMecProjet : lit/écrit data_mec directement, ne touche NI public.projets NI
+   * leviers_sgpe (déclaratif MEC). Réutilise l'analyse LLM + LeviersValidationService.
+   */
+  private async predictMecProjetLeviers(projetId: string): Promise<void> {
+    const [projet] = await this.dbService.database
+      .select({
+        id: mecProjetsOperationnels.id,
+        nom: mecProjetsOperationnels.nom,
+        description: mecProjetsOperationnels.description,
+      })
+      .from(mecProjetsOperationnels)
+      .where(eq(mecProjetsOperationnels.id, projetId))
+      .limit(1);
+
+    if (!projet || (!projet.nom && !projet.description)) {
+      this.logger.log(`MEC projet ${projetId} not found or empty, skipping leviers prediction`);
+      return;
+    }
+
+    const context = `${projet.nom}\n${projet.description ?? ""}`;
+    this.logger.log(`Predicting leviers for MEC projet ${projetId}: ${projet.nom.slice(0, 60)}`);
+
+    const analysisResult = await this.anthropicService.analyzeLeviers(context);
+    if (analysisResult.errorMessage) {
+      throw new Error(
+        `Error while predicting leviers for MEC projet ${projetId} - error: ${analysisResult.errorMessage}`,
+      );
+    }
+
+    // Threshold 0 : on stocke toute la distribution prédite (validée contre le référentiel
+    // canonique), le consommateur filtre selon ses propres seuils (cf. INTEGRATION_MEC.md).
+    const validatedLeviers = this.leviersValidationService.validateAndCorrect(analysisResult.json, 0);
+    const llmLeviers = validatedLeviers.map((levier) => ({ label: levier.nom, score: levier.score }));
+
+    // Écriture systématique (même quand vide) avec la version : "prédit, rien de pertinent"
+    // se distingue ainsi de "pas encore prédit" (colonne NULL).
+    await this.dbService.database
+      .update(mecProjetsOperationnels)
+      .set({ llmLeviers, llmLeviersVersion: LEVIERS_PREDICTION_VERSION })
+      .where(eq(mecProjetsOperationnels.id, projetId));
+
+    this.logger.log(
+      `Successfully predicted ${llmLeviers.length} leviers for MEC projet ${projetId} (version ${LEVIERS_PREDICTION_VERSION})`,
+    );
   }
 
   private async classifyFicheAction(ficheActionId: string): Promise<void> {

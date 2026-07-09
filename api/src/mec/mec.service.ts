@@ -18,6 +18,7 @@ import { uuidv7 } from "uuidv7";
 import {
   PROJECT_QUALIFICATION_QUEUE_NAME,
   PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
+  PROJECT_QUALIFICATION_LEVIERS_JOB,
 } from "@/projet-qualification/const";
 
 @Injectable()
@@ -88,9 +89,10 @@ export class MecService {
 
       await db.update(mecProjetsOperationnels).set(fieldsToSet).where(eq(mecProjetsOperationnels.id, projetId));
 
-      // Schedule classification if content changed
+      // Schedule classification + leviers prediction if content changed
       if (existing && existing.contentHash !== contentHash) {
         this.scheduleClassification(projetId);
+        this.scheduleLeviersPrediction(projetId);
       }
     } else {
       projetId = uuidv7();
@@ -110,6 +112,9 @@ export class MecService {
       if (!dto.classificationThematiques || dto.classificationThematiques.length === 0) {
         this.scheduleClassification(projetId);
       }
+      // Leviers : toujours prédire, même si leviers_sgpe est fourni. Les deux familles
+      // coexistent (leviers_sgpe = déclaratif MEC, llm_leviers = prédiction), provenance distincte.
+      this.scheduleLeviersPrediction(projetId);
     }
 
     // 5. Upsert plans and link them
@@ -378,6 +383,17 @@ export class MecService {
       .catch((err) =>
         this.logger.error(
           `Failed to schedule classification for MEC projet ${projetId}: ${err instanceof Error ? err.message : String(err)}`,
+        ),
+      );
+  }
+
+  private scheduleLeviersPrediction(projetId: string): void {
+    this.qualificationQueue
+      .add(PROJECT_QUALIFICATION_LEVIERS_JOB, { projetId, schema: "data_mec" })
+      .then(() => this.logger.log(`Leviers prediction scheduled for MEC projet ${projetId}`))
+      .catch((err) =>
+        this.logger.error(
+          `Failed to schedule leviers prediction for MEC projet ${projetId}: ${err instanceof Error ? err.message : String(err)}`,
         ),
       );
   }

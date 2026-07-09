@@ -72,3 +72,9 @@ export const leviers = [
   "Intégration de l’élévation du niveau des mers dans l’aménagement du littoral",
   "Préservation des sites culturels et patrimoniaux",
 ] as const;
+
+// Version des prédictions LLM de leviers, écrite dans data_mec.llm_leviers_version à
+// chaque prédiction. Partagée entre le worker (temps réel) et le batch de stock (pipeline)
+// pour que le re-run « prompt v2 » de la rentrée soit un remplacement propre, pas un mélange
+// de générations. À incrémenter quand le prompt ou le modèle de leviers change.
+export const LEVIERS_PREDICTION_VERSION = "v1";
