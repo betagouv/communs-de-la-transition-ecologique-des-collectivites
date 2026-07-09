@@ -102,6 +102,13 @@ export const mecProjetsOperationnels = dataMecSchema.table(
     }>(),
     probabiliteTe: doublePrecision("probabilite_te"),
 
+    // Leviers predicted by the LLM ([{ label, score }], scores [0,1]) — written by the
+    // leviers qualification job. DISTINCT from declarative leviersSgpe (never overwritten).
+    // llmLeviersVersion tags the model/prompt version for clean "prompt v2" re-runs; it is
+    // internal provenance and is NOT exposed by the API.
+    llmLeviers: jsonb("llm_leviers").$type<{ label: string; score: number }[]>(),
+    llmLeviersVersion: text("llm_leviers_version"),
+
     // CRTE first-class fields
     crteId: text("crte_id"),
     crteAnneeInscription: integer("crte_annee_inscription"),
