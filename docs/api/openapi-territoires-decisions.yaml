@@ -180,6 +180,36 @@ paths:
                       properties:
                         label: { type: string }
                         score: { type: number }
+                  llmSites:
+                    type: array
+                    nullable: true
+                    description: Taxonomie des sites (60 labels)
+                    items:
+                      type: object
+                      properties:
+                        label: { type: string }
+                        score: { type: number }
+                  llmInterventions:
+                    type: array
+                    nullable: true
+                    description: Taxonomie des interventions (15 labels)
+                    items:
+                      type: object
+                      properties:
+                        label: { type: string }
+                        score: { type: number }
+                  llmLeviers:
+                    type: array
+                    nullable: true
+                    description: >-
+                      Leviers prédits par nos modèles (scores 0–1). Distinct de leviersSgpe
+                      (déclaratif MEC) : filtrez selon vos seuils. null tant que la prédiction
+                      n'a pas été livrée par le pipeline.
+                    items:
+                      type: object
+                      properties:
+                        label: { type: string }
+                        score: { type: number }
                   llmProbabiliteTe: { type: number, nullable: true }
                   llmClassifiedAt: { type: string, format: date-time, nullable: true }
           description: Qualification

@@ -229,13 +229,16 @@ describe("TerritoiresService", () => {
       await expect(service.qualification("mec-orphan")).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it("découpe les leviers, normalise proba et date pour un external_id connu", async () => {
+    it("découpe les leviers, normalise proba et date, expose sites/interventions/leviers LLM", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
       execute.mockResolvedValueOnce({
         rows: [
           {
             leviersSgpe: "Vélo,Covoiturage",
             llmThematiques: [{ label: "Mobilité", score: 0.9 }],
+            llmSites: [{ label: "Voirie", score: 0.8 }],
+            llmInterventions: [{ label: "Aménagement", score: 0.7 }],
+            llmLeviers: [{ label: "Vélo", score: 0.95 }],
             llmProbabiliteTe: 0.87,
             llmClassifiedAt: new Date("2026-07-01T08:00:00.000Z"),
           },
@@ -249,8 +252,41 @@ describe("TerritoiresService", () => {
         projetId: "proj-uuid",
         leviersSgpe: ["Vélo", "Covoiturage"],
         llmThematiques: [{ label: "Mobilité", score: 0.9 }],
+        llmSites: [{ label: "Voirie", score: 0.8 }],
+        llmInterventions: [{ label: "Aménagement", score: 0.7 }],
+        llmLeviers: [{ label: "Vélo", score: 0.95 }],
         llmProbabiliteTe: 0.87,
         llmClassifiedAt: "2026-07-01T08:00:00.000Z",
+      });
+    });
+
+    it("renvoie llmLeviers null quand la colonne pipeline est absente (to_jsonb → null)", async () => {
+      selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
+      // La colonne llm_leviers n'existe pas encore dans schema_commun_v2 : to_jsonb(p) ->
+      // 'llm_leviers' renvoie NULL, jamais de 500.
+      execute.mockResolvedValueOnce({
+        rows: [
+          {
+            leviersSgpe: null,
+            llmThematiques: null,
+            llmSites: null,
+            llmInterventions: null,
+            llmLeviers: null,
+            llmProbabiliteTe: null,
+            llmClassifiedAt: null,
+          },
+        ],
+      });
+
+      const result = await service.qualification("mec-123");
+
+      expect(result).toMatchObject({
+        externalId: "mec-123",
+        projetId: "proj-uuid",
+        leviersSgpe: [],
+        llmLeviers: null,
+        llmProbabiliteTe: null,
+        llmClassifiedAt: null,
       });
     });
   });

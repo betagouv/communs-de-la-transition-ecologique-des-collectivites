@@ -636,8 +636,9 @@ export class TerritoiresService {
   }
 
   /**
-   * Qualification LLM d'un projet MEC (résolu via son external_id) :
-   * leviers SGPE, thématiques LLM, probabilité TE et date de classification.
+   * Qualification LLM d'un projet MEC (résolu via son external_id) : leviers SGPE
+   * (déclaratif), leviers/sites/interventions/thématiques prédits par nos modèles,
+   * probabilité TE et date de classification.
    */
   async qualification(externalId: string): Promise<QualificationResponse> {
     const projetId = await this.resolveMecProjetId(externalId);
@@ -645,16 +646,26 @@ export class TerritoiresService {
     const [row] = await this.query<{
       leviersSgpe: string | null;
       llmThematiques: unknown;
+      llmSites: unknown;
+      llmInterventions: unknown;
+      llmLeviers: unknown;
       llmProbabiliteTe: number | string | null;
       llmClassifiedAt: Date | string | null;
     }>(sql`
       SELECT
-        "leviersSgpe" AS "leviersSgpe",
-        llm_thematiques AS "llmThematiques",
-        llm_probabilite_te AS "llmProbabiliteTe",
-        llm_classified_at AS "llmClassifiedAt"
-      FROM schema_commun_v2.projets_operationnels
-      WHERE id = ${projetId}
+        p."leviersSgpe" AS "leviersSgpe",
+        p.llm_thematiques AS "llmThematiques",
+        p.llm_sites AS "llmSites",
+        p.llm_interventions AS "llmInterventions",
+        -- llm_leviers est créée dans schema_commun_v2 côté pipeline (ETL), potentiellement
+        -- APRÈS ce déploiement API. to_jsonb(p) -> 'llm_leviers' renvoie NULL si la colonne
+        -- est absente (aucune erreur), la valeur jsonb sinon : lecture défensive sans requête
+        -- d'existence de colonne — jamais de 500, champ null tant que le pipeline n'a pas livré.
+        to_jsonb(p) -> 'llm_leviers' AS "llmLeviers",
+        p.llm_probabilite_te AS "llmProbabiliteTe",
+        p.llm_classified_at AS "llmClassifiedAt"
+      FROM schema_commun_v2.projets_operationnels p
+      WHERE p.id = ${projetId}
       LIMIT 1
     `);
 
@@ -669,6 +680,9 @@ export class TerritoiresService {
       projetId,
       leviersSgpe: splitLeviersCsv(row.leviersSgpe ?? null),
       llmThematiques: row.llmThematiques ?? null,
+      llmSites: row.llmSites ?? null,
+      llmInterventions: row.llmInterventions ?? null,
+      llmLeviers: row.llmLeviers ?? null,
       llmProbabiliteTe: row.llmProbabiliteTe != null ? Number(row.llmProbabiliteTe) : null,
       llmClassifiedAt: this.toIso(row.llmClassifiedAt ?? null),
     };
