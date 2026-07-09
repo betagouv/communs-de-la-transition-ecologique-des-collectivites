@@ -173,8 +173,10 @@ curl -H "$AUTH" "$BASE/projets/mec/48345/qualification"
 - **`leviersSgpe`** : leviers **transmis par MEC** (déclaratif). Historique : cette colonne peut
   contenir d'anciennes prédictions LLM fusionnées au déclaratif en avril 2026 ; nous n'y écrivons
   jamais nos prédictions.
-- **`llmLeviers`** : leviers **prédits par nos modèles**, avec un `score` (0–1). **Filtrez selon vos
-  seuils.** `null` tant que la prédiction n'a pas été livrée par le pipeline (déploiement ordonné).
+- **`llmLeviers`** : leviers **prédits par nos modèles**, avec un `score` **brut** (0–1). Tous les
+  leviers valides sont exposés **sans pré-filtrage** — c'est à vous de couper : **filtrez selon vos
+  seuils.** Le seuil de référence (équivalent du flux historique) est `score > 0,7`. `null` tant que
+  la prédiction n'a pas été livrée par le pipeline (déploiement ordonné).
   ⚠ **Limite v1 (connue) :** biais sur les projets à dominante **adaptation** — un même projet peut
   relever de leviers différents selon l'axe réduction/adaptation retenu ; un raffinement du prompt
   est prévu (le champ portera alors une nouvelle version, remplacement propre côté pipeline).
