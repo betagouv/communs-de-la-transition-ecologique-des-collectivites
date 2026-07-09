@@ -157,10 +157,30 @@ curl -H "$AUTH" "$BASE/projets/mec/48345/qualification"
     { "label": "Audit ou travaux de rénovation énergétique tertiaire", "score": 0.97 },
     { "label": "Sobriété énergétique", "score": 0.72 },
   ],
+  "llmSites": [{ "label": "Bâtiment tertiaire", "score": 0.94 }],
+  "llmInterventions": [{ "label": "Rénovation / réhabilitation", "score": 0.9 }],
+  "llmLeviers": [
+    { "label": "Rénovation (hors changement chaudières)", "score": 0.88 },
+    { "label": "Sobriété des bâtiments (tertiaire)", "score": 0.74 },
+  ],
   "llmProbabiliteTe": 0.82,
   "llmClassifiedAt": "2026-05-06T13:00:06Z",
 }
 ```
+
+**Provenance des champs** — deux familles à ne pas confondre :
+
+- **`leviersSgpe`** : leviers **transmis par MEC** (déclaratif). Historique : cette colonne peut
+  contenir d'anciennes prédictions LLM fusionnées au déclaratif en avril 2026 ; nous n'y écrivons
+  jamais nos prédictions.
+- **`llmLeviers`** : leviers **prédits par nos modèles**, avec un `score` (0–1). **Filtrez selon vos
+  seuils.** `null` tant que la prédiction n'a pas été livrée par le pipeline (déploiement ordonné).
+  ⚠ **Limite v1 (connue) :** biais sur les projets à dominante **adaptation** — un même projet peut
+  relever de leviers différents selon l'axe réduction/adaptation retenu ; un raffinement du prompt
+  est prévu (le champ portera alors une nouvelle version, remplacement propre côté pipeline).
+- **`llmThematiques` / `llmSites` / `llmInterventions`** : classifications prédites `[{ label, score }]`.
+  `llmSites` suit la taxonomie des **sites** (60 labels), `llmInterventions` celle des **interventions**
+  (15 labels).
 
 `404` si l'`externalId` est inconnu (projet non encore synchronisé via le webhook).
 
