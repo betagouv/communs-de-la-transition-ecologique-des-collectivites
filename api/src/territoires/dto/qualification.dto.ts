@@ -17,6 +17,28 @@ export class QualificationResponse {
   })
   llmThematiques!: unknown;
 
+  @ApiPropertyOptional({
+    type: Object,
+    nullable: true,
+    description: "Sites LLM (jsonb tel quel : [{ label, score }] — taxonomie des sites, 60 labels).",
+  })
+  llmSites!: unknown;
+
+  @ApiPropertyOptional({
+    type: Object,
+    nullable: true,
+    description: "Interventions LLM (jsonb tel quel : [{ label, score }] — taxonomie des interventions, 15 labels).",
+  })
+  llmInterventions!: unknown;
+
+  @ApiPropertyOptional({
+    type: Object,
+    nullable: true,
+    description:
+      "Leviers prédits par nos modèles (jsonb : [{ label, score }], scores 0–1). Distinct de leviersSgpe (déclaratif MEC) : filtrez selon vos seuils. null tant que la prédiction n'a pas été livrée.",
+  })
+  llmLeviers!: unknown;
+
   @ApiPropertyOptional({ type: Number, nullable: true, description: "Probabilité de transition écologique (0–1)." })
   llmProbabiliteTe!: number | null;
 
