@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.103](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.102...v0.1.103) (2026-07-10)
+
+
+### Features
+
+* contrat de décisions v2 (taxonomie fermée + effets référentiel) ([e5401b7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e5401b72f377d15a50ce1097a6c3b1d5111277e5))
+* doctrine d'accès aux données (data_scopes) + miroir + fix presentDansTet ([9d0a225](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/9d0a2259f2be4a9ab6c83f7e13d95a2d9d857aa3))
+* endpoint miroir plans/{cle}/projets-territoire (sens TeT) ([2ed64cc](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2ed64cc878f20ed737579fb9dfb8d525d00f6793))
+* exposer sites, interventions et leviers llm sur le get qualification mec ([1538aeb](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/1538aeb57b41b0a1c9087835f4f0ad954630e8b2))
+* prédire les leviers des projets mec dans data_mec ([e42450a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e42450ad05ccb8bf47f585a814227fc2be77bed9))
+* verdict 'annule' pour révoquer une décision (amendement contrat) ([9d0eeed](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/9d0eeedec0e472dd4fa849ad5ad03c71c76419cd))
+
+
+### Bug Fixes
+
+* attentes des specs services après l'ajout de data_scopes ([7af5a58](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/7af5a58d91d5936e21d32e838f59fcac5e102e6c)), closes [#513](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/513)
+* durcir décisions v2 suite à la revue (supersedes, départage, filtres) ([774c967](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/774c967169c27caa5c74d8e7965e3117f342bb4d)), closes [#511](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/511)
+* fiabiliser l'enqueue leviers mec (retry, purge, nom de job distinct, patch) ([f0c1842](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f0c1842a39b289eab012d8452272f68d265cffd3))
+* retirer dataScopes de l'attente du create de service context ([bbd3ff4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/bbd3ff49e97d45ff90b4176f0b66650739391189)), closes [#516](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/516)
+
 ## [0.1.102](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.101...v0.1.102) (2026-07-08)
 
 
