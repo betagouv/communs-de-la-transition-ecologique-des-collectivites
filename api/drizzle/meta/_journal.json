@@ -316,6 +316,13 @@
       "when": 1783946262273,
       "tag": "0044_services_numeriques",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1783950183421,
+      "tag": "0045_services_profil_generaliste",
+      "breakpoints": true
     }
   ]
 }

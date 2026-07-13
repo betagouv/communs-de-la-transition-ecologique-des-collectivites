@@ -51,7 +51,8 @@
     "db:studio": "drizzle-kit studio",
     "db:studio:staging": "cross-env NODE_ENV=staging drizzle-kit studio",
     "sentry:sourcemaps": "sentry-cli --url https://sentry.incubateur.net/ sourcemaps inject --org betagouv --project communs-de-la-transition-eco-api ./dist && sentry-cli --url https://sentry.incubateur.net/ sourcemaps upload --org betagouv --project communs-de-la-transition-eco-api ./dist",
-    "logos:fetch": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/import-benchmark-dinum/fetch-logos.ts"
+    "logos:fetch": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/import-benchmark-dinum/fetch-logos.ts",
+    "classify:services": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/import-benchmark-dinum/classify-services.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",
@@ -74,12 +75,14 @@
     "class-validator": "^0.14.1",
     "cors": "^2.8.5",
     "csv-parse": "^5.6.0",
+    "csv-stringify": "^6.8.1",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.0",
     "drizzle-orm": "^0.42.0",
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",
     "http-proxy-middleware": "^3.0.3",
+    "ioredis": "^5.8.2",
     "openapi-fetch": "^0.15.0",
     "path-to-regexp": "^8.2.0",
     "pg": "^8.14.1",
@@ -87,8 +90,7 @@
     "rxjs": "^7.8.2",
     "unzipper": "^0.12.3",
     "uuidv7": "^1.0.2",
-    "winston": "^3.17.0",
-    "ioredis": "^5.8.2"
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.6",

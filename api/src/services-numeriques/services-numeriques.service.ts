@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { servicesNumeriques } from "@database/schema";
 import { AidesMatchingService } from "@/aides/aides-matching.service";
@@ -32,6 +31,17 @@ function absolutiser(chemin: string | null, baseUrl: string): string | undefined
   return chemin.startsWith("/") ? `${baseUrl}${chemin}` : chemin;
 }
 
+/**
+ * `undefined` quand le benchmark ne dit rien — et il se tait souvent : 51 lignes sur 125 ne
+ * sont pas renseignées. « Non renseigné » n'est pas « non » : le client doit pouvoir
+ * distinguer « ce service ne convient pas à un généraliste » de « on n'en sait rien ».
+ */
+function ternaireVersBooleen(valeur: string | null): boolean | undefined {
+  if (valeur === "oui") return true;
+  if (valeur === "non") return false;
+  return undefined;
+}
+
 @Injectable()
 export class ServicesNumeriquesService {
   constructor(
@@ -49,21 +59,20 @@ export class ServicesNumeriquesService {
   async findForProjet(projetId: string, baseUrl: string): Promise<ProjetServicesResponse> {
     const { projet } = await this.getProjetsService.findOneWithSource(projetId);
 
-    // 1. CURATION — le benchmark porte 125 services, 28 seulement sont « À intégrer MEC ».
-    const cures = await this.dbService.database
-      .select()
-      .from(servicesNumeriques)
-      .where(eq(servicesNumeriques.aIntegrerMec, "oui"));
+    // Aucun verrou de curation : c'est le SCORE seul qui décide, comme pour les aides et les
+    // questionnaires. Les 51 lignes non renseignées du benchmark (ni thématique, ni catégorie)
+    // s'éliminent d'elles-mêmes — leur score est nul et elles ne sont pas génériques.
+    const catalogue = await this.dbService.database.select().from(servicesNumeriques);
 
-    const scores = this.scorer(projet, cures);
+    const scores = this.scorer(projet, catalogue);
 
-    // 2. PERTINENCE — au-dessus du seuil, trié par score décroissant.
+    // 1. PERTINENCE — au-dessus du seuil, trié par score décroissant.
     const pertinents = scores.filter((s) => s.score >= SEUIL_PERTINENCE).sort((a, b) => b.score - a.score);
 
-    // 3. FALLBACK — les services transverses (« à présenter dans une présentation générique »)
-    //    remontent même sans correspondance fine, APRÈS les pertinents. Sans cela, les 7
-    //    services curés dépourvus de thématique fine ne seraient jamais affichés, et un projet
-    //    non encore classifié ne verrait aucun service du tout.
+    // 2. FALLBACK — les services transverses (« à présenter dans une présentation générique »)
+    //    remontent même sans correspondance fine, APRÈS les pertinents. Sans cela, les services
+    //    dépourvus de thématique fine ne seraient jamais affichés, et un projet non encore
+    //    classifié ne verrait aucun service du tout.
     const generiques = scores
       .filter((s) => s.score < SEUIL_PERTINENCE && s.ligne.presentationGenerique === "oui")
       .sort((a, b) => b.score - a.score || a.ligne.nom.localeCompare(b.ligne.nom));
@@ -94,9 +103,14 @@ export class ServicesNumeriquesService {
   }
 
   /**
-   * Projection vers le contrat public : uniquement les champs d'affichage. N'exposent JAMAIS
-   * les critères de sélection ni de curation — `classification`, `phases`, `aIntegrerMec`,
-   * `presentationGenerique` n'ont aucun équivalent dans le DTO (§1 et §9 de la spec).
+   * Projection vers le contrat public.
+   *
+   * Les CRITÈRES DE SÉLECTION ne franchissent jamais la frontière : `classification`, `phases`
+   * et `presentationGenerique` n'ont aucun équivalent dans le DTO (§1 et §9 de la spec).
+   *
+   * `profilGeneraliste`, lui, est exposé — parce que ce n'en est plus un : il ne décide plus
+   * de rien côté serveur, il décrit le service (utilisable par un non-spécialiste ?) au même
+   * titre que `niveauExpertise`. Le client peut donc filtrer dessus sans dupliquer de règle.
    */
   private toResponse(l: LigneCatalogue, baseUrl: string): ServiceResponse {
     return {
@@ -109,6 +123,7 @@ export class ServicesNumeriquesService {
       categories: l.categories as Categorie[],
       niveauExpertise: (l.niveauExpertise as NiveauExpertise | null) ?? undefined,
       thematiques: l.classification.thematiques.map((t) => t.label),
+      profilGeneraliste: ternaireVersBooleen(l.profilGeneraliste),
       operateur: l.operateur ?? undefined,
       redirection: l.redirectionUrl ? { url: l.redirectionUrl, libelle: l.redirectionLibelle ?? undefined } : undefined,
       iframe: l.iframeUrl ? { url: l.iframeUrl, libelle: l.iframeLibelle ?? undefined } : undefined,

@@ -15,7 +15,8 @@ import { join } from "path";
  */
 
 interface Source {
-  type: "service" | "operateur";
+  /** `externe` : logo NON rapatrié (site inaccessible aux robots) — l'URL est utilisée telle quelle. */
+  type: "service" | "operateur" | "externe";
   url: string;
   note?: string;
 }
@@ -29,8 +30,17 @@ const EXTENSIONS: Record<string, string> = {
 
 const DESTINATION = join(process.cwd(), "public", "logos", "services");
 
+// Certains sites (iqair.com derrière un checkpoint Vercel) renvoient 429 à un client sans
+// User-Agent. Ce sont des assets publics servis à n'importe quel navigateur : on se présente
+// comme tel plutôt que de renoncer.
+const ENTETES = {
+  "User-Agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+  Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+};
+
 async function telecharger(slug: string, source: Source): Promise<string> {
-  const reponse = await fetch(source.url, { redirect: "follow" });
+  const reponse = await fetch(source.url, { redirect: "follow", headers: ENTETES });
   if (!reponse.ok) {
     throw new Error(`HTTP ${reponse.status}`);
   }
@@ -67,6 +77,11 @@ async function main(): Promise<void> {
   for (const [slug, source] of Object.entries(sources)) {
     if (slug.startsWith("_")) continue; // clé de documentation
     const s = source as Source;
+
+    if (s.type === "externe") {
+      console.log(`  – ${slug} — non rapatriable (${s.note?.split(":")[0] ?? "site inaccessible aux robots"})`);
+      continue;
+    }
 
     try {
       const resultat = await telecharger(slug, s);

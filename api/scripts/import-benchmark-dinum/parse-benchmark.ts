@@ -28,7 +28,7 @@ export interface ServiceImporte {
   categories: Categorie[];
   niveauExpertise: NiveauExpertise | null;
   thematiquePrincipale: string | null;
-  aIntegrerMec: Ternaire | null;
+  profilGeneraliste: Ternaire | null;
   presentationGenerique: Ternaire | null;
   classification: AideClassification;
   phases: PoidsParPhase;
@@ -222,7 +222,11 @@ export function parserLigne(ligne: Record<string, string>): ServiceImporte | nul
     categories: construireCategories(ligne),
     niveauExpertise: niveau(ligne["Niveau d’expertise technique"]),
     thematiquePrincipale: texte(ligne["Thématique principale"]),
-    aIntegrerMec: ternaire(ligne["A intégrer MEC"] ?? ""),
+    // La colonne du benchmark s'appelle encore « A intégrer MEC » — c'est la donnée du
+    // partenaire, on ne la renomme pas chez lui. Mais chez nous elle décrit une propriété du
+    // SERVICE (utilisable par un non-spécialiste ?), pas une décision sur MEC : c'est ce
+    // renommage qui autorise à l'exposer sans faire traverser un critère de sélection.
+    profilGeneraliste: ternaire(ligne["A intégrer MEC"] ?? ""),
     presentationGenerique: ternaire(ligne["À présenter dans une présentation générique et peu contextualisée ?"] ?? ""),
     classification: construireClassification({
       thematiquesPrincipales: ligne["Thématiques principales"] ?? "",

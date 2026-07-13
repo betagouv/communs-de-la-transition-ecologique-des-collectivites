@@ -345,9 +345,14 @@ export const servicesNumeriques = pgTable(
     /** Vocabulaire GROSSIER du benchmark (« Gestion de l'eau »…) : affichage/filtre, jamais matching. */
     thematiquePrincipale: text("thematique_principale"),
 
-    // Curation
-    /** oui | non | eventuellement — seuls les `oui` sont proposés (§8.1). */
-    aIntegrerMec: text("a_integrer_mec"),
+    /**
+     * oui | non | eventuellement — le service est-il utilisable par un agent NON SPÉCIALISTE ?
+     *
+     * Ce n'est PAS un critère de sélection : c'est une propriété du service, au même titre que
+     * `niveauExpertise`. Elle est donc exposée, et le client peut filtrer dessus. (Anciennement
+     * « À intégrer MEC », qui servait de verrou de curation — cf. migration 0045.)
+     */
+    profilGeneraliste: text("profil_generaliste"),
     /** oui | non | eventuellement — remonte en fallback même sans correspondance fine (§8.3). */
     presentationGenerique: text("presentation_generique"),
 
@@ -376,7 +381,7 @@ export const servicesNumeriques = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => [index("services_numeriques_a_integrer_mec_idx").on(t.aIntegrerMec)],
+  (t) => [index("services_numeriques_profil_generaliste_idx").on(t.profilGeneraliste)],
 );
 
 // Re-export sub-schemas so DatabaseService picks up all tables

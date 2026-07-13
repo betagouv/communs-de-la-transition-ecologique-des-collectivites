@@ -15,6 +15,7 @@ interface Service {
   categories: string[];
   thematiques: string[];
   niveauExpertise?: string;
+  profilGeneraliste?: boolean;
   redirection?: { url: string; libelle?: string };
 }
 interface CorpsServices {
@@ -37,7 +38,7 @@ const service = (over: Partial<typeof servicesNumeriques.$inferInsert> & { slug:
   description: `Description de ${over.nom}`,
   redirectionUrl: `https://exemple.gouv.fr/${over.slug}`,
   categories: ["expert"],
-  aIntegrerMec: "oui",
+  profilGeneraliste: "oui",
   presentationGenerique: "non",
   classification: { thematiques: [], sites: [], interventions: [] } as AideClassification,
   phases: {},
@@ -80,18 +81,50 @@ describe("Services numériques (e2e)", () => {
     await global.testDbService.cleanDatabase();
   });
 
-  describe("Curation", () => {
-    it("ne propose que les services « À intégrer MEC = oui »", async () => {
+  describe("Catalogue", () => {
+    it("propose TOUS les services qui scorent, sans verrou de curation", async () => {
+      // Il n'y a plus de gate « À intégrer MEC » : profilGeneraliste ne décide plus de rien
+      // côté serveur, c'est le score seul qui sélectionne.
       await global.testDbService.database
         .insert(servicesNumeriques)
         .values([
-          service({ slug: "retenu", nom: "Retenu", classification: EAU }),
-          service({ slug: "ecarte", nom: "Écarté", classification: EAU, aIntegrerMec: "non" }),
-          service({ slug: "peut-etre", nom: "Peut-être", classification: EAU, aIntegrerMec: "eventuellement" }),
+          service({ slug: "generaliste", nom: "Généraliste", classification: EAU, profilGeneraliste: "oui" }),
+          service({ slug: "expert-pointu", nom: "Expert pointu", classification: EAU, profilGeneraliste: "non" }),
+          service({ slug: "inconnu", nom: "Non renseigné", classification: EAU, profilGeneraliste: null }),
         ]);
       const projetId = await creerProjet(EAU);
 
-      expect((await getServices(projetId)).map((s) => s.id)).toEqual(["retenu"]);
+      expect((await getServices(projetId)).map((s) => s.id).sort()).toEqual([
+        "expert-pointu",
+        "generaliste",
+        "inconnu",
+      ]);
+    });
+
+    it("expose profilGeneraliste pour que le client puisse filtrer", async () => {
+      await global.testDbService.database
+        .insert(servicesNumeriques)
+        .values([
+          service({ slug: "generaliste", nom: "Généraliste", classification: EAU, profilGeneraliste: "oui" }),
+          service({ slug: "expert-pointu", nom: "Expert pointu", classification: EAU, profilGeneraliste: "non" }),
+        ]);
+      const projetId = await creerProjet(EAU);
+
+      const parId = new Map((await getServices(projetId)).map((s) => [s.id, s]));
+
+      expect(parId.get("generaliste")!.profilGeneraliste).toBe(true);
+      expect(parId.get("expert-pointu")!.profilGeneraliste).toBe(false);
+    });
+
+    it("distingue « pas un profil généraliste » de « on n'en sait rien »", async () => {
+      // 51 lignes sur 125 ne renseignent pas la colonne. Confondre l'absence d'information
+      // avec un « non » ferait disparaître ces services d'un filtre légitime.
+      await global.testDbService.database
+        .insert(servicesNumeriques)
+        .values([service({ slug: "inconnu", nom: "Non renseigné", classification: EAU, profilGeneraliste: null })]);
+      const projetId = await creerProjet(EAU);
+
+      expect((await getServices(projetId))[0].profilGeneraliste).toBeUndefined();
     });
 
     it("exige une clé d'API valide", async () => {
@@ -210,16 +243,14 @@ describe("Services numériques (e2e)", () => {
     it("rend absolue l'URL d'un logo hébergé par l'API", async () => {
       // En base, le logo est un chemin relatif : le catalogue ne connaît pas le domaine sur
       // lequel il tourne. S'il sortait tel quel, MEC le chercherait sur SON propre domaine.
-      await global.testDbService.database
-        .insert(servicesNumeriques)
-        .values([
-          service({
-            slug: "benefriches",
-            nom: "Bénéfriches",
-            classification: EAU,
-            logoUrl: "/logos/services/benefriches.svg",
-          }),
-        ]);
+      await global.testDbService.database.insert(servicesNumeriques).values([
+        service({
+          slug: "benefriches",
+          nom: "Bénéfriches",
+          classification: EAU,
+          logoUrl: "/logos/services/benefriches.svg",
+        }),
+      ]);
       const projetId = await creerProjet(EAU);
 
       const [s] = await getServices(projetId);
@@ -267,7 +298,6 @@ describe("Services numériques (e2e)", () => {
 
       expect(charge).not.toContain("classification");
       expect(charge).not.toContain("phases");
-      expect(charge).not.toContain("aIntegrerMec");
       expect(charge).not.toContain("presentationGenerique");
       expect(charge).not.toContain("score");
     });

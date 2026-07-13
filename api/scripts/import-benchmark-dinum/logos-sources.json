@@ -6,20 +6,29 @@
     "on affiche le logo de son opérateur — c'est ce que fait son propre site.",
     "Les services absents de ce fichier n'ont AUCUN logo : leur marque est purement typographique (en-tête DSFR",
     "texte). On ne leur en invente pas ; MEC affichera une tuile texte.",
-    "Rafraîchir : pnpm logos:fetch"
+    "Rafraîchir : pnpm logos:fetch",
+    "`type: 'externe'` = logo NON rapatrié (site inaccessible aux robots). L'URL est utilisée telle quelle : c'est un hotlink, avec la fragilité que ça implique."
   ],
-
-  "benefriches": { "type": "service", "url": "https://benefriches.ademe.fr/img/logos/logo-benefriches-simple.svg" },
+  "benefriches": {
+    "type": "service",
+    "url": "https://benefriches.ademe.fr/img/logos/logo-benefriches-simple.svg"
+  },
   "france-chaleur-urbaine": {
     "type": "service",
     "url": "https://france-chaleur-urbaine.beta.gouv.fr/FCU_logo_Monogramme.svg"
   },
-  "plus-fraiche-ma-ville": { "type": "service", "url": "https://plusfraichemaville.fr/images/logo-pfmv-seul.svg" },
+  "plus-fraiche-ma-ville": {
+    "type": "service",
+    "url": "https://plusfraichemaville.fr/images/logo-pfmv-seul.svg"
+  },
   "urbanvitaliz": {
     "type": "service",
     "url": "https://urbanvitaliz.fr/media/images/1/logo/large-logo_UV_haut_2026_meyXWMh.png"
   },
-  "sos-ponts": { "type": "service", "url": "https://sosponts.recoconseil.fr/media/images/4/logo/large-sosponts.png" },
+  "sos-ponts": {
+    "type": "service",
+    "url": "https://sosponts.recoconseil.fr/media/images/4/logo/large-sosponts.png"
+  },
   "zero-logement-vacant": {
     "type": "service",
     "url": "https://zlv.beta.gouv.fr/assets/zlv-BeNm-OSb.svg",
@@ -51,7 +60,10 @@
     "type": "service",
     "url": "https://www.geoportail-urbanisme.gouv.fr/build/gpu/images/logos/logo-gpu.png?v6.1.14"
   },
-  "j-agis": { "type": "service", "url": "https://jagis.beta.gouv.fr/logo-jagis.svg" },
+  "j-agis": {
+    "type": "service",
+    "url": "https://jagis.beta.gouv.fr/logo-jagis.svg"
+  },
   "france-villes-et-territoires-durables": {
     "type": "service",
     "url": "https://francevilledurable.fr/wp-content/themes/fvd/resources/assets/images/header-logo.png"
@@ -65,12 +77,14 @@
     "type": "service",
     "url": "https://ma-cantine.agriculture.gouv.fr/static/images/ma-cantine-logo-light.svg"
   },
-  "cartofriches": { "type": "service", "url": "https://cartofriches.cerema.fr/cartofriches/logo.png" },
+  "cartofriches": {
+    "type": "service",
+    "url": "https://cartofriches.cerema.fr/cartofriches/logo.png"
+  },
   "mission-adaptation": {
     "type": "service",
     "url": "https://mission-adaptation.fr/media/images/13/logo/large-Mission_Adaptation.png"
   },
-
   "agirisk": {
     "type": "operateur",
     "url": "https://www.cerema.fr/themes/custom/uas_base/images/LogoCerema_horizontal.svg",
@@ -100,5 +114,192 @@
     "type": "operateur",
     "url": "https://mutafriches.beta.gouv.fr/images/logo-ademe.svg",
     "note": "Pas de marque propre : l'en-tête n'affiche que Marianne + ADEME."
+  },
+  "aides-territoire": {
+    "type": "service",
+    "url": "https://aides-territoires.beta.gouv.fr/build/images/logo/logo_AT_courbes.df8a2c11.svg"
+  },
+  "tacct": {
+    "type": "service",
+    "url": "https://tacct.ademe.fr/logo-tacct-generique-min.jpg",
+    "note": "Logo TACCT (og:image). Seul asset exposé."
+  },
+  "dialog": {
+    "type": "service",
+    "url": "https://dialog.beta.gouv.fr/images/logo.png",
+    "note": "PNG 88×88 : petit, mais c'est bien le logo du service."
+  },
+  "otelo": {
+    "type": "operateur",
+    "url": "https://otelo.developpement-durable.gouv.fr/staticfiles/outil/img/cerema.svg",
+    "note": "En-tête DSFR textuel : pas de marque propre. Logo Cerema (opérateur)."
+  },
+  "arboclimat": {
+    "type": "operateur",
+    "url": "https://data.ademe.fr/api/v1/portals/efWMeL1ZP/assets/logo?draft=false&hash=fit-2e58cae358.png",
+    "note": "Aucun logo ARBOClimat : seul le portail open data ADEME est identifié."
+  },
+  "la-boussole-de-la-resilience": {
+    "type": "operateur",
+    "url": "https://www.cerema.fr/themes/custom/uas_base/images/LogoCerema_horizontal.svg",
+    "note": "C'est une méthode (guide PDF), pas un service en ligne : aucune identité visuelle."
+  },
+  "cartobio": {
+    "type": "service",
+    "url": "https://www.agencebio.org/cartobio/assets/favicon.b4b898bb.svg",
+    "note": "Le logo d'en-tête est un SVG inliné dans le bundle JS. Ce SVG 260×260 est le seul asset autonome — vectoriel, donc utilisable."
+  },
+  "climadiag": {
+    "type": "service",
+    "url": "https://climadiag-commune.meteofrance.com/assets/logo_light_climadiag-DPIIBotL.png",
+    "note": "Trouvé dans le bundle de l'app réelle (climadiag-commune.meteofrance.com)."
+  },
+  "crater-territoires-fertiles": {
+    "type": "service",
+    "url": "https://territoiresfertiles.fr/favicon.svg",
+    "note": "crater.resiliencealimentaire.org redirige vers territoiresfertiles.fr, dont le logo d'en-tête est typographique (CSS). Ce SVG est le symbole de la marque."
+  },
+  "georisques": {
+    "type": "service",
+    "url": "https://www.georisques.gouv.fr/sites/default/files/styles/img_original/public/2022-09/logo_GR.png?itok=g7S_MZjP"
+  },
+  "european-drought-observatory": {
+    "type": "operateur",
+    "url": "https://drought.emergency.copernicus.eu/images/copernicus_eu_logo_full.svg",
+    "note": "Aucun logo EDO : seul le logo du programme Copernicus existe."
+  },
+  "geoclip-air": {
+    "type": "service",
+    "url": "https://france-decouverte.geoclip.fr/assets/banner800.png",
+    "note": "Bandeau d'en-tête contenant le logo — aucun logo isolé n'est exposé."
+  },
+  "georiviere": {
+    "type": "service",
+    "url": "https://georiviere.fr/assets/img/logo32_32.svg",
+    "note": "Nom de fichier trompeur : c'est bien le logo vectoriel complet."
+  },
+  "global-forest-watch": {
+    "type": "service",
+    "url": "https://www.globalforestwatch.org/assets/gfw.png",
+    "note": "Affiche désormais « Global Nature Watch » (rebranding en cours)."
+  },
+  "meteeau-nappes": {
+    "type": "service",
+    "url": "https://app.meteeaunappes.brgm.fr/assets/images/logo.png",
+    "note": "PNG 156×51 : petit, seule taille publiée."
+  },
+  "nos-villes-vertes": {
+    "type": "service",
+    "url": "https://www.nosvillesvertes.fr/_nuxt/Logo%20NVV.aa668982.png",
+    "note": "URL avec hash de build : cassera au prochain déploiement. D'où l'hébergement."
+  },
+  "observatoire-de-l-eau-sispea": {
+    "type": "service",
+    "url": "https://www.services.eaufrance.fr/_nuxt/img/fa5975d-227.png",
+    "note": "URL avec hash de build."
+  },
+  "portail-inpn": {
+    "type": "service",
+    "url": "https://inpn.mnhn.fr/Logos/INPN.png",
+    "note": "Le site est hors ligne depuis la cyberattaque du MNHN (2025) ; le logo reste servi par la page de maintenance."
+  },
+  "sirse": {
+    "type": "service",
+    "url": "https://sirse.atlasante.fr/assets/banner500h.png",
+    "note": "Bannière (atlaSanté + SIRSé), pas un logo isolé : la SPA n'expose rien d'autre."
+  },
+  "vigirisks": {
+    "type": "service",
+    "url": "https://vigirisks.fr/assets/images/logo.svg",
+    "note": "Le benchmark pointe vers brgm.fr ; le vrai domaine est vigirisks.fr."
+  },
+  "terristory": {
+    "type": "service",
+    "url": "https://terristory.fr/images/logo/logo-terristory.svg"
+  },
+  "minumeco-mission-interministerielle-numerique-ecoresponsable": {
+    "type": "service",
+    "url": "https://ecoresponsable.numerique.gouv.fr/img/logo.webp"
+  },
+  "application-murex": {
+    "type": "service",
+    "url": "https://www.cerema.fr/sites/default/files/images/paragraph/2019/06/logo-mrex.png"
+  },
+  "logiciel-conva": {
+    "type": "operateur",
+    "url": "https://www.cerema.fr/themes/custom/uas_base/images/LogoCerema_horizontal.svg",
+    "note": "Le lien du benchmark est MORT : l'outil a migré vers piles.cerema.fr. Aucun logo produit."
+  },
+  "climessences": {
+    "type": "service",
+    "url": "https://climessences.fr/sites/default/files/Logo%20Climessences.jpg"
+  },
+  "outil-faveur": {
+    "type": "operateur",
+    "url": "https://www.cerema.fr/themes/custom/uas_base/images/LogoCerema_horizontal.svg",
+    "note": "faveur.cerema.fr répond 503 — site hors service. Repli sur l'opérateur."
+  },
+  "indicateur-pluviometrique": {
+    "type": "operateur",
+    "url": "https://static.infoclimat.net/images/v5.1/logo_IC_5.1.png",
+    "note": "Logo de la plateforme Infoclimat, pas de l'indicateur."
+  },
+  "recolt-o": {
+    "type": "service",
+    "url": "https://recolto-territoires.makina-corpus.com/assets/logo_recolto_blanc.png",
+    "note": "ATTENTION : version BLANCHE sur transparent — invisible sur fond clair. Aucune version couleur publiée."
+  },
+  "satlcz": {
+    "type": "operateur",
+    "url": "https://www.cerema.fr/themes/custom/uas_base/images/LogoCerema_horizontal.svg",
+    "note": "Portail ArcGIS : aucun logo de service."
+  },
+  "vigieau": {
+    "type": "service",
+    "url": "https://vigieau.gouv.fr/logo_vigie_eau.svg",
+    "note": "Piège évité : l'og:image du site pointe vers la Marianne DSFR générique."
+  },
+  "logiciel-onde-v": {
+    "type": "operateur",
+    "url": "https://www.cerema.fr/themes/custom/uas_base/images/LogoCerema_horizontal.svg",
+    "note": "Aucun logo produit ; le lien produit certu-catalogue.fr est mort."
+  },
+  "aigle-lucca": {
+    "type": "service",
+    "url": "https://aigle.beta.gouv.fr/logo_small.png"
+  },
+  "iqair-airvisual-ap": {
+    "type": "externe",
+    "url": "https://www.iqair.com/dl/assets/logos/iqair-logo-red-black-2026.svg",
+    "note": "NON HÉBERGÉ : iqair.com est derrière une protection anti-bot (429 sur tout client non-navigateur). L'URL reste exploitable depuis un navigateur, elle est donc utilisée telle quelle — seul hotlink du catalogue, et donc le seul logo qui puisse casser sans prévenir."
+  },
+  "mon-espace-collectivite": {
+    "type": "service",
+    "url": "https://monespacecollectivite.incubateur.anct.gouv.fr/media/images/6/logo/large-large-mec-logo-full.png",
+    "note": "MEC figure dans son propre catalogue — à trancher côté produit."
+  },
+  "geodip": {
+    "type": "service",
+    "url": "https://geodip.onpe.org/img/geodip-logo.png"
+  },
+  "climurba": {
+    "type": "operateur",
+    "url": "https://www.cerema.fr/themes/custom/uas_base/images/LogoCerema_horizontal.svg",
+    "note": "climurba.cerema.fr est derrière une auth HTTP Basic : impossible d'inspecter le site. Repli sur l'opérateur."
+  },
+  "aldo": {
+    "type": "service",
+    "url": "https://aldo.territoiresentransitions.fr/static/images/logo_ALDO.png",
+    "note": "Le lien du benchmark (aldo-carbone.ademe.fr) redirige : l'URL canonique est aldo.territoiresentransitions.fr."
+  },
+  "climat-hd": {
+    "type": "operateur",
+    "url": "https://meteofrance.com/themes/custom/theme_public/dist/img/logo.svg",
+    "note": "Aucune identité visuelle propre à Climat HD : seul le logo Météo-France existe."
+  },
+  "appli-sesame": {
+    "type": "operateur",
+    "url": "https://sesame.cerema.fr/sites/sesame/files/logo_cerema_rf_fab-vertical_1.png",
+    "note": "Le logo Sésame n'existe qu'incrusté dans une illustration : aucun fichier isolé. Repli sur l'opérateur."
   }
 }
