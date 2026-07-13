@@ -52,7 +52,8 @@
     "db:studio:staging": "cross-env NODE_ENV=staging drizzle-kit studio",
     "sentry:sourcemaps": "sentry-cli --url https://sentry.incubateur.net/ sourcemaps inject --org betagouv --project communs-de-la-transition-eco-api ./dist && sentry-cli --url https://sentry.incubateur.net/ sourcemaps upload --org betagouv --project communs-de-la-transition-eco-api ./dist",
     "logos:fetch": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/import-benchmark-dinum/fetch-logos.ts",
-    "classify:services": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/import-benchmark-dinum/classify-services.ts"
+    "classify:services": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/import-benchmark-dinum/classify-services.ts",
+    "describe:services": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/import-benchmark-dinum/describe-services.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",
