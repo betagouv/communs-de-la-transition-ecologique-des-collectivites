@@ -1,10 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { CATEGORIES, NIVEAUX_EXPERTISE, type Categorie, type NiveauExpertise } from "../service-numerique-contract";
 
-// Sous-ensemble d'AFFICHAGE du catalogue interne. Les critères de sélection et de curation
-// (classification sur les 3 axes, phases, aIntegrerMec, presentationGenerique) n'ont ici
-// aucun équivalent : la frontière est structurelle, pas déclarative. Aucun critère de
-// sélection ne traverse la frontière (§1 de la spec).
+// Sous-ensemble d'AFFICHAGE du catalogue interne.
+//
+// Les CRITÈRES DE SÉLECTION n'ont ici aucun équivalent — classification sur les 3 axes, phases,
+// presentationGenerique : la frontière est structurelle, pas déclarative (§1 de la spec).
+//
+// `profilGeneraliste` et `niveauExpertise`, eux, SONT exposés : ce sont des propriétés du
+// service, pas des règles. Ils ne décident de rien côté serveur ; le client peut donc filtrer
+// dessus sans qu'aucune logique métier n'existe en deux exemplaires.
 
 export class LienResponse {
   @ApiProperty({ format: "uri" })
@@ -47,6 +51,15 @@ export class ServiceResponse {
 
   @ApiProperty({ type: [String], description: "Thématiques du service, dans la taxonomie du schéma commun." })
   thematiques!: string[];
+
+  @ApiPropertyOptional({
+    description:
+      "Le service est-il utilisable par un agent NON SPÉCIALISTE ? Propriété descriptive du " +
+      "service (comme `niveauExpertise`), et non un critère de sélection : elle ne décide de rien " +
+      "côté serveur. Le client peut filtrer dessus. Absent = le catalogue ne renseigne pas " +
+      "l'information — ce qui n'est pas la même chose que `false`.",
+  })
+  profilGeneraliste?: boolean;
 
   @ApiPropertyOptional()
   operateur?: string;
