@@ -1,0 +1,245 @@
+{
+  "questionnaireSlug": "atoutbiodiv-place",
+  "recommandations": [
+    {
+      "id": "desimperma",
+      "icone": "🏗️",
+      "titre": "Remplacer le bitume par des revêtements perméables",
+      "description": "Dalles alvéolées enherbées ou pavés drainants réduisent le ruissellement et abaissent la température estivale. Diminuent la dépendance aux réseaux d'évacuation et les coûts associés.",
+      "condition": {
+        "question": "quel-est-le-taux-d",
+        "parmi": ["tres-eleve-plus-de", "eleve-50-a-80"]
+      },
+      "financements": [
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Renaturation des espaces publics",
+          "description": "Financement direct de la désimperméabilisation des places et voiries communales.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/a086-financer-des-solutions-dadaptation-au-changem/"
+        },
+        {
+          "icone": "💧",
+          "libelle": "Agence de l'Eau — eaux pluviales",
+          "description": "Finance les solutions de gestion des eaux pluviales à la source.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=agence+eau+adour+eaux+pluviales"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🌡️",
+          "source": "ADEME",
+          "nom": "Plus fraîche ma ville — désimperméabilisation",
+          "description": "Outil d'aide à la décision pour choisir les revêtements perméables adaptés.",
+          "url": "https://www.plusfraichemaville.fr/"
+        },
+        {
+          "icone": "🏛️",
+          "source": "OFB / CEREMA",
+          "nom": "Guide renaturation des espaces publics",
+          "description": "Retours d'expériences sur la désimperméabilisation de places et parvis.",
+          "url": "https://ofb.gouv.fr/centres-de-ressources"
+        }
+      ],
+      "engagement": "Le revêtement de la place sera partiellement remplacé par des matériaux perméables (dalles alvéolées enherbées, pavés drainants) afin de limiter l'imperméabilisation et le ruissellement."
+    },
+    {
+      "id": "arbres",
+      "icone": "🌳",
+      "titre": "Planter des arbres de haute tige en pleine terre",
+      "description": "Chênes pubescents, micocouliers et érables créent de l'ombre et abaissent la température ressentie de 4 à 8°C en été. Valorisent le cœur de bourg et réduisent les îlots de chaleur.",
+      "condition": true,
+      "financements": [
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Renaturation",
+          "description": "Financement de la plantation d'arbres dans les espaces publics urbains.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        },
+        {
+          "icone": "🏗️",
+          "libelle": "DETR + Région Occitanie",
+          "description": "La plantation d'arbres locaux est éligible à la DETR et aux dispositifs régionaux.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=plantation+arbres+occitanie"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🌍",
+          "source": "ARB Occitanie",
+          "nom": "Essences locales pour espaces publics en Occitanie",
+          "description": "Sélection d'arbres et arbustes adaptés au contexte méditerranéen et sub-montagnard.",
+          "url": "https://www.arb-occitanie.fr/"
+        },
+        {
+          "icone": "🌡️",
+          "source": "ADEME",
+          "nom": "Plus fraîche ma ville — arbres en ville",
+          "description": "Bénéfices des arbres pour le rafraîchissement des espaces publics.",
+          "url": "https://www.plusfraichemaville.fr/"
+        }
+      ],
+      "engagement": "Le projet prévoit la plantation d'arbres de haute tige d'essences locales de la flore occitane (chêne pubescent, micocoulier) pour créer de l'ombrage et des refuges pour la faune."
+    },
+    {
+      "id": "corridor",
+      "icone": "🔗",
+      "titre": "Orienter les plantations vers les espaces verts adjacents",
+      "description": "En choisissant des espèces mellifères vers les parcs et jardins voisins, la place devient un maillon du réseau écologique local. Critère TVB valorisé en DETR.",
+      "condition": {
+        "question": "la-place-est-elle-connectee",
+        "parmi": ["oui-boisement-parc-haie", "oui-jardins-prives-et"]
+      },
+      "financements": [
+        {
+          "icone": "🏗️",
+          "libelle": "DETR — critère TVB majorant",
+          "description": "La connexion au corridor existant est un critère de bonification dans l'instruction DETR.",
+          "url": "https://monespacecollectivite.anct.gouv.fr"
+        },
+        {
+          "icone": "💧",
+          "libelle": "Agence de l'Eau — continuités",
+          "description": "Finance les actions de restauration des continuités écologiques.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=continuite+ecologique+adour"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🏛️",
+          "source": "OFB",
+          "nom": "Trame Verte et Bleue en milieu urbain",
+          "description": "Intégrer les continuités écologiques dans les projets d'espaces publics.",
+          "url": "https://ofb.gouv.fr/centres-de-ressources"
+        },
+        {
+          "icone": "🌍",
+          "source": "ARB Occitanie",
+          "nom": "Corridors écologiques urbains en Occitanie",
+          "description": "Retours d'expériences de communes occitanes sur la reconnexion des espaces verts.",
+          "url": "https://www.arb-occitanie.fr/"
+        }
+      ],
+      "engagement": "Les aménagements paysagers seront orientés pour créer une continuité écologique vers les espaces verts adjacents, en privilégiant les espèces mellifères et à baies."
+    },
+    {
+      "id": "eaux",
+      "icone": "💧",
+      "titre": "Gérer les eaux de pluie par des noues végétalisées",
+      "description": "Des noues paysagères en bordure de place captent et filtrent les eaux de pluie avant d'atteindre les réseaux. Réduisent les risques d'inondation et créent des micro-habitats humides.",
+      "condition": {
+        "question": "quel-est-le-taux-d",
+        "parmi": ["tres-eleve-plus-de", "eleve-50-a-80"]
+      },
+      "financements": [
+        {
+          "icone": "💧",
+          "libelle": "Agence de l'Eau — eaux pluviales",
+          "description": "Finance les solutions de gestion des eaux pluviales à la source.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=agence+eau+eaux+pluviales"
+        },
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Renaturation",
+          "description": "Éligible pour les aménagements de gestion naturelle des eaux.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "💧",
+          "source": "OFB / CEREMA",
+          "nom": "Solutions de gestion des eaux pluviales à la source",
+          "description": "Noues, tranchées drainantes, bassins à ciel ouvert : guide technique.",
+          "url": "https://ofb.gouv.fr/centres-de-ressources"
+        },
+        {
+          "icone": "🌡️",
+          "source": "ADEME",
+          "nom": "Villes adaptées — gestion des eaux pluviales",
+          "description": "Intégrer la gestion des eaux pluviales dans les projets d'espace public.",
+          "url": "https://www.ademe.fr"
+        }
+      ],
+      "engagement": "La gestion des eaux pluviales sera intégrée au projet via des noues végétalisées et des systèmes de rétention, réduisant le ruissellement vers les réseaux."
+    },
+    {
+      "id": "eclairage",
+      "icone": "🌙",
+      "titre": "Moderniser l'éclairage pour économiser et préserver la nuit",
+      "description": "Des luminaires LED ≤ 2700K avec détecteurs de présence réduisent la facture d'éclairage de 30 % et préservent les insectes nocturnes et chauves-souris de la place.",
+      "condition": {
+        "question": "l-eclairage-de-la-place",
+        "parmi": ["oui-refonte-complete-de", "oui-amelioration-ou-remplacement"]
+      },
+      "financements": [
+        {
+          "icone": "⚡",
+          "libelle": "Fonds vert — Éclairage public sobre",
+          "description": "Finance le remplacement ou l'amélioration de l'éclairage extérieur public.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=eclairage+public+fonds+vert"
+        },
+        {
+          "icone": "💡",
+          "libelle": "CEE — Économies d'énergie",
+          "description": "Certificats d'économies d'énergie applicables à la modernisation de l'éclairage.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=CEE+eclairage"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🌙",
+          "source": "OFB",
+          "nom": "Centre de ressources Trame Noire",
+          "description": "Réduire la pollution lumineuse et préserver les espèces nocturnes en milieu urbain.",
+          "url": "https://ofb.gouv.fr/centres-de-ressources"
+        },
+        {
+          "icone": "💡",
+          "source": "ANPCEN",
+          "nom": "Label Villes et Villages Étoilés",
+          "description": "Accompagnement et labellisation des communes s'engageant contre la pollution lumineuse.",
+          "url": "https://www.anpcen.fr/"
+        }
+      ],
+      "engagement": "L'éclairage de la place sera conçu pour respecter la trame noire : luminaires LED ≤ 2700K orientés vers le bas, détecteurs de présence et extinction après 23h."
+    },
+    {
+      "id": "faune",
+      "icone": "🐞",
+      "titre": "Installer des refuges pour la faune dans le mobilier urbain",
+      "description": "Des hôtels à insectes et nichoirs discrets intégrés aux bancs et murets accueillent les pollinisateurs et oiseaux toute l'année. Peu coûteux et très appréciés des habitants.",
+      "condition": true,
+      "financements": [
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Biodiversité urbaine",
+          "description": "Finance les petits aménagements en faveur de la faune dans les espaces publics.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        },
+        {
+          "icone": "🐦",
+          "libelle": "Partenariat technique gratuit de la LPO",
+          "description": "La LPO accompagne gratuitement les projets de refuge urbain.",
+          "url": "https://www.lpo.fr"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🐦",
+          "source": "LPO",
+          "nom": "Nichoirs et refuges pour la faune urbaine",
+          "description": "Guide de pose des nichoirs et hôtels à insectes dans les espaces publics.",
+          "url": "https://www.lpo.fr"
+        },
+        {
+          "icone": "🐝",
+          "source": "MNHN",
+          "nom": "Espèces pollinisatrices en déclin",
+          "description": "Comprendre les enjeux et agir pour les pollinisateurs dans les communes.",
+          "url": "https://www.mnhn.fr"
+        }
+      ],
+      "engagement": "Des hôtels à insectes et des nichoirs pour oiseaux seront intégrés au mobilier urbain de la place, associant biodiversité et dimension pédagogique."
+    }
+  ]
+}

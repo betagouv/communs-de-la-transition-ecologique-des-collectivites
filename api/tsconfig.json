@@ -13,6 +13,10 @@
     "outDir": "./dist",
     "baseUrl": "./",
 
+    // Le contenu des questionnaires (src/questionnaires/content/**/*.json) est du JSON
+    // littéral : c'est le format que les partenaires écrivent et que nous relisons en PR.
+    "resolveJsonModule": true,
+
     "paths": {
       "@/*": ["src/*"],
       "@test/*": ["test/*"],

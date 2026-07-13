@@ -20,7 +20,14 @@ export type ObjetType = (typeof OBJET_TYPES)[number];
 // dont la couverture bouge d'un run à l'autre. On le référence donc par le SIREN de
 // son porteur, clé stable de schema_commun_v2.pcaet_reference. 'pcaet' n'est jamais
 // un type d'objet A.
-export const OBJET_B_TYPES = [...OBJET_TYPES, "pcaet"] as const;
+// L'objet B peut AUSSI désigner une recommandation (recommandation_arbitrage). Une
+// recommandation n'est pas une ligne en base : elle est RECALCULÉE à chaque lecture par
+// agrégation des sources. Son id est donc déterministe et stable par construction
+// (`questionnaire:<slug>:<cle>` — cf. RecommandationsService), ce qui est précisément ce
+// qui permet à l'arbitrage de lui survivre : une recommandation qui disparaît puis
+// réapparaît (la collectivité revient sur ses réponses) retrouve son arbitrage.
+// 'recommandation' n'est jamais un type d'objet A.
+export const OBJET_B_TYPES = [...OBJET_TYPES, "pcaet", "recommandation"] as const;
 export type ObjetBType = (typeof OBJET_B_TYPES)[number];
 
 // Vocabulaire fermé des types de décision.
@@ -31,8 +38,15 @@ export const DECISION_TYPES = [
   "rattachement_pcaet",
   "projet_statut",
   "correction_signalee",
+  "recommandation_arbitrage",
 ] as const;
 export type DecisionType = (typeof DECISION_TYPES)[number];
+
+// Verdicts de `recommandation_arbitrage`. Le « non tranché » n'est PAS un verdict :
+// c'est l'absence de décision active, obtenue soit parce qu'aucune n'a jamais été
+// émise, soit par révocation (ANNULE_VERDICT + supersedes).
+export const RECOMMANDATION_VERDICTS = ["a_etudier", "integree", "ignoree"] as const;
+export type RecommandationVerdict = (typeof RECOMMANDATION_VERDICTS)[number];
 
 // Verdict de RÉVOCATION universel. Valide pour TOUS les types, à la seule condition
 // que `supersedes` désigne la décision cible (400 sinon). Sémantique : retire la cible
@@ -114,6 +128,12 @@ const CONTRACT: Record<DecisionType, DecisionSpec> = {
     objetB: { required: false },
     verdict: { required: false },
     payload: "correction",
+  },
+  recommandation_arbitrage: {
+    objetATypes: ["projet"],
+    objetB: { required: true, types: ["recommandation"] },
+    verdict: { required: true, values: RECOMMANDATION_VERDICTS },
+    payload: "free",
   },
 };
 

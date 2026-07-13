@@ -1,0 +1,186 @@
+{
+  "slug": "atoutbiodiv-salle",
+  "version": 1,
+  "source": {
+    "nom": "AtoutBiodiv"
+  },
+  "banniere": {
+    "icone": "🌿",
+    "titre": "Optimisez le potentiel biodiversité de votre projet",
+    "sousTitre": "Identifiez des actions à impact et renforcez votre dossier — Fonds vert, Agence de l'Eau, DETR bonifiée"
+  },
+  "questions": [
+    {
+      "type": "choix-unique",
+      "id": "quelle-est-la-nature-actuelle",
+      "intitule": "Quelle est la nature actuelle du terrain ?",
+      "options": [
+        {
+          "id": "friche-terrain-nu-ou",
+          "libelle": "Friche, terrain nu ou remblai",
+          "aide": "Sol sans végétation établie",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Liberté totale de renaturation — potentiel maximal."
+          }
+        },
+        {
+          "id": "prairie-ou-espace-enherbe",
+          "libelle": "Prairie ou espace enherbé naturel",
+          "aide": "Végétation herbacée existante",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Écosystème vivant à préserver dans le plan de masse."
+          }
+        },
+        {
+          "id": "boise-ou-presence-d",
+          "libelle": "Boisé ou présence d'arbres",
+          "aide": "Arbres ou boisement présents",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "warning",
+            "message": "Bilan arboricole obligatoire. Chaque arbre conservé renforce le dossier."
+          }
+        },
+        {
+          "id": "parcelle-agricole-cultivee",
+          "libelle": "Parcelle agricole cultivée",
+          "aide": "Terres arables en exploitation",
+          "signal": "vigilance",
+          "feedback": {
+            "ton": "warning",
+            "message": "Vérifier les obligations liées au changement d'usage agricole."
+          }
+        },
+        {
+          "id": "terrain-deja-artificialise",
+          "libelle": "Terrain déjà artificialisé",
+          "aide": "Dalle, parking, bâtiment démoli",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "info",
+            "message": "Solutions orientées vers le bâti : toiture végétalisée, nichoirs intégrés."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "le-terrain-est-il-situe",
+      "intitule": "Le terrain est-il situé à proximité d'un milieu naturel ?",
+      "options": [
+        {
+          "id": "oui-cours-d-eau",
+          "libelle": "Oui — cours d'eau ou zone humide (< 500 m)",
+          "aide": "Ripisylve, fossé, mare",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Noue végétalisée = obligation réglementaire + habitat humide. Agence de l'Eau éligible."
+          }
+        },
+        {
+          "id": "oui-boisement-ou-haie",
+          "libelle": "Oui — boisement ou haie bocagère adjacente",
+          "aide": "Bois, haie, bosquet",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Corridor existant à prolonger. Très valorisé dans les dossiers DETR."
+          }
+        },
+        {
+          "id": "non-contexte-agricole-ouvert",
+          "libelle": "Non — contexte agricole ouvert",
+          "aide": "Champs cultivés alentour",
+          "signal": "vigilance",
+          "feedback": {
+            "ton": "info",
+            "message": "Rôle pionnier possible. Des refuges ex nihilo sont valorisés par les financeurs."
+          }
+        },
+        {
+          "id": "non-contexte-urbain-ou",
+          "libelle": "Non — contexte urbain ou périurbain",
+          "aide": "Tissu bâti environnant",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "info",
+            "message": "Chaque m² vert a une valeur décuplée en milieu dense."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "part-estimee-des-espaces-exterieurs",
+      "intitule": "Part estimée des espaces extérieurs dans l'emprise totale du projet ?",
+      "options": [
+        {
+          "id": "importante-plus-de-50",
+          "libelle": "Importante — plus de 50 % du terrain",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Haies, mare, bosquets finançables jusqu'à 80 % par l'Agence de l'Eau Adour-Garonne."
+          }
+        },
+        {
+          "id": "moderee-30-a-50",
+          "libelle": "Modérée — 30 à 50 %",
+          "signal": "vigilance",
+          "feedback": {
+            "ton": "info",
+            "message": "Bandes enherbées et haies en limite permettent des corridors efficaces."
+          }
+        },
+        {
+          "id": "reduite-moins-de-30",
+          "libelle": "Réduite — moins de 30 % (bâtiment + parking > 80 %)",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "warning",
+            "message": "Orienter vers toiture végétalisée et matériaux favorables au bâtiment."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "eclairage-exterieur-prevu-parking-cheminements",
+      "intitule": "Éclairage extérieur prévu (parking, cheminements, façades) ?",
+      "options": [
+        {
+          "id": "non-ou-eclairage-minimal",
+          "libelle": "Non ou éclairage minimal",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Trame noire préservée — atout biodiversité nocturne à mentionner dans le dossier."
+          }
+        },
+        {
+          "id": "oui-avec-detecteurs-de",
+          "libelle": "Oui — avec détecteurs de présence",
+          "signal": "vigilance",
+          "feedback": {
+            "ton": "info",
+            "message": "Compléter avec LED ≤ 2700K orientées vers le bas et extinction après 23h."
+          }
+        },
+        {
+          "id": "oui-eclairage-continu-facades",
+          "libelle": "Oui — éclairage continu (façades, parking 24h)",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "warning",
+            "message": "Quelques lignes dans le CCTP réduisent cet impact de 80 % et génèrent des économies."
+          }
+        }
+      ]
+    }
+  ]
+}

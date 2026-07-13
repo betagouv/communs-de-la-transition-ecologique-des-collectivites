@@ -32,6 +32,9 @@ import { DashboardTeModule } from "@/dashboard-te/dashboard-te.module";
 import { MecModule } from "@/mec/mec.module";
 import { DecisionsModule } from "@/decisions/decisions.module";
 import { TerritoiresModule } from "@/territoires/territoires.module";
+import { QuestionnairesModule } from "@/questionnaires/questionnaires.module";
+import { RecommandationsModule } from "@/recommandations/recommandations.module";
+import { ServicesNumeriquesModule } from "@/services-numeriques/services-numeriques.module";
 
 @Module({
   imports: [
@@ -88,6 +91,9 @@ import { TerritoiresModule } from "@/territoires/territoires.module";
     MecModule,
     DecisionsModule,
     TerritoiresModule,
+    QuestionnairesModule,
+    RecommandationsModule,
+    ServicesNumeriquesModule,
   ],
   controllers: [HealthController],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],

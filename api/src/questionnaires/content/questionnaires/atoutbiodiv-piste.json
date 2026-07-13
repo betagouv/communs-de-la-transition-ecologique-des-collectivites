@@ -1,0 +1,159 @@
+{
+  "slug": "atoutbiodiv-piste",
+  "version": 1,
+  "source": {
+    "nom": "AtoutBiodiv"
+  },
+  "banniere": {
+    "icone": "🌿",
+    "titre": "Optimisez le potentiel biodiversité de votre projet",
+    "sousTitre": "Bermes, corridors, trame noire — optimisez les co-bénéfices biodiversité de votre infrastructure linéaire"
+  },
+  "questions": [
+    {
+      "type": "choix-unique",
+      "id": "quel-est-le-statut-ecologique",
+      "intitule": "Quel est le statut écologique actuel du tracé ?",
+      "options": [
+        {
+          "id": "friche-ferroviaire-avec-vegetation",
+          "libelle": "Friche ferroviaire avec végétation spontanée",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Corridor existant à préserver. Ne pas détruire la végétation spontanée installée."
+          }
+        },
+        {
+          "id": "terrain-agricole-grandes-cultures",
+          "libelle": "Terrain agricole (grandes cultures alentour)",
+          "signal": "vigilance",
+          "feedback": {
+            "ton": "warning",
+            "message": "Créer un corridor ex nihilo. Haies et bandes fleuries sur tout le linéaire."
+          }
+        },
+        {
+          "id": "milieu-naturel-traverse-foret",
+          "libelle": "Milieu naturel traversé (forêt, prairie, zone humide)",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Fort potentiel. Préserver les milieux existants et assurer la continuité nocturne."
+          }
+        },
+        {
+          "id": "zone-urbaine-traversee-bourg",
+          "libelle": "Zone urbaine traversée (bourg, village)",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "info",
+            "message": "Rôle de coulée verte urbaine. Arbres et plantes locales en tronçons urbains."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "le-trace-croise-t-il",
+      "intitule": "Le tracé croise-t-il des zones de continuités écologiques (TVB / SRCE Occitanie) ?",
+      "options": [
+        {
+          "id": "oui-zone-identifiee-dans",
+          "libelle": "Oui — zone identifiée dans le SRCE ou PLU",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Bonus fort pour le dossier. Intégrer les préconisations du SRCE dans la gestion des bermes."
+          }
+        },
+        {
+          "id": "non-mais-contexte-ecologiquement",
+          "libelle": "Non, mais contexte écologiquement riche",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Potentiel probable. Un diagnostic écologue est fortement recommandé."
+          }
+        },
+        {
+          "id": "non-contexte-tres-anthropise",
+          "libelle": "Non, contexte très anthropisé (agriculture intensive)",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "info",
+            "message": "La voie verte peut créer une nouvelle continuité dans un paysage fragmenté."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "quel-traitement-des-bermes-de",
+      "intitule": "Quel traitement des bermes de la voie est envisagé ?",
+      "options": [
+        {
+          "id": "vegetation-spontanee-fauchee-tardivement",
+          "libelle": "Végétation spontanée fauchée tardivement + essences locales",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Solution optimale : coût minimal et biodiversité maximale."
+          }
+        },
+        {
+          "id": "enherbement-tondu-regulierement",
+          "libelle": "Enherbement tondu régulièrement",
+          "signal": "vigilance",
+          "feedback": {
+            "ton": "warning",
+            "message": "Envisager une gestion différenciée avec fauche tardive sur une partie des bermes."
+          }
+        },
+        {
+          "id": "revetement-mineral-ou-stabilise",
+          "libelle": "Revêtement minéral ou stabilisé sur les bermes",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "warning",
+            "message": "Prévoir des bandes végétales de 1 m minimum de part et d'autre."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "eclairage-de-la-voie-verte",
+      "intitule": "Éclairage de la voie verte prévu ?",
+      "options": [
+        {
+          "id": "non-voie-non-eclairee",
+          "libelle": "Non — voie non éclairée (contexte rural)",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Trame noire préservée sur l'ensemble du tracé. Continuité nocturne assurée."
+          }
+        },
+        {
+          "id": "partiel-troncons-urbains-uniquement",
+          "libelle": "Partiel — tronçons urbains uniquement",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Bonne approche. LED ≤ 2700K et extinction nocturne sur les tronçons éclairés."
+          }
+        },
+        {
+          "id": "oui-ensemble-du-trace",
+          "libelle": "Oui — ensemble du tracé éclairé",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "warning",
+            "message": "Fragmentation nocturne du corridor. Réduire l'éclairage aux seuls tronçons urbains."
+          }
+        }
+      ]
+    }
+  ]
+}

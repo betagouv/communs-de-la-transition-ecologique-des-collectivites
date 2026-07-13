@@ -7,5 +7,8 @@ import { DecisionsService } from "./decisions.service";
   imports: [DatabaseModule],
   controllers: [DecisionsController],
   providers: [DecisionsService],
+  // Exporté : l'arbitrage des recommandations passe par le même journal, et réutilise
+  // ainsi la validation de contrat et le contrôle de compatibilité des révocations.
+  exports: [DecisionsService],
 })
 export class DecisionsModule {}
