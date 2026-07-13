@@ -17,6 +17,21 @@ import { ProjetServicesResponse, ServiceResponse } from "./dto/service-numerique
 
 type LigneCatalogue = typeof servicesNumeriques.$inferSelect;
 
+/**
+ * Les logos sont hébergés par l'API et stockés en base comme chemins relatifs
+ * (`/logos/services/<slug>.svg`) : le catalogue ne doit pas connaître le domaine sur lequel
+ * il tourne. On les rend absolus à la sortie, sinon le client les chercherait sur SON propre
+ * domaine. Une URL déjà absolue (logo resté chez un partenaire) est laissée telle quelle.
+ *
+ * `null` est une valeur légitime : quatre services curés n'ont aucun logo — leur marque est
+ * purement typographique (en-tête DSFR texte). On n'en invente pas ; au client d'afficher
+ * une tuile texte.
+ */
+function absolutiser(chemin: string | null, baseUrl: string): string | undefined {
+  if (!chemin) return undefined;
+  return chemin.startsWith("/") ? `${baseUrl}${chemin}` : chemin;
+}
+
 @Injectable()
 export class ServicesNumeriquesService {
   constructor(
@@ -31,7 +46,7 @@ export class ServicesNumeriquesService {
    * `findOneWithSource` : le projet peut vivre dans public.projets, data_mec ou data_tet.
    * Aucun service → 200 avec une liste vide, jamais 404.
    */
-  async findForProjet(projetId: string): Promise<ProjetServicesResponse> {
+  async findForProjet(projetId: string, baseUrl: string): Promise<ProjetServicesResponse> {
     const { projet } = await this.getProjetsService.findOneWithSource(projetId);
 
     // 1. CURATION — le benchmark porte 125 services, 28 seulement sont « À intégrer MEC ».
@@ -53,7 +68,7 @@ export class ServicesNumeriquesService {
       .filter((s) => s.score < SEUIL_PERTINENCE && s.ligne.presentationGenerique === "oui")
       .sort((a, b) => b.score - a.score || a.ligne.nom.localeCompare(b.ligne.nom));
 
-    return { services: [...pertinents, ...generiques].map(({ ligne }) => this.toResponse(ligne)) };
+    return { services: [...pertinents, ...generiques].map(({ ligne }) => this.toResponse(ligne, baseUrl)) };
   }
 
   /**
@@ -83,14 +98,14 @@ export class ServicesNumeriquesService {
    * les critères de sélection ni de curation — `classification`, `phases`, `aIntegrerMec`,
    * `presentationGenerique` n'ont aucun équivalent dans le DTO (§1 et §9 de la spec).
    */
-  private toResponse(l: LigneCatalogue): ServiceResponse {
+  private toResponse(l: LigneCatalogue, baseUrl: string): ServiceResponse {
     return {
       id: l.slug,
       nom: l.nom,
       baseline: l.baseline ?? undefined,
       description: l.description ?? "",
       descriptionLongue: l.descriptionLongue ?? undefined,
-      logoUrl: l.logoUrl ?? undefined,
+      logoUrl: absolutiser(l.logoUrl, baseUrl),
       categories: l.categories as Categorie[],
       niveauExpertise: (l.niveauExpertise as NiveauExpertise | null) ?? undefined,
       thematiques: l.classification.thematiques.map((t) => t.label),

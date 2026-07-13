@@ -10,6 +10,7 @@ import { DatabaseService } from "@database/database.service";
 import { AppModule } from "@/app.module";
 import { setupApp } from "@/setup-app";
 import { serveRessources } from "@/serve-ressources";
+import { serveLogos } from "@/serve-logos";
 import { installUncaughtAssertGuard } from "@test/helpers/e2e-uncaught-guard";
 import { E2E_PORT } from "@test/helpers/e2e-port";
 
@@ -49,6 +50,7 @@ export default async function globalSetup() {
 
   setupApp(app);
   serveRessources(app);
+  serveLogos(app);
   await app.init();
   await app.listen(E2E_PORT);
 
