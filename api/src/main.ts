@@ -6,6 +6,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { serveDemoWidget } from "@/serve-demo-widget";
 import { serveStatisticsDashboard } from "@/serve-statistics-dashboard";
 import { serveRessources } from "@/serve-ressources";
+import { serveLogos } from "@/serve-logos";
 import { setupReferentielDoc } from "@/referentiel/referentiel-doc.setup";
 import { setupOpendataDoc } from "@/plans-fiches/opendata-doc.setup";
 import { setupDashboardTeDoc } from "@/dashboard-te/dashboard-te-doc.setup";
@@ -39,6 +40,7 @@ async function bootstrap() {
   serveDemoWidget(app);
   serveStatisticsDashboard(app);
   serveRessources(app);
+  serveLogos(app);
   serveLandingPages(app);
 
   await app.listen(process.env.PORT ?? 3000);
