@@ -51,12 +51,60 @@ export function normaliser(valeur: string): string {
     .trim();
 }
 
-/** Le benchmark mélange « / » et « ; » comme séparateurs multivalués, selon les cellules. */
-function decouper(cellule: string): string[] {
-  return cellule
-    .split(/[/;]/)
-    .map(normaliser)
-    .filter((v) => v.length > 0);
+/**
+ * Découpe une cellule multivaluée du benchmark.
+ *
+ * Le fichier mélange « / » et « ; » comme séparateurs — mais le « / » est AMBIGU : il sépare
+ * (« Rénovation bâtiment/Construction bâtiment » = deux étiquettes) ET il appartient à
+ * certains libellés de la taxonomie (« Etude/Diagnostic » = une seule étiquette).
+ *
+ * Découper aveuglément sur « / » détruisait donc « Etude/Diagnostic » en deux fragments
+ * inexistants. On lève l'ambiguïté par le référentiel : une chaîne qui EST une étiquette
+ * valide n'est jamais découpée.
+ */
+function decouper(cellule: string, axe: Axe): string[] {
+  const estEtiquette = (v: string) => REFERENTIELS[axe].has(v);
+
+  /**
+   * Recolle les fragments par CORRESPONDANCE LA PLUS LONGUE contre le référentiel. Sur
+   * « Etude/Diagnostic/Outillage (notamment numérique) », un découpage naïf produirait trois
+   * fragments dont deux n'existent pas ; ici on essaie d'abord les trois ensemble, puis les
+   * deux premiers (« Etude/Diagnostic » — trouvé), puis on repart du reste.
+   */
+  const resoudre = (groupe: string): string[] => {
+    const fragments = groupe
+      .split("/")
+      .map(normaliser)
+      .filter((f) => f.length > 0);
+
+    const etiquettes: string[] = [];
+    let i = 0;
+
+    while (i < fragments.length) {
+      let trouve = false;
+
+      for (let j = fragments.length; j > i; j--) {
+        const candidat = fragments.slice(i, j).join("/");
+        if (estEtiquette(candidat)) {
+          etiquettes.push(candidat);
+          i = j;
+          trouve = true;
+          break;
+        }
+      }
+
+      // Aucun recollement ne donne une étiquette connue : on émet le fragment tel quel, et
+      // resoudreEtiquette lèvera avec un message qui nomme le libellé fautif.
+      if (!trouve) {
+        etiquettes.push(fragments[i]);
+        i++;
+      }
+    }
+    return etiquettes;
+  };
+
+  // Le « ; », lui, n'apparaît dans aucun libellé : on peut découper dessus sans risque.
+  return cellule.split(";").flatMap(resoudre);
 }
 
 const REFERENTIELS: Record<Axe, ReadonlySet<string>> = {
@@ -110,7 +158,7 @@ export function construireClassification(cellules: {
   const vus = new Set<string>();
 
   const ajouter = (cellule: string, axe: Axe, score: number) => {
-    for (const brut of decouper(cellule)) {
+    for (const brut of decouper(cellule, axe)) {
       const { label } = resoudreEtiquette(brut, axe);
 
       // Une étiquette déjà posée en « principale » ne doit pas être rétrogradée par sa
