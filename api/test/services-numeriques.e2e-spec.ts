@@ -11,6 +11,7 @@ interface Service {
   id: string;
   nom: string;
   description: string;
+  logoUrl?: string;
   categories: string[];
   thematiques: string[];
   niveauExpertise?: string;
@@ -192,18 +193,59 @@ describe("Services numériques (e2e)", () => {
       // Cas réel du benchmark : « Boussole de la transition écologique » et « EnvErgo » sont
       // marqués « À intégrer MEC » mais n'ont ni thématique fine ni présentation générique.
       // Ce test documente qu'ils sont invisibles — c'est un défaut de DONNÉES, pas de code.
+      await global.testDbService.database.insert(servicesNumeriques).values([
+        service({
+          slug: "invisible",
+          nom: "Invisible",
+          classification: { thematiques: [], sites: [], interventions: [] },
+        }),
+      ]);
+      const projetId = await creerProjet(EAU);
+
+      expect(await getServices(projetId)).toEqual([]);
+    });
+  });
+
+  describe("Logos", () => {
+    it("rend absolue l'URL d'un logo hébergé par l'API", async () => {
+      // En base, le logo est un chemin relatif : le catalogue ne connaît pas le domaine sur
+      // lequel il tourne. S'il sortait tel quel, MEC le chercherait sur SON propre domaine.
       await global.testDbService.database
         .insert(servicesNumeriques)
         .values([
           service({
-            slug: "invisible",
-            nom: "Invisible",
-            classification: { thematiques: [], sites: [], interventions: [] },
+            slug: "benefriches",
+            nom: "Bénéfriches",
+            classification: EAU,
+            logoUrl: "/logos/services/benefriches.svg",
           }),
         ]);
       const projetId = await creerProjet(EAU);
 
-      expect(await getServices(projetId)).toEqual([]);
+      const [s] = await getServices(projetId);
+
+      expect(s.logoUrl).toBe(`${BASE_URL}/logos/services/benefriches.svg`);
+    });
+
+    it("sert effectivement le fichier de logo", async () => {
+      const reponse = await fetch(`${BASE_URL}/logos/services/benefriches.svg`);
+
+      expect(reponse.status).toBe(200);
+      expect(reponse.headers.get("content-type")).toContain("image/svg+xml");
+    });
+
+    it("n'invente pas de logo pour un service qui n'en a pas", async () => {
+      // Quatre services curés (Boussole, EnvErgo, Potentiel, portail ENR) ont une marque
+      // purement typographique : aucun logo n'existe. Le champ doit être absent, pas rempli
+      // d'un favicon ou d'une Marianne générique.
+      await global.testDbService.database
+        .insert(servicesNumeriques)
+        .values([service({ slug: "envergo", nom: "EnvErgo", classification: EAU, logoUrl: null })]);
+      const projetId = await creerProjet(EAU);
+
+      const [s] = await getServices(projetId);
+
+      expect(s.logoUrl).toBeUndefined();
     });
   });
 

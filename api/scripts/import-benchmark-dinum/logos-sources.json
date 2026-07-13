@@ -1,0 +1,104 @@
+{
+  "_doc": [
+    "Provenance des logos des services numériques, pour pouvoir les rafraîchir sans refaire la recherche.",
+    "Chaque URL a été extraite du HTML (ou du bundle JS) du site du service et vérifiée : 200 + content-type image/*.",
+    "`type` : 'service' = logo propre au service. 'operateur' = le service n'a PAS de marque graphique propre,",
+    "on affiche le logo de son opérateur — c'est ce que fait son propre site.",
+    "Les services absents de ce fichier n'ont AUCUN logo : leur marque est purement typographique (en-tête DSFR",
+    "texte). On ne leur en invente pas ; MEC affichera une tuile texte.",
+    "Rafraîchir : pnpm logos:fetch"
+  ],
+
+  "benefriches": { "type": "service", "url": "https://benefriches.ademe.fr/img/logos/logo-benefriches-simple.svg" },
+  "france-chaleur-urbaine": {
+    "type": "service",
+    "url": "https://france-chaleur-urbaine.beta.gouv.fr/FCU_logo_Monogramme.svg"
+  },
+  "plus-fraiche-ma-ville": { "type": "service", "url": "https://plusfraichemaville.fr/images/logo-pfmv-seul.svg" },
+  "urbanvitaliz": {
+    "type": "service",
+    "url": "https://urbanvitaliz.fr/media/images/1/logo/large-logo_UV_haut_2026_meyXWMh.png"
+  },
+  "sos-ponts": { "type": "service", "url": "https://sosponts.recoconseil.fr/media/images/4/logo/large-sosponts.png" },
+  "zero-logement-vacant": {
+    "type": "service",
+    "url": "https://zlv.beta.gouv.fr/assets/zlv-BeNm-OSb.svg",
+    "note": "URL avec hash de build : elle cassera au prochain déploiement de ZLV. D'où l'hébergement local."
+  },
+  "mon-diagnostic-artificialisation": {
+    "type": "service",
+    "url": "https://mondiagartif.beta.gouv.fr/static/img/logo-mon-diagnostic-artificialisation.svg"
+  },
+  "trackdechets": {
+    "type": "service",
+    "url": "https://trackdechets.beta.gouv.fr/static/img/trackdechets.png",
+    "note": "Seule version exposée : PNG 128×129. Pas de SVG."
+  },
+  "expertises-territoires": {
+    "type": "service",
+    "url": "https://www.expertises-territoires.fr/plugins/CEREMAPlugin/img/Koala/pageNonLoguee/header-center-logo.png"
+  },
+  "observatoire-du-covoiturage": {
+    "type": "operateur",
+    "url": "https://static.covoiturage.beta.gouv.fr/logo_rpc_d82e4b3a4a.png",
+    "note": "L'en-tête du site est un DSFR texte. Le seul logo de marque est celui du Registre de Preuve de Covoiturage, opérateur du service."
+  },
+  "nos-gestes-climat": {
+    "type": "service",
+    "url": "https://nosgestesclimat-prod.s3.fr-par.scw.cloud/cms/petit_logo_3x_f817f785ce.png"
+  },
+  "geoportail-de-l-urbanisme": {
+    "type": "service",
+    "url": "https://www.geoportail-urbanisme.gouv.fr/build/gpu/images/logos/logo-gpu.png?v6.1.14"
+  },
+  "j-agis": { "type": "service", "url": "https://jagis.beta.gouv.fr/logo-jagis.svg" },
+  "france-villes-et-territoires-durables": {
+    "type": "service",
+    "url": "https://francevilledurable.fr/wp-content/themes/fvd/resources/assets/images/header-logo.png"
+  },
+  "que-faire-de-mes-objets-et-dechets": {
+    "type": "service",
+    "url": "https://quefairedemesdechets.ademe.fr/static/favicon/favicon.71bf354122b6.svg",
+    "note": "Le logo d'en-tête est un <svg> inline, sans URL. Ce SVG-ci est le meilleur asset récupérable (193×230)."
+  },
+  "ma-cantine": {
+    "type": "service",
+    "url": "https://ma-cantine.agriculture.gouv.fr/static/images/ma-cantine-logo-light.svg"
+  },
+  "cartofriches": { "type": "service", "url": "https://cartofriches.cerema.fr/cartofriches/logo.png" },
+  "mission-adaptation": {
+    "type": "service",
+    "url": "https://mission-adaptation.fr/media/images/13/logo/large-Mission_Adaptation.png"
+  },
+
+  "agirisk": {
+    "type": "operateur",
+    "url": "https://www.cerema.fr/themes/custom/uas_base/images/LogoCerema_horizontal.svg",
+    "note": "Pas de marque propre : l'en-tête d'AgiRisk affiche le bloc institutionnel Cerema."
+  },
+  "copcerema": {
+    "type": "operateur",
+    "url": "https://www.cerema.fr/themes/custom/uas_base/images/LogoCerema_horizontal.svg",
+    "note": "Le service est un LimeSurvey ; son logo réel n'est pas servi (placeholder de template non résolu)."
+  },
+  "urbansimul": {
+    "type": "operateur",
+    "url": "https://www.cerema.fr/themes/custom/uas_base/images/LogoCerema_horizontal.svg",
+    "note": "Le site n'expose qu'un bandeau composite République Française + Cerema + UrbanSIMUL (2643×576), inutilisable tel quel. Repli sur le logo Cerema en attendant un asset isolé."
+  },
+  "prioreno": {
+    "type": "operateur",
+    "url": "https://www.banquedesterritoires.fr/themes/custom/theme-bdt-neva/img/logo-bdt.svg",
+    "note": "PrioRéno n'existe que comme page produit sous la marque Banque des Territoires."
+  },
+  "resorption-bidonvilles": {
+    "type": "operateur",
+    "url": "https://resorption-bidonvilles.dihal.gouv.fr/_nuxt/dihal-light.ILtvtA6I.png",
+    "note": "En-tête DSFR : Marianne + logo opérateur DIHAL. Pas de logo de service."
+  },
+  "mutafriches": {
+    "type": "operateur",
+    "url": "https://mutafriches.beta.gouv.fr/images/logo-ademe.svg",
+    "note": "Pas de marque propre : l'en-tête n'affiche que Marianne + ADEME."
+  }
+}
