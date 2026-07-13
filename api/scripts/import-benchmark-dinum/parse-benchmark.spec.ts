@@ -92,6 +92,46 @@ describe("construireClassification", () => {
     expect(parPointVirgule.sites).toEqual(parSlash.sites);
   });
 
+  it("ne DÉCOUPE PAS une étiquette qui contient elle-même un « / »", () => {
+    // « Etude/Diagnostic » est UNE étiquette de la taxonomie, pas deux. Découper aveuglément
+    // sur « / » la détruisait en deux fragments inexistants — et la modalité était perdue.
+    // C'est le garde-fou de resoudreEtiquette qui a révélé le bug.
+    const c = construireClassification({ ...vide, modalitesPrincipales: "Etude/Diagnostic" });
+
+    expect(c.interventions).toEqual([{ label: "Etude/Diagnostic", score: 1.0 }]);
+  });
+
+  it("distingue une étiquette à slash d'une liste séparée par des slashs", () => {
+    const c = construireClassification({
+      ...vide,
+      modalitesPrincipales: "Etude/Diagnostic;Rénovation bâtiment/Construction bâtiment",
+    });
+
+    expect(c.interventions.map((i) => i.label)).toEqual([
+      "Etude/Diagnostic",
+      "Rénovation bâtiment",
+      "Construction bâtiment",
+    ]);
+  });
+
+  it("sépare une étiquette à slash d'une AUTRE étiquette collée par un slash", () => {
+    // Le cas vicieux : « Etude/Diagnostic/Outillage (notamment numérique) » = DEUX étiquettes,
+    // dont la première contient elle-même un slash. Un découpage naïf produit trois fragments
+    // dont deux n'existent pas. La correspondance la plus longue tranche.
+    const c = construireClassification({
+      ...vide,
+      modalitesPrincipales: "Etude/Diagnostic/Outillage (notamment numérique)",
+    });
+
+    expect(c.interventions.map((i) => i.label)).toEqual(["Etude/Diagnostic", "Outillage (notamment numérique)"]);
+  });
+
+  it("gère « Stratégie/Plan », l'autre étiquette à slash de la taxonomie", () => {
+    const c = construireClassification({ ...vide, modalitesPrincipales: "Stratégie/Plan/Sensibilisation" });
+
+    expect(c.interventions.map((i) => i.label)).toEqual(["Stratégie/Plan", "Sensibilisation"]);
+  });
+
   it("ne rétrograde pas en secondaire une étiquette déjà posée en principale", () => {
     const c = construireClassification({
       ...vide,
