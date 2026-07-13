@@ -271,6 +271,114 @@ export const aideFeedbacks = pgTable(
   ],
 );
 
+/**
+ * Réponses d'un projet à un questionnaire spécialisé (AtoutBiodiv…).
+ *
+ * Le PUT des réponses est idempotent : la ligne porte l'INTÉGRALITÉ des réponses
+ * connues (jsonb `{ [questionId]: optionId }`), jamais un delta — d'où la clé
+ * primaire (projet_id, slug) et non une ligne par réponse.
+ *
+ * `version` fige l'interprétation : c'est la version de la définition en vigueur
+ * au moment de la saisie. À la lecture, les réponses dont la (question, option)
+ * n'existe plus dans la définition courante sont écartées (cf. QuestionnairesService).
+ *
+ * Pas de FK vers `projets` : un projet peut vivre dans data_mec/data_tet sans
+ * ligne dans public.projets (cf. GetProjetsService.findOneWithSource) — même
+ * raison que pour `aide_feedbacks`.
+ */
+export const projetQuestionnaireReponses = pgTable(
+  "projet_questionnaire_reponses",
+  {
+    projetId: uuid("projet_id").notNull(),
+    slug: text("slug").notNull(),
+    version: integer("version").notNull(),
+    reponses: jsonb("reponses").$type<Record<string, string>>().notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    primaryKey({ columns: [t.projetId, t.slug] }),
+    index("projet_questionnaire_reponses_projet_idx").on(t.projetId),
+  ],
+);
+
+/**
+ * Catalogue des services numériques (benchmark DINUM « API Projets »).
+ *
+ * Table DISTINCTE de `public.services` à dessein : `services` est le catalogue du widget,
+ * mais elle porte AUSSI `data_scopes`, et la doctrine d'accès aux données y résout les
+ * droits d'une plateforme appelante par `services.name = serviceType` (cf.
+ * TerritoiresService.getServiceScopes et docs/api/DOCTRINE_ACCES_DONNEES.md). Y verser le
+ * catalogue DINUM casserait ce mécanisme en silence.
+ *
+ * Alimentée par scripts/import-benchmark-dinum/ (ré-exécutable : upsert sur `slug`).
+ */
+export const servicesNumeriques = pgTable(
+  "services_numeriques",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    /** Identifiant stable exposé à l'API, dérivé du nom (ex. "boussole-de-la-transition-ecologique"). */
+    slug: text("slug").notNull().unique(),
+
+    // Affichage
+    nom: text("nom").notNull(),
+    baseline: text("baseline"),
+    description: text("description"),
+    descriptionLongue: text("description_longue"),
+    logoUrl: text("logo_url"),
+    operateur: text("operateur"),
+    redirectionUrl: text("redirection_url"),
+    redirectionLibelle: text("redirection_libelle"),
+    // Le benchmark ne fournit aucune iframe : ces colonnes restent vides jusqu'à curation.
+    iframeUrl: text("iframe_url"),
+    iframeLibelle: text("iframe_libelle"),
+
+    /** expert | contenu | inspirants | discussions | conseil | aides — un service peut en cumuler. */
+    categories: text("categories").array().notNull().default([]),
+    /** bas | moyen | haut. */
+    niveauExpertise: text("niveau_expertise"),
+    /** Vocabulaire GROSSIER du benchmark (« Gestion de l'eau »…) : affichage/filtre, jamais matching. */
+    thematiquePrincipale: text("thematique_principale"),
+
+    // Curation
+    /** oui | non | eventuellement — seuls les `oui` sont proposés (§8.1). */
+    aIntegrerMec: text("a_integrer_mec"),
+    /** oui | non | eventuellement — remonte en fallback même sans correspondance fine (§8.3). */
+    presentationGenerique: text("presentation_generique"),
+
+    // Contextualisation
+    /**
+     * Classification sur les trois axes du schéma commun, dans les MÊMES taxonomies fermées
+     * que les projets, les aides et les questionnaires. Alimentée par les colonnes
+     * Thématiques/Lieux/Modalités du benchmark, normalisées à l'import.
+     */
+    classification: jsonb("classification").$type<AideClassification>().notNull(),
+    /**
+     * Poids de pertinence par phase projet : { "Idée": 1, "Étude": 0.5, "Opération": 0 }.
+     * Dérivé des colonnes « Phase : … » du benchmark (Oui=1, Un peu=0.5, Non=0). Une phase
+     * absente = donnée non renseignée, et ne pénalise pas le service.
+     */
+    phases: jsonb("phases").$type<Partial<Record<ProjetPhase, number>>>().notNull().default({}),
+
+    // Fiche
+    nature: text("nature"),
+    beta: boolean("beta"),
+    ecosystemePublic: boolean("ecosysteme_public"),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [index("services_numeriques_a_integrer_mec_idx").on(t.aIntegrerMec)],
+);
+
 // Re-export sub-schemas so DatabaseService picks up all tables
 export * from "./referentiel-schema";
 export * from "./plans-fiches-schema";

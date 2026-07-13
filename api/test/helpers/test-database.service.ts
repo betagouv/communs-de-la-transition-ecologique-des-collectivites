@@ -26,11 +26,17 @@ export class TestDatabaseService extends DatabaseService {
       "api_referentiel.communes",
       "api_referentiel.competences",
       "api_referentiel.competence_categories",
+      // Journal des décisions humaines (schéma dédié, hors cycle de rebuild de l'ETL)
+      "decisions_humaines.decisions",
       // Core tables (public schema)
       "projets_to_collectivites",
+      // Sans FK vers projets (le projet peut vivre dans data_mec/data_tet) : le CASCADE
+      // depuis `projets` ne l'atteint pas, il faut la tronquer explicitement.
+      "projet_questionnaire_reponses",
       "projets",
       "collectivites",
       "services",
+      "services_numeriques",
       "api_requests",
     ];
 

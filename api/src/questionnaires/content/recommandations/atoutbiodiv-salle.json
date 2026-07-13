@@ -1,0 +1,324 @@
+{
+  "questionnaireSlug": "atoutbiodiv-salle",
+  "recommandations": [
+    {
+      "id": "haies",
+      "icone": "🌳",
+      "titre": "Planter une haie champêtre en limite de parcelle",
+      "description": "Crée un corridor naturel pour les oiseaux et insectes tout en protégeant le bâtiment du vent. Réduit les coûts de chauffage et renforce durablement votre dossier de financement.",
+      "condition": {
+        "question": "part-estimee-des-espaces-exterieurs",
+        "parmi": ["importante-plus-de-50", "moderee-30-a-50"]
+      },
+      "financements": [
+        {
+          "icone": "💧",
+          "libelle": "Agence de l'Eau Adour-Garonne — jusqu'à 80 %",
+          "description": "Financement des haies et continuités écologiques.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=agence+eau+adour+garonne+biodiversite"
+        },
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Biodiversité & renaturation",
+          "description": "Guichet permanent via la Préfecture. Éligible pour la plantation de haies.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🏛️",
+          "source": "OFB",
+          "nom": "Centre de ressources Trame Verte et Bleue",
+          "description": "Méthodes et outils pour intégrer la TVB dans les projets d'aménagement.",
+          "url": "https://ofb.gouv.fr/centres-de-ressources"
+        },
+        {
+          "icone": "🌍",
+          "source": "ARB Occitanie",
+          "nom": "Haies et bocage en Occitanie",
+          "description": "Référentiel des essences locales et accompagnement technique pour la plantation.",
+          "url": "https://www.arb-occitanie.fr/"
+        }
+      ],
+      "engagement": "Le projet intégrera la plantation de haies champêtres d'essences locales en limite de parcelle, assurant corridor écologique et brise-vent naturel."
+    },
+    {
+      "id": "prairie",
+      "icone": "🌸",
+      "titre": "Aménager une prairie fleurie en gestion différenciée",
+      "description": "Favorise les insectes pollinisateurs locaux tout en divisant par deux les coûts d'entretien des espaces verts grâce à une fauche tardive et sans herbicide.",
+      "condition": {
+        "question": "part-estimee-des-espaces-exterieurs",
+        "parmi": ["importante-plus-de-50", "moderee-30-a-50"]
+      },
+      "financements": [
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Biodiversité",
+          "description": "Éligible pour l'aménagement d'espaces enherbés en gestion différenciée.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        },
+        {
+          "icone": "🏗️",
+          "libelle": "DETR avec ce critère environnemental",
+          "description": "La gestion différenciée est un critère majorant dans l'instruction DETR.",
+          "url": "https://monespacecollectivite.anct.gouv.fr"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🌿",
+          "source": "OFB",
+          "nom": "Guide gestion différenciée des espaces verts",
+          "description": "Méthodes de gestion favorable à la biodiversité pour les collectivités.",
+          "url": "https://ofb.gouv.fr/centres-de-ressources"
+        },
+        {
+          "icone": "🌍",
+          "source": "ARB Occitanie",
+          "nom": "Plantes messicoles et prairies d'Occitanie",
+          "description": "Sélection d'espèces locales adaptées au contexte méditerranéen et sub-montagnard.",
+          "url": "https://www.arb-occitanie.fr/"
+        }
+      ],
+      "engagement": "Les abords seront gérés en prairie fleurie avec fauche tardive et zéro phytosanitaire, favorisant les pollinisateurs locaux."
+    },
+    {
+      "id": "mare",
+      "icone": "💧",
+      "titre": "Mare ou noue végétalisée pour la gestion des eaux pluviales",
+      "description": "Double bénéfice : obligation réglementaire eaux pluviales satisfaite + habitat humide créé pour la faune aquatique.",
+      "condition": {
+        "question": "le-terrain-est-il-situe",
+        "parmi": ["oui-cours-d-eau"]
+      },
+      "financements": [
+        {
+          "icone": "💧",
+          "libelle": "Agence de l'Eau — eaux pluviales",
+          "description": "Finance la création de noues et mares de rétention végétalisées.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=agence+eau+adour+garonne+eaux+pluviales"
+        },
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Renaturation",
+          "description": "Financement des solutions fondées sur la nature pour la gestion des eaux.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "💧",
+          "source": "OFB",
+          "nom": "Centre de ressources Solutions fondées sur la Nature",
+          "description": "Noues, mares, zones humides artificielles : guides techniques et retours d'expérience.",
+          "url": "https://ofb.gouv.fr/centres-de-ressources"
+        },
+        {
+          "icone": "🌍",
+          "source": "ARB Occitanie",
+          "nom": "Zones humides en Occitanie",
+          "description": "Accompagnement à la création de mares et zones humides artificielles.",
+          "url": "https://www.arb-occitanie.fr/"
+        }
+      ],
+      "engagement": "La gestion des eaux pluviales sera assurée par une noue végétalisée ou une mare paysagère, limitant l'imperméabilisation et créant un habitat favorable à la faune aquatique."
+    },
+    {
+      "id": "corridor",
+      "icone": "🔗",
+      "titre": "Connecter le projet au corridor écologique existant",
+      "description": "Prolonge la haie bocagère adjacente jusqu'aux abords du bâtiment pour maintenir le passage de la faune locale. Critère Trame Verte et Bleue valorisé dans les dossiers DETR.",
+      "condition": {
+        "question": "le-terrain-est-il-situe",
+        "parmi": ["oui-boisement-ou-haie"]
+      },
+      "financements": [
+        {
+          "icone": "🏗️",
+          "libelle": "DETR — critère TVB majorant",
+          "description": "La connexion au corridor existant est un critère de bonification dans l'instruction DETR.",
+          "url": "https://monespacecollectivite.anct.gouv.fr"
+        },
+        {
+          "icone": "💧",
+          "libelle": "Agence de l'Eau — continuités",
+          "description": "Finance les actions de restauration des continuités écologiques.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=agence+eau+continuite+ecologique"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🏛️",
+          "source": "OFB",
+          "nom": "Trame Verte et Bleue — méthodes",
+          "description": "Identifier et restaurer les continuités écologiques à l'échelle communale.",
+          "url": "https://ofb.gouv.fr/centres-de-ressources"
+        },
+        {
+          "icone": "🗺️",
+          "source": "DREAL Occitanie",
+          "nom": "SRCE Occitanie — cartographie TVB",
+          "description": "Schéma régional de cohérence écologique : corridors et réservoirs de biodiversité.",
+          "url": "https://www.occitanie.developpement-durable.gouv.fr"
+        }
+      ],
+      "engagement": "Le projet assurera la continuité écologique avec le milieu naturel adjacent (haie bocagère) en connectant les aménagements verts à l'existant."
+    },
+    {
+      "id": "nichoirs",
+      "icone": "🐦",
+      "titre": "Intégrer des nichoirs dans les murs lors de la construction",
+      "description": "Accueille martinets, mésanges et chauves-souris en incorporant des briques-nichoirs dans la maçonnerie. Coût marginal intégré au chantier, valeur écologique permanente.",
+      "condition": true,
+      "financements": [
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Biodiversité bâtiment",
+          "description": "Financement des dispositifs d'accueil de la faune intégrés au bâti.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        },
+        {
+          "icone": "🐦",
+          "libelle": "Partenariat technique gratuit de la LPO",
+          "description": "La LPO accompagne gratuitement la pose de nichoirs dans les bâtiments publics.",
+          "url": "https://www.lpo.fr/la-lpo-en-actions/education-a-la-nature/nichoirs"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🐦",
+          "source": "LPO",
+          "nom": "Guide nichoirs et gîtes à chauves-souris",
+          "description": "Spécifications techniques pour l'intégration de nichoirs dans les bâtiments publics.",
+          "url": "https://www.lpo.fr"
+        },
+        {
+          "icone": "🏛️",
+          "source": "OFB",
+          "nom": "Chiroptères et bâtiments — guide technique",
+          "description": "Préserver et favoriser les chauves-souris dans les projets de construction.",
+          "url": "https://ofb.gouv.fr"
+        }
+      ],
+      "engagement": "Le bâtiment intégrera des briques-nichoirs pour oiseaux cavicoles et des gîtes à chauves-souris dans la maçonnerie dès la phase de conception architecturale."
+    },
+    {
+      "id": "eclairage",
+      "icone": "🌙",
+      "titre": "Passer à un éclairage sobre pour préserver la faune nocturne",
+      "description": "LED orientées vers le bas, extinction après 23h et détecteurs de présence réduisent la pollution lumineuse de 80 % et la facture d'éclairage de 30 %.",
+      "condition": {
+        "question": "eclairage-exterieur-prevu-parking-cheminements",
+        "parmi": ["oui-avec-detecteurs-de", "oui-eclairage-continu-facades"]
+      },
+      "financements": [
+        {
+          "icone": "⚡",
+          "libelle": "Fonds vert — Éclairage public sobre",
+          "description": "Finance le remplacement ou l'amélioration de l'éclairage extérieur public.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=eclairage+public+fonds+vert"
+        },
+        {
+          "icone": "💡",
+          "libelle": "CEE — Économies d'énergie",
+          "description": "Certificats d'économies d'énergie applicables à l'éclairage public.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=CEE+eclairage+collectivite"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🌙",
+          "source": "OFB",
+          "nom": "Centre de ressources Trame Noire",
+          "description": "Méthodes pour limiter la pollution lumineuse et préserver la biodiversité nocturne.",
+          "url": "https://ofb.gouv.fr/centres-de-ressources"
+        },
+        {
+          "icone": "💡",
+          "source": "ANPCEN",
+          "nom": "Label Villes et Villages Étoilés",
+          "description": "Démarche de réduction de la pollution lumineuse. Accompagnement et labellisation.",
+          "url": "https://www.anpcen.fr/"
+        }
+      ],
+      "engagement": "L'éclairage extérieur respectera la trame noire : LED ≤ 2700K orientées vers le bas, détecteurs de présence et extinction après 23h pour préserver la faune nocturne."
+    },
+    {
+      "id": "phyto",
+      "icone": "🚫",
+      "titre": "S'engager formellement au zéro phytosanitaire par délibération",
+      "description": "Une délibération du conseil municipal formalise l'abandon des produits chimiques sur les espaces verts. Coût nul, signal fort pour tout instructeur de dossier DETR ou Fonds vert.",
+      "condition": true,
+      "financements": [
+        {
+          "icone": "🏗️",
+          "libelle": "DETR — bonification environnementale",
+          "description": "L'engagement zéro phyto formalisé est un critère majorant dans l'instruction DETR.",
+          "url": "https://monespacecollectivite.anct.gouv.fr"
+        },
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — sobriété écologique",
+          "description": "Renforce votre positionnement dans les critères d'instruction Fonds vert.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🌱",
+          "source": "OFB",
+          "nom": "Zéro phyto dans les communes",
+          "description": "Guide pratique pour adopter la gestion sans pesticides dans les espaces publics.",
+          "url": "https://ofb.gouv.fr"
+        },
+        {
+          "icone": "🌍",
+          "source": "ARB Occitanie",
+          "nom": "Plan zéro phyto Occitanie",
+          "description": "Accompagnement des communes occitanes vers la gestion sans produits phytosanitaires.",
+          "url": "https://www.arb-occitanie.fr/"
+        }
+      ],
+      "engagement": "La commune s'engage formellement par délibération à gérer les abords de l'équipement sans produits phytosanitaires."
+    },
+    {
+      "id": "ecologue",
+      "icone": "🔬",
+      "titre": "Faire appel à un écologue dès la phase de conception",
+      "description": "Un diagnostic de terrain (1 à 2 journées) oriente les choix d'aménagement et évite les erreurs coûteuses en phase travaux. Finançable jusqu'à 80 % via le Fonds vert ingénierie.",
+      "condition": true,
+      "financements": [
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Ingénierie AMO (80 %)",
+          "description": "Finance jusqu'à 80 % la mission d'un écologue ou AMO biodiversité en phase conception.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        },
+        {
+          "icone": "🏗️",
+          "libelle": "DETR — présence d'un AMO",
+          "description": "L'intégration d'un écologue dans l'équipe est un critère majorant dans l'instruction DETR.",
+          "url": "https://monespacecollectivite.anct.gouv.fr"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🏛️",
+          "source": "OFB",
+          "nom": "Annuaire des bureaux d'études naturalistes",
+          "description": "Trouver un écologue ou AMO biodiversité qualifié en région.",
+          "url": "https://ofb.gouv.fr"
+        },
+        {
+          "icone": "🎓",
+          "source": "OPECO France",
+          "nom": "Observatoire des pratiques écologiques",
+          "description": "Réseau de professionnels de l'écologie appliquée aux projets d'aménagement.",
+          "url": "https://www.opecoFrance.fr"
+        }
+      ],
+      "engagement": "Un écologue ou AMO biodiversité sera intégré à l'équipe de maîtrise d'œuvre dès la phase conception pour optimiser les aménagements en faveur de la biodiversité locale."
+    }
+  ]
+}

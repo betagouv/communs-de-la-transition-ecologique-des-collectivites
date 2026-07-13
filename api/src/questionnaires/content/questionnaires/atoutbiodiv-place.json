@@ -1,0 +1,168 @@
+{
+  "slug": "atoutbiodiv-place",
+  "version": 1,
+  "source": {
+    "nom": "AtoutBiodiv"
+  },
+  "banniere": {
+    "icone": "🌿",
+    "titre": "Optimisez le potentiel biodiversité de votre projet",
+    "sousTitre": "Désimperméabilisation, végétalisation, corridors — identifiez les actions adaptées à votre place"
+  },
+  "questions": [
+    {
+      "type": "choix-unique",
+      "id": "quel-est-le-taux-d",
+      "intitule": "Quel est le taux d'imperméabilisation actuel de la place ?",
+      "options": [
+        {
+          "id": "tres-eleve-plus-de",
+          "libelle": "Très élevé — plus de 80 % bitumé ou bétonné",
+          "signal": "vigilance",
+          "feedback": {
+            "ton": "warning",
+            "message": "Situation critique mais opportunité forte. Le Fonds vert renaturation est directement éligible."
+          }
+        },
+        {
+          "id": "eleve-50-a-80",
+          "libelle": "Élevé — 50 à 80 % de surfaces dures",
+          "signal": "vigilance",
+          "feedback": {
+            "ton": "warning",
+            "message": "Des enclaves végétales significatives sont possibles. Arbres haute tige + alvéoles enherbées."
+          }
+        },
+        {
+          "id": "modere-30-a-50",
+          "libelle": "Modéré — 30 à 50 % de surfaces dures",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Bon point de départ. Renforcer les zones végétales existantes et créer des corridors."
+          }
+        },
+        {
+          "id": "faible-deja-partiellement-vegetalise",
+          "libelle": "Faible — déjà partiellement végétalisé",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Consolider avec essences locales et connexion aux espaces verts adjacents."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "la-place-est-elle-connectee",
+      "intitule": "La place est-elle connectée ou proche d'un espace naturel ou d'un corridor ?",
+      "options": [
+        {
+          "id": "oui-boisement-parc-haie",
+          "libelle": "Oui — boisement, parc, haie ou cours d'eau < 300 m",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "La place peut devenir un maillon du corridor. Orienter les plantations en conséquence."
+          }
+        },
+        {
+          "id": "oui-jardins-prives-et",
+          "libelle": "Oui — jardins privés et espaces verts communaux",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Réseau informel utilisable. Choisir des espèces locales pour les continuités de jardins."
+          }
+        },
+        {
+          "id": "non-c-ur-de",
+          "libelle": "Non — cœur de bourg très minéral",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "info",
+            "message": "Rôle d'îlot de fraîcheur et de refuge ponctuel. Les arbres de haute tige sont prioritaires."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "quel-type-de-vegetalisation-est",
+      "intitule": "Quel type de végétalisation est envisagé ?",
+      "options": [
+        {
+          "id": "arbres-de-haute-tige",
+          "libelle": "Arbres de haute tige et massifs d'essences locales",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Solution optimale. Préférer les essences de la flore occitane : chêne pubescent, micocoulier…"
+          }
+        },
+        {
+          "id": "pelouse-couvre-sol-et",
+          "libelle": "Pelouse, couvre-sol et revêtements alvéolaires",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Désimperméabilisation efficace. Compléter avec des arbres pour l'ombrage."
+          }
+        },
+        {
+          "id": "jardinieres-et-bacs-hors",
+          "libelle": "Jardinières et bacs hors-sol",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "info",
+            "message": "Impact limité sur l'imperméabilisation. Préférer des plantations en pleine terre."
+          }
+        },
+        {
+          "id": "non-defini-a-preciser",
+          "libelle": "Non défini — à préciser en conception",
+          "signal": "vigilance",
+          "feedback": {
+            "ton": "info",
+            "message": "C'est le moment d'orienter vers essences locales et plan de gestion différenciée."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "l-eclairage-de-la-place",
+      "intitule": "L'éclairage de la place est-il concerné par le projet ?",
+      "options": [
+        {
+          "id": "oui-refonte-complete-de",
+          "libelle": "Oui — refonte complète de l'éclairage",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Opportunité pour intégrer la trame noire dès la conception. Fonds vert éligible."
+          }
+        },
+        {
+          "id": "oui-amelioration-ou-remplacement",
+          "libelle": "Oui — amélioration ou remplacement partiel",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "LED ≤ 2700K avec détecteurs. Économies + préservation de la faune nocturne."
+          }
+        },
+        {
+          "id": "non-eclairage-existant-conserve",
+          "libelle": "Non — éclairage existant conservé en l'état",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "info",
+            "message": "Prévoir au minimum une délibération sur la gestion nocturne de l'éclairage existant."
+          }
+        }
+      ]
+    }
+  ]
+}

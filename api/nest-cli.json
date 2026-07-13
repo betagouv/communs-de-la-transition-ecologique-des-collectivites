@@ -8,6 +8,10 @@
       {
         "include": "projet-qualification/llm-scripts/*.py",
         "outDir": "dist/src"
+      },
+      {
+        "include": "questionnaires/content/**/*.json",
+        "outDir": "dist/src"
       }
     ],
     "watchAssets": true

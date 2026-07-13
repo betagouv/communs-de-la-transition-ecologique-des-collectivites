@@ -15,6 +15,9 @@ import { AnalyticsModule } from "@/analytics/analytics.module";
 import { MecModule } from "@/mec/mec.module";
 import { DecisionsModule } from "@/decisions/decisions.module";
 import { TerritoiresModule } from "@/territoires/territoires.module";
+import { QuestionnairesModule } from "@/questionnaires/questionnaires.module";
+import { RecommandationsModule } from "@/recommandations/recommandations.module";
+import { ServicesNumeriquesModule } from "@/services-numeriques/services-numeriques.module";
 
 export function setupApp(app: INestApplication) {
   const logger = app.get(CustomLogger);
@@ -67,6 +70,9 @@ function setupProjetsDoc(app: INestApplication) {
         MecModule,
         DecisionsModule,
         TerritoiresModule,
+        QuestionnairesModule,
+        RecommandationsModule,
+        ServicesNumeriquesModule,
       ],
     });
   SwaggerModule.setup("api/projets", app, documentFactory, {

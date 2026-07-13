@@ -1,0 +1,166 @@
+{
+  "questionnaireSlug": "atoutbiodiv-solaire",
+  "recommandations": [
+    {
+      "id": "sedum",
+      "icone": "🌱",
+      "titre": "Végétaliser la toiture avec du sedum entre les panneaux",
+      "description": "Un tapis de sedum entre les rangées régule la température des panneaux et améliore leur rendement de 3 à 5 %. Crée un habitat de premier choix pour les insectes pollinisateurs.",
+      "condition": {
+        "question": "la-toiture-permet-elle-d",
+        "parmi": ["oui-toiture-plate-avec", "oui-partie-de-toiture"]
+      },
+      "financements": [
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Biodiversité bâtiment",
+          "description": "Finance les dispositifs de végétalisation intégrés aux bâtiments publics.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        },
+        {
+          "icone": "💧",
+          "libelle": "Agence de l'Eau — toiture végétalisée",
+          "description": "Finance la rétention des eaux pluviales par les toitures végétalisées.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=agence+eau+toiture+vegetalisee"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🌱",
+          "source": "ADIVET",
+          "nom": "Guide toitures végétalisées",
+          "description": "Cahier des charges techniques pour les toitures extensives avec sedum.",
+          "url": "https://www.adivet.net/"
+        },
+        {
+          "icone": "🏛️",
+          "source": "OFB",
+          "nom": "Biodiversité sur les toitures",
+          "description": "Intégrer la biodiversité dans la conception des toitures végétalisées.",
+          "url": "https://ofb.gouv.fr"
+        }
+      ],
+      "engagement": "La toiture recevra un tapis de sedum extensif sur les surfaces non couvertes par les panneaux, améliorant la régulation thermique et créant un habitat pour les insectes."
+    },
+    {
+      "id": "nichoirs",
+      "icone": "🐦",
+      "titre": "Poser des nichoirs sous la rive de toiture pendant les travaux",
+      "description": "Des nichoirs pour martinets et rouges-queues posés lors du chantier coûtent moins de 500 € et attirent des espèces qui chassent les insectes nuisibles autour de l'école.",
+      "condition": true,
+      "financements": [
+        {
+          "icone": "🐦",
+          "libelle": "Partenariat technique gratuit de la LPO",
+          "description": "La LPO accompagne gratuitement la pose de nichoirs lors de travaux de toiture.",
+          "url": "https://www.lpo.fr/la-lpo-en-actions/education-a-la-nature/nichoirs"
+        },
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — biodiversité bâtiment",
+          "description": "Les nichoirs intégrés au bâti sont éligibles au volet biodiversité du Fonds vert.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🐦",
+          "source": "LPO",
+          "nom": "Martinets et bâtiments publics",
+          "description": "Guide de pose des nichoirs à martinets lors de travaux de toiture.",
+          "url": "https://www.lpo.fr"
+        },
+        {
+          "icone": "🏛️",
+          "source": "OFB",
+          "nom": "Espèces commensales des bâtiments",
+          "description": "Préserver les espèces liées aux bâtiments : hirondelles, martinets, chauves-souris.",
+          "url": "https://ofb.gouv.fr"
+        }
+      ],
+      "engagement": "Des nichoirs pour martinets noirs et rouges-queues seront intégrés sous la rive de toiture lors des travaux, à préciser dans le cahier des charges."
+    },
+    {
+      "id": "cour",
+      "icone": "🌳",
+      "titre": "Désimperméabiliser la cour et planter des arbres",
+      "description": "Des arbres en pleine terre et des revêtements drainants abaissent la température de la cour de 4 à 6°C en été, améliorant le confort des élèves et réduisant les coûts de rafraîchissement.",
+      "condition": {
+        "question": "la-cour-de-l-ecole",
+        "parmi": ["oui-cour-bitumee-avec", "cour-deja-partiellement-vegetalisee"]
+      },
+      "financements": [
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Cours d'école oasis",
+          "description": "Dispositif dédié à la végétalisation et désimperméabilisation des cours d'école.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        },
+        {
+          "icone": "💧",
+          "libelle": "Agence de l'Eau — désimperméabilisation",
+          "description": "Finance la réduction des surfaces imperméabilisées et la gestion des eaux pluviales.",
+          "url": "https://aides-territoires.beta.gouv.fr/aides/?text=agence+eau+cour+ecole"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🌡️",
+          "source": "ADEME",
+          "nom": "Cours d'école oasis — rafraîchissement urbain",
+          "description": "Désimperméabiliser et végétaliser les cours d'école pour les adapter au changement climatique.",
+          "url": "https://www.plusfraichemaville.fr/"
+        },
+        {
+          "icone": "🌍",
+          "source": "ARB Occitanie",
+          "nom": "Biodiversité scolaire en Occitanie",
+          "description": "Accompagnement des communes occitanes dans les projets de biodiversité scolaire.",
+          "url": "https://www.arb-occitanie.fr/"
+        }
+      ],
+      "engagement": "Un projet de végétalisation de la cour (arbres d'essences locales, bacs en pleine terre) sera associé au projet solaire pour désimperméabiliser et créer un espace pédagogique."
+    },
+    {
+      "id": "pedago",
+      "icone": "📚",
+      "titre": "Créer un jardin pédagogique de plantes locales avec les élèves",
+      "description": "Un jardin de la flore occitane et une petite mare transforment l'école en espace de découverte vivant. Financé par l'OFB dans le cadre du programme Aires éducatives.",
+      "condition": {
+        "question": "un-volet-pedagogique-biodiversite-est",
+        "parmi": ["oui-jardin-pedagogique-ruches", "pas-encore-defini-ouvert"]
+      },
+      "financements": [
+        {
+          "icone": "🏛️",
+          "libelle": "OFB + Région — Aires terrestres éducatives",
+          "description": "Dispositif national de financement des projets de biodiversité scolaire.",
+          "url": "https://ofb.gouv.fr/les-aires-marines-et-terrestres-educatives"
+        },
+        {
+          "icone": "🌿",
+          "libelle": "Fonds vert — Éducation biodiversité",
+          "description": "Finance les projets pédagogiques autour de la biodiversité dans les écoles.",
+          "url": "https://aides-territoires.beta.gouv.fr/programmes/fonds-vert/"
+        }
+      ],
+      "ressources": [
+        {
+          "icone": "🏛️",
+          "source": "OFB",
+          "nom": "Aires terrestres éducatives",
+          "description": "Dispositif national pour les projets de biodiversité en milieu scolaire.",
+          "url": "https://ofb.gouv.fr/les-aires-marines-et-terrestres-educatives"
+        },
+        {
+          "icone": "🐸",
+          "source": "MNHN",
+          "nom": "Vigie-Nature École",
+          "description": "Programme national de sciences participatives adapté aux élèves de primaire.",
+          "url": "https://www.vigienature-ecole.fr/"
+        }
+      ],
+      "engagement": "Un jardin de plantes locales et une mare pédagogique seront aménagés pour associer les élèves aux enjeux de biodiversité dans le cadre de la transition écologique de la commune."
+    }
+  ]
+}

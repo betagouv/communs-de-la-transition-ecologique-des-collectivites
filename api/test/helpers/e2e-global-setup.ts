@@ -11,6 +11,7 @@ import { AppModule } from "@/app.module";
 import { setupApp } from "@/setup-app";
 import { serveRessources } from "@/serve-ressources";
 import { installUncaughtAssertGuard } from "@test/helpers/e2e-uncaught-guard";
+import { E2E_PORT } from "@test/helpers/e2e-port";
 
 declare global {
   var testApp: INestApplication;
@@ -49,7 +50,7 @@ export default async function globalSetup() {
   setupApp(app);
   serveRessources(app);
   await app.init();
-  await app.listen(3000);
+  await app.listen(E2E_PORT);
 
   global.testApp = app;
   global.testDbService = moduleFixture.get(TestDatabaseService);

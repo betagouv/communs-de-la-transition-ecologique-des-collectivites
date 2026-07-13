@@ -1,9 +1,10 @@
 import type { components, paths } from "../generated-types";
 import createClient from "openapi-fetch";
 import { IdType } from "@/shared/types";
+import { E2E_BASE_URL } from "@test/helpers/e2e-port";
 
 export const createApiClient = (apiKey?: string) => {
-  const baseUrl = "http://localhost:3000";
+  const baseUrl = E2E_BASE_URL;
 
   const client = createClient<paths>({
     baseUrl,

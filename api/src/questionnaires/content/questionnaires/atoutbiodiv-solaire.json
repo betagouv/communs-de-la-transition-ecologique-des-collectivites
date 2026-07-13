@@ -1,0 +1,141 @@
+{
+  "slug": "atoutbiodiv-solaire",
+  "version": 1,
+  "source": {
+    "nom": "AtoutBiodiv"
+  },
+  "banniere": {
+    "icone": "🌿",
+    "titre": "Optimisez le potentiel biodiversité de votre projet",
+    "sousTitre": "Toiture végétalisée, cour désimperméabilisée, biodiversité pédagogique — optimisez les co-bénéfices"
+  },
+  "questions": [
+    {
+      "type": "choix-unique",
+      "id": "la-toiture-permet-elle-d",
+      "intitule": "La toiture permet-elle d'intégrer des éléments de végétalisation en plus des panneaux ?",
+      "options": [
+        {
+          "id": "oui-toiture-plate-avec",
+          "libelle": "Oui — toiture plate avec surface disponible entre les panneaux",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Sedum extensif entre les panneaux : habitat insectes + régulation thermique (+3-5 % rendement)."
+          }
+        },
+        {
+          "id": "oui-partie-de-toiture",
+          "libelle": "Oui — partie de toiture en pente libre (sans panneaux)",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Sedum et mousse sur les pans libres. Nichoirs sous la rive à coût marginal."
+          }
+        },
+        {
+          "id": "non-toiture-entierement-couverte",
+          "libelle": "Non — toiture entièrement couverte de panneaux",
+          "signal": "vigilance",
+          "feedback": {
+            "ton": "info",
+            "message": "Reporter les actions sur la cour de l'école et les abords du bâtiment."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "la-cour-de-l-ecole",
+      "intitule": "La cour de l'école offre-t-elle des opportunités de végétalisation ?",
+      "options": [
+        {
+          "id": "oui-cour-bitumee-avec",
+          "libelle": "Oui — cour bitumée avec espaces libres disponibles",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Désimperméabilisation finançable (Fonds vert). Arbres + jardin pédagogique."
+          }
+        },
+        {
+          "id": "cour-deja-partiellement-vegetalisee",
+          "libelle": "Cour déjà partiellement végétalisée",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Renforcer avec essences locales. Dimension pédagogique forte à valoriser."
+          }
+        },
+        {
+          "id": "cour-entierement-bitumee-espace",
+          "libelle": "Cour entièrement bitumée, espace très contraint",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "info",
+            "message": "Envisager un projet séparé de végétalisation. Très finançable et valorisé par l'OFB."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "l-eclairage-exterieur-de-l",
+      "intitule": "L'éclairage extérieur de l'école est-il concerné par le projet ?",
+      "options": [
+        {
+          "id": "oui-refonte-ou-amelioration",
+          "libelle": "Oui — refonte ou amélioration de l'éclairage",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "LED ≤ 2700K et détecteurs. Cohérence énergie solaire + économies + trame noire."
+          }
+        },
+        {
+          "id": "non-eclairage-non-concerne",
+          "libelle": "Non — éclairage non concerné",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "info",
+            "message": "À intégrer dans un projet d'entretien futur."
+          }
+        }
+      ]
+    },
+    {
+      "type": "choix-unique",
+      "id": "un-volet-pedagogique-biodiversite-est",
+      "intitule": "Un volet pédagogique biodiversité est-il envisagé autour du projet ?",
+      "options": [
+        {
+          "id": "oui-jardin-pedagogique-ruches",
+          "libelle": "Oui — jardin pédagogique, ruches, mare d'école envisagés",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Valorisé par l'OFB et la Région pour des financements spécifiques."
+          }
+        },
+        {
+          "id": "pas-encore-defini-ouvert",
+          "libelle": "Pas encore défini — ouvert à des propositions",
+          "signal": "favorable",
+          "feedback": {
+            "ton": "success",
+            "message": "Proposer un jardin de plantes locales et un nichoir pédagogique (< 2 000 €)."
+          }
+        },
+        {
+          "id": "non-projet-uniquement-technique",
+          "libelle": "Non — projet uniquement technique",
+          "signal": "neutre",
+          "feedback": {
+            "ton": "info",
+            "message": "Même sans volet pédagogique, nichoirs et sedum restent facilement intégrables."
+          }
+        }
+      ]
+    }
+  ]
+}
