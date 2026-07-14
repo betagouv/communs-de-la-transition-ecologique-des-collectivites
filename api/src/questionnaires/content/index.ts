@@ -24,12 +24,13 @@ const FICHIERS_RECOMMANDATIONS = [
 ] as unknown as RecommandationsFichier[];
 
 /**
- * Assemble un questionnaire : contenu partenaire + recommandations + classification
- * d'éligibilité (détenue par Communs). Toute incohérence est une ERREUR AU DÉMARRAGE, pas
- * une recommandation qui disparaît silencieusement en production : une `condition` qui
- * pointe une question ou une option inexistante est presque toujours une coquille dans la
- * PR de contenu, et elle serait autrement indétectable (la recommandation ne s'afficherait
- * simplement jamais).
+ * ASSEMBLE une définition d'amorçage : JSON partenaire + recommandations + étiquettes.
+ *
+ * PUR CHARGEUR. Il ne valide QUE ce qui relève de l'assemblage : un champ hérité qui traîne, un
+ * fichier de recommandations manquant, une entrée absente d'ETIQUETTES_REQUISES. Tout le reste —
+ * étiquettes dans la taxonomie, conditions résolubles, ids uniques — est jugé par
+ * `validerDefinition`, SEULE autorité, que le script d'amorçage appelle comme le fait toute
+ * écriture. Deux jeux de règles sur le même invariant divergent : les nôtres l'avaient déjà fait.
  */
 export function assembler(fichier: QuestionnaireFichier): QuestionnaireDef {
   const { slug } = fichier;
@@ -42,8 +43,7 @@ export function assembler(fichier: QuestionnaireFichier): QuestionnaireDef {
   if ("eligibilite" in fichier) {
     throw new Error(
       `Questionnaire "${slug}" : le champ "eligibilite" n'est plus supporté. L'éligibilité est décidée ` +
-        `par Communs : le projet doit porter les étiquettes définissantes du questionnaire — déclarez-les ` +
-        `dans content/classification.ts (taxonomies fermées : thematiques, sites, interventions).`,
+        `par Communs : le projet doit porter les étiquettes définissantes du questionnaire.`,
     );
   }
 
@@ -55,54 +55,17 @@ export function assembler(fichier: QuestionnaireFichier): QuestionnaireDef {
     );
   }
 
-  // Une liste vide sur les trois axes serait pire qu'une absence : le questionnaire n'exigerait
-  // RIEN, donc il serait proposé à TOUS les projets. Une conjonction vide est vraie.
-  const nbEtiquettes =
-    etiquettesRequises.thematiques.length + etiquettesRequises.sites.length + etiquettesRequises.interventions.length;
-  if (nbEtiquettes === 0) {
-    throw new Error(
-      `Questionnaire "${slug}" : aucune étiquette requise. Il serait proposé à TOUS les projets ` +
-        `(une conjonction vide est vraie). Déclarez au moins une étiquette dans content/classification.ts.`,
-    );
-  }
-
   const fichierRecos = FICHIERS_RECOMMANDATIONS.find((r) => r.questionnaireSlug === slug);
   if (!fichierRecos) {
     throw new Error(`Questionnaire "${slug}" : aucun fichier de recommandations correspondant.`);
-  }
-
-  const questionsParId = new Map(fichier.questions.map((q) => [q.id, q]));
-
-  for (const reco of fichierRecos.recommandations) {
-    if (reco.condition === true) continue;
-
-    const question = questionsParId.get(reco.condition.question);
-    if (!question) {
-      throw new Error(
-        `Recommandation "${slug}:${reco.id}" : condition sur la question inconnue ` +
-          `"${reco.condition.question}" (connues : ${[...questionsParId.keys()].join(", ")}).`,
-      );
-    }
-    const optionsInconnues = reco.condition.parmi.filter((o) => !question.options.some((opt) => opt.id === o));
-    if (optionsInconnues.length > 0) {
-      throw new Error(
-        `Recommandation "${slug}:${reco.id}" : condition sur des options inconnues de la question ` +
-          `"${question.id}" : ${optionsInconnues.join(", ")} ` +
-          `(connues : ${question.options.map((o) => o.id).join(", ")}).`,
-      );
-    }
   }
 
   return { ...fichier, etiquettesRequises, recommandations: fichierRecos.recommandations };
 }
 
 /**
- * Registre des questionnaires. Source de vérité du CONTENU : les JSON de content/,
- * versionnés en Git. Les basculer plus tard vers une table ou un dépôt de schémas chargé au
- * démarrage ne demandera de réécrire ni le moteur, ni les services — seul ce fichier change.
+ * Définitions d'AMORÇAGE. Ce ne sont plus la source de vérité : la base l'est, éditable depuis le
+ * back-office. Ces JSON ne servent qu'à `pnpm seed:questionnaires`, comme le CSV DINUM sert à
+ * amorcer le catalogue de services.
  */
 export const QUESTIONNAIRES: readonly QuestionnaireDef[] = FICHIERS_QUESTIONNAIRES.map(assembler);
-
-export function questionnaireParSlug(slug: string): QuestionnaireDef | undefined {
-  return QUESTIONNAIRES.find((q) => q.slug === slug);
-}

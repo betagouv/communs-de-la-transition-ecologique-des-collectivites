@@ -2,7 +2,7 @@ import { interventions } from "@/projet-qualification/classification/const/inter
 import { sites } from "@/projet-qualification/classification/const/sites";
 import { thematiques } from "@/projet-qualification/classification/const/thematiques";
 import type { QuestionnaireFichier } from "../questionnaire-contract";
-import { assembler, QUESTIONNAIRES, questionnaireParSlug } from "./index";
+import { assembler, QUESTIONNAIRES } from "./index";
 import { ETIQUETTES_REQUISES } from "./classification";
 
 // Ces tests portent sur le CONTENU (JSON partenaire + classification Communs). Ils sont le
@@ -119,11 +119,6 @@ describe("Contenu des questionnaires", () => {
     }
   });
 
-  it("questionnaireParSlug retrouve un questionnaire connu et rien d'autre", () => {
-    expect(questionnaireParSlug("atoutbiodiv-salle")?.slug).toBe("atoutbiodiv-salle");
-    expect(questionnaireParSlug("inexistant")).toBeUndefined();
-  });
-
   it("aucun fichier partenaire ne porte plus de champ `eligibilite`", () => {
     // Le vocabulaire thématique de MEC (« Équipements et services publics »…) n'existe pas
     // dans les taxonomies de l'API : le champ n'a jamais pu servir. Cf. README.md.
@@ -133,11 +128,18 @@ describe("Contenu des questionnaires", () => {
   });
 });
 
-describe("Garde-fous du chargeur de contenu", () => {
+/**
+ * Le chargeur ne valide plus que l'ASSEMBLAGE : champ hérité, entrée d'étiquettes absente, fichier
+ * de recommandations manquant. Les règles de FOND (étiquettes dans la taxonomie, conditions
+ * résolubles, ids uniques) sont l'affaire de `validerDefinition` — seule autorité, testée dans
+ * questionnaire-validation.spec.ts. Elles étaient vérifiées ici EN DOUBLE, et les deux jeux avaient
+ * déjà divergé : le chargeur ignorait les taxonomies et l'unicité des ids.
+ */
+describe("Garde-fous du chargeur d'amorçage", () => {
   // Ancré sur le VRAI contenu : les conditions du catalogue de recommandations d'AtoutBiodiv
   // pointent des questions réelles, un fichier bidon ne les satisferait pas.
   const fichierValide = (): QuestionnaireFichier => {
-    const { slug, version, source, banniere, questions } = questionnaireParSlug("atoutbiodiv-salle")!;
+    const { slug, version, source, banniere, questions } = QUESTIONNAIRES.find((q) => q.slug === "atoutbiodiv-salle")!;
     return { slug, version, source, banniere, questions };
   };
 
@@ -159,24 +161,5 @@ describe("Garde-fous du chargeur de contenu", () => {
     const inconnu = { ...fichierValide(), slug: "questionnaire-sans-etiquette" };
 
     expect(() => assembler(inconnu)).toThrow(/aucune étiquette d'éligibilité/);
-  });
-
-  it("refuse un questionnaire qui n'exige AUCUNE étiquette", () => {
-    // Le pire cas, et il est contre-intuitif : une conjonction VIDE est VRAIE. Un questionnaire
-    // qui n'exige rien serait proposé à TOUS les projets, sans exception. Mieux vaut refuser de
-    // démarrer que d'inonder toutes les collectivités de France.
-    ETIQUETTES_REQUISES["questionnaire-vide"] = { thematiques: [], sites: [], interventions: [] };
-
-    try {
-      expect(() => assembler({ ...fichierValide(), slug: "questionnaire-vide" })).toThrow(/proposé à TOUS les projets/);
-    } finally {
-      delete ETIQUETTES_REQUISES["questionnaire-vide"];
-    }
-  });
-
-  it("refuse une condition qui pointe une question inexistante", () => {
-    expect(() => assembler({ ...fichierValide(), slug: "atoutbiodiv-salle", questions: [] })).toThrow(
-      /question inconnue/,
-    );
   });
 });

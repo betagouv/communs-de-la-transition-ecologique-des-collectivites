@@ -13,7 +13,12 @@ import { Services } from "./components/Services";
 import { compterEtiquettes, type Contenu, type Simulation, type Taxonomies } from "./types";
 
 /**
- * Back-office — LECTURE et SIMULATION uniquement. Il n'écrit rien.
+ * Back-office : simuler ce que verra une collectivité, et ÉDITER les questionnaires.
+ *
+ * La simulation n'écrit rien — les réponses qu'on y saisit ne sont jamais enregistrées. L'édition,
+ * elle, écrit : elle passe par l'API, qui valide tout (étiquettes dans la taxonomie fermée,
+ * conditions résolubles, ids uniques) et refuse en 400 explicite. Aucune règle n'est rejouée ici :
+ * la dupliquer donnerait deux vérités à tenir en phase, et celle du client serait contournable.
  *
  * On simule sur un projet RÉEL, désigné par son id : un projet fabriqué à la main dirait ce
  * qu'on veut entendre. C'est exactement ce piège qui a produit un faux diagnostic sur le seuil
@@ -99,7 +104,7 @@ export default function App() {
         }
         homeLinkProps={{ href: "/", title: "Accueil - Les Communs" }}
         serviceTitle="Les Communs de la transition écologique"
-        serviceTagline="Back-office — lecture et simulation"
+        serviceTagline="Back-office — simulation et édition"
         quickAccessItems={[
           {
             buttonProps: {

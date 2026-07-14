@@ -25,8 +25,8 @@ export function PorteCle({ onCle, refusee }: { onCle: () => void; refusee: boole
     <form onSubmit={valider} className={fr.cx("fr-container", "fr-py-8w")} style={{ maxWidth: "36rem" }}>
       <h1 className={fr.cx("fr-h3")}>Back-office</h1>
       <p className={fr.cx("fr-text--sm", "fr-mb-3w")}>
-        Outil interne de lecture et de simulation. Il n&apos;écrit rien : les réponses qu&apos;on y saisit ne sont
-        jamais enregistrées.
+        Outil interne : simuler ce que verra une collectivité, et éditer les questionnaires. Les réponses saisies en
+        simulation ne sont jamais enregistrées.
       </p>
 
       {refusee && (

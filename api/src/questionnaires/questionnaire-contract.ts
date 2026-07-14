@@ -1,5 +1,3 @@
-import type { EtiquettesRequises } from "./content/classification";
-
 // ============================================================
 // Contrat des questionnaires spécialisés
 // ============================================================
@@ -11,6 +9,31 @@ import type { EtiquettesRequises } from "./content/classification";
 // Frontière stricte : `condition` (et la classification d'éligibilité) ne sortent JAMAIS de
 // l'API. Elles sont évaluées côté serveur, et les DTO de réponse ne les portent pas. Exposer
 // une condition serait une fuite de logique métier vers le client — la spec l'interdit.
+
+/**
+ * Étiquettes qui DÉFINISSENT un questionnaire. Le projet doit TOUTES les porter (confiance ≥
+ * SEUIL_CONFIANCE) pour qu'il lui soit proposé.
+ *
+ * `string[]` et non `Thematique[]` : les valeurs viennent d'un jsonb, éditable depuis le
+ * back-office. Un typage littéral ne protégerait plus rien — c'est `validerDefinition` qui vérifie
+ * l'appartenance aux taxonomies fermées, et lui seul peut le faire à l'écriture.
+ */
+export interface EtiquettesRequises {
+  thematiques: readonly string[];
+  sites: readonly string[];
+  interventions: readonly string[];
+}
+
+/** Les trois axes du schéma commun. */
+export const AXES = ["thematiques", "sites", "interventions"] as const;
+export type Axe = (typeof AXES)[number];
+
+/**
+ * Confiance minimale de l'étiquette DANS LA CLASSIFICATION DU PROJET pour qu'elle compte.
+ * Même valeur que le seuil du moteur de matching des aides : en dessous, le job LLM n'est pas assez
+ * sûr de lui pour qu'on agisse dessus.
+ */
+export const SEUIL_CONFIANCE = 0.8;
 
 export const SIGNAUX = ["favorable", "vigilance", "neutre"] as const;
 export type Signal = (typeof SIGNAUX)[number];

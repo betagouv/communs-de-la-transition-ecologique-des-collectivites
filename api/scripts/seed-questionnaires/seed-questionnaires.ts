@@ -3,6 +3,7 @@ import { Pool } from "pg";
 import { questionnaires } from "@/database/schema";
 import { QUESTIONNAIRES } from "@/questionnaires/content";
 import { validerDefinition } from "@/questionnaires/questionnaire-validation";
+import { versLigne } from "@/questionnaires/questionnaires.repository";
 
 /**
  * AMORÇAGE des questionnaires : verse en base les définitions du dépôt (content/).
@@ -42,19 +43,7 @@ async function main() {
       continue;
     }
 
-    const valeurs = {
-      slug: def.slug,
-      sourceNom: def.source.nom,
-      banniere: def.banniere as unknown as Record<string, unknown>,
-      questions: def.questions as unknown as unknown[],
-      recommandations: def.recommandations as unknown as unknown[],
-      etiquettesRequises: {
-        thematiques: [...def.etiquettesRequises.thematiques],
-        sites: [...def.etiquettesRequises.sites],
-        interventions: [...def.etiquettesRequises.interventions],
-      },
-      editePar: "amorçage (content/)",
-    };
+    const valeurs = versLigne(def, "amorçage (content/)");
 
     await db.insert(questionnaires).values(valeurs).onConflictDoUpdate({
       target: questionnaires.slug,

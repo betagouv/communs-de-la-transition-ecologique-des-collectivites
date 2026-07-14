@@ -5,14 +5,7 @@ import { Button } from "@codegouvfr/react-dsfr/Button";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { Editeur } from "./Editeur";
 import { supprimerQuestionnaire } from "../api";
-import type { Axe, QuestionnaireContenu, Taxonomies } from "../types";
-
-const AXES: Axe[] = ["thematiques", "sites", "interventions"];
-const LIBELLE_AXE: Record<Axe, string> = {
-  thematiques: "thématique",
-  sites: "lieu",
-  interventions: "modalité",
-};
+import { AXES, LIBELLE_AXE, type QuestionnaireContenu, type Taxonomies } from "../types";
 
 /**
  * Le catalogue des questionnaires, et leur édition.
@@ -73,7 +66,7 @@ export function CatalogueQuestionnaires({
                 Proposé si le projet porte <strong>toutes</strong> ces étiquettes :{" "}
                 {AXES.flatMap((axe) =>
                   q.etiquettesRequises[axe].map((label) => (
-                    <span key={`${axe}-${label}`} title={LIBELLE_AXE[axe]}>
+                    <span key={`${axe}-${label}`} title={LIBELLE_AXE[axe].singulier}>
                       <Badge severity="success" noIcon small>
                         {label}
                       </Badge>{" "}

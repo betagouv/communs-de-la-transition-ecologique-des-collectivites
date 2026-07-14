@@ -2,13 +2,7 @@ import { useMemo, useState } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import { Input } from "@codegouvfr/react-dsfr/Input";
-import type { Axe } from "../types";
-
-const LIBELLE: Record<Axe, string> = {
-  thematiques: "Thématiques",
-  sites: "Lieux",
-  interventions: "Modalités",
-};
+import { LIBELLE_AXE, type Axe } from "../types";
 
 /**
  * Choix d'étiquettes DANS LA TAXONOMIE FERMÉE, servie par l'API.
@@ -47,7 +41,8 @@ export function ChoixEtiquettes({
   return (
     <div className={fr.cx("fr-mb-3w")}>
       <p className={fr.cx("fr-text--sm", "fr-mb-1w")}>
-        <strong>{LIBELLE[axe]}</strong> <span className={fr.cx("fr-text--xs")}>({disponibles.length} disponibles)</span>
+        <strong>{LIBELLE_AXE[axe].pluriel}</strong>{" "}
+        <span className={fr.cx("fr-text--xs")}>({disponibles.length} disponibles)</span>
       </p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", marginBottom: "0.5rem" }}>
@@ -72,7 +67,7 @@ export function ChoixEtiquettes({
         nativeInputProps={{
           value: recherche,
           onChange: (e) => setRecherche(e.target.value),
-          placeholder: `Chercher une ${LIBELLE[axe].toLowerCase().replace(/s$/, "")}…`,
+          placeholder: `Chercher une ${LIBELLE_AXE[axe].singulier}…`,
         }}
       />
 

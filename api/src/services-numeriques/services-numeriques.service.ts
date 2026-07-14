@@ -5,6 +5,7 @@ import { AidesMatchingService } from "@/aides/aides-matching.service";
 import { AideClassification } from "@/aides/dto/aides.dto";
 import { AjoutsManuelsService } from "@/ajouts-manuels/ajouts-manuels.service";
 import type { AjoutManuel, ServiceLibre } from "@/ajouts-manuels/ajout-manuel-contract";
+import { fondreAjouts } from "@/ajouts-manuels/fondre-ajouts";
 import { ProjetResponse } from "@projets/dto/projet.dto";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import {
@@ -73,39 +74,38 @@ export class ServicesNumeriquesService {
    * Aucun service → 200 avec une liste vide, jamais 404.
    */
   async findForProjet(projetId: string, baseUrl: string, plateforme: string): Promise<ProjetServicesResponse> {
-    const { projet } = await this.getProjetsService.findOneWithSource(projetId);
-
-    const catalogue = await this.dbService.database.select().from(servicesNumeriques);
-    const ajouts = await this.ajoutsManuels.actifs(projetId, "service_numerique", plateforme);
+    // Trois lectures INDÉPENDANTES sur un chemin chaud (chaque fiche projet) : en série, c'était
+    // trois allers-retours là où une vague suffit.
+    const [{ projet }, catalogue, ajouts] = await Promise.all([
+      this.getProjetsService.findOneWithSource(projetId),
+      this.dbService.database.select().from(servicesNumeriques),
+      this.ajoutsManuels.actifs(projetId, "service_numerique", plateforme),
+    ]);
 
     const pertinents = this.scorer(projet, catalogue)
-      .filter((s) => s.score >= SEUIL_PERTINENCE && !ajouts.has(s.ligne.slug))
-      .sort((a, b) => b.score - a.score || a.ligne.nom.localeCompare(b.ligne.nom));
+      .filter((s) => s.score >= SEUIL_PERTINENCE)
+      .sort((a, b) => b.score - a.score || a.ligne.nom.localeCompare(b.ligne.nom))
+      .map(({ ligne }) => this.toResponse(ligne, baseUrl));
 
-    // Les ajouts manuels EN TÊTE : quelqu'un les a délibérément mis là. Les noyer dans le tri par
-    // score les rendrait indiscernables du résultat du moteur — or c'est précisément la distinction
-    // qu'on veut rendre visible.
-    //
-    // Un service à la fois pertinent ET ajouté à la main n'apparaît QU'UNE fois (filtré ci-dessus),
-    // avec sa marque d'ajout : le dédoublonnage doit se faire ici, pas dans le client.
     const parSlug = new Map(catalogue.map((l) => [l.slug, l]));
-    const manuels: ServiceResponse[] = [];
-
-    for (const [id, { ajout, service }] of ajouts) {
-      // Service HORS catalogue : l'agent l'a décrit lui-même, c'est lui la source.
-      if (service) {
-        manuels.push(this.libreVersResponse(id, service, ajout));
-        continue;
-      }
-      // Service DU catalogue : sa fiche reste la source de vérité. On ne recopie rien.
-      const ligne = parSlug.get(id);
-      if (ligne) manuels.push({ ...this.toResponse(ligne, baseUrl), ajoutManuel: ajout });
-    }
-
-    manuels.sort((a, b) => a.nom.localeCompare(b.nom));
 
     return {
-      services: [...manuels, ...pertinents.map(({ ligne }) => this.toResponse(ligne, baseUrl))],
+      services: fondreAjouts<ServiceResponse>({
+        ajouts,
+        resoudre: (id, ajout) => {
+          // Service HORS catalogue : l'agent l'a décrit lui-même, c'est lui la source.
+          if (ajout.horsCatalogue) {
+            const service = ajouts.get(id)?.service;
+            return service ? this.libreVersResponse(id, service, ajout) : undefined;
+          }
+          // Service DU catalogue : sa fiche reste la source de vérité. On ne recopie rien.
+          const ligne = parSlug.get(id);
+          return ligne ? { ...this.toResponse(ligne, baseUrl), ajoutManuel: ajout } : undefined;
+        },
+        duMoteur: pertinents,
+        idDe: (s) => s.id,
+        nomDe: (s) => s.nom,
+      }),
     };
   }
 

@@ -9,16 +9,7 @@ import type { QuestionnaireDef } from "@/questionnaires/questionnaire-contract";
 import { calculerStatut, evaluerCondition, reconcilierReponses } from "@/questionnaires/questionnaire-contract";
 import { etiquettesManquantes } from "@/questionnaires/questionnaires.service";
 import { facteurPhase, SEUIL_PERTINENCE, type PoidsParPhase } from "@/services-numeriques/service-numerique-contract";
-import { interventions } from "@/projet-qualification/classification/const/interventions";
-import { sites } from "@/projet-qualification/classification/const/sites";
-import { thematiques } from "@/projet-qualification/classification/const/thematiques";
-import {
-  ContenuResponse,
-  QuestionnaireEditionRequest,
-  SimulationRequest,
-  SimulationResponse,
-  TaxonomiesResponse,
-} from "./dto/admin.dto";
+import { ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
 
 /**
  * Service d'administration : voir le contenu tel qu'il est, et SIMULER ce que l'API renverrait
@@ -34,8 +25,9 @@ import {
  * permet pas de régler le seuil — il faut voir la distribution pour savoir où poser le curseur.
  * Chaque candidat est donc rendu avec son score ET son verdict.
  *
- * Ce module est ADDITIF et ISOLÉ : rien ne l'importe, il ne modifie rien. Le supprimer, c'est
- * `rm -rf src/admin` plus UNE ligne dans app.module.ts.
+ * Ce module est ADDITIF et ISOLÉ : rien ne l'importe, IL N'ÉCRIT RIEN. L'édition des questionnaires
+ * vit dans QuestionnairesModule, pas ici — sans quoi jeter l'écran rendrait le contenu non
+ * éditable. Le supprimer, c'est `rm -rf src/admin` plus UNE ligne dans app.module.ts.
  */
 /** Toutes les étiquettes requises, à plat — le cas « projet non classifié ». */
 function requisesAPlat(def: QuestionnaireDef): { axe: string; label: string }[] {
@@ -55,47 +47,6 @@ export class AdminService {
     private readonly matchingService: AidesMatchingService,
     private readonly questionnairesRepository: QuestionnairesRepository,
   ) {}
-
-  /**
-   * Les taxonomies fermées, pour que l'éditeur ne propose QUE des étiquettes valides.
-   *
-   * Le sélecteur rend la coquille IMPOSSIBLE, là où la validation ne fait que la rattraper. Les
-   * deux sont utiles : le sélecteur pour l'humain qui édite, la validation pour tout ce qui écrit
-   * sans passer par l'écran.
-   */
-  taxonomies(): TaxonomiesResponse {
-    return {
-      thematiques: [...thematiques],
-      sites: [...sites],
-      interventions: [...interventions],
-    };
-  }
-
-  /**
-   * Édite un questionnaire. On DÉLÈGUE au dépôt : c'est lui qui valide, et c'est la même porte que
-   * la lecture. Écrire ici directement aurait ouvert un second chemin, contournant la validation —
-   * et deux chemins d'écriture finissent toujours par diverger.
-   */
-  async editerQuestionnaire(slug: string, dto: QuestionnaireEditionRequest): Promise<QuestionnaireDef> {
-    return this.questionnairesRepository.enregistrer(
-      {
-        slug,
-        // La version n'est PAS pilotée par le client : elle s'incrémente côté base. Un éditeur qui
-        // la fournirait pourrait, par erreur, faire reculer un questionnaire déjà édité par un autre.
-        version: 0,
-        source: { nom: dto.sourceNom },
-        banniere: dto.banniere,
-        questions: dto.questions,
-        recommandations: dto.recommandations,
-        etiquettesRequises: dto.etiquettesRequises as QuestionnaireDef["etiquettesRequises"],
-      },
-      dto.editePar,
-    );
-  }
-
-  supprimerQuestionnaire(slug: string): Promise<void> {
-    return this.questionnairesRepository.supprimer(slug);
-  }
 
   /** Le contenu tel qu'il est réellement chargé — conditions et classifications comprises. */
   async contenu(): Promise<ContenuResponse> {
