@@ -1,9 +1,9 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { AdminService } from "./admin.service";
-import { ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
+import { ContenuResponse, QuestionnaireEditionRequest, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
 
 /**
  * Back-office : voir le contenu, et simuler ce que l'API renverrait pour un projet RÉEL.
@@ -41,6 +41,38 @@ export class AdminController {
   @ApiEndpointResponses({ successStatus: 200, response: ContenuResponse, description: "Contenu courant" })
   contenu(): Promise<ContenuResponse> {
     return this.adminService.contenu();
+  }
+
+  @Put("questionnaires/:slug")
+  @ApiOperation({
+    summary: "Créer ou remplacer un questionnaire",
+    description:
+      "PUT, pas PATCH : un éditeur envoie le document qu'il a sous les yeux. Un PATCH champ par " +
+      "champ autoriserait des états incohérents entre deux appels — une condition enregistrée avant " +
+      "la question qu'elle vise.\n\n" +
+      "TOUT est revalidé avant écriture, et un écart est un 400 explicite : étiquettes dans la " +
+      "taxonomie fermée, AU MOINS une étiquette (une conjonction vide est vraie — le questionnaire " +
+      "serait proposé à TOUS les projets), conditions pointant des questions et des options qui " +
+      "existent. Ce sont exactement les vérifications que le chargeur faisait au démarrage quand les " +
+      "questionnaires vivaient dans le dépôt. Aucune n'a été assouplie.\n\n" +
+      "La `version` s'incrémente automatiquement. Elle n'invalide rien : les réponses des " +
+      "collectivités devenues sans objet sont ignorées à la lecture, jamais effacées.",
+  })
+  @ApiEndpointResponses({ successStatus: 200, response: Object, description: "Questionnaire enregistré" })
+  editerQuestionnaire(@Param("slug") slug: string, @Body() dto: QuestionnaireEditionRequest) {
+    return this.adminService.editerQuestionnaire(slug, dto);
+  }
+
+  @Delete("questionnaires/:slug")
+  @HttpCode(204)
+  @ApiOperation({
+    summary: "Supprimer un questionnaire",
+    description:
+      "Les réponses déjà données par les collectivités ne sont PAS supprimées : elles cessent " +
+      "simplement d'être lues. Si le questionnaire est recréé sous le même slug, elles reviennent.",
+  })
+  supprimerQuestionnaire(@Param("slug") slug: string): Promise<void> {
+    return this.adminService.supprimerQuestionnaire(slug);
   }
 
   @Post("simuler")

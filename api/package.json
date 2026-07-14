@@ -42,6 +42,7 @@
     "import:projects-tet": "cd scripts/import-projets-tet && cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register import-projets-tet.ts import-projets-tet-data.csv",
     "import:tc-opendata": "cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register scripts/import-tc-opendata/import-tc-opendata.ts",
     "import:benchmark-dinum": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/import-benchmark-dinum/import-benchmark-dinum.ts",
+    "seed:questionnaires": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/seed-questionnaires/seed-questionnaires.ts",
     "release": "commit-and-tag-version",
     "db:start": "docker compose up -d",
     "db:clean": "docker compose down -v",

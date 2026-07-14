@@ -5,7 +5,7 @@ import { projetQuestionnaireReponses } from "@database/schema";
 import { ProjetResponse } from "@projets/dto/projet.dto";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { AideClassification } from "@/aides/dto/aides.dto";
-import { QUESTIONNAIRES } from "./content";
+import { QuestionnairesRepository } from "./questionnaires.repository";
 import { SEUIL_CONFIANCE, type EtiquettesRequises } from "./content/classification";
 import { calculerStatut, reconcilierReponses, type QuestionnaireDef } from "./questionnaire-contract";
 import { ProjetQuestionnairesResponse, QuestionnaireResponse } from "./dto/questionnaire.dto";
@@ -49,6 +49,7 @@ export class QuestionnairesService {
   constructor(
     private readonly dbService: DatabaseService,
     private readonly getProjetsService: GetProjetsService,
+    private readonly repository: QuestionnairesRepository,
   ) {}
 
   /**
@@ -62,7 +63,7 @@ export class QuestionnairesService {
   async etatsPourProjet(projetId: string): Promise<{ projet: ProjetResponse; etats: QuestionnaireEtat[] }> {
     const { projet } = await this.getProjetsService.findOneWithSource(projetId);
 
-    const eligibles = this.questionnairesEligibles(projet);
+    const eligibles = await this.questionnairesEligibles(projet);
     if (eligibles.length === 0) return { projet, etats: [] };
 
     const lignes = await this.dbService.database
@@ -84,11 +85,12 @@ export class QuestionnairesService {
    * aides, on ne renvoie pas 202 — la spec impose une liste vide en 200, et un questionnaire
    * n'est pas un contenu qu'on fait attendre.
    */
-  private questionnairesEligibles(projet: ProjetResponse): QuestionnaireDef[] {
+  private async questionnairesEligibles(projet: ProjetResponse): Promise<QuestionnaireDef[]> {
     const scoresProjet = projet.classificationScores;
     if (!scoresProjet) return [];
 
-    return QUESTIONNAIRES.filter((def) => etiquettesManquantes(scoresProjet, def.etiquettesRequises).length === 0);
+    const tous = await this.repository.tous();
+    return tous.filter((def) => etiquettesManquantes(scoresProjet, def.etiquettesRequises).length === 0);
   }
 
   async findForProjet(projetId: string): Promise<ProjetQuestionnairesResponse> {

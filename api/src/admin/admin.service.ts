@@ -4,11 +4,12 @@ import { servicesNumeriques } from "@database/schema";
 import { AidesMatchingService } from "@/aides/aides-matching.service";
 import { AideClassification, AideMatchResult } from "@/aides/dto/aides.dto";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
-import { QUESTIONNAIRES } from "@/questionnaires/content";
+import { QuestionnairesRepository } from "@/questionnaires/questionnaires.repository";
+import type { QuestionnaireDef } from "@/questionnaires/questionnaire-contract";
 import { calculerStatut, evaluerCondition, reconcilierReponses } from "@/questionnaires/questionnaire-contract";
 import { etiquettesManquantes } from "@/questionnaires/questionnaires.service";
 import { facteurPhase, SEUIL_PERTINENCE, type PoidsParPhase } from "@/services-numeriques/service-numerique-contract";
-import { ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
+import { ContenuResponse, QuestionnaireEditionRequest, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
 
 /**
  * Service d'administration : voir le contenu tel qu'il est, et SIMULER ce que l'API renverrait
@@ -28,7 +29,7 @@ import { ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/ad
  * `rm -rf src/admin` plus UNE ligne dans app.module.ts.
  */
 /** Toutes les étiquettes requises, à plat — le cas « projet non classifié ». */
-function requisesAPlat(def: (typeof QUESTIONNAIRES)[number]): { axe: string; label: string }[] {
+function requisesAPlat(def: QuestionnaireDef): { axe: string; label: string }[] {
   const { thematiques, sites, interventions } = def.etiquettesRequises;
   return [
     ...thematiques.map((label) => ({ axe: "thematiques", label })),
@@ -43,14 +44,42 @@ export class AdminService {
     private readonly dbService: DatabaseService,
     private readonly getProjetsService: GetProjetsService,
     private readonly matchingService: AidesMatchingService,
+    private readonly questionnairesRepository: QuestionnairesRepository,
   ) {}
+
+  /**
+   * Édite un questionnaire. On DÉLÈGUE au dépôt : c'est lui qui valide, et c'est la même porte que
+   * la lecture. Écrire ici directement aurait ouvert un second chemin, contournant la validation —
+   * et deux chemins d'écriture finissent toujours par diverger.
+   */
+  async editerQuestionnaire(slug: string, dto: QuestionnaireEditionRequest): Promise<QuestionnaireDef> {
+    return this.questionnairesRepository.enregistrer(
+      {
+        slug,
+        // La version n'est PAS pilotée par le client : elle s'incrémente côté base. Un éditeur qui
+        // la fournirait pourrait, par erreur, faire reculer un questionnaire déjà édité par un autre.
+        version: 0,
+        source: { nom: dto.sourceNom },
+        banniere: dto.banniere,
+        questions: dto.questions,
+        recommandations: dto.recommandations,
+        etiquettesRequises: dto.etiquettesRequises as QuestionnaireDef["etiquettesRequises"],
+      },
+      dto.editePar,
+    );
+  }
+
+  supprimerQuestionnaire(slug: string): Promise<void> {
+    return this.questionnairesRepository.supprimer(slug);
+  }
 
   /** Le contenu tel qu'il est réellement chargé — conditions et classifications comprises. */
   async contenu(): Promise<ContenuResponse> {
     const catalogue = await this.dbService.database.select().from(servicesNumeriques);
+    const questionnaires = await this.questionnairesRepository.tous();
 
     return {
-      questionnaires: QUESTIONNAIRES.map((q) => ({
+      questionnaires: questionnaires.map((q) => ({
         slug: q.slug,
         libelle: q.source.nom,
         version: q.version,
@@ -95,7 +124,7 @@ export class AdminService {
         // une liste vide sans explication.
         avertissement: scoresProjet ? null : "Projet non classifié : le job LLM n'a pas encore tourné.",
       },
-      questionnaires: this.simulerQuestionnaires(scoresProjet, requete.reponses ?? {}),
+      questionnaires: await this.simulerQuestionnaires(scoresProjet, requete.reponses ?? {}),
       services: await this.simulerServices(scoresProjet, projet.phase),
       seuils: { pertinence: SEUIL_PERTINENCE },
     };
@@ -125,34 +154,40 @@ export class AdminService {
    * le lieu Place ou centre-bourg » dit exactement quoi regarder — soit la classification du
    * projet est fausse, soit le questionnaire vise autre chose.
    */
-  private simulerQuestionnaires(
+  private async simulerQuestionnaires(
     scoresProjet: AideClassification | null,
     reponsesParSlug: Record<string, Record<string, string>>,
-  ): SimulationResponse["questionnaires"] {
-    return QUESTIONNAIRES.map((def) => {
-      // Sans classification, TOUTES les étiquettes requises manquent : c'est la vérité, et c'est
-      // plus parlant qu'un « non éligible » sans motif.
-      const manquantes = scoresProjet ? etiquettesManquantes(scoresProjet, def.etiquettesRequises) : requisesAPlat(def);
-      const reponses = reconcilierReponses(def, reponsesParSlug[def.slug] ?? {});
-      const statut = calculerStatut(def, reponses);
-      const retenu = manquantes.length === 0;
+  ): Promise<SimulationResponse["questionnaires"]> {
+    const tous = await this.questionnairesRepository.tous();
 
-      return {
-        slug: def.slug,
-        retenu,
-        etiquettesManquantes: manquantes,
-        statut,
-        reponses,
-        recommandations: def.recommandations.map((r) => ({
-          id: `questionnaire:${def.slug}:${r.id}`,
-          titre: r.titre,
-          inconditionnelle: r.condition === true,
-          // Une recommandation ne sort que si sa condition est vraie ET que le questionnaire est
-          // entamé — la garde qui empêche les inconditionnelles de s'afficher avant toute réponse.
-          declenchee: retenu && statut !== "non_commence" && evaluerCondition(r.condition, reponses),
-        })),
-      };
-    }).sort((a, b) => a.etiquettesManquantes.length - b.etiquettesManquantes.length || a.slug.localeCompare(b.slug));
+    return tous
+      .map((def) => {
+        // Sans classification, TOUTES les étiquettes requises manquent : c'est la vérité, et c'est
+        // plus parlant qu'un « non éligible » sans motif.
+        const manquantes = scoresProjet
+          ? etiquettesManquantes(scoresProjet, def.etiquettesRequises)
+          : requisesAPlat(def);
+        const reponses = reconcilierReponses(def, reponsesParSlug[def.slug] ?? {});
+        const statut = calculerStatut(def, reponses);
+        const retenu = manquantes.length === 0;
+
+        return {
+          slug: def.slug,
+          retenu,
+          etiquettesManquantes: manquantes,
+          statut,
+          reponses,
+          recommandations: def.recommandations.map((r) => ({
+            id: `questionnaire:${def.slug}:${r.id}`,
+            titre: r.titre,
+            inconditionnelle: r.condition === true,
+            // Une recommandation ne sort que si sa condition est vraie ET que le questionnaire est
+            // entamé — la garde qui empêche les inconditionnelles de s'afficher avant toute réponse.
+            declenchee: retenu && statut !== "non_commence" && evaluerCondition(r.condition, reponses),
+          })),
+        };
+      })
+      .sort((a, b) => a.etiquettesManquantes.length - b.etiquettesManquantes.length || a.slug.localeCompare(b.slug));
   }
 
   private async simulerServices(

@@ -3,18 +3,19 @@ import { DatabaseModule } from "@database/database.module";
 import { ProjetsModule } from "@projets/projets.module";
 import { QuestionnairesController } from "./questionnaires.controller";
 import { QuestionnairesService } from "./questionnaires.service";
+import { QuestionnairesRepository } from "./questionnaires.repository";
 
 @Module({
   imports: [DatabaseModule, ProjetsModule],
   controllers: [QuestionnairesController],
-  providers: [
-    QuestionnairesService,
-    // Le moteur de matching est fourni ici plutôt qu'importé depuis AidesModule : il est
-    // sans état (seule dépendance : le logger), et importer AidesModule entraînerait ses
-    // files BullMQ et son cron de synchronisation quotidienne, dont on n'a aucun besoin.
-  ],
-  // Exporté : la source de recommandations « questionnaire » consomme le même état
-  // (éligibilité + réponses réconciliées), pour éviter d'en avoir deux définitions.
-  exports: [QuestionnairesService],
+  providers: [QuestionnairesService, QuestionnairesRepository],
+  // `QuestionnairesService` est exporté parce que la source de recommandations « questionnaire »
+  // consomme le même état (éligibilité + réponses réconciliées) : une seule définition.
+  //
+  // `QuestionnairesRepository` l'est parce que le back-office ÉDITE les questionnaires, et doit
+  // passer par la MÊME porte que la lecture. Un second chemin d'écriture contournerait la
+  // validation — or c'est elle qui remplace le refus de démarrage qu'on avait quand les
+  // questionnaires vivaient dans le dépôt.
+  exports: [QuestionnairesService, QuestionnairesRepository],
 })
 export class QuestionnairesModule {}

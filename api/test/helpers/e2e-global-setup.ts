@@ -37,6 +37,20 @@ export default async function globalSetup() {
     },
   });
 
+  // Les questionnaires vivent désormais en BASE, éditables depuis le back-office. Ils sont amorcés
+  // ici depuis content/, comme ils le seront en production (`pnpm seed:questionnaires`).
+  //
+  // `cleanDatabase()` ne les tronque PAS : c'est une donnée de RÉFÉRENCE, au même titre que le
+  // catalogue. Les vider entre chaque test rendrait le questionnaire absent, et chaque suite
+  // devrait le réamorcer — un rite dont on finirait par oublier la raison.
+  execSync("npm run seed:questionnaires", {
+    env: {
+      ...process.env,
+      DATABASE_URL,
+    },
+    stdio: "ignore",
+  });
+
   // 2. Setup NestJS App
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
