@@ -71,6 +71,13 @@ export interface AjoutManuel {
   /** Qui a ajouté : la plateforme émettrice, dérivée de la clé d'API. */
   plateforme: string;
   date: string;
-  /** Services uniquement : le service a été saisi à la main, il n'est pas au catalogue. */
+  /**
+   * PROVENANCE, services uniquement : le service ne vient pas de notre catalogue, ses informations
+   * ont été saisies par un agent. Le client peut le présenter différemment — pas de fiche chez
+   * nous, pas de logo hébergé, pas de caution éditoriale.
+   *
+   * Ce n'est pas une information de classification : les thématiques ne servent qu'à sélectionner
+   * un service pour un projet, et un ajout manuel a déjà été sélectionné, par un humain.
+   */
   horsCatalogue?: boolean;
 }

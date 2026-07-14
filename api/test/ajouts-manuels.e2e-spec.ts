@@ -193,10 +193,10 @@ describe("Ajouts manuels (e2e)", () => {
       expect(s.ajoutManuel?.message).toBe("Outil local, pas au benchmark DINUM");
     });
 
-    it("n'INVENTE aucune classification : categories et thematiques restent vides", async () => {
-      // On ne connaît pas la classification de ce service. Le dire est plus honnête que de la
-      // fabriquer — et `horsCatalogue` permet au client de distinguer cette ABSENCE d'information
-      // d'une information.
+    it("ne réclame aucune thématique, et n'en invente aucune", async () => {
+      // Les thématiques ne servent qu'à SÉLECTIONNER un service pour un projet. Ici la sélection
+      // est déjà faite, par un humain : exiger une donnée dont personne ne se servira n'aurait
+      // aucun sens. Vides plutôt qu'absents : `service.thematiques.map(...)` ne doit pas planter.
       const projetId = await creerProjet(EAU);
 
       await ajouterLibre(projetId, { nom: "Outil local", description: "Un outil interne." });
@@ -204,10 +204,22 @@ describe("Ajouts manuels (e2e)", () => {
       const [s] = await getServices(projetId);
       expect(s.categories).toEqual([]);
       expect(s.thematiques).toEqual([]);
-      expect(s.ajoutManuel?.horsCatalogue).toBe(true);
+    });
+
+    it("signale la PROVENANCE : ce service ne vient pas de notre catalogue", async () => {
+      // Pas une information de classification, une information d'origine : ce service n'a pas de
+      // fiche chez nous, son logo n'est pas hébergé par l'API, nous n'en cautionnons pas le
+      // contenu. Le client peut le présenter différemment.
+      const projetId = await creerProjet(EAU);
+
+      await ajouterLibre(projetId, { nom: "Outil local", description: "Un outil interne." });
+
+      expect((await getServices(projetId))[0].ajoutManuel?.horsCatalogue).toBe(true);
     });
 
     it("ne marque PAS horsCatalogue un service du catalogue", async () => {
+      // Celui-là a bien une fiche chez nous — et elle reste la source de vérité : on ne recopie
+      // rien, elle continuera d'évoluer.
       await global.testDbService.database
         .insert(servicesNumeriques)
         .values([service({ slug: "au-catalogue", nom: "Au catalogue", classification: VELO })]);

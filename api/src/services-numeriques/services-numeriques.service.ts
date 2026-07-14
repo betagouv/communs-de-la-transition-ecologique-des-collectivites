@@ -110,11 +110,13 @@ export class ServicesNumeriquesService {
   }
 
   /**
-   * Un service saisi à la main, rendu SANS RIEN FABRIQUER.
+   * Un service saisi à la main par un agent.
    *
-   * `categories` et `thematiques` restent vides : on ne connaît pas la classification de ce
-   * service. Le dire est plus honnête que d'inventer — et le drapeau `horsCatalogue` permet au
-   * client de distinguer cette absence d'information d'une information.
+   * `categories` et `thematiques` sortent VIDES, et on ne les réclame pas à l'agent : les
+   * thématiques ne servent qu'à SÉLECTIONNER un service pour un projet, et ici la sélection est
+   * déjà faite — par un humain. Exiger une donnée dont personne ne se servira n'aurait aucun sens.
+   * Vides plutôt qu'absents : un client qui ferait `service.thematiques.map(...)` planterait sur
+   * `undefined`.
    *
    * `logoUrl` n'est PAS absolutisé : l'API n'héberge que les logos du catalogue. Une URL fournie
    * par un agent est déjà absolue, ou elle n'est rien.

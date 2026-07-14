@@ -51,8 +51,12 @@ export class AjoutAideRequest extends AjoutBase {
  * elle, n'existe que dans Aides-territoires : une aide qu'ils ne connaissent pas n'a aucune
  * autorité qui la valide, et nous n'aurions aucun moyen de la tenir à jour.
  *
- * `categories` et `thematiques` restent VIDES à la lecture. On ne les invente pas : on ne connaît
- * pas la classification de ce service, et le dire est plus honnête que de la fabriquer.
+ * On ne demande PAS ses thématiques à l'agent, et c'est délibéré : les thématiques ne servent qu'à
+ * SÉLECTIONNER un service pour un projet. Ici la sélection est déjà faite — par un humain. Les
+ * réclamer serait exiger une donnée dont personne ne se servira.
+ *
+ * `categories` et `thematiques` sortent donc vides. Vides plutôt qu'absents : un client qui fait
+ * `service.thematiques.map(...)` planterait sur `undefined`.
  */
 export class ServiceLibreDto {
   @ApiProperty({ description: "Nom du service, tel qu'il s'affichera." })
@@ -147,9 +151,13 @@ export class AjoutManuelResponse {
 
   @ApiPropertyOptional({
     description:
-      "Services uniquement. `true` si le service ne vient PAS du catalogue : ses informations ont " +
-      "été saisies à la main. Sa classification est donc inconnue — `categories` et `thematiques` " +
-      "sont vides, on ne les invente pas. Absent sur les aides, où la notion n'a pas de sens.",
+      "PROVENANCE — services uniquement. `true` si le service ne vient PAS de notre catalogue : " +
+      "ses informations ont été saisies par un agent, il n'a pas de fiche chez nous, et son logo " +
+      "n'est pas hébergé par l'API. Le client peut donc le présenter différemment (pas de lien " +
+      "vers une fiche catalogue, pas de caution éditoriale de notre part).\n\n" +
+      "Ce n'est PAS une information de classification : les thématiques ne servent qu'à SÉLECTIONNER " +
+      "un service pour un projet, et un ajout manuel a déjà été sélectionné — par un humain. " +
+      "Absent sur les aides, où la notion de catalogue n'a pas de sens.",
   })
   horsCatalogue?: boolean;
 }

@@ -237,9 +237,9 @@ export class AjoutsManuelsService {
                 message: r.commentaire ?? undefined,
                 plateforme,
                 date: r.createdAt.toISOString(),
-                // Le client doit pouvoir distinguer un service du catalogue d'un service saisi à
-                // la main : le second n'a pas de classification, et ses `categories` / `thematiques`
-                // vides sont une ABSENCE d'information, pas une information.
+                // PROVENANCE : le client doit pouvoir distinguer un service de notre catalogue
+                // d'un service saisi par un agent. Le second n'a pas de fiche chez nous, son logo
+                // n'est pas hébergé par l'API, et nous n'en cautionnons pas le contenu.
                 ...(service ? { horsCatalogue: true } : {}),
               },
               service,
