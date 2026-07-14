@@ -8,6 +8,8 @@ import { AidesPerimetreModule } from "@/aides/aides-perimetre.module";
 import { ServicesNumeriquesModule } from "@/services-numeriques/services-numeriques.module";
 import { RecommandationsModule } from "@/recommandations/recommandations.module";
 import { AdminController } from "./admin.controller";
+import { AdminAjoutsController } from "./admin-ajouts.controller";
+import { AjoutsManuelsModule } from "@/ajouts-manuels/ajouts-manuels.module";
 import { AdminService } from "./admin.service";
 
 /**
@@ -29,8 +31,9 @@ import { AdminService } from "./admin.service";
     AidesPerimetreModule,
     ServicesNumeriquesModule,
     RecommandationsModule,
+    AjoutsManuelsModule,
   ],
-  controllers: [AdminController],
+  controllers: [AdminController, AdminAjoutsController],
   // Même moteur de score que les aides, les questionnaires et les services : la simulation doit
   // dire la VÉRITÉ. Un portage du scoring dans le back-office afficherait des chiffres faux, et
   // les seuils seraient calibrés sur un mensonge.
