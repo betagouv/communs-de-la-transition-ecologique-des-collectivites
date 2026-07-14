@@ -1,20 +1,29 @@
 import { fr } from "@codegouvfr/react-dsfr";
 import { Badge } from "@codegouvfr/react-dsfr/Badge";
-import { Etiquettes } from "./Etiquettes";
 import type { QuestionnaireSimule } from "../types";
 
+const LIBELLE_AXE: Record<string, string> = {
+  thematiques: "thématique",
+  sites: "lieu",
+  interventions: "modalité",
+};
+
 /**
- * Les questionnaires confrontés au projet, TOUS rendus — y compris ceux sous le seuil.
+ * Les questionnaires confrontés au projet, TOUS rendus — proposés comme non proposés.
  *
- * Ne montrer que les retenus empêcherait de voir les quasi-retenus, qui sont précisément ceux
- * qui disent si le seuil est bien posé. Un questionnaire à 0,29 sous un seuil de 0,30 est une
- * information ; son absence n'en est pas une.
+ * L'éligibilité est un CRITÈRE, pas un score : on affiche donc ce qui MANQUE au projet, jamais un
+ * chiffre. « non proposé, score 0,11 » n'apprend rien et ne se corrige pas. « il manque le lieu
+ * Place ou centre-bourg » dit exactement quoi regarder : soit la classification du projet est
+ * fausse, soit le questionnaire vise autre chose.
  */
-export function Questionnaires({ questionnaires, seuil }: { questionnaires: QuestionnaireSimule[]; seuil: number }) {
+export function Questionnaires({ questionnaires }: { questionnaires: QuestionnaireSimule[] }) {
   return (
     <section className={fr.cx("fr-mt-6w")}>
       <h2 className={fr.cx("fr-h4")}>Questionnaires</h2>
-      <p className={fr.cx("fr-text--sm")}>Seuil d&apos;éligibilité : {seuil.toFixed(2)}</p>
+      <p className={fr.cx("fr-text--sm")}>
+        Un questionnaire est proposé si le projet porte <strong>toutes</strong> ses étiquettes définissantes, avec une
+        confiance ≥ 0,80.
+      </p>
 
       {questionnaires.map((q) => {
         const declenchees = q.recommandations.filter((r) => r.declenchee);
@@ -26,13 +35,21 @@ export function Questionnaires({ questionnaires, seuil }: { questionnaires: Ques
                 <h3 className={fr.cx("fr-card__title", "fr-h6", "fr-mb-1w")}>
                   {q.slug}{" "}
                   <Badge severity={q.retenu ? "success" : "warning"} noIcon small>
-                    {q.score.toFixed(2)} — {q.retenu ? "proposé" : "non proposé"}
+                    {q.retenu ? "proposé" : "non proposé"}
                   </Badge>
                 </h3>
 
-                <div className={fr.cx("fr-mb-1w")}>
-                  <Etiquettes communes={q.etiquettesCommunes} />
-                </div>
+                {q.etiquettesManquantes.length > 0 && (
+                  <p className={fr.cx("fr-text--sm", "fr-mb-1w")}>
+                    Il manque au projet :{" "}
+                    {q.etiquettesManquantes.map((e, i) => (
+                      <span key={`${e.axe}-${e.label}`}>
+                        {i > 0 && ", "}
+                        <strong>{e.label}</strong> <span className={fr.cx("fr-text--xs")}>({LIBELLE_AXE[e.axe]})</span>
+                      </span>
+                    ))}
+                  </p>
+                )}
 
                 <p className={fr.cx("fr-text--xs", "fr-mb-0")}>
                   statut : {q.statut} — {q.recommandations.length} recommandation

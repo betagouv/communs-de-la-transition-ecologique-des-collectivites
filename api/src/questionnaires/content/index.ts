@@ -1,5 +1,5 @@
 import { QuestionnaireDef, type QuestionnaireFichier, type RecommandationsFichier } from "../questionnaire-contract";
-import { CLASSIFICATIONS } from "./classification";
+import { ETIQUETTES_REQUISES } from "./classification";
 
 import piste from "./questionnaires/atoutbiodiv-piste.json";
 import place from "./questionnaires/atoutbiodiv-place.json";
@@ -42,16 +42,27 @@ export function assembler(fichier: QuestionnaireFichier): QuestionnaireDef {
   if ("eligibilite" in fichier) {
     throw new Error(
       `Questionnaire "${slug}" : le champ "eligibilite" n'est plus supporté. L'éligibilité est décidée ` +
-        `par Communs, par score de matching sur les trois axes de classification — déclarez-la dans ` +
-        `content/classification.ts (taxonomies fermées : thematiques, sites, interventions).`,
+        `par Communs : le projet doit porter les étiquettes définissantes du questionnaire — déclarez-les ` +
+        `dans content/classification.ts (taxonomies fermées : thematiques, sites, interventions).`,
     );
   }
 
-  const classification = CLASSIFICATIONS[slug];
-  if (!classification) {
+  const etiquettesRequises = ETIQUETTES_REQUISES[slug];
+  if (!etiquettesRequises) {
     throw new Error(
-      `Questionnaire "${slug}" : aucune classification d'éligibilité (content/classification.ts). ` +
+      `Questionnaire "${slug}" : aucune étiquette d'éligibilité (content/classification.ts). ` +
         `Sans elle, le questionnaire ne serait jamais proposé à aucun projet.`,
+    );
+  }
+
+  // Une liste vide sur les trois axes serait pire qu'une absence : le questionnaire n'exigerait
+  // RIEN, donc il serait proposé à TOUS les projets. Une conjonction vide est vraie.
+  const nbEtiquettes =
+    etiquettesRequises.thematiques.length + etiquettesRequises.sites.length + etiquettesRequises.interventions.length;
+  if (nbEtiquettes === 0) {
+    throw new Error(
+      `Questionnaire "${slug}" : aucune étiquette requise. Il serait proposé à TOUS les projets ` +
+        `(une conjonction vide est vraie). Déclarez au moins une étiquette dans content/classification.ts.`,
     );
   }
 
@@ -82,7 +93,7 @@ export function assembler(fichier: QuestionnaireFichier): QuestionnaireDef {
     }
   }
 
-  return { ...fichier, classification, recommandations: fichierRecos.recommandations };
+  return { ...fichier, etiquettesRequises, recommandations: fichierRecos.recommandations };
 }
 
 /**

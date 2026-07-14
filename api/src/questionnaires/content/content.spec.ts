@@ -3,7 +3,7 @@ import { sites } from "@/projet-qualification/classification/const/sites";
 import { thematiques } from "@/projet-qualification/classification/const/thematiques";
 import type { QuestionnaireFichier } from "../questionnaire-contract";
 import { assembler, QUESTIONNAIRES, questionnaireParSlug } from "./index";
-import { CLASSIFICATIONS } from "./classification";
+import { ETIQUETTES_REQUISES } from "./classification";
 
 // Ces tests portent sur le CONTENU (JSON partenaire + classification Communs). Ils sont le
 // filet qui protège une PR de contenu : une coquille dans un id de question, une option
@@ -90,19 +90,20 @@ describe("Contenu des questionnaires", () => {
     },
   );
 
-  it("chaque questionnaire porte une classification d'éligibilité", () => {
+  it("chaque questionnaire exige au moins une étiquette", () => {
     for (const def of QUESTIONNAIRES) {
-      expect(CLASSIFICATIONS[def.slug]).toBeDefined();
-      // Sans étiquette, le questionnaire ne serait jamais proposé à aucun projet.
+      expect(ETIQUETTES_REQUISES[def.slug]).toBeDefined();
+      // Une conjonction VIDE est vraie : un questionnaire sans étiquette requise serait proposé
+      // à TOUS les projets. C'est le pire cas, et il doit être impossible.
       const nbEtiquettes =
-        def.classification.thematiques.length +
-        def.classification.sites.length +
-        def.classification.interventions.length;
+        def.etiquettesRequises.thematiques.length +
+        def.etiquettesRequises.sites.length +
+        def.etiquettesRequises.interventions.length;
       expect(nbEtiquettes).toBeGreaterThan(0);
     }
   });
 
-  it("les étiquettes de classification appartiennent aux taxonomies fermées", () => {
+  it("les étiquettes requises appartiennent aux taxonomies fermées", () => {
     const referentiels = {
       thematiques: new Set<string>(thematiques),
       sites: new Set<string>(sites),
@@ -111,10 +112,8 @@ describe("Contenu des questionnaires", () => {
 
     for (const def of QUESTIONNAIRES) {
       for (const axe of ["thematiques", "sites", "interventions"] as const) {
-        for (const { label, score } of def.classification[axe]) {
+        for (const label of def.etiquettesRequises[axe]) {
           expect(referentiels[axe].has(label)).toBe(true);
-          expect(score).toBeGreaterThan(0);
-          expect(score).toBeLessThanOrEqual(1);
         }
       }
     }
@@ -154,12 +153,25 @@ describe("Garde-fous du chargeur de contenu", () => {
     expect(() => assembler(avecEligibilite as QuestionnaireFichier)).toThrow(/eligibilite.*n'est plus supporté/s);
   });
 
-  it("refuse un questionnaire sans classification d'éligibilité", () => {
-    // Sans classification, le questionnaire ne serait proposé à aucun projet — un bug
-    // parfaitement silencieux en production.
-    const inconnu = { ...fichierValide(), slug: "questionnaire-sans-classification" };
+  it("refuse un questionnaire sans étiquette d'éligibilité déclarée", () => {
+    // Sans étiquette, le questionnaire ne serait proposé à aucun projet — un bug parfaitement
+    // silencieux en production.
+    const inconnu = { ...fichierValide(), slug: "questionnaire-sans-etiquette" };
 
-    expect(() => assembler(inconnu)).toThrow(/aucune classification/);
+    expect(() => assembler(inconnu)).toThrow(/aucune étiquette d'éligibilité/);
+  });
+
+  it("refuse un questionnaire qui n'exige AUCUNE étiquette", () => {
+    // Le pire cas, et il est contre-intuitif : une conjonction VIDE est VRAIE. Un questionnaire
+    // qui n'exige rien serait proposé à TOUS les projets, sans exception. Mieux vaut refuser de
+    // démarrer que d'inonder toutes les collectivités de France.
+    ETIQUETTES_REQUISES["questionnaire-vide"] = { thematiques: [], sites: [], interventions: [] };
+
+    try {
+      expect(() => assembler({ ...fichierValide(), slug: "questionnaire-vide" })).toThrow(/proposé à TOUS les projets/);
+    } finally {
+      delete ETIQUETTES_REQUISES["questionnaire-vide"];
+    }
   });
 
   it("refuse une condition qui pointe une question inexistante", () => {

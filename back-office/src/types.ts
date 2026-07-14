@@ -18,8 +18,13 @@ export type Classification = Record<Axe, EtiquetteScoree[]>;
 export type EtiquettesCommunes = Record<Axe, string[]>;
 
 export interface Seuils {
-  eligibilite: number;
   pertinence: number;
+}
+
+/** Une étiquette que le projet ne porte PAS — c'est ce qui explique un questionnaire non proposé. */
+export interface EtiquetteManquante {
+  axe: Axe;
+  label: string;
 }
 
 export interface RecommandationSimulee {
@@ -31,9 +36,9 @@ export interface RecommandationSimulee {
 
 export interface QuestionnaireSimule {
   slug: string;
-  score: number;
   retenu: boolean;
-  etiquettesCommunes: EtiquettesCommunes;
+  /** Vide = proposé. Sinon, exactement ce qui manque au projet. */
+  etiquettesManquantes: EtiquetteManquante[];
   statut: "non_commence" | "en_cours" | "termine";
   reponses: Record<string, string>;
   recommandations: RecommandationSimulee[];
@@ -83,7 +88,7 @@ export interface QuestionnaireContenu {
   slug: string;
   libelle: string;
   version: number;
-  classification: Classification;
+  etiquettesRequises: Record<Axe, string[]>;
   questions: { id: string; libelle: string; options: { id: string; libelle: string }[] }[];
   recommandations: { id: string; titre: string; condition: unknown }[];
 }
