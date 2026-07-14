@@ -20,7 +20,7 @@ const Q_ESPACES = "part-estimee-des-espaces-exterieurs";
 const RECO_HAIES = "questionnaire:atoutbiodiv-salle:haies";
 
 const appeler = async <T>(
-  methode: "GET" | "POST",
+  methode: "GET" | "POST" | "PUT" | "DELETE",
   chemin: string,
   body?: unknown,
   cle = process.env.SERVICE_MANAGEMENT_API_KEY,
@@ -84,6 +84,122 @@ describe("Back-office (e2e)", () => {
       expect(salle.etiquettesRequises.sites).toContain("Salle des fêtes, salle associative, pôle musical");
       expect(salle.recommandations.every((r) => r.condition !== undefined)).toBe(true);
       expect(body.seuils.pertinence).toBeGreaterThan(0);
+    });
+  });
+
+  describe("PUT /admin/questionnaires/:slug — l'édition depuis le back-office", () => {
+    /**
+     * LE FILET DE SÉCURITÉ, DÉPLACÉ. Tant que les questionnaires vivaient dans le dépôt, une
+     * incohérence empêchait l'API de DÉMARRER — le bug ne pouvait pas atteindre la production.
+     * Éditables en base, ce filet n'existe plus qu'ici. Ces tests le verrouillent au bout de la
+     * chaîne réelle : par HTTP, comme le fera l'éditeur.
+     */
+    // `cleanDatabase()` ne tronque PAS `questionnaires` : c'est une donnée de RÉFÉRENCE, amorcée
+    // une fois au démarrage de la suite. Les tests d'édition doivent donc nettoyer DERRIÈRE EUX,
+    // sans quoi leurs questionnaires fuiteraient dans les suites suivantes — ce qui a été
+    // découvert de la pire façon : en cassant le test qui compte les questionnaires proposés.
+    const CREES = ["essai", "vide", "coquille", "casse"];
+    afterEach(async () => {
+      for (const slug of CREES) {
+        await appeler("DELETE", `/admin/questionnaires/${slug}`);
+      }
+    });
+
+    const definition = (over: Record<string, unknown> = {}) => ({
+      sourceNom: "AtoutBiodiv",
+      banniere: { icone: "🌿", titre: "Titre", sousTitre: "Sous-titre" },
+      questions: [
+        {
+          id: "surface",
+          type: "choix-unique",
+          intitule: "Quelle surface ?",
+          options: [
+            { id: "petite", libelle: "Petite", signal: "neutre" },
+            { id: "grande", libelle: "Grande", signal: "favorable" },
+          ],
+        },
+      ],
+      recommandations: [
+        {
+          id: "haies",
+          titre: "Planter des haies",
+          description: "Des haies.",
+          condition: { question: "surface", parmi: ["grande"] },
+          financements: [],
+          ressources: [],
+          engagement: "faible",
+        },
+      ],
+      etiquettesRequises: { thematiques: [], sites: ["Place ou centre-bourg"], interventions: [] },
+      ...over,
+    });
+
+    it("enregistre un questionnaire, qui devient aussitôt proposable", async () => {
+      const { status } = await appeler("PUT", "/admin/questionnaires/essai", definition());
+      expect(status).toBe(200);
+
+      // Un projet qui porte l'étiquette requise le voit — sans redéploiement.
+      const projetId = await creerProjet({
+        thematiques: [],
+        sites: [{ label: "Place ou centre-bourg", score: 0.95 }],
+        interventions: [],
+      });
+
+      const { body } = await appeler<{ questionnaires: { slug: string; retenu: boolean }[] }>(
+        "POST",
+        "/admin/simuler",
+        { projetId },
+      );
+      expect(body.questionnaires.find((q) => q.slug === "essai")!.retenu).toBe(true);
+    });
+
+    it("REFUSE un questionnaire qui n'exige AUCUNE étiquette", async () => {
+      // Le plus dangereux, et le plus contre-intuitif : une conjonction VIDE est VRAIE. Il serait
+      // proposé à TOUS les projets de France. Le chargeur refusait de démarrer ; ici c'est un 400.
+      const { status, body } = await appeler<{ message: string }>("PUT", "/admin/questionnaires/vide", {
+        ...definition(),
+        etiquettesRequises: { thematiques: [], sites: [], interventions: [] },
+      });
+
+      expect(status).toBe(400);
+      expect(body.message).toMatch(/TOUS les projets/);
+    });
+
+    it("REFUSE une étiquette hors de la taxonomie fermée, et la nomme", async () => {
+      // Une coquille, et le questionnaire n'est JAMAIS proposé, sans le moindre message. La
+      // personne qui édite n'a pas accès au code : le message d'erreur est tout ce qu'elle a.
+      const { status, body } = await appeler<{ message: string }>("PUT", "/admin/questionnaires/coquille", {
+        ...definition(),
+        etiquettesRequises: { thematiques: [], sites: ["Place ou centre bourg"], interventions: [] },
+      });
+
+      expect(status).toBe(400);
+      expect(body.message).toMatch(/Place ou centre bourg/);
+    });
+
+    it("REFUSE une condition qui pointe une question inexistante", async () => {
+      // Autrement INDÉTECTABLE : la recommandation ne s'afficherait simplement jamais.
+      const def = definition();
+      def.recommandations[0].condition = { question: "inconnue", parmi: ["grande"] };
+
+      const { status, body } = await appeler<{ message: string }>("PUT", "/admin/questionnaires/casse", def);
+
+      expect(status).toBe(400);
+      expect(body.message).toMatch(/n'existe pas/);
+    });
+
+    it("incrémente la version à chaque édition, sans effacer les réponses des collectivités", async () => {
+      await appeler("PUT", "/admin/questionnaires/essai", definition());
+      const { body: apres } = await appeler<{ version: number }>("PUT", "/admin/questionnaires/essai", definition());
+
+      // La version n'est pas pilotée par le client : elle s'incrémente côté base. Elle n'invalide
+      // rien — `reconcilierReponses` ignore à la lecture ce qui est devenu sans objet.
+      expect(apres.version).toBeGreaterThan(1);
+    });
+
+    it("exige la clé d'ADMINISTRATION", async () => {
+      const { status } = await appeler("PUT", "/admin/questionnaires/essai", definition(), process.env.MEC_API_KEY);
+      expect(status).toBe(401);
     });
   });
 

@@ -306,6 +306,51 @@ export const projetQuestionnaireReponses = pgTable(
 );
 
 /**
+ * Définition des questionnaires — contenu ET règle d'éligibilité.
+ *
+ * ILS VIVAIENT DANS LE DÉPÔT (JSON partenaire + classification.ts). Le chargeur refusait de
+ * DÉMARRER si une condition pointait une question inexistante, si une étiquette sortait de la
+ * taxonomie, ou si un questionnaire n'exigeait aucune étiquette (il aurait alors été proposé à
+ * TOUS les projets — une conjonction vide est vraie). C'était un filet parfait : le bug ne
+ * pouvait pas atteindre la production.
+ *
+ * En base, ce filet disparaît. Il est donc INTÉGRALEMENT reconstruit à l'écriture : les mêmes
+ * vérifications, au même niveau d'exigence, rendues en 400 explicite (cf. validerDefinition).
+ * Aucune n'a été assouplie au passage — c'était la condition pour accepter ce déplacement.
+ *
+ * `version` s'incrémente à chaque édition. Elle n'invalide RIEN : `reconcilierReponses` ignore à
+ * la lecture les réponses devenues sans objet, sans réécrire la ligne stockée. Éditer un
+ * questionnaire ne détruit donc pas les réponses des collectivités.
+ *
+ * Amorcée depuis content/ (`pnpm seed:questionnaires`), comme le catalogue de services l'est
+ * depuis son CSV : le dépôt reste l'amorçage, la base devient la source de vérité.
+ */
+export const questionnaires = pgTable("questionnaires", {
+  slug: text("slug").primaryKey(),
+  version: integer("version").notNull().default(1),
+  /** Le partenaire qui fournit le contenu (« AtoutBiodiv »). */
+  sourceNom: text("source_nom").notNull(),
+  banniere: jsonb("banniere").$type<Record<string, unknown>>().notNull(),
+  questions: jsonb("questions").$type<unknown[]>().notNull(),
+  /** Recommandations AVEC leurs conditions. Ne sortent jamais de l'API. */
+  recommandations: jsonb("recommandations").$type<unknown[]>().notNull(),
+  /**
+   * Étiquettes que le projet doit TOUTES porter pour que le questionnaire lui soit proposé.
+   * Jamais vide : une conjonction vide est vraie, le questionnaire serait proposé à tout le monde.
+   */
+  etiquettesRequises: jsonb("etiquettes_requises")
+    .$type<{ thematiques: string[]; sites: string[]; interventions: string[] }>()
+    .notNull(),
+  /** Qui a édité en dernier — le back-office le transmet. */
+  editePar: text("edite_par"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+/**
  * Catalogue des services numériques (benchmark DINUM « API Projets »).
  *
  * Table DISTINCTE de `public.services` à dessein : `services` est le catalogue du widget,

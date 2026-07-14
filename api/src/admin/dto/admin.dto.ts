@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsObject, IsOptional, IsUUID } from "class-validator";
+import { IsArray, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
 import { AideClassification, AideLabelsCommuns } from "@/aides/dto/aides.dto";
 import { ProjetPhase } from "@database/schema";
 import type { PoidsParPhase } from "@/services-numeriques/service-numerique-contract";
@@ -135,4 +135,54 @@ export class SimulationResponse {
   @ApiProperty({ type: [ServiceSimuleResponse], description: "TOUS les services, y compris écartés." })
   services!: ServiceSimuleResponse[];
   @ApiProperty({ type: SeuilsResponse }) seuils!: SeuilsResponse;
+}
+
+/**
+ * Le questionnaire ENTIER, tel qu'il sera enregistré. PUT, pas PATCH : un éditeur envoie le
+ * document qu'il a sous les yeux. Un PATCH champ par champ ouvrirait la porte à des états
+ * incohérents entre deux appels (une condition sauvegardée avant la question qu'elle vise).
+ *
+ * TOUT est revalidé avant écriture (cf. validerDefinition) : étiquettes dans la taxonomie fermée,
+ * au moins une étiquette (sinon le questionnaire serait proposé à TOUS les projets), conditions
+ * pointant des questions et des options qui existent. Ce sont EXACTEMENT les vérifications que le
+ * chargeur faisait au démarrage quand les questionnaires vivaient dans le dépôt. Aucune n'a été
+ * assouplie : c'était la condition pour les rendre éditables.
+ */
+export class QuestionnaireEditionRequest {
+  @ApiProperty({ description: "Nom du partenaire qui fournit le contenu (« AtoutBiodiv »)." })
+  @IsString()
+  @IsNotEmpty()
+  sourceNom!: string;
+
+  @ApiProperty({ type: Object, description: "Bandeau : { icone, titre, sousTitre }." })
+  @IsObject()
+  banniere!: BanniereDef;
+
+  @ApiProperty({ type: [Object], description: "Questions et leurs options." })
+  @IsArray()
+  questions!: QuestionDef[];
+
+  @ApiProperty({
+    type: [Object],
+    description:
+      "Recommandations AVEC leurs conditions. Une condition qui pointe une question ou une option " +
+      "inexistante est refusée (400) : la recommandation ne s'afficherait jamais, et l'erreur " +
+      "serait autrement indétectable.",
+  })
+  @IsArray()
+  recommandations!: RecommandationDef[];
+
+  @ApiProperty({
+    type: Object,
+    description:
+      "Étiquettes que le projet doit TOUTES porter. Au moins une est exigée : une conjonction vide " +
+      "est vraie, le questionnaire serait proposé à TOUS les projets.",
+  })
+  @IsObject()
+  etiquettesRequises!: { thematiques: string[]; sites: string[]; interventions: string[] };
+
+  @ApiPropertyOptional({ description: "Qui édite — pour la traçabilité." })
+  @IsOptional()
+  @IsString()
+  editePar?: string;
 }
