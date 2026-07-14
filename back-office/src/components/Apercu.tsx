@@ -83,65 +83,91 @@ export function Apercu({ projetId }: { projetId: string }) {
           MEC. Rien n&apos;est rejoué ici : changer un réglage redemande à l&apos;API, il ne recalcule pas.
         </p>
 
-        <div className={fr.cx("fr-grid-row", "fr-grid-row--gutters")}>
-          <div className={fr.cx("fr-col-12", "fr-col-md-4")}>
-            <Select
-              label="Au nom de quelle plateforme ?"
-              hint="Les ajouts manuels et les arbitrages sont cloisonnés par plateforme."
-              nativeSelectProps={{ value: plateforme, onChange: (e) => setPlateforme(e.target.value) }}
-            >
-              {PLATEFORMES.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </Select>
+        {/* GROUPÉ PAR DOMAINE. Tous ces réglages étaient alignés dans une seule grille, et rien ne
+            disait lequel agissait sur quoi : « confiance aide » et « seuil services » côte à côte,
+            sans frontière. Un écran de réglage qu'on ne sait pas lire ne sert à rien. */}
+        <div style={{ maxWidth: "22rem" }}>
+          <Select
+            label="Au nom de quelle plateforme ?"
+            hint="S'applique à tout : les ajouts manuels et les arbitrages sont cloisonnés par plateforme."
+            nativeSelectProps={{ value: plateforme, onChange: (e) => setPlateforme(e.target.value) }}
+          >
+            {PLATEFORMES.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <fieldset className={fr.cx("fr-fieldset", "fr-mt-3w")}>
+          <legend className={fr.cx("fr-fieldset__legend", "fr-text--bold")}>
+            Aides <span className={fr.cx("fr-text--sm")}>— paramètres de GET /aides</span>
+          </legend>
+
+          <div className={fr.cx("fr-grid-row", "fr-grid-row--gutters")}>
+            <div className={fr.cx("fr-col-6", "fr-col-md-3")}>
+              {nombre("cutoff", "Cutoff", "Score minimal d'une aide. 0 = aucun filtrage.")}
+            </div>
+            <div className={fr.cx("fr-col-6", "fr-col-md-3")}>
+              {nombre("projetThreshold", "Confiance — étiquette du projet", "Sous ce seuil, elle ne compte pas.")}
+            </div>
+            <div className={fr.cx("fr-col-6", "fr-col-md-3")}>
+              {nombre("aideThreshold", "Confiance — étiquette de l'aide", "Sous ce seuil, elle ne compte pas.")}
+            </div>
+            <div className={fr.cx("fr-col-6", "fr-col-md-3")}>
+              {nombre("limit", "Nombre maximal d'aides", "Défaut : 20.")}
+            </div>
           </div>
-          <div className={fr.cx("fr-col-6", "fr-col-md-2")}>
-            {nombre("cutoff", "Cutoff", "Score minimal. 0 = aucun filtrage.")}
-          </div>
-          <div className={fr.cx("fr-col-6", "fr-col-md-2")}>
-            {nombre("projetThreshold", "Confiance projet", "Sous ce seuil, l'étiquette ne compte pas.")}
-          </div>
-          <div className={fr.cx("fr-col-6", "fr-col-md-2")}>
-            {nombre("aideThreshold", "Confiance aide", "Sous ce seuil, l'étiquette ne compte pas.")}
-          </div>
-          <div className={fr.cx("fr-col-6", "fr-col-md-2")}>{nombre("limit", "Max aides", "Défaut : 20.")}</div>
-          <div className={fr.cx("fr-col-6", "fr-col-md-2")}>
+
+          <ToggleSwitch
+            label="Matching textuel (BM25)"
+            helperText="Repêche les aides dont l'intitulé colle au projet, même sans recouvrement d'étiquettes."
+            checked={reglages.textual ?? false}
+            onChange={(v) => setReglages({ ...reglages, textual: v })}
+            inputTitle="textuel"
+            showCheckedHint={false}
+          />
+
+          {reglages.textual && (
             <Input
-              label="Seuil services"
-              hintText="Appliqué PAR l'API. Défaut : 0,30."
+              label="Texte de la recherche"
+              hintText="Vide = « nom + description » du projet, comme l'API."
+              nativeInputProps={{
+                value: reglages.texte ?? "",
+                placeholder: "nom + description du projet",
+                onChange: (e) => setReglages({ ...reglages, texte: e.target.value || undefined }),
+              }}
+            />
+          )}
+        </fieldset>
+
+        <fieldset className={fr.cx("fr-fieldset", "fr-mt-2w")}>
+          <legend className={fr.cx("fr-fieldset__legend", "fr-text--bold")}>
+            Services numériques <span className={fr.cx("fr-text--sm")}>— paramètre de GET /projets/:id/services</span>
+          </legend>
+
+          <div style={{ maxWidth: "18rem" }}>
+            <Input
+              label="Seuil de pertinence"
+              hintText="Appliqué PAR l'API, pas recalculé ici. Défaut : 0,30."
               nativeInputProps={{
                 type: "number",
                 step: "0.05",
                 value: seuilServices ?? "",
-                placeholder: "défaut API",
+                placeholder: "défaut API (0,30)",
                 onChange: (e) => setSeuilServices(e.target.value === "" ? undefined : Number(e.target.value)),
               }}
             />
           </div>
-        </div>
+        </fieldset>
 
-        <ToggleSwitch
-          label="Matching textuel (BM25)"
-          helperText="Repêche les aides dont l'intitulé colle au projet, même sans recouvrement d'étiquettes."
-          checked={reglages.textual ?? false}
-          onChange={(v) => setReglages({ ...reglages, textual: v })}
-          inputTitle="textuel"
-          showCheckedHint={false}
-        />
-
-        {reglages.textual && (
-          <Input
-            label="Texte de la recherche"
-            hintText="Vide = « nom + description » du projet, comme l'API."
-            nativeInputProps={{
-              value: reglages.texte ?? "",
-              placeholder: "nom + description du projet",
-              onChange: (e) => setReglages({ ...reglages, texte: e.target.value || undefined }),
-            }}
-          />
-        )}
+        {/* Information autonome, et non une note du bloc « Services » : elle ne parle ni des aides
+            ni des services. Sans elle, on cherche un curseur qui n'existera jamais. */}
+        <p className={fr.cx("fr-text--sm", "fr-mt-2w", "fr-mb-0")}>
+          Les questionnaires et les recommandations n&apos;ont <strong>aucun réglage</strong> : leur éligibilité est un
+          critère, pas un score. Le projet porte l&apos;étiquette qui déclenche le questionnaire, ou il ne la porte pas.
+        </p>
 
         <div className={fr.cx("fr-mt-2w")} style={{ display: "flex", gap: "0.5rem" }}>
           <Button onClick={() => void lancer()} disabled={chargement}>
