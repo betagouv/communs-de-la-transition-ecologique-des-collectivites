@@ -1,12 +1,13 @@
 import { Module } from "@nestjs/common";
 import { DatabaseModule } from "@database/database.module";
 import { ProjetsModule } from "@projets/projets.module";
+import { AjoutsManuelsModule } from "@/ajouts-manuels/ajouts-manuels.module";
 import { AidesMatchingService } from "@/aides/aides-matching.service";
 import { ServicesNumeriquesController } from "./services-numeriques.controller";
 import { ServicesNumeriquesService } from "./services-numeriques.service";
 
 @Module({
-  imports: [DatabaseModule, ProjetsModule],
+  imports: [DatabaseModule, ProjetsModule, AjoutsManuelsModule],
   controllers: [ServicesNumeriquesController],
   providers: [
     ServicesNumeriquesService,

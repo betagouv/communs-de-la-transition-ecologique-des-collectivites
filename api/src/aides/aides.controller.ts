@@ -7,13 +7,14 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
+  Req,
   Res,
   UseGuards,
   BadRequestException,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ConfigService } from "@nestjs/config";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
@@ -30,6 +31,9 @@ import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
 import { AidesTextualMatchingService } from "./aides-textual-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
+import { AidesPerimetreService } from "./aides-perimetre.service";
+import { AjoutsManuelsService } from "@/ajouts-manuels/ajouts-manuels.service";
+import { AjoutManuelResponse } from "@/ajouts-manuels/dto/ajout-manuel.dto";
 import { AidesWarmupService } from "./aides-warmup.service";
 import { AidesFeedbackService } from "./aides-feedback.service";
 import { AideFeedbackResponse, CreateAideFeedbackRequest, DeleteAideFeedbackRequest } from "./dto/aide-feedback.dto";
@@ -60,14 +64,14 @@ const MIN_TEXTUAL_RESCUE = 0.35;
 @Controller("aides")
 @UseGuards(ApiKeyGuard)
 export class AidesController {
-  private readonly refreshingKeys = new Set<string>();
-
   constructor(
     private readonly atService: AidesTerritoiresService,
     private readonly classificationService: AideClassificationService,
     private readonly matchingService: AidesMatchingService,
     private readonly textualMatchingService: AidesTextualMatchingService,
     private readonly cacheService: AidesCacheService,
+    private readonly perimetreService: AidesPerimetreService,
+    private readonly ajoutsManuels: AjoutsManuelsService,
     private readonly warmupService: AidesWarmupService,
     private readonly feedbackService: AidesFeedbackService,
     private readonly projetsService: GetProjetsService,
@@ -137,6 +141,7 @@ export class AidesController {
       "Le projet n'a pas encore été classifié. Un job de classification a été (re)déclenché. Réessayer après `retryAfter` secondes.",
   })
   async listAides(
+    @Req() request: Request,
     @Query("projetId") projetIdCamel: string | undefined,
     @Res({ passthrough: true }) res: Response,
     @Query("limit") limit?: string,
@@ -180,7 +185,7 @@ export class AidesController {
     }
 
     // 3. Extract code_insee from project collectivités
-    const codesInsee = this.extractCodesInsee(projet.collectivites);
+    const codesInsee = this.perimetreService.extractCodesInsee(projet.collectivites);
 
     if (codesInsee.length === 0) {
       this.logger.warn(
@@ -189,7 +194,14 @@ export class AidesController {
     }
 
     // 4. Fetch aides for each territory (union) — deduplicate by aide id
-    const allAides = await this.fetchAidesForPerimeterCodes(codesInsee);
+    const allAides = await this.perimetreService.fetchAidesForPerimeterCodes(codesInsee);
+
+    // Les aides AJOUTÉES À LA MAIN sur ce projet. On les résout dans les aides du périmètre : une
+    // aide n'est persistée nulle part, et Aides-territoires ne sait pas la récupérer par son id.
+    // Si elle a été clôturée ou dépubliée depuis l'ajout, elle n'est plus là — elle cesse alors de
+    // s'afficher, ce qui est le comportement voulu : mieux vaut ne rien montrer que d'envoyer une
+    // collectivité candidater à une aide morte.
+    const ajouts = await this.ajoutsManuels.actifs(projetId, "aide", request.serviceType!);
 
     if (allAides.length === 0) {
       return { status: "no_aides_on_perimeter", aides: [], total: 0 };
@@ -203,6 +215,7 @@ export class AidesController {
     //      logique partagée avec POST /aides/recherche.
     const textualEnabled = this.isTextualMatchingEnabled(textualOverride);
     return this.buildMatchedResponse(projet.classificationScores, allAides, classifications, {
+      ajouts,
       maxResults,
       cutoff,
       thresholds: { projet: projetThreshold, aide: aideThreshold },
@@ -237,7 +250,7 @@ export class AidesController {
     // Périmètre : union des aides disponibles sur les communes demandées
     // (codes INSEE — mêmes clés de cache que GET /aides).
     const communes = [...new Set(dto.communes.map((c) => c.trim()).filter(Boolean))];
-    const allAides = await this.fetchAidesForPerimeterCodes(communes);
+    const allAides = await this.perimetreService.fetchAidesForPerimeterCodes(communes);
 
     if (allAides.length === 0) {
       return { status: "no_aides_on_perimeter", aides: [], total: 0 };
@@ -268,6 +281,11 @@ export class AidesController {
     allAides: Aide[],
     classifications: Map<string, AideClassification>,
     options: {
+      /**
+       * Ajouts manuels du projet, indexés par id d'aide. Absent sur POST /aides/recherche, qui
+       * n'a pas de projet de référence : sans projet, il n'y a pas d'ajout manuel possible.
+       */
+      ajouts?: Map<string, { ajout: AjoutManuelResponse }>;
       maxResults: number;
       cutoff: number;
       thresholds: MatchThresholds;
@@ -275,7 +293,7 @@ export class AidesController {
       textualText: string;
     },
   ): AidesListResponse {
-    const { maxResults, cutoff, thresholds, textualEnabled, textualText } = options;
+    const { ajouts, maxResults, cutoff, thresholds, textualEnabled, textualText } = options;
 
     // Matching thématique — on passe allAides.length pour ne rien pré-trancher
     // avant la combinaison textuelle optionnelle.
@@ -336,11 +354,38 @@ export class AidesController {
         .slice(0, maxResults);
     }
 
-    if (enriched.length === 0) {
+    // Les ajouts manuels EN TÊTE, et ils échappent au cutoff comme au maxResults : quelqu'un les a
+    // délibérément mis là, précisément parce que le moteur les ratait. Les soumettre au filtre qui
+    // les a ratés serait absurde.
+    //
+    // Un ajout qui n'est plus sur le périmètre (aide clôturée, dépubliée) n'apparaît simplement
+    // pas : on ne peut pas le résoudre, et on ne fabrique rien.
+    const manuels: AideWithClassification[] = [];
+    if (ajouts && ajouts.size > 0) {
+      const parId = new Map(allAides.map((a) => [String(a.id), a]));
+      for (const [idAt, { ajout }] of ajouts) {
+        const aide = parId.get(idAt);
+        if (!aide) continue;
+        manuels.push({
+          ...aide,
+          classification: classifications.get(idAt) ?? undefined,
+          ajoutManuel: ajout,
+        });
+      }
+      manuels.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // Un ajout manuel qui serait AUSSI remonté par le moteur ne doit apparaître qu'une fois — avec
+    // sa marque d'ajout. Le dédoublonnage se fait ici, pas dans le client.
+    const idsManuels = new Set(manuels.map((a) => String(a.id)));
+    const duMoteur = enriched.filter((a) => !idsManuels.has(String(a.id)));
+    const aides = [...manuels, ...duMoteur];
+
+    if (aides.length === 0) {
       return { status: "no_match", aides: [], total: allAides.length };
     }
 
-    return { status: "ok", aides: enriched, total: allAides.length };
+    return { status: "ok", aides, total: allAides.length };
   }
 
   /**
@@ -479,87 +524,4 @@ export class AidesController {
   /**
    * Extract unique code_insee values from project collectivités (Communes only)
    */
-  private extractCodesInsee(collectivites: { type: string; codeInsee: string | null }[]): string[] {
-    const codes: string[] = [];
-    for (const c of collectivites) {
-      if (c.type === "Commune" && c.codeInsee) {
-        codes.push(c.codeInsee);
-      }
-    }
-    return [...new Set(codes)];
-  }
-
-  /**
-   * Fetch aides for a single territory with SWR.
-   * Returns aides immediately (from cache if available), triggers background refresh if stale.
-   */
-  private async fetchAidesForTerritory(params: Record<string, string>, label: string): Promise<Aide[]> {
-    const cacheKey = this.cacheService.buildKey(params);
-    const cached = await this.cacheService.get(cacheKey);
-
-    if (cached?.status === "fresh") {
-      return cached.aides;
-    }
-
-    if (cached?.status === "stale") {
-      // Serve stale data immediately, refresh in background
-      this.refreshInBackground(cacheKey, params, label);
-      return cached.aides;
-    }
-
-    // Cache miss — synchronous fetch (cold start)
-    this.logger.log(`Cache miss for AT aides, fetching from API (${label})`);
-    const aides = await this.atService.fetchAides(params);
-    await this.cacheService.set(cacheKey, aides);
-    return aides;
-  }
-
-  /**
-   * Fire-and-forget background refresh for stale cache entries.
-   */
-  private refreshInBackground(cacheKey: string, params: Record<string, string>, label: string): void {
-    if (this.refreshingKeys.has(cacheKey)) return;
-    this.refreshingKeys.add(cacheKey);
-
-    this.atService
-      .fetchAides(params)
-      .then((aides) => this.cacheService.set(cacheKey, aides))
-      .then(() => this.logger.log(`Background refresh complete for ${label}`))
-      .catch((error) =>
-        this.logger.error(`Background refresh failed for ${label}`, {
-          error: { message: error instanceof Error ? error.message : "Unknown error" },
-        }),
-      )
-      .finally(() => this.refreshingKeys.delete(cacheKey));
-  }
-
-  /**
-   * Fetch aides for multiple territories (union). Deduplicates by aide id.
-   * Uses AT's perimeter_codes[] parameter which accepts any perimeter code
-   * (code INSEE de commune, code département…) directly.
-   */
-  private async fetchAidesForPerimeterCodes(codes: string[]): Promise<Aide[]> {
-    if (codes.length === 0) {
-      return this.fetchAidesForTerritory({}, "no territory filter");
-    }
-
-    const seenIds = new Set<number>();
-    const allAides: Aide[] = [];
-
-    for (const code of codes) {
-      const params = { "perimeter_codes[]": code };
-      const aides = await this.fetchAidesForTerritory(params, `perimeter_code=${code}`);
-
-      // Deduplicate across territories
-      for (const aide of aides) {
-        if (!seenIds.has(aide.id)) {
-          seenIds.add(aide.id);
-          allAides.push(aide);
-        }
-      }
-    }
-
-    this.logger.log(`Fetched ${allAides.length} unique aides across ${codes.length} territories`);
-    return allAides;
-  }
 }

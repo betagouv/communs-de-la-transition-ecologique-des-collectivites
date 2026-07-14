@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { AjoutManuelResponse } from "@/ajouts-manuels/dto/ajout-manuel.dto";
 import { CATEGORIES, NIVEAUX_EXPERTISE, type Categorie, type NiveauExpertise } from "../service-numerique-contract";
 
 // Sous-ensemble d'AFFICHAGE du catalogue interne.
@@ -74,6 +75,15 @@ export class ServiceResponse {
       "{collectiviteType}, {collectiviteCode}, {collectiviteLabel}, {epciCodeSiren}.",
   })
   iframe?: LienResponse;
+
+  @ApiPropertyOptional({
+    type: AjoutManuelResponse,
+    description:
+      "Présent si ce service a été ajouté À LA MAIN sur ce projet, et non retenu par le score. " +
+      "Porte le message de la personne qui l'a ajouté (« recommandé par la DDT lors du COPIL »). " +
+      "Absent = le service a été retenu par le moteur.",
+  })
+  ajoutManuel?: AjoutManuelResponse;
 }
 
 export class ProjetServicesResponse {

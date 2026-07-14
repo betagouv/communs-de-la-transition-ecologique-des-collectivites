@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Response } from "express";
 import { Queue } from "bullmq";
+import type { Request as ExpressRequest } from "express";
 import { AidesController } from "./aides.controller";
+import { AidesPerimetreService } from "./aides-perimetre.service";
+import { AjoutsManuelsService } from "@/ajouts-manuels/ajouts-manuels.service";
 import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
@@ -62,6 +65,9 @@ function makeAide(id: number): Aide {
     date_updated: null,
   };
 }
+
+/** La plateforme est dérivée de la clé d'API par le garde ; en test on la pose directement. */
+const makeReq = () => ({ serviceType: "MEC" }) as unknown as ExpressRequest;
 
 describe("AidesController", () => {
   let controller: AidesController;
@@ -139,12 +145,24 @@ describe("AidesController", () => {
       delete: jest.fn(),
     } as unknown as jest.Mocked<AidesFeedbackService>;
 
+    // Le VRAI service de périmètre, construit sur les mêmes mocks : la logique SWR a changé de
+    // maison (elle était privée dans le contrôleur), pas de comportement. Les tests ci-dessous la
+    // valident donc toujours réellement, au lieu de valider un mock.
+    const perimetreService = new AidesPerimetreService(mockAtService, mockCacheService, mockLogger);
+
+    // Aucun ajout manuel par défaut : ces tests portent sur le moteur.
+    const mockAjoutsManuels = {
+      actifs: jest.fn().mockResolvedValue(new Map()),
+    } as unknown as jest.Mocked<AjoutsManuelsService>;
+
     controller = new AidesController(
       mockAtService,
       mockClassificationService,
       mockMatchingService,
       mockTextualMatchingService,
       mockCacheService,
+      perimetreService,
+      mockAjoutsManuels,
       mockWarmupService,
       mockFeedbackService,
       mockProjetsService,
@@ -162,7 +180,7 @@ describe("AidesController", () => {
       };
       mockCacheService.get.mockResolvedValue(freshResult);
 
-      await controller.listAides("test-id", makeRes().res);
+      await controller.listAides(makeReq(), "test-id", makeRes().res);
 
       expect(mockAtService.fetchAides).not.toHaveBeenCalled();
       expect(mockCacheService.set).not.toHaveBeenCalled();
@@ -176,7 +194,7 @@ describe("AidesController", () => {
       mockCacheService.get.mockResolvedValue(staleResult);
       mockAtService.fetchAides.mockResolvedValue([makeAide(1), makeAide(2)]);
 
-      await controller.listAides("test-id", makeRes().res);
+      await controller.listAides(makeReq(), "test-id", makeRes().res);
 
       // Background refresh is fire-and-forget — wait a tick
       await new Promise((r) => setTimeout(r, 10));
@@ -197,8 +215,8 @@ describe("AidesController", () => {
 
       // Two concurrent requests for the same stale territory
       await Promise.all([
-        controller.listAides("test-id", makeRes().res),
-        controller.listAides("test-id", makeRes().res),
+        controller.listAides(makeReq(), "test-id", makeRes().res),
+        controller.listAides(makeReq(), "test-id", makeRes().res),
       ]);
 
       await new Promise((r) => setTimeout(r, 100));
@@ -211,7 +229,7 @@ describe("AidesController", () => {
       mockCacheService.get.mockResolvedValue(null);
       mockAtService.fetchAides.mockResolvedValue([makeAide(1)]);
 
-      await controller.listAides("test-id", makeRes().res);
+      await controller.listAides(makeReq(), "test-id", makeRes().res);
 
       expect(mockAtService.fetchAides).toHaveBeenCalled();
       expect(mockCacheService.set).toHaveBeenCalled();
@@ -230,7 +248,7 @@ describe("AidesController", () => {
       } as never);
 
       const { res, statusSpy, headerSpy } = makeRes();
-      const result = (await controller.listAides("test-id", res)) as ClassificationPendingResponse;
+      const result = (await controller.listAides(makeReq(), "test-id", res)) as ClassificationPendingResponse;
 
       expect(statusSpy).toHaveBeenCalledWith(202);
       expect(headerSpy).toHaveBeenCalledWith("Retry-After", "15");
@@ -256,7 +274,7 @@ describe("AidesController", () => {
       } as never);
 
       const { res } = makeRes();
-      await controller.listAides("test-id", res);
+      await controller.listAides(makeReq(), "test-id", res);
 
       expect(mockQualificationQueue.add).toHaveBeenCalledWith(
         PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
@@ -276,7 +294,7 @@ describe("AidesController", () => {
       } as never);
 
       const { res } = makeRes();
-      await controller.listAides("test-id", res);
+      await controller.listAides(makeReq(), "test-id", res);
 
       expect(mockQualificationQueue.add).toHaveBeenCalledWith(
         PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
@@ -301,7 +319,7 @@ describe("AidesController", () => {
       } as never);
 
       const { res } = makeRes();
-      const result = (await controller.listAides("test-id", res)) as ClassificationPendingResponse;
+      const result = (await controller.listAides(makeReq(), "test-id", res)) as ClassificationPendingResponse;
 
       expect(result.classificationTriggered).toBe(false);
       expect(mockQualificationQueue.add).not.toHaveBeenCalled();
@@ -324,7 +342,7 @@ describe("AidesController", () => {
       } as never);
 
       const { res } = makeRes();
-      const result = (await controller.listAides("test-id", res)) as ClassificationPendingResponse;
+      const result = (await controller.listAides(makeReq(), "test-id", res)) as ClassificationPendingResponse;
 
       expect(removeSpy).toHaveBeenCalled();
       expect(mockQualificationQueue.add).toHaveBeenCalled();
@@ -336,7 +354,7 @@ describe("AidesController", () => {
       mockAtService.fetchAides.mockResolvedValue([]);
 
       const { res } = makeRes();
-      const result = (await controller.listAides("test-id", res)) as AidesListResponse;
+      const result = (await controller.listAides(makeReq(), "test-id", res)) as AidesListResponse;
 
       expect(result.status).toBe("no_aides_on_perimeter");
       expect(result.aides).toEqual([]);
@@ -349,7 +367,7 @@ describe("AidesController", () => {
       mockMatchingService.match.mockReturnValue([]);
 
       const { res } = makeRes();
-      const result = (await controller.listAides("test-id", res)) as AidesListResponse;
+      const result = (await controller.listAides(makeReq(), "test-id", res)) as AidesListResponse;
 
       expect(result.status).toBe("no_match");
       expect(result.aides).toEqual([]);
@@ -372,7 +390,7 @@ describe("AidesController", () => {
       ]);
 
       const { res } = makeRes();
-      const result = (await controller.listAides("test-id", res)) as AidesListResponse;
+      const result = (await controller.listAides(makeReq(), "test-id", res)) as AidesListResponse;
 
       expect(result.status).toBe("ok");
       expect(result.aides).toHaveLength(1);
@@ -497,7 +515,7 @@ describe("AidesController", () => {
     it("should NOT call the textual service when the flag is off (default)", async () => {
       mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
 
-      await controller.listAides("test-id", makeRes().res);
+      await controller.listAides(makeReq(), "test-id", makeRes().res);
 
       expect(mockTextualMatchingService.score).not.toHaveBeenCalled();
     });
@@ -506,7 +524,7 @@ describe("AidesController", () => {
       mockConfigService.get.mockReturnValue("true");
       mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
 
-      await controller.listAides("test-id", makeRes().res);
+      await controller.listAides(makeReq(), "test-id", makeRes().res);
 
       expect(mockTextualMatchingService.score).toHaveBeenCalled();
     });
@@ -522,7 +540,7 @@ describe("AidesController", () => {
         ]),
       );
 
-      const result = (await controller.listAides("test-id", makeRes().res)) as AidesListResponse;
+      const result = (await controller.listAides(makeReq(), "test-id", makeRes().res)) as AidesListResponse;
 
       expect(result.status).toBe("ok");
       expect(result.aides).toHaveLength(1);
@@ -553,7 +571,7 @@ describe("AidesController", () => {
         ]),
       );
 
-      const result = (await controller.listAides("test-id", makeRes().res)) as AidesListResponse;
+      const result = (await controller.listAides(makeReq(), "test-id", makeRes().res)) as AidesListResponse;
 
       // combiné : aide2 = 0.85*0.9 + 0.15*0.1 = 0.78 ; aide1 = 0.85*0 + 0.15*0.9 = 0.135
       expect(result.aides.map((a) => a.id)).toEqual([2, 1]);
@@ -563,7 +581,7 @@ describe("AidesController", () => {
       mockConfigService.get.mockReturnValue(undefined); // flag env off
       mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
 
-      await controller.listAides("test-id", makeRes().res, undefined, undefined, "true");
+      await controller.listAides(makeReq(), "test-id", makeRes().res, undefined, undefined, "true");
 
       expect(mockTextualMatchingService.score).toHaveBeenCalled();
     });
@@ -572,7 +590,7 @@ describe("AidesController", () => {
       mockConfigService.get.mockReturnValue("true"); // flag env on
       mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
 
-      await controller.listAides("test-id", makeRes().res, undefined, undefined, "false");
+      await controller.listAides(makeReq(), "test-id", makeRes().res, undefined, undefined, "false");
 
       expect(mockTextualMatchingService.score).not.toHaveBeenCalled();
     });
@@ -599,6 +617,7 @@ describe("AidesController", () => {
 
       // cutoff = 6e argument
       const result = (await controller.listAides(
+        makeReq(),
         "test-id",
         makeRes().res,
         undefined,
@@ -615,7 +634,7 @@ describe("AidesController", () => {
       mockCacheService.get.mockResolvedValue({ aides: [makeAide(1), makeAide(2)], status: "fresh" });
       mockMatchingService.match.mockReturnValue([matchResult("1", 0.5, 0.5), matchResult("2", 0.05, 0.05)]);
 
-      const result = (await controller.listAides("test-id", makeRes().res)) as AidesListResponse;
+      const result = (await controller.listAides(makeReq(), "test-id", makeRes().res)) as AidesListResponse;
 
       expect(result.aides.map((a) => a.id)).toEqual([1, 2]);
     });
@@ -623,7 +642,17 @@ describe("AidesController", () => {
     it("passes aideThreshold and projetThreshold to the matching service", async () => {
       mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
 
-      await controller.listAides("test-id", makeRes().res, undefined, undefined, undefined, undefined, "0.7", "0.6");
+      await controller.listAides(
+        makeReq(),
+        "test-id",
+        makeRes().res,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        "0.7",
+        "0.6",
+      );
 
       expect(mockMatchingService.match).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.any(Number), {
         projet: 0.6,
@@ -634,7 +663,7 @@ describe("AidesController", () => {
     it("leaves thresholds undefined when the params are absent (matcher applies its default)", async () => {
       mockCacheService.get.mockResolvedValue({ aides: [makeAide(1)], status: "fresh" });
 
-      await controller.listAides("test-id", makeRes().res);
+      await controller.listAides(makeReq(), "test-id", makeRes().res);
 
       expect(mockMatchingService.match).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.any(Number), {
         projet: undefined,
@@ -644,7 +673,7 @@ describe("AidesController", () => {
 
     it("rejects an out-of-range score parameter with 400", async () => {
       await expect(
-        controller.listAides("test-id", makeRes().res, undefined, undefined, undefined, "1.5"),
+        controller.listAides(makeReq(), "test-id", makeRes().res, undefined, undefined, undefined, "1.5"),
       ).rejects.toThrow();
     });
   });
@@ -731,7 +760,7 @@ describe("AidesController", () => {
 
     it("should accept projetId (camelCase, canonical) without warning", async () => {
       const { res } = makeRes();
-      const result = (await controller.listAides("test-id", res)) as AidesListResponse;
+      const result = (await controller.listAides(makeReq(), "test-id", res)) as AidesListResponse;
 
       expect(result.status).toBe("ok");
       expect(mockProjetsService.findOneWithSource).toHaveBeenCalledWith("test-id");
@@ -740,7 +769,7 @@ describe("AidesController", () => {
 
     it("should accept projet_id (snake_case, deprecated) and log a warning", async () => {
       const { res } = makeRes();
-      const result = (await controller.listAides(undefined, res, undefined, "test-id")) as AidesListResponse;
+      const result = (await controller.listAides(makeReq(), undefined, res, undefined, "test-id")) as AidesListResponse;
 
       expect(result.status).toBe("ok");
       expect(mockProjetsService.findOneWithSource).toHaveBeenCalledWith("test-id");
@@ -749,7 +778,13 @@ describe("AidesController", () => {
 
     it("should prefer projetId when both are provided (no warning)", async () => {
       const { res } = makeRes();
-      const result = (await controller.listAides("camel-id", res, undefined, "snake-id")) as AidesListResponse;
+      const result = (await controller.listAides(
+        makeReq(),
+        "camel-id",
+        res,
+        undefined,
+        "snake-id",
+      )) as AidesListResponse;
 
       expect(result.status).toBe("ok");
       expect(mockProjetsService.findOneWithSource).toHaveBeenCalledWith("camel-id");
@@ -758,7 +793,7 @@ describe("AidesController", () => {
 
     it("should throw 400 when neither projetId nor projet_id is provided", async () => {
       const { res } = makeRes();
-      await expect(controller.listAides(undefined, res)).rejects.toThrow("projetId is required");
+      await expect(controller.listAides(makeReq(), undefined, res)).rejects.toThrow("projetId is required");
     });
   });
 });

@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { AjoutManuelResponse } from "@/ajouts-manuels/dto/ajout-manuel.dto";
 import { Type } from "class-transformer";
 import {
   ArrayNotEmpty,
@@ -202,6 +203,15 @@ export class AideMatchResult {
 export class AideWithClassification extends Aide {
   @ApiProperty({ required: false, type: AideClassification })
   classification?: AideClassification;
+
+  @ApiPropertyOptional({
+    type: AjoutManuelResponse,
+    description:
+      "Présent si cette aide a été ajoutée À LA MAIN sur ce projet, et non retenue par le moteur. " +
+      "Porte le message de la personne qui l'a ajoutée (« recommandée par la DDT lors du COPIL »). " +
+      "Ces aides remontent en tête et échappent au cutoff : quelqu'un les a délibérément mises là.",
+  })
+  ajoutManuel?: AjoutManuelResponse;
 
   @ApiProperty({
     required: false,
