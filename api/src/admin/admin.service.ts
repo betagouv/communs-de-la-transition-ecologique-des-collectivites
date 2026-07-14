@@ -2,6 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { servicesNumeriques } from "@database/schema";
 import { AidesMatchingService } from "@/aides/aides-matching.service";
+import { AidesMoteurService } from "@/aides/aides-moteur.service";
+import { AidesProjetService } from "@/aides/aides-projet.service";
+import { ServicesNumeriquesService } from "@/services-numeriques/services-numeriques.service";
+import { QuestionnairesService } from "@/questionnaires/questionnaires.service";
+import { RecommandationsService } from "@/recommandations/recommandations.service";
 import { AideClassification, AideMatchResult } from "@/aides/dto/aides.dto";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { QuestionnairesRepository } from "@/questionnaires/questionnaires.repository";
@@ -9,7 +14,7 @@ import type { QuestionnaireDef } from "@/questionnaires/questionnaire-contract";
 import { calculerStatut, evaluerCondition, reconcilierReponses } from "@/questionnaires/questionnaire-contract";
 import { etiquettesManquantes } from "@/questionnaires/questionnaires.service";
 import { facteurPhase, SEUIL_PERTINENCE, type PoidsParPhase } from "@/services-numeriques/service-numerique-contract";
-import { ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
+import { ApercuRequest, ApercuResponse, ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
 
 /**
  * Service d'administration : voir le contenu tel qu'il est, et SIMULER ce que l'API renverrait
@@ -46,7 +51,47 @@ export class AdminService {
     private readonly getProjetsService: GetProjetsService,
     private readonly matchingService: AidesMatchingService,
     private readonly questionnairesRepository: QuestionnairesRepository,
+    private readonly moteurAides: AidesMoteurService,
+    private readonly aidesProjet: AidesProjetService,
+    private readonly servicesNumeriques: ServicesNumeriquesService,
+    private readonly questionnaires: QuestionnairesService,
+    private readonly recommandations: RecommandationsService,
   ) {}
+
+  /**
+   * CE QUE L'API RENVOIE RÉELLEMENT à une plateforme, pour un projet.
+   *
+   * PAS UNE ÉMULATION : les quatre sections appellent EXACTEMENT les fonctions qui servent MEC. Une
+   * reconstitution, même fidèle au départ, finit par diverger — et un outil qui ment sur ce que voit
+   * la collectivité est pire que pas d'outil du tout.
+   *
+   * Les quatre lectures sont indépendantes : on les lance ensemble.
+   */
+  async apercu(dto: ApercuRequest, baseUrl: string): Promise<ApercuResponse> {
+    const p = dto.aides ?? {};
+
+    // Les défauts de GET /aides, résolus ici et RENDUS dans la réponse : sans ça, on ne saurait pas
+    // distinguer « j'ai mis le cutoff à 0 » de « je n'y ai pas touché ».
+    const reglagesAides = {
+      maxResults: p.limit ?? 20,
+      cutoff: p.cutoff ?? 0,
+      thresholds: { projet: p.projetThreshold, aide: p.aideThreshold },
+      textualEnabled: this.moteurAides.textuelActif(p.textual),
+      textualText: p.texte,
+    };
+
+    const seuilServices = dto.seuilServices ?? SEUIL_PERTINENCE;
+
+    const [aides, services, questionnaires, recommandations] = await Promise.all([
+      this.aidesProjet.pourProjet(dto.projetId, dto.plateforme, reglagesAides),
+      // Le seuil est PASSÉ à l'API, pas rejoué ici : c'est elle qui décide, avec le réglage demandé.
+      this.servicesNumeriques.findForProjet(dto.projetId, baseUrl, dto.plateforme, seuilServices),
+      this.questionnaires.findForProjet(dto.projetId),
+      this.recommandations.findForProjet(dto.projetId, dto.plateforme),
+    ]);
+
+    return { aides, services, questionnaires, recommandations, reglagesAides, seuilServices };
+  }
 
   /** Le contenu tel qu'il est réellement chargé — conditions et classifications comprises. */
   async contenu(): Promise<ContenuResponse> {

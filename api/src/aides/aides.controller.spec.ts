@@ -4,6 +4,8 @@ import { Queue } from "bullmq";
 import type { Request as ExpressRequest } from "express";
 import { AidesController } from "./aides.controller";
 import { AidesPerimetreService } from "./aides-perimetre.service";
+import { AidesMoteurService } from "./aides-moteur.service";
+import { AidesProjetService } from "./aides-projet.service";
 import { AjoutsManuelsService } from "@/ajouts-manuels/ajouts-manuels.service";
 import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
@@ -155,18 +157,31 @@ describe("AidesController", () => {
       actifs: jest.fn().mockResolvedValue(new Map()),
     } as unknown as jest.Mocked<AjoutsManuelsService>;
 
+    // Le VRAI moteur, construit sur les mêmes mocks : il a quitté le contrôleur, pas le
+    // comportement. Les tests continuent donc de le valider réellement.
+    const moteur = new AidesMoteurService(mockMatchingService, mockTextualMatchingService, mockConfigService);
+
+    // Le VRAI service d'orchestration, sur les mêmes mocks : il a quitté le contrôleur, pas le
+    // comportement. Les tests continuent donc de valider la chaîne réelle.
+    const aidesProjet = new AidesProjetService(
+      mockProjetsService,
+      perimetreService,
+      mockClassificationService,
+      moteur,
+      mockAjoutsManuels,
+      mockLogger,
+    );
+
     controller = new AidesController(
       mockAtService,
       mockClassificationService,
-      mockMatchingService,
-      mockTextualMatchingService,
       mockCacheService,
       perimetreService,
-      mockAjoutsManuels,
+      moteur,
+      aidesProjet,
       mockWarmupService,
       mockFeedbackService,
       mockProjetsService,
-      mockConfigService,
       mockQualificationQueue,
       mockLogger,
     );

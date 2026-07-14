@@ -22,5 +22,8 @@ import { QuestionnaireRecommandationSource } from "./sources/questionnaire.sourc
       inject: [QuestionnaireRecommandationSource],
     },
   ],
+  // Exporté : l'aperçu du back-office doit montrer ce que l'API renvoie RÉELLEMENT, il appelle donc
+  // la MÊME fonction que GET /projets/:id/recommandations — pas une reconstitution.
+  exports: [RecommandationsService],
 })
 export class RecommandationsModule {}

@@ -1,5 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsObject, IsOptional, IsUUID } from "class-validator";
+import {
+  IsBoolean,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  Min,
+} from "class-validator";
 import { AideClassification, AideLabelsCommuns } from "@/aides/dto/aides.dto";
 import { ProjetPhase } from "@database/schema";
 import type { PoidsParPhase } from "@/services-numeriques/service-numerique-contract";
@@ -135,4 +146,111 @@ export class SimulationResponse {
   @ApiProperty({ type: [ServiceSimuleResponse], description: "TOUS les services, y compris écartés." })
   services!: ServiceSimuleResponse[];
   @ApiProperty({ type: SeuilsResponse }) seuils!: SeuilsResponse;
+}
+
+/**
+ * L'APERÇU : ce que l'API renvoie RÉELLEMENT à une plateforme, pour un projet.
+ *
+ * PAS UNE ÉMULATION. Les quatre sections appellent EXACTEMENT les fonctions qui servent MEC
+ * (`AidesProjetService.pourProjet`, `ServicesNumeriquesService.findForProjet`,
+ * `QuestionnairesService.findForProjet`, `RecommandationsService.findForProjet`). Une
+ * reconstitution, même fidèle au départ, finit par diverger — et un outil qui ment sur ce que voit
+ * la collectivité est pire que pas d'outil.
+ *
+ * `plateforme` est OBLIGATOIRE, et ce n'est pas une formalité : les ajouts manuels et les
+ * arbitrages de recommandations sont CLOISONNÉS par plateforme. Sans elle, on afficherait une liste
+ * que personne ne reçoit.
+ */
+export class ParametresAidesDto {
+  @ApiPropertyOptional({ description: "Nombre maximal d'aides. Défaut : 20." })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  limit?: number;
+
+  @ApiPropertyOptional({ description: "Score minimal pour être retenu. Défaut : 0 (aucun filtrage)." })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  cutoff?: number;
+
+  @ApiPropertyOptional({ description: "Confiance minimale d'une étiquette DU PROJET. Défaut du matcher : 0,8." })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  projetThreshold?: number;
+
+  @ApiPropertyOptional({ description: "Confiance minimale d'une étiquette DE L'AIDE. Défaut du matcher : 0,8." })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  aideThreshold?: number;
+
+  @ApiPropertyOptional({ description: "Matching textuel (BM25). Défaut : le drapeau d'environnement." })
+  @IsOptional()
+  @IsBoolean()
+  textual?: boolean;
+
+  @ApiPropertyOptional({ description: "Texte de la recherche. Défaut : « nom + description » du projet." })
+  @IsOptional()
+  @IsString()
+  texte?: string;
+}
+
+export class ApercuRequest {
+  @ApiProperty({ description: "Identifiant d'un projet RÉEL." })
+  @IsUUID()
+  projetId!: string;
+
+  @ApiProperty({
+    description:
+      "Au nom de QUELLE plateforme on regarde (MEC, TET…). Les ajouts manuels et les arbitrages " +
+      "sont cloisonnés par plateforme : sans elle, on afficherait une liste que personne ne reçoit.",
+  })
+  @IsString()
+  @IsNotEmpty()
+  plateforme!: string;
+
+  @ApiPropertyOptional({ description: "Paramètres de GET /aides. Absents = les défauts de l'API." })
+  @IsOptional()
+  @IsObject()
+  aides?: ParametresAidesDto;
+
+  @ApiPropertyOptional({
+    description:
+      "Seuil de pertinence des services numériques. Absent = celui de l'API.\n\n" +
+      "Réglable ICI seulement : la route publique ne l'expose pas, parce que le contrat interdit " +
+      "de faire traverser un critère de sélection au client (« il ne filtre ni ne trie »). C'est " +
+      "l'API qui applique le seuil, pas le back-office qui le rejoue — sans quoi l'écran finirait " +
+      "par mentir sur ce que voit la collectivité.",
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  seuilServices?: number;
+}
+
+export class ApercuResponse {
+  @ApiProperty({ type: Object, description: "La réponse EXACTE de GET /aides?projetId=…" })
+  aides!: unknown;
+
+  @ApiProperty({ type: Object, description: "La réponse EXACTE de GET /projets/:id/services" })
+  services!: unknown;
+
+  @ApiProperty({ type: Object, description: "La réponse EXACTE de GET /projets/:id/questionnaires" })
+  questionnaires!: unknown;
+
+  @ApiProperty({ type: Object, description: "La réponse EXACTE de GET /projets/:id/recommandations" })
+  recommandations!: unknown;
+
+  @ApiProperty({ type: Object, description: "Les réglages d'aides RÉELLEMENT appliqués, défauts résolus." })
+  reglagesAides!: Record<string, unknown>;
+
+  @ApiProperty({ description: "Le seuil de services RÉELLEMENT appliqué." })
+  seuilServices!: number;
 }

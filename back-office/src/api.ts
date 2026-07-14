@@ -1,4 +1,4 @@
-import type { Contenu, QuestionnaireEdition, Simulation, Taxonomies } from "./types";
+import type { Apercu, Contenu, QuestionnaireEdition, ReglagesAides, Simulation, Taxonomies } from "./types";
 
 /**
  * La clé d'administration vit en sessionStorage, jamais en localStorage : elle disparaît à la
@@ -58,3 +58,17 @@ export const enregistrerQuestionnaire = (slug: string, def: QuestionnaireEdition
 
 export const supprimerQuestionnaire = (slug: string): Promise<void> =>
   appeler<void>("/admin/questionnaires/" + encodeURIComponent(slug), undefined, "DELETE");
+
+/**
+ * Ce que l'API renvoie RÉELLEMENT à `plateforme`, pour ce projet.
+ *
+ * L'endpoint appelle les MÊMES fonctions que les endpoints publics : rien n'est reconstitué ici, ni
+ * côté serveur. La plateforme est obligatoire — les ajouts manuels et les arbitrages sont cloisonnés
+ * par plateforme, et sans elle on afficherait une liste que personne ne reçoit.
+ */
+export const apercu = (
+  projetId: string,
+  plateforme: string,
+  aides: ReglagesAides,
+  seuilServices?: number,
+): Promise<Apercu> => appeler<Apercu>("/admin/apercu", { projetId, plateforme, aides, seuilServices });

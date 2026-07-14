@@ -67,17 +67,13 @@ export interface ServiceSimule {
 }
 
 /**
- * Rejoue la sélection du serveur à un seuil arbitraire.
+ * Le score et le verdict viennent du SERVEUR. On ne rejoue rien ici.
  *
- * C'est LA raison d'être de cet écran. `/admin/simuler` renvoie tous les candidats avec leur
- * score, jamais seulement les retenus : déplacer le seuil est donc de l'arithmétique côté
- * navigateur, sans rappeler l'API. On voit l'effet d'un réglage avant de le figer dans le code.
- *
- * Le score seul décide — il n'y a pas de repêchage. Cette fonction doit rester la copie exacte
- * de la règle appliquée dans api/src/services-numeriques/services-numeriques.service.ts, sinon
- * l'écran ment sur ce que verra la collectivité.
+ * Une version précédente de cet écran recalculait `retenu` dans le navigateur, avec un curseur de
+ * seuil : c'était une COPIE de la décision de l'API, et une copie diverge. L'aperçu montre
+ * désormais ce que l'API renvoie réellement ; ce panneau-ci ne sert plus qu'au DIAGNOSTIC — voir
+ * les candidats écartés et leur score, tels que le serveur les a calculés.
  */
-export const retenuAuSeuil = (service: ServiceSimule, seuil: number): boolean => service.score >= seuil;
 
 export interface ProjetSimule {
   id: string;
@@ -156,3 +152,71 @@ export const compterEtiquettes = (c: Classification | EtiquettesCommunes | null)
 
 /** Les étiquettes d'un match, à plat, dans l'ordre de poids des axes. */
 export const aplatir = (c: EtiquettesCommunes): string[] => [...c.thematiques, ...c.sites, ...c.interventions];
+
+// ------------------------------------------------------------
+// L'APERÇU : ce que l'API renvoie RÉELLEMENT à une plateforme.
+//
+// PAS UNE ÉMULATION. Ces quatre sections sont les réponses EXACTES des endpoints publics — le
+// back-office ne rejoue aucune règle. Une reconstitution, même fidèle au départ, finit par
+// diverger, et un outil qui ment sur ce que voit la collectivité est pire que pas d'outil.
+// ------------------------------------------------------------
+
+/** Réglages de GET /aides. Un champ absent = « le défaut de l'API ». */
+export interface ReglagesAides {
+  limit?: number;
+  cutoff?: number;
+  projetThreshold?: number;
+  aideThreshold?: number;
+  textual?: boolean;
+  texte?: string;
+}
+
+export interface AideRendue {
+  id: number;
+  name: string;
+  url?: string;
+  normalizedScore?: number;
+  textualScore?: number;
+  combinedScore?: number;
+  labelsCommuns?: EtiquettesCommunes;
+  ajoutManuel?: { decisionId: string; message?: string; plateforme: string; date: string };
+}
+
+export interface ServiceRendu {
+  id: string;
+  nom: string;
+  description: string;
+  categories: string[];
+  ajoutManuel?: { decisionId: string; message?: string; plateforme: string; horsCatalogue?: boolean };
+}
+
+export interface QuestionnaireRendu {
+  slug: string;
+  version: number;
+  statut: string;
+  banniere: { titre?: string; sousTitre?: string };
+  questions: { id: string; intitule: string }[];
+}
+
+export interface RecommandationRendue {
+  id: string;
+  titre: string;
+  description?: string;
+  financements?: { libelle: string; url: string; aideId?: number }[];
+}
+
+export interface Apercu {
+  aides: { status: string; total: number; aides: AideRendue[] };
+  services: { services: ServiceRendu[] };
+  questionnaires: { questionnaires: QuestionnaireRendu[] };
+  recommandations: { recommandations: RecommandationRendue[] };
+  /** Les réglages d'aides RÉELLEMENT appliqués — défauts de l'API résolus. */
+  reglagesAides: {
+    maxResults?: number;
+    cutoff?: number;
+    thresholds?: { projet?: number; aide?: number };
+    textualEnabled?: boolean;
+  };
+  /** Le seuil de services RÉELLEMENT appliqué par l'API. */
+  seuilServices: number;
+}

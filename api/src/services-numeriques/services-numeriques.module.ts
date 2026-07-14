@@ -16,5 +16,8 @@ import { ServicesNumeriquesService } from "./services-numeriques.service";
     // son cron de synchronisation quotidienne.
     AidesMatchingService,
   ],
+  // Exporté : l'aperçu du back-office doit montrer ce que l'API renvoie RÉELLEMENT. Il appelle donc
+  // la MÊME fonction que GET /projets/:id/services — pas une reconstitution, qui divergerait.
+  exports: [ServicesNumeriquesService],
 })
 export class ServicesNumeriquesModule {}
