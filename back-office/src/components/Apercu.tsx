@@ -6,7 +6,8 @@ import { Input } from "@codegouvfr/react-dsfr/Input";
 import { Select } from "@codegouvfr/react-dsfr/Select";
 import { ToggleSwitch } from "@codegouvfr/react-dsfr/ToggleSwitch";
 import { Etiquettes } from "./Etiquettes";
-import { apercu as chargerApercu } from "../api";
+import { apercu as chargerApercu, retirerAjout } from "../api";
+import { AjoutManuel } from "./AjoutManuel";
 import type { Apercu as ApercuType, ReglagesAides } from "../types";
 
 /**
@@ -45,6 +46,16 @@ export function Apercu({ projetId }: { projetId: string }) {
       setErreur(e instanceof Error ? e.message : "Erreur inattendue.");
     } finally {
       setChargement(false);
+    }
+  };
+
+  const retirer = async (decisionId: string) => {
+    setErreur(null);
+    try {
+      await retirerAjout(decisionId, plateforme);
+      await lancer();
+    } catch (e) {
+      setErreur(e instanceof Error ? e.message : "Erreur inattendue.");
     }
   };
 
@@ -155,6 +166,10 @@ export function Apercu({ projetId }: { projetId: string }) {
         </div>
       )}
 
+      {/* Ajouter à la main, puis constater dans l'aperçu. C'est le seul moyen de savoir si l'ajout
+          est pris en compte, plutôt que de le croire. */}
+      <AjoutManuel projetId={projetId} plateforme={plateforme} onAjout={() => void lancer()} />
+
       {resultat && (
         <>
           <h3 className={fr.cx("fr-h5")}>
@@ -200,6 +215,12 @@ export function Apercu({ projetId }: { projetId: string }) {
                           {a.ajoutManuel.message && (
                             <div className={fr.cx("fr-text--xs")}>« {a.ajoutManuel.message} »</div>
                           )}
+                          <button
+                            className={fr.cx("fr-link", "fr-link--sm")}
+                            onClick={() => void retirer(a.ajoutManuel!.decisionId)}
+                          >
+                            retirer
+                          </button>
                         </>
                       )}
                       <div className={fr.cx("fr-text--xs")}>id {a.id}</div>

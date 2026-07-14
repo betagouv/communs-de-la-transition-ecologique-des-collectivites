@@ -72,3 +72,32 @@ export const apercu = (
   aides: ReglagesAides,
   seuilServices?: number,
 ): Promise<Apercu> => appeler<Apercu>("/admin/apercu", { projetId, plateforme, aides, seuilServices });
+
+// ------------------------------------------------------------
+// AJOUTS MANUELS depuis le back-office.
+//
+// Les endpoints partenaires déduisent la plateforme de la clé d'API — c'est ce qui empêche un
+// service de se faire passer pour un autre. Le back-office n'est aucune plateforme : il porte la
+// clé d'administration, et doit donc DÉCLARER au nom de qui il agit. Aucune règle n'est réécrite
+// côté serveur : les mêmes gardes s'appliquent (aide sur le périmètre, slug au catalogue).
+// ------------------------------------------------------------
+
+export const ajouterAide = (
+  projetId: string,
+  plateforme: string,
+  aideId: number,
+  message?: string,
+): Promise<{ decisionId: string }> =>
+  // `trim() || undefined` : une chaîne vide n'est pas un message. `??` ne la filtrerait pas.
+  appeler("/admin/ajouts/aide", { projetId, plateforme, aideId, message: message?.trim() ? message : undefined });
+
+export const ajouterService = (
+  projetId: string,
+  plateforme: string,
+  slug: string,
+  message?: string,
+): Promise<{ decisionId: string }> =>
+  appeler("/admin/ajouts/service", { projetId, plateforme, slug, message: message?.trim() ? message : undefined });
+
+export const retirerAjout = (decisionId: string, plateforme: string): Promise<unknown> =>
+  appeler(`/admin/ajouts/${decisionId}?plateforme=${encodeURIComponent(plateforme)}`, undefined, "DELETE");
