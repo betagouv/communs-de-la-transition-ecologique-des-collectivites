@@ -50,9 +50,6 @@ export class ServiceResponse {
   @ApiPropertyOptional({ enum: NIVEAUX_EXPERTISE })
   niveauExpertise?: NiveauExpertise;
 
-  @ApiProperty({ type: [String], description: "Thématiques du service, dans la taxonomie du schéma commun." })
-  thematiques!: string[];
-
   @ApiPropertyOptional({
     description:
       "Le service est-il utilisable par un agent NON SPÉCIALISTE ? Propriété descriptive du " +

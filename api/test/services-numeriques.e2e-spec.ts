@@ -13,7 +13,6 @@ interface Service {
   description: string;
   logoUrl?: string;
   categories: string[];
-  thematiques: string[];
   niveauExpertise?: string;
   profilGeneraliste?: boolean;
   redirection?: { url: string; libelle?: string };
@@ -314,6 +313,10 @@ describe("Services numériques (e2e)", () => {
       expect(charge).not.toContain("phases");
       expect(charge).not.toContain("presentationGenerique");
       expect(charge).not.toContain("score");
+      // `thematiques` était le critère de sélection, exposé sous forme de libellés — le contrat se
+      // contredisait lui-même. Un client qui l'aurait affiché aurait montré à une collectivité les
+      // entrailles du moteur, et non une information sur le service.
+      expect(charge).not.toContain("thematiques");
     });
 
     it("projette les champs d'affichage attendus par MEC", async () => {
@@ -335,7 +338,6 @@ describe("Services numériques (e2e)", () => {
       expect(service0.id).toBe("boussole-de-la-transition-ecologique");
       expect(service0.categories).toEqual(["contenu", "expert"]);
       expect(service0.niveauExpertise).toBe("bas");
-      expect(service0.thematiques).toEqual(["Gestion des eaux pluviales"]);
       expect(service0.redirection?.url).toContain("https://");
     });
   });
