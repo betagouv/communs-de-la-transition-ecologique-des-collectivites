@@ -4,12 +4,13 @@ import { Header } from "@codegouvfr/react-dsfr/Header";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { Tabs } from "@codegouvfr/react-dsfr/Tabs";
-import { CleRefusee, getContenu, lireCle, oublierCle, simuler } from "./api";
+import { CleRefusee, getContenu, getTaxonomies, lireCle, oublierCle, simuler } from "./api";
 import { PorteCle } from "./components/PorteCle";
 import { Catalogue } from "./components/Catalogue";
-import { Questionnaires } from "./components/Questionnaires";
+import { QuestionnairesSimules } from "./components/QuestionnairesSimules";
+import { CatalogueQuestionnaires } from "./components/CatalogueQuestionnaires";
 import { Services } from "./components/Services";
-import { compterEtiquettes, type Contenu, type Simulation } from "./types";
+import { compterEtiquettes, type Contenu, type Simulation, type Taxonomies } from "./types";
 
 /**
  * Back-office — LECTURE et SIMULATION uniquement. Il n'écrit rien.
@@ -23,6 +24,7 @@ export default function App() {
   const [refusee, setRefusee] = useState(false);
 
   const [contenu, setContenu] = useState<Contenu | null>(null);
+  const [taxonomies, setTaxonomies] = useState<Taxonomies | null>(null);
   const [projetId, setProjetId] = useState("");
   const [simulation, setSimulation] = useState<Simulation | null>(null);
   const [chargement, setChargement] = useState(false);
@@ -38,10 +40,18 @@ export default function App() {
     setErreur(e instanceof Error ? e.message : "Erreur inattendue.");
   }, []);
 
+  const recharger = useCallback(() => {
+    getContenu().then(setContenu).catch(gererErreur);
+  }, [gererErreur]);
+
   useEffect(() => {
     if (!authentifie) return;
-    getContenu().then(setContenu).catch(gererErreur);
-  }, [authentifie, gererErreur]);
+    recharger();
+    // Les taxonomies fermées ne changent pas : un seul chargement suffit. Elles ne sont JAMAIS
+    // recopiées dans ce dépôt — une copie dérive, et on réintroduirait la coquille que la
+    // validation de l'API vient d'éliminer, du côté où personne ne la verrait.
+    getTaxonomies().then(setTaxonomies).catch(gererErreur);
+  }, [authentifie, gererErreur, recharger]);
 
   const lancer = (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,7 +158,7 @@ export default function App() {
                         </div>
                       )}
 
-                      <Questionnaires questionnaires={simulation.questionnaires} />
+                      <QuestionnairesSimules questionnaires={simulation.questionnaires} />
                       <Services services={simulation.services} seuilApi={simulation.seuils.pertinence} />
                     </>
                   )}
@@ -156,7 +166,20 @@ export default function App() {
               ),
             },
             {
-              label: "Catalogue",
+              label: "Questionnaires",
+              content:
+                contenu && taxonomies ? (
+                  <CatalogueQuestionnaires
+                    questionnaires={contenu.questionnaires}
+                    taxonomies={taxonomies}
+                    onChangement={recharger}
+                  />
+                ) : (
+                  <p>Chargement…</p>
+                ),
+            },
+            {
+              label: "Services",
               content: contenu ? <Catalogue contenu={contenu} /> : <p>Chargement…</p>,
             },
           ]}
