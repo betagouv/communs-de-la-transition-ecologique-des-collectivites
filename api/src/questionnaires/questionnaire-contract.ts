@@ -92,11 +92,30 @@ export interface QuestionnaireFichier {
 // Contenu partenaire : recommandations
 // ------------------------------------------------------------
 
+/**
+ * Un financement cité par une recommandation.
+ *
+ * `aideId` — l'identifiant Aides-territoires, QUAND le financement désigne une aide précise. Il
+ * permet à MEC de proposer « ajouter cette aide au projet » (POST /projets/:id/aides/ajouts) sans
+ * que l'agent ait à la retrouver à la main.
+ *
+ * FACULTATIF, et ça n'est pas une négligence : beaucoup de financements désignent une FAMILLE
+ * d'aides, pas une aide (« Fonds vert — Biodiversité », « DETR »), et leur `url` est une recherche,
+ * pas une fiche. Les forcer à porter un id obligerait à en inventer un — donc à envoyer une
+ * collectivité vers la mauvaise aide.
+ *
+ * ON NE PEUT PAS VÉRIFIER À L'ÉCRITURE QU'UN ID EXISTE : Aides-territoires ne sait pas récupérer
+ * une aide par son identifiant (`/aids/<id>/` répond 404, et `?id=<n>` est silencieusement ignoré).
+ * On ne le saura qu'au moment de l'ajout, contre le périmètre d'un projet. Un id valide peut
+ * d'ailleurs légitimement échouer là : une aide d'Agence de l'Eau Adour-Garonne n'est pas
+ * disponible pour une commune bretonne. Ce n'est pas un bug, c'est le territoire.
+ */
 export interface FinancementDef {
   icone?: string;
   libelle: string;
   description?: string;
   url: string;
+  aideId?: number;
 }
 
 export interface RessourceDef {
