@@ -151,6 +151,46 @@ describe("Ajouts manuels (e2e)", () => {
       expect((await ajouterService(projetId, "service-qui-nexiste-pas")).status).toBe(404);
     });
 
+    it("REFUSE d'ajouter deux fois le même service, et dit lequel retirer", async () => {
+      // Sans ce garde-fou, deux ajouts produisaient DEUX décisions actives. La lecture les indexe
+      // par identifiant, donc le doublon était masqué — mais le message affiché devenait arbitraire,
+      // et surtout RETIRER L'UN NE FAISAIT PAS DISPARAÎTRE LE SERVICE : l'autre le maintenait.
+      await global.testDbService.database
+        .insert(servicesNumeriques)
+        .values([service({ slug: "deja-la", nom: "Déjà là", classification: VELO })]);
+      const projetId = await creerProjet(EAU);
+
+      const premier = await ajouterService(projetId, "deja-la", "Premier message");
+      expect(premier.status).toBe(201);
+
+      const second = await appeler<{ message: string }>("POST", `/projets/${projetId}/services/ajouts`, {
+        slug: "deja-la",
+        message: "Second message",
+      });
+
+      // 409 et non 400 : la requête est valide, c'est l'ÉTAT qui s'y oppose.
+      expect(second.status).toBe(409);
+      // Le message donne l'id à retirer — sans lui, on ne saurait pas quoi faire.
+      expect(second.body.message).toContain(premier.body.decisionId);
+
+      // Et surtout : le retrait fait bien disparaître le service, puisqu'il n'y a qu'une décision.
+      await appeler("DELETE", `/projets/${projetId}/ajouts/${premier.body.decisionId}`);
+      expect(await getServices(projetId)).toEqual([]);
+    });
+
+    it("autorise de nouveau l'ajout APRÈS retrait", async () => {
+      // Le refus porte sur l'ajout ACTIF, pas sur l'objet : une fois retiré, on peut le remettre.
+      await global.testDbService.database
+        .insert(servicesNumeriques)
+        .values([service({ slug: "deja-la", nom: "Déjà là", classification: VELO })]);
+      const projetId = await creerProjet(EAU);
+
+      const premier = await ajouterService(projetId, "deja-la");
+      await appeler("DELETE", `/projets/${projetId}/ajouts/${premier.body.decisionId}`);
+
+      expect((await ajouterService(projetId, "deja-la", "Finalement si")).status).toBe(201);
+    });
+
     it("refuse un projet inconnu", async () => {
       await global.testDbService.database
         .insert(servicesNumeriques)
@@ -247,6 +287,23 @@ describe("Ajouts manuels (e2e)", () => {
 
       const { status } = await appeler("POST", `/projets/${projetId}/services/ajouts`, { message: "sans objet" });
       expect(status).toBe(400);
+    });
+
+    it("REFUSE un service hors catalogue HOMONYME d'un ajout déjà actif", async () => {
+      // Un service hors catalogue n'a pas d'identifiant stable : chaque ajout produit un UUID neuf.
+      // On dédoublonne donc sur son NOM — sans quoi un double-clic créerait deux fois le même
+      // service, et rien ne le signalerait.
+      const projetId = await creerProjet(EAU);
+
+      expect((await ajouterLibre(projetId, { nom: "Outil local", description: "Un outil." })).status).toBe(201);
+
+      const second = await appeler<{ message: string }>("POST", `/projets/${projetId}/services/ajouts`, {
+        service: { nom: "  outil LOCAL  ", description: "Le même, autrement écrit." },
+      });
+
+      // Insensible à la casse et aux espaces : c'est le même service, écrit autrement.
+      expect(second.status).toBe(409);
+      expect((await getServices(projetId)).length).toBe(1);
     });
 
     it("se retire comme n'importe quel ajout", async () => {

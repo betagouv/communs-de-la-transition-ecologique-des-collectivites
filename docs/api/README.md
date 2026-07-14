@@ -31,6 +31,12 @@ l'instance.
   doublons, statut de projet, rattachement PCAET, correction, et la révocation par `annule`. À lire
   dès que vous écrivez dans le référentiel, quelle que soit votre plateforme.
 
+- [**`GUIDE_QUESTIONNAIRES.md`**](./GUIDE_QUESTIONNAIRES.md) — **questionnaires, recommandations et
+  ajouts manuels**. Les champs d'un questionnaire, comment une condition associe une recommandation
+  aux réponses, l'`aideId` qui rend une aide **ajoutable en un clic**, et comment attacher à la main
+  une aide, un service du catalogue ou un service **hors catalogue**. À lire si vous éditez le
+  contenu, ou si vous l'intégrez.
+
 ### Interne / gouvernance
 
 - [**`DOCTRINE_ACCES_DONNEES.md`**](./DOCTRINE_ACCES_DONNEES.md) — « qui voit quoi » : scopes de
