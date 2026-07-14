@@ -2,3 +2,12 @@
 **/generated-types.ts
 CHANGELOG.md
 **/drizzle/meta
+
+# Scripts d'exploration locaux, hors périmètre du dépôt — voir le .gitignore de la racine.
+# Prettier s'exécute depuis api/ et ne lit donc PAS le .gitignore racine : sans ces lignes,
+# `format:check` échoue sur des fichiers que le dépôt ignore, et bloque le hook de pre-commit.
+scripts/poc-epci/
+scripts/classify-vivier/
+scripts/classify-dgcl-by-epci/
+scripts/cluster-perimetre/
+scripts/import-dgcl-dotations/

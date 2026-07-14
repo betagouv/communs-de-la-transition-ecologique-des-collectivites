@@ -45,3 +45,12 @@ scratch/
 # Yalc
 .yalc
 yalc.lock
+
+# Scripts d'exploration locaux, hors périmètre du dépôt : brouillons de travail et jeux de
+# données de travail. Pour en verser un au dépôt : le sortir de cette liste, le relire, le formater.
+# À tenir en phase avec api/.prettierignore (Prettier s'exécute depuis api/ et ne lit pas ce fichier).
+api/scripts/poc-epci/
+api/scripts/classify-vivier/
+api/scripts/classify-dgcl-by-epci/
+api/scripts/cluster-perimetre/
+api/scripts/import-dgcl-dotations/
