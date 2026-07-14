@@ -4,6 +4,7 @@ import { servicesNumeriques } from "@database/schema";
 import { AidesMatchingService } from "@/aides/aides-matching.service";
 import { AideClassification } from "@/aides/dto/aides.dto";
 import { AjoutsManuelsService } from "@/ajouts-manuels/ajouts-manuels.service";
+import type { AjoutManuel, ServiceLibre } from "@/ajouts-manuels/ajout-manuel-contract";
 import { ProjetResponse } from "@projets/dto/projet.dto";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import {
@@ -88,19 +89,47 @@ export class ServicesNumeriquesService {
     // Un service à la fois pertinent ET ajouté à la main n'apparaît QU'UNE fois (filtré ci-dessus),
     // avec sa marque d'ajout : le dédoublonnage doit se faire ici, pas dans le client.
     const parSlug = new Map(catalogue.map((l) => [l.slug, l]));
-    const manuels = [...ajouts.entries()]
-      .map(([slug, { ajout }]) => {
-        const ligne = parSlug.get(slug);
-        return ligne ? { ligne, ajout } : null;
-      })
-      .filter((x): x is NonNullable<typeof x> => x !== null)
-      .sort((a, b) => a.ligne.nom.localeCompare(b.ligne.nom));
+    const manuels: ServiceResponse[] = [];
+
+    for (const [id, { ajout, service }] of ajouts) {
+      // Service HORS catalogue : l'agent l'a décrit lui-même, c'est lui la source.
+      if (service) {
+        manuels.push(this.libreVersResponse(id, service, ajout));
+        continue;
+      }
+      // Service DU catalogue : sa fiche reste la source de vérité. On ne recopie rien.
+      const ligne = parSlug.get(id);
+      if (ligne) manuels.push({ ...this.toResponse(ligne, baseUrl), ajoutManuel: ajout });
+    }
+
+    manuels.sort((a, b) => a.nom.localeCompare(b.nom));
 
     return {
-      services: [
-        ...manuels.map(({ ligne, ajout }) => ({ ...this.toResponse(ligne, baseUrl), ajoutManuel: ajout })),
-        ...pertinents.map(({ ligne }) => this.toResponse(ligne, baseUrl)),
-      ],
+      services: [...manuels, ...pertinents.map(({ ligne }) => this.toResponse(ligne, baseUrl))],
+    };
+  }
+
+  /**
+   * Un service saisi à la main, rendu SANS RIEN FABRIQUER.
+   *
+   * `categories` et `thematiques` restent vides : on ne connaît pas la classification de ce
+   * service. Le dire est plus honnête que d'inventer — et le drapeau `horsCatalogue` permet au
+   * client de distinguer cette absence d'information d'une information.
+   *
+   * `logoUrl` n'est PAS absolutisé : l'API n'héberge que les logos du catalogue. Une URL fournie
+   * par un agent est déjà absolue, ou elle n'est rien.
+   */
+  private libreVersResponse(id: string, s: ServiceLibre, ajout: AjoutManuel): ServiceResponse {
+    return {
+      id,
+      nom: s.nom,
+      description: s.description,
+      categories: [],
+      thematiques: [],
+      logoUrl: s.logoUrl,
+      operateur: s.operateur,
+      redirection: s.url ? { url: s.url, libelle: s.libelleLien } : undefined,
+      ajoutManuel: ajout,
     };
   }
 

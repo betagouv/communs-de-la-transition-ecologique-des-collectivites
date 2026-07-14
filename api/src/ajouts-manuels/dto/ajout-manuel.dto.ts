@@ -1,10 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
+import { Type } from "class-transformer";
+import {
+  IsInt,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateIf,
+  ValidateNested,
+} from "class-validator";
 
 class AjoutBase {
   @ApiPropertyOptional({
     description:
-      "Pourquoi cet ajout — « recommandée par la DDT lors du COPIL du 12/03 ». Rendu tel quel au " +
+      "Pourquoi cet ajout — « recommandé par la DDT lors du COPIL du 12/03 ». Rendu tel quel au " +
       "client, à côté de l'aide ou du service concerné.",
     maxLength: 2000,
   })
@@ -32,11 +42,88 @@ export class AjoutAideRequest extends AjoutBase {
   aideId!: number;
 }
 
-export class AjoutServiceRequest extends AjoutBase {
-  @ApiProperty({ description: "Slug du service numérique, tel qu'il figure au catalogue." })
+/**
+ * Un service qui n'est PAS au catalogue : un outil local, un service partenaire pas encore
+ * benchmarké. L'agent en fournit lui-même les informations.
+ *
+ * POURQUOI C'EST LÉGITIME ICI, ET PAS POUR UNE AIDE. Le catalogue de services est le NÔTRE : un
+ * service qui n'y figure pas existe quand même, et personne d'autre ne peut le décrire. Une aide,
+ * elle, n'existe que dans Aides-territoires : une aide qu'ils ne connaissent pas n'a aucune
+ * autorité qui la valide, et nous n'aurions aucun moyen de la tenir à jour.
+ *
+ * `categories` et `thematiques` restent VIDES à la lecture. On ne les invente pas : on ne connaît
+ * pas la classification de ce service, et le dire est plus honnête que de la fabriquer.
+ */
+export class ServiceLibreDto {
+  @ApiProperty({ description: "Nom du service, tel qu'il s'affichera." })
   @IsString()
   @IsNotEmpty()
-  slug!: string;
+  @MaxLength(300)
+  nom!: string;
+
+  @ApiProperty({ description: "Description courte, telle qu'elle s'affichera." })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(2000)
+  description!: string;
+
+  @ApiPropertyOptional({ description: "Lien vers le service." })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  url?: string;
+
+  @ApiPropertyOptional({ description: "Libellé du lien (défaut : le client décide)." })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  libelleLien?: string;
+
+  @ApiPropertyOptional({ description: "Structure qui opère le service." })
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  operateur?: string;
+
+  @ApiPropertyOptional({ description: "URL absolue d'un logo. L'API n'héberge que les logos du catalogue." })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  logoUrl?: string;
+}
+
+/**
+ * Deux façons d'ajouter un service, et EXACTEMENT une des deux :
+ *
+ * - `slug` : le service est au catalogue. On ne recopie rien — sa fiche reste la source de vérité,
+ *   et elle continuera d'évoluer (logo, description, lien). Recopier ici l'aurait figée, et les
+ *   deux copies auraient divergé.
+ * - `service` : il n'y est pas. L'agent le décrit lui-même ; c'est lui la source.
+ *
+ * Fournir les deux serait ambigu : lequel affiche-t-on ? Fournir aucun des deux n'ajoute rien. On
+ * refuse les deux cas plutôt que de choisir en silence.
+ */
+export class AjoutServiceRequest extends AjoutBase {
+  @ApiPropertyOptional({
+    description: "Slug du service, s'il est au catalogue. Exclusif avec `service`.",
+  })
+  // « Au moins un des deux » est vérifié ici ; « pas les deux » l'est dans le service, où on peut
+  // l'expliquer. class-validator ne sait pas exprimer un OU EXCLUSIF sans validateur maison, et un
+  // validateur maison pour ça serait plus obscur que la garde explicite.
+  @ValidateIf((o: AjoutServiceRequest) => o.service === undefined)
+  @IsString({ message: "Fournissez `slug` (service du catalogue) OU `service` (service hors catalogue)." })
+  @IsNotEmpty()
+  slug?: string;
+
+  @ApiPropertyOptional({
+    type: ServiceLibreDto,
+    description: "Description d'un service HORS catalogue. Exclusif avec `slug`.",
+  })
+  @ValidateIf((o: AjoutServiceRequest) => o.slug === undefined)
+  @IsObject()
+  @ValidateNested()
+  @Type(() => ServiceLibreDto)
+  service?: ServiceLibreDto;
 }
 
 export class AjoutCreeResponse {
@@ -57,4 +144,12 @@ export class AjoutManuelResponse {
 
   @ApiProperty({ description: "Date de l'ajout (ISO 8601)." })
   date!: string;
+
+  @ApiPropertyOptional({
+    description:
+      "Services uniquement. `true` si le service ne vient PAS du catalogue : ses informations ont " +
+      "été saisies à la main. Sa classification est donc inconnue — `categories` et `thematiques` " +
+      "sont vides, on ne les invente pas. Absent sur les aides, où la notion n'a pas de sens.",
+  })
+  horsCatalogue?: boolean;
 }
