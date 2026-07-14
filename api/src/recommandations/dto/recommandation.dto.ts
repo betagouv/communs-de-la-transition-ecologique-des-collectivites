@@ -14,6 +14,20 @@ export class FinancementResponse {
 
   @ApiProperty({ format: "uri" })
   url!: string;
+
+  @ApiPropertyOptional({
+    description:
+      "Identifiant Aides-territoires, quand le financement désigne une AIDE PRÉCISE. Permet de " +
+      "proposer « ajouter cette aide au projet » (POST /projets/:id/aides/ajouts) sans que l'agent " +
+      "ait à la retrouver.\n\n" +
+      "ABSENT quand le financement désigne une FAMILLE d'aides (« Fonds vert », « DETR ») : leur " +
+      "`url` est une recherche, pas une fiche, et inventer un id enverrait la collectivité vers la " +
+      "mauvaise aide.\n\n" +
+      "PRÉSENT N'EST PAS GARANTI AJOUTABLE : l'ajout vérifie que l'aide est disponible sur le " +
+      "territoire du projet, et une aide régionale ne l'est pas partout. Un 400 à l'ajout n'est " +
+      "donc pas une anomalie — c'est le territoire.",
+  })
+  aideId?: number;
 }
 
 export class RessourceResponse {

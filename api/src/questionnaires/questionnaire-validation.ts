@@ -117,6 +117,20 @@ function validerRecommandations(def: Definition): void {
     }
     vues.add(reco.id);
 
+    for (const financement of reco.financements) {
+      // On ne peut vérifier que la FORME. PAS l'existence : Aides-territoires ne sait pas récupérer
+      // une aide par son identifiant (`/aids/<id>/` → 404, `?id=<n>` silencieusement ignoré). On ne
+      // saura donc qu'un id est bon qu'au moment où MEC tentera l'ajout, sur le périmètre d'un
+      // projet — et un id parfaitement valide peut y échouer légitimement : une aide régionale n'est
+      // pas disponible partout.
+      if (financement.aideId !== undefined && (!Number.isInteger(financement.aideId) || financement.aideId <= 0)) {
+        throw new BadRequestException(
+          `Recommandation "${reco.id}" : le financement « ${financement.libelle} » porte un aideId ` +
+            `invalide (${financement.aideId}). Attendu : l'identifiant Aides-territoires, un entier positif.`,
+        );
+      }
+    }
+
     // `true` = inconditionnelle : elle sort dès que le questionnaire est entamé.
     if (reco.condition === true) continue;
 
