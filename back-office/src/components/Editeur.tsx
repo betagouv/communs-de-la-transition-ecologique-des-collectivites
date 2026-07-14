@@ -5,9 +5,7 @@ import { Button } from "@codegouvfr/react-dsfr/Button";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { ChoixEtiquettes } from "./ChoixEtiquettes";
 import { enregistrerQuestionnaire } from "../api";
-import type { Axe, QuestionnaireContenu, QuestionnaireEdition, Taxonomies } from "../types";
-
-const AXES: Axe[] = ["thematiques", "sites", "interventions"];
+import { AXES, type QuestionnaireContenu, type QuestionnaireEdition, type Taxonomies } from "../types";
 
 const VIDE = { thematiques: [], sites: [], interventions: [] };
 
@@ -56,6 +54,10 @@ export function Editeur({
     ),
   );
 
+  // `editePar` traversait toute la pile jusqu'à la colonne, et n'était JAMAIS renseigné : toute
+  // édition écrivait NULL. Un champ de traçabilité qui ne trace rien vaut moins que pas de champ.
+  const [editePar, setEditePar] = useState("");
+
   const [erreur, setErreur] = useState<string | null>(null);
   const [enregistrement, setEnregistrement] = useState(false);
 
@@ -82,6 +84,7 @@ export function Editeur({
         questions: parse.questions,
         recommandations: parse.recommandations,
         etiquettesRequises: etiquettes,
+        editePar: editePar.trim() || undefined,
       });
       onEnregistre();
     } catch (e) {
@@ -110,6 +113,12 @@ export function Editeur({
       <Input
         label="Partenaire fournissant le contenu"
         nativeInputProps={{ value: sourceNom, onChange: (e) => setSourceNom(e.target.value) }}
+      />
+
+      <Input
+        label="Votre nom"
+        hintText="Enregistré avec l'édition. La clé d'API ne dit pas qui vous êtes."
+        nativeInputProps={{ value: editePar, onChange: (e) => setEditePar(e.target.value) }}
       />
 
       <div className={fr.cx("fr-callout", "fr-my-3w")}>

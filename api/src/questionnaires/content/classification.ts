@@ -1,6 +1,4 @@
-import type { Intervention } from "@/projet-qualification/classification/const/interventions";
-import type { Site } from "@/projet-qualification/classification/const/sites";
-import type { Thematique } from "@/projet-qualification/classification/const/thematiques";
+import type { EtiquettesRequises } from "../questionnaire-contract";
 
 /**
  * Étiquettes qui DÉFINISSENT chaque questionnaire, sur les trois axes du schéma commun.
@@ -26,22 +24,10 @@ import type { Thematique } from "@/projet-qualification/classification/const/the
  * « école » seule attraperait n'importe quel projet d'école, et « solaire » seul n'importe quelle
  * installation photovoltaïque. C'est la conjonction qui définit le questionnaire.
  *
- * Le typage sur Thematique/Site/Intervention est volontaire : une étiquette hors taxonomie ne
- * compile pas.
+ * Ces valeurs ne servent qu'à l'AMORÇAGE (`pnpm seed:questionnaires`). La source de vérité est la
+ * base, éditable depuis le back-office. Elles sont validées comme n'importe quelle édition :
+ * `validerDefinition` vérifie leur appartenance aux taxonomies fermées, sans privilège.
  */
-export interface EtiquettesRequises {
-  thematiques: readonly Thematique[];
-  sites: readonly Site[];
-  interventions: readonly Intervention[];
-}
-
-/**
- * Confiance minimale de l'étiquette DANS LA CLASSIFICATION DU PROJET pour qu'elle compte.
- *
- * Même valeur que le seuil du moteur de matching des aides (AidesMatchingService.DEFAULT_THRESHOLD) :
- * en dessous, le job LLM n'est pas assez sûr de lui pour qu'on agisse dessus.
- */
-export const SEUIL_CONFIANCE = 0.8;
 
 export const ETIQUETTES_REQUISES: Record<string, EtiquettesRequises> = {
   // Le lieu SEUL définit ce questionnaire.

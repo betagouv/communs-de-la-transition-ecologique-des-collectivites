@@ -7,6 +7,7 @@ import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 import { DecisionsService } from "./decisions.service";
 import { CreateDecisionDto, DecisionCreatedResponse, DecisionListResponse } from "./dto/create-decision.dto";
 import { DECISION_TYPES, type DecisionType } from "./decision-contract";
+import { TYPE_AJOUT } from "@/ajouts-manuels/ajout-manuel-contract";
 
 @ApiBearerAuth()
 @ApiTags("Décisions")
@@ -30,6 +31,18 @@ export class DecisionsController {
     description: "Décision enregistrée",
   })
   create(@Req() request: Request, @Body() dto: CreateDecisionDto): Promise<DecisionCreatedResponse> {
+    // `ajout_manuel` a ses propres endpoints (/projets/:id/aides|services/ajouts), et EUX SEULS
+    // portent les gardes qui rendent l'ajout résoluble : l'aide doit être sur le périmètre du
+    // projet, le slug doit exister au catalogue. Les court-circuiter par cette porte générique
+    // produirait exactement la panne silencieuse qu'elles préviennent — un ajout enregistré, mais
+    // que la lecture ne saurait jamais résoudre, donc invisible et sans message.
+    if (dto.typeDecision === TYPE_AJOUT) {
+      throw new BadRequestException(
+        `Le type "${TYPE_AJOUT}" ne s'écrit pas ici : utilisez POST /projets/:projetId/aides/ajouts ` +
+          `ou POST /projets/:projetId/services/ajouts, qui vérifient que l'objet ajouté est bien ` +
+          `résoluble. Sans cette garde, l'ajout serait enregistré mais jamais affiché.`,
+      );
+    }
     return this.decisionsService.create(dto, request.serviceType!);
   }
 

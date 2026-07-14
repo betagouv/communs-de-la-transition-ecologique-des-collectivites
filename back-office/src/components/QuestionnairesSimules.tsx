@@ -1,12 +1,6 @@
 import { fr } from "@codegouvfr/react-dsfr";
 import { Badge } from "@codegouvfr/react-dsfr/Badge";
-import type { QuestionnaireSimule } from "../types";
-
-const LIBELLE_AXE: Record<string, string> = {
-  thematiques: "thématique",
-  sites: "lieu",
-  interventions: "modalité",
-};
+import { LIBELLE_AXE, type QuestionnaireSimule } from "../types";
 
 /**
  * Les questionnaires confrontés au projet, TOUS rendus — proposés comme non proposés.
@@ -45,7 +39,8 @@ export function QuestionnairesSimules({ questionnaires }: { questionnaires: Ques
                     {q.etiquettesManquantes.map((e, i) => (
                       <span key={`${e.axe}-${e.label}`}>
                         {i > 0 && ", "}
-                        <strong>{e.label}</strong> <span className={fr.cx("fr-text--xs")}>({LIBELLE_AXE[e.axe]})</span>
+                        <strong>{e.label}</strong>{" "}
+                        <span className={fr.cx("fr-text--xs")}>({LIBELLE_AXE[e.axe].singulier})</span>
                       </span>
                     ))}
                   </p>

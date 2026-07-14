@@ -9,6 +9,16 @@
 
 export type Axe = "thematiques" | "sites" | "interventions";
 
+/** Les trois axes, et leurs libellés. Une seule définition : ils étaient recopiés dans quatre
+ *  fichiers, et les deux tables de libellés avaient déjà divergé (singulier contre pluriel). */
+export const AXES: Axe[] = ["thematiques", "sites", "interventions"];
+
+export const LIBELLE_AXE: Record<Axe, { singulier: string; pluriel: string }> = {
+  thematiques: { singulier: "thématique", pluriel: "Thématiques" },
+  sites: { singulier: "lieu", pluriel: "Lieux" },
+  interventions: { singulier: "modalité", pluriel: "Modalités" },
+};
+
 export interface EtiquetteScoree {
   label: string;
   score: number;

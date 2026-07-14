@@ -2,7 +2,10 @@ import { BadRequestException } from "@nestjs/common";
 import { interventions } from "@/projet-qualification/classification/const/interventions";
 import { sites } from "@/projet-qualification/classification/const/sites";
 import { thematiques } from "@/projet-qualification/classification/const/thematiques";
-import type { QuestionnaireDef } from "./questionnaire-contract";
+import { AXES, type QuestionnaireDef } from "./questionnaire-contract";
+
+/** La version n'est pas du contenu : elle est posée par la base, jamais validée. */
+type Definition = Omit<QuestionnaireDef, "version">;
 
 /**
  * LES GARDE-FOUS DU CHARGEUR, DÉPLACÉS À L'ÉCRITURE.
@@ -26,15 +29,13 @@ const REFERENTIELS = {
   interventions: new Set<string>(interventions),
 };
 
-const AXES = ["thematiques", "sites", "interventions"] as const;
-
 const LIBELLE_AXE: Record<(typeof AXES)[number], string> = {
   thematiques: "thématique",
   sites: "lieu",
   interventions: "modalité",
 };
 
-export function validerDefinition(def: QuestionnaireDef): void {
+export function validerDefinition(def: Omit<QuestionnaireDef, "version">): void {
   validerEtiquettes(def);
   validerQuestions(def);
   validerRecommandations(def);
@@ -47,7 +48,7 @@ export function validerDefinition(def: QuestionnaireDef): void {
  * Un questionnaire qui n'exigerait rien serait proposé à TOUS les projets de France, sans
  * exception. Mieux vaut refuser l'enregistrement.
  */
-function validerEtiquettes(def: QuestionnaireDef): void {
+function validerEtiquettes(def: Definition): void {
   const requises = def.etiquettesRequises;
 
   const total = AXES.reduce((n, axe) => n + (requises[axe]?.length ?? 0), 0);
@@ -72,7 +73,7 @@ function validerEtiquettes(def: QuestionnaireDef): void {
 }
 
 /** Ids uniques : deux questions homonymes rendraient la réponse de l'une indiscernable de l'autre. */
-function validerQuestions(def: QuestionnaireDef): void {
+function validerQuestions(def: Definition): void {
   if (def.questions.length === 0) {
     throw new BadRequestException(`Questionnaire "${def.slug}" : aucune question.`);
   }
@@ -106,7 +107,7 @@ function validerQuestions(def: QuestionnaireDef): void {
  * — et elle serait AUTREMENT INDÉTECTABLE : la recommandation ne s'afficherait simplement jamais.
  * C'est le garde-fou le plus important de ce fichier.
  */
-function validerRecommandations(def: QuestionnaireDef): void {
+function validerRecommandations(def: Definition): void {
   const questionsParId = new Map(def.questions.map((q) => [q.id, q]));
   const vues = new Set<string>();
 

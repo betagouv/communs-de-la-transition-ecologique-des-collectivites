@@ -1,6 +1,6 @@
 import { AideClassification } from "@/aides/dto/aides.dto";
 import { QUESTIONNAIRES } from "./content";
-import { SEUIL_CONFIANCE } from "./content/classification";
+import { SEUIL_CONFIANCE } from "./questionnaire-contract";
 import { etiquettesManquantes } from "./questionnaires.service";
 
 /**

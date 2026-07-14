@@ -33,7 +33,7 @@ import { AidesTextualMatchingService } from "./aides-textual-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
 import { AidesPerimetreService } from "./aides-perimetre.service";
 import { AjoutsManuelsService } from "@/ajouts-manuels/ajouts-manuels.service";
-import { AjoutManuelResponse } from "@/ajouts-manuels/dto/ajout-manuel.dto";
+import { fondreAjouts } from "@/ajouts-manuels/fondre-ajouts";
 import { AidesWarmupService } from "./aides-warmup.service";
 import { AidesFeedbackService } from "./aides-feedback.service";
 import { AideFeedbackResponse, CreateAideFeedbackRequest, DeleteAideFeedbackRequest } from "./dto/aide-feedback.dto";
@@ -214,14 +214,32 @@ export class AidesController {
     // 6-7. Matching thématique (+ textuel optionnel), enrichissement et tri —
     //      logique partagée avec POST /aides/recherche.
     const textualEnabled = this.isTextualMatchingEnabled(textualOverride);
-    return this.buildMatchedResponse(projet.classificationScores, allAides, classifications, {
-      ajouts,
+    const reponse = this.buildMatchedResponse(projet.classificationScores, allAides, classifications, {
       maxResults,
       cutoff,
       thresholds: { projet: projetThreshold, aide: aideThreshold },
       textualEnabled,
       textualText: `${projet.nom} ${projet.description ?? ""}`,
     });
+
+    // La fusion s'applique SUR le résultat du moteur, pas dedans : le moteur reste un pur
+    // scoreur/classeur, que POST /aides/recherche partage sans rien savoir des ajouts manuels.
+    const parId = new Map(allAides.map((a) => [String(a.id), a]));
+    const aides = fondreAjouts<AideWithClassification>({
+      ajouts,
+      resoudre: (idAt, ajout) => {
+        const aide = parId.get(idAt);
+        // Aide clôturée ou dépubliée depuis l'ajout : on ne sait plus la résoudre, et on ne
+        // fabrique rien. Mieux vaut ne rien montrer qu'envoyer candidater à une aide morte.
+        return aide ? { ...aide, classification: classifications.get(idAt), ajoutManuel: ajout } : undefined;
+      },
+      duMoteur: reponse.aides,
+      idDe: (a) => String(a.id),
+      nomDe: (a) => a.name,
+    });
+
+    if (aides.length === 0) return { status: "no_match", aides: [], total: allAides.length };
+    return { status: "ok", aides, total: allAides.length };
   }
 
   @TrackApiUsage()
@@ -281,11 +299,6 @@ export class AidesController {
     allAides: Aide[],
     classifications: Map<string, AideClassification>,
     options: {
-      /**
-       * Ajouts manuels du projet, indexés par id d'aide. Absent sur POST /aides/recherche, qui
-       * n'a pas de projet de référence : sans projet, il n'y a pas d'ajout manuel possible.
-       */
-      ajouts?: Map<string, { ajout: AjoutManuelResponse }>;
       maxResults: number;
       cutoff: number;
       thresholds: MatchThresholds;
@@ -293,7 +306,7 @@ export class AidesController {
       textualText: string;
     },
   ): AidesListResponse {
-    const { ajouts, maxResults, cutoff, thresholds, textualEnabled, textualText } = options;
+    const { maxResults, cutoff, thresholds, textualEnabled, textualText } = options;
 
     // Matching thématique — on passe allAides.length pour ne rien pré-trancher
     // avant la combinaison textuelle optionnelle.
@@ -354,38 +367,11 @@ export class AidesController {
         .slice(0, maxResults);
     }
 
-    // Les ajouts manuels EN TÊTE, et ils échappent au cutoff comme au maxResults : quelqu'un les a
-    // délibérément mis là, précisément parce que le moteur les ratait. Les soumettre au filtre qui
-    // les a ratés serait absurde.
-    //
-    // Un ajout qui n'est plus sur le périmètre (aide clôturée, dépubliée) n'apparaît simplement
-    // pas : on ne peut pas le résoudre, et on ne fabrique rien.
-    const manuels: AideWithClassification[] = [];
-    if (ajouts && ajouts.size > 0) {
-      const parId = new Map(allAides.map((a) => [String(a.id), a]));
-      for (const [idAt, { ajout }] of ajouts) {
-        const aide = parId.get(idAt);
-        if (!aide) continue;
-        manuels.push({
-          ...aide,
-          classification: classifications.get(idAt) ?? undefined,
-          ajoutManuel: ajout,
-        });
-      }
-      manuels.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    // Un ajout manuel qui serait AUSSI remonté par le moteur ne doit apparaître qu'une fois — avec
-    // sa marque d'ajout. Le dédoublonnage se fait ici, pas dans le client.
-    const idsManuels = new Set(manuels.map((a) => String(a.id)));
-    const duMoteur = enriched.filter((a) => !idsManuels.has(String(a.id)));
-    const aides = [...manuels, ...duMoteur];
-
-    if (aides.length === 0) {
+    if (enriched.length === 0) {
       return { status: "no_match", aides: [], total: allAides.length };
     }
 
-    return { status: "ok", aides, total: allAides.length };
+    return { status: "ok", aides: enriched, total: allAides.length };
   }
 
   /**
@@ -520,8 +506,4 @@ export class AidesController {
   async deleteFeedback(@Body() dto: DeleteAideFeedbackRequest): Promise<void> {
     return this.feedbackService.delete(dto.projetId, dto.idAt);
   }
-
-  /**
-   * Extract unique code_insee values from project collectivités (Communes only)
-   */
 }

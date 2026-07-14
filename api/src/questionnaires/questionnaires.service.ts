@@ -6,8 +6,14 @@ import { ProjetResponse } from "@projets/dto/projet.dto";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { AideClassification } from "@/aides/dto/aides.dto";
 import { QuestionnairesRepository } from "./questionnaires.repository";
-import { SEUIL_CONFIANCE, type EtiquettesRequises } from "./content/classification";
-import { calculerStatut, reconcilierReponses, type QuestionnaireDef } from "./questionnaire-contract";
+import {
+  AXES,
+  calculerStatut,
+  reconcilierReponses,
+  SEUIL_CONFIANCE,
+  type EtiquettesRequises,
+  type QuestionnaireDef,
+} from "./questionnaire-contract";
 import { ProjetQuestionnairesResponse, QuestionnaireResponse } from "./dto/questionnaire.dto";
 
 /** Questionnaire éligible + réponses réconciliées : la vue interne, partagée avec les sources de recommandations. */
@@ -39,9 +45,7 @@ export function etiquettesManquantes(
   const porte = (axe: keyof EtiquettesRequises, label: string) =>
     scoresProjet[axe].some((e) => e.label === label && e.score >= SEUIL_CONFIANCE);
 
-  return (["thematiques", "sites", "interventions"] as const).flatMap((axe) =>
-    requises[axe].filter((label) => !porte(axe, label)).map((label) => ({ axe, label })),
-  );
+  return AXES.flatMap((axe) => requises[axe].filter((label) => !porte(axe, label)).map((label) => ({ axe, label })));
 }
 
 @Injectable()

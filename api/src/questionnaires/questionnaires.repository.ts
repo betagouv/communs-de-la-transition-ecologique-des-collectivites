@@ -2,8 +2,13 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq, sql } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { questionnaires } from "@database/schema";
-import type { EtiquettesRequises } from "./content/classification";
-import type { BanniereDef, QuestionDef, QuestionnaireDef, RecommandationDef } from "./questionnaire-contract";
+import type {
+  BanniereDef,
+  EtiquettesRequises,
+  QuestionDef,
+  QuestionnaireDef,
+  RecommandationDef,
+} from "./questionnaire-contract";
 import { validerDefinition } from "./questionnaire-validation";
 
 type Ligne = typeof questionnaires.$inferSelect;
@@ -16,25 +21,34 @@ type Ligne = typeof questionnaires.$inferSelect;
  * déploiement — mais on ne l'a pas perdu : `validerDefinition` le rejoue à l'écriture, et refuse
  * (400) exactement ce que le chargeur refusait.
  */
+/**
+ * Durée de vie du cache mémoire.
+ *
+ * Les questionnaires sont 4 lignes quasi immuables, éditées à la main quelques fois par an — et
+ * relues DEUX fois à chaque affichage de fiche projet (une fois pour les questionnaires, une fois
+ * pour les recommandations qui s'appuient dessus). Les garder en mémoire supprime ces lectures.
+ *
+ * Le TTL couvre le cas multi-instance : celle qui écrit vide son propre cache, les autres
+ * rattrapent en moins d'une minute. Personne n'attend qu'une édition de back-office soit visible à
+ * la milliseconde — et le dire ici évite qu'on cherche un bug le jour où ça prend 30 secondes.
+ */
+const CACHE_MS = 60_000;
+
 @Injectable()
 export class QuestionnairesRepository {
+  private cache: { defs: QuestionnaireDef[]; expire: number } | null = null;
+
   constructor(private readonly dbService: DatabaseService) {}
 
   /** Tous les questionnaires, dans l'ordre alphabétique de leur slug (stable entre deux appels). */
   async tous(): Promise<QuestionnaireDef[]> {
+    if (this.cache && this.cache.expire > Date.now()) return this.cache.defs;
+
     const lignes = await this.dbService.database.select().from(questionnaires).orderBy(questionnaires.slug);
-    return lignes.map(versDefinition);
-  }
+    const defs = lignes.map(versDefinition);
 
-  async parSlug(slug: string): Promise<QuestionnaireDef> {
-    const [ligne] = await this.dbService.database
-      .select()
-      .from(questionnaires)
-      .where(eq(questionnaires.slug, slug))
-      .limit(1);
-
-    if (!ligne) throw new NotFoundException(`Questionnaire "${slug}" inconnu.`);
-    return versDefinition(ligne);
+    this.cache = { defs, expire: Date.now() + CACHE_MS };
+    return defs;
   }
 
   /**
@@ -44,32 +58,23 @@ export class QuestionnairesRepository {
    * la lecture les réponses devenues sans objet, sans réécrire la ligne stockée. Une collectivité
    * qui avait répondu à une question supprimée ne perd pas ses autres réponses.
    */
-  async enregistrer(def: QuestionnaireDef, editePar?: string): Promise<QuestionnaireDef> {
+  async enregistrer(def: Omit<QuestionnaireDef, "version">, editePar?: string): Promise<QuestionnaireDef> {
     validerDefinition(def);
 
-    const valeurs = {
-      slug: def.slug,
-      sourceNom: def.source.nom,
-      banniere: def.banniere as unknown as Record<string, unknown>,
-      questions: def.questions as unknown as unknown[],
-      recommandations: def.recommandations as unknown as unknown[],
-      etiquettesRequises: {
-        thematiques: [...def.etiquettesRequises.thematiques],
-        sites: [...def.etiquettesRequises.sites],
-        interventions: [...def.etiquettesRequises.interventions],
-      },
-      editePar: editePar ?? null,
-    };
+    const valeurs = versLigne(def, editePar);
 
     const [ligne] = await this.dbService.database
       .insert(questionnaires)
       .values(valeurs)
       .onConflictDoUpdate({
         target: questionnaires.slug,
-        set: { ...valeurs, version: sqlIncrement() },
+        // La version s'incrémente ici, jamais depuis le client : un éditeur qui la fournirait
+        // pourrait faire reculer un questionnaire déjà édité par quelqu'un d'autre.
+        set: { ...valeurs, version: sql`${questionnaires.version} + 1` },
       })
       .returning();
 
+    this.cache = null;
     return versDefinition(ligne);
   }
 
@@ -79,13 +84,29 @@ export class QuestionnairesRepository {
       .where(eq(questionnaires.slug, slug))
       .returning({ slug: questionnaires.slug });
 
+    this.cache = null;
     if (supprimees.length === 0) throw new NotFoundException(`Questionnaire "${slug}" inconnu.`);
   }
 }
 
-/** `version + 1` — l'édition incrémente, elle ne réinitialise pas. */
-function sqlIncrement() {
-  return sql`${questionnaires.version} + 1`;
+/**
+ * Définition → ligne. Exporté pour que le script d'amorçage n'en écrive pas une seconde version :
+ * il ajoutait déjà une colonne de moins que celle-ci (il n'incrémentait pas `version`).
+ */
+export function versLigne(def: Omit<QuestionnaireDef, "version">, editePar?: string) {
+  return {
+    slug: def.slug,
+    sourceNom: def.source.nom,
+    banniere: def.banniere as unknown as Record<string, unknown>,
+    questions: def.questions as unknown as unknown[],
+    recommandations: def.recommandations as unknown as unknown[],
+    etiquettesRequises: {
+      thematiques: [...def.etiquettesRequises.thematiques],
+      sites: [...def.etiquettesRequises.sites],
+      interventions: [...def.etiquettesRequises.interventions],
+    },
+    editePar: editePar ?? null,
+  };
 }
 
 function versDefinition(l: Ligne): QuestionnaireDef {
