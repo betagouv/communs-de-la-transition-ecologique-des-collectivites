@@ -192,8 +192,12 @@ describe("Services numériques (e2e)", () => {
     });
   });
 
-  describe("Fallback générique", () => {
-    it("remonte les services transverses après les services pertinents", async () => {
+  describe("Aucun repêchage", () => {
+    it("n'affiche PAS un service transverse sans recouvrement, même marqué « présentation générique »", async () => {
+      // Le benchmark marque certains services « à présenter dans une présentation générique et
+      // peu contextualisée » : c'est utile pour une page VITRINE, où il n'y a pas de contexte.
+      // Une fiche projet est l'exact opposé — elle EST le contexte. Les faire remonter ici noyait
+      // 4 services parfaitement ciblés sous 50 sans rapport avec le projet.
       await global.testDbService.database.insert(servicesNumeriques).values([
         service({ slug: "pertinent", nom: "Pertinent", classification: EAU }),
         service({
@@ -205,27 +209,37 @@ describe("Services numériques (e2e)", () => {
       ]);
       const projetId = await creerProjet(EAU);
 
-      expect((await getServices(projetId)).map((s) => s.id)).toEqual(["pertinent", "transverse"]);
+      expect((await getServices(projetId)).map((s) => s.id)).toEqual(["pertinent"]);
     });
 
-    it("n'affiche QUE les services génériques pour un projet non classifié", async () => {
-      // C'est ce qui évite qu'un projet fraîchement créé (job LLM pas encore passé) ne voie
-      // aucun service du tout.
+    it("renvoie une liste VIDE pour un projet non classifié", async () => {
+      // Le job LLM n'a pas tourné : on ne sait rien de ce projet, on n'a donc rien à en dire.
+      // Remplir l'écran ferait passer une donnée manquante pour un résultat.
       await global.testDbService.database
         .insert(servicesNumeriques)
         .values([
-          service({ slug: "cible", nom: "Ciblé", classification: EAU }),
           service({ slug: "transverse", nom: "Transverse", classification: EAU, presentationGenerique: "oui" }),
         ]);
       const projetId = await creerProjet(null);
 
-      expect((await getServices(projetId)).map((s) => s.id)).toEqual(["transverse"]);
+      expect(await getServices(projetId)).toEqual([]);
     });
 
-    it("n'affiche jamais un service curé sans thématique ni fallback générique", async () => {
-      // Cas réel du benchmark : « Boussole de la transition écologique » et « EnvErgo » sont
-      // marqués « À intégrer MEC » mais n'ont ni thématique fine ni présentation générique.
-      // Ce test documente qu'ils sont invisibles — c'est un défaut de DONNÉES, pas de code.
+    it("renvoie une liste VIDE quand le catalogue n'a rien pour ce projet", async () => {
+      // Cas réel : un projet de salle des fêtes. Aucun service numérique du benchmark ne traite
+      // ce type de lieu. Zéro service est la bonne réponse — et une information en soi.
+      await global.testDbService.database
+        .insert(servicesNumeriques)
+        .values([service({ slug: "velo", nom: "Vélo", classification: VELO })]);
+      const projetId = await creerProjet(EAU);
+
+      expect(await getServices(projetId)).toEqual([]);
+    });
+
+    it("n'affiche jamais un service sans thématique", async () => {
+      // Cas réel du benchmark : 11 lignes n'ont aucune classification. Elles scorent zéro à
+      // jamais et resteront invisibles. C'est un défaut de DONNÉES, pas de code — et il ne se
+      // rattrape pas par une règle d'affichage.
       await global.testDbService.database.insert(servicesNumeriques).values([
         service({
           slug: "invisible",
