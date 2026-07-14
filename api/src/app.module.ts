@@ -35,6 +35,7 @@ import { TerritoiresModule } from "@/territoires/territoires.module";
 import { QuestionnairesModule } from "@/questionnaires/questionnaires.module";
 import { RecommandationsModule } from "@/recommandations/recommandations.module";
 import { ServicesNumeriquesModule } from "@/services-numeriques/services-numeriques.module";
+import { AdminModule } from "@/admin/admin.module";
 
 @Module({
   imports: [
@@ -94,6 +95,7 @@ import { ServicesNumeriquesModule } from "@/services-numeriques/services-numeriq
     QuestionnairesModule,
     RecommandationsModule,
     ServicesNumeriquesModule,
+    AdminModule,
   ],
   controllers: [HealthController],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],
