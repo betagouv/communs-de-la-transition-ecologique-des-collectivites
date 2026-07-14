@@ -59,8 +59,11 @@ export class AjoutsManuelsController {
       "• `service` — il n'y est PAS (outil local, service partenaire pas encore benchmarké). " +
       "L'agent le décrit lui-même : nom, description, lien. Ces informations sont figées, car " +
       "c'est lui la source — il n'y a aucune autorité extérieure à tenir en phase, contrairement " +
-      "à une aide. Sa classification reste inconnue : `categories` et `thematiques` sortent VIDES, " +
-      "on ne les invente pas, et le drapeau `ajoutManuel.horsCatalogue` le signale au client.",
+      "à une aide.\n\n" +
+      "On ne lui demande PAS de thématiques : elles ne servent qu'à SÉLECTIONNER un service pour " +
+      "un projet, et ici la sélection est déjà faite. `categories` et `thematiques` sortent donc " +
+      "vides. Le drapeau `ajoutManuel.horsCatalogue` signale la PROVENANCE : ce service n'a pas de " +
+      "fiche chez nous et son logo n'est pas hébergé par l'API.",
   })
   @ApiEndpointResponses({ successStatus: 201, response: AjoutCreeResponse, description: "Ajout enregistré" })
   ajouterService(
