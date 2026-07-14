@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
@@ -7,7 +8,7 @@ import { ANNULE_VERDICT } from "@/decisions/decision-contract";
 import { DecisionsService } from "@/decisions/decisions.service";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { AidesPerimetreService } from "@/aides/aides-perimetre.service";
-import { TYPE_AJOUT, type AjoutManuel, type ObjetAjoutable } from "./ajout-manuel-contract";
+import { TYPE_AJOUT, type AjoutManuel, type ObjetAjoutable, type PayloadAjout } from "./ajout-manuel-contract";
 import { AjoutAideRequest, AjoutServiceRequest } from "./dto/ajout-manuel.dto";
 
 const ALIAS = "decisions";
@@ -56,8 +57,19 @@ export class AjoutsManuelsService {
   }
 
   /**
-   * Le slug doit exister dans le catalogue : ajouter un service inconnu produirait une ligne
-   * qu'aucune lecture ne saurait résoudre — un ajout invisible, donc un bug silencieux.
+   * Deux façons d'ajouter un service, et exactement une des deux.
+   *
+   * `slug` — le service est AU CATALOGUE. On ne recopie rien : sa fiche reste la source de vérité,
+   * et elle continuera d'évoluer (logo, description, lien). La figer ici l'aurait dédoublée, et les
+   * deux copies auraient divergé. Le slug doit exister (404 sinon) : un slug inconnu produirait un
+   * ajout qu'aucune lecture ne saurait résoudre — invisible, donc un bug silencieux.
+   *
+   * `service` — il n'y est PAS : un outil local, un service partenaire pas encore benchmarké.
+   * L'agent le décrit lui-même, et c'est lui la source. On le fige donc dans le payload : il n'y a
+   * aucune autorité extérieure à tenir en phase, contrairement à une aide.
+   *
+   * L'identifiant d'un service libre est un UUID : il n'a pas de slug, et en dériver un de son nom
+   * exposerait à des collisions entre deux services homonymes du même projet.
    */
   async ajouterService(
     projetId: string,
@@ -66,17 +78,34 @@ export class AjoutsManuelsService {
   ): Promise<{ decisionId: string }> {
     await this.getProjetsService.findOneWithSource(projetId);
 
-    const [service] = await this.dbService.database
-      .select({ slug: servicesNumeriques.slug })
-      .from(servicesNumeriques)
-      .where(eq(servicesNumeriques.slug, dto.slug))
-      .limit(1);
-
-    if (!service) {
-      throw new NotFoundException(`Service numérique "${dto.slug}" inconnu du catalogue.`);
+    // class-validator garantit « au moins un des deux » ; « pas les deux » se dit ici, où on peut
+    // l'expliquer. Choisir en silence lequel afficher serait pire que refuser.
+    if (dto.slug !== undefined && dto.service !== undefined) {
+      throw new BadRequestException(
+        "Fournissez `slug` (service du catalogue) OU `service` (service hors catalogue), pas les deux.",
+      );
     }
 
-    return this.enregistrer(projetId, "service_numerique", dto.slug, dto.message, dto.auteur, plateforme);
+    if (dto.slug !== undefined) {
+      const [service] = await this.dbService.database
+        .select({ slug: servicesNumeriques.slug })
+        .from(servicesNumeriques)
+        .where(eq(servicesNumeriques.slug, dto.slug))
+        .limit(1);
+
+      if (!service) {
+        throw new NotFoundException(
+          `Service numérique "${dto.slug}" inconnu du catalogue. S'il n'y figure pas, décrivez-le ` +
+            `via le champ \`service\` plutôt que par un slug.`,
+        );
+      }
+
+      return this.enregistrer(projetId, "service_numerique", dto.slug, dto.message, dto.auteur, plateforme);
+    }
+
+    return this.enregistrer(projetId, "service_numerique", randomUUID(), dto.message, dto.auteur, plateforme, {
+      service: dto.service,
+    });
   }
 
   private async enregistrer(
@@ -86,6 +115,7 @@ export class AjoutsManuelsService {
     message: string | undefined,
     auteur: string | undefined,
     plateforme: string,
+    payload?: PayloadAjout,
   ): Promise<{ decisionId: string }> {
     const { id } = await this.decisionsService.create(
       {
@@ -98,6 +128,7 @@ export class AjoutsManuelsService {
         // dans le payload aurait créé deux endroits où écrire la même chose.
         commentaire: message,
         auteur,
+        payload: payload as Record<string, unknown> | undefined,
       },
       plateforme,
     );
@@ -172,12 +203,13 @@ export class AjoutsManuelsService {
     projetId: string,
     objetBType: ObjetAjoutable,
     plateforme: string,
-  ): Promise<Map<string, { ajout: AjoutManuel }>> {
+  ): Promise<Map<string, { ajout: AjoutManuel; service?: PayloadAjout["service"] }>> {
     const rows = await this.dbService.database
       .select({
         id: decisions.id,
         objetBId: decisions.objetBId,
         commentaire: decisions.commentaire,
+        payload: decisions.payload,
         createdAt: decisions.createdAt,
       })
       .from(decisions)
@@ -195,17 +227,25 @@ export class AjoutsManuelsService {
     return new Map(
       rows
         .filter((r): r is typeof r & { objetBId: string } => r.objetBId != null)
-        .map((r) => [
-          r.objetBId,
-          {
-            ajout: {
-              decisionId: r.id,
-              message: r.commentaire ?? undefined,
-              plateforme,
-              date: r.createdAt.toISOString(),
+        .map((r) => {
+          const service = (r.payload as PayloadAjout | null)?.service;
+          return [
+            r.objetBId,
+            {
+              ajout: {
+                decisionId: r.id,
+                message: r.commentaire ?? undefined,
+                plateforme,
+                date: r.createdAt.toISOString(),
+                // Le client doit pouvoir distinguer un service du catalogue d'un service saisi à
+                // la main : le second n'a pas de classification, et ses `categories` / `thematiques`
+                // vides sont une ABSENCE d'information, pas une information.
+                ...(service ? { horsCatalogue: true } : {}),
+              },
+              service,
             },
-          },
-        ]),
+          ];
+        }),
     );
   }
 }

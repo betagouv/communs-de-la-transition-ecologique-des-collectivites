@@ -10,10 +10,14 @@ interface AjoutManuel {
   message?: string;
   plateforme: string;
   date: string;
+  horsCatalogue?: boolean;
 }
 interface Service {
   id: string;
   nom: string;
+  description: string;
+  categories: string[];
+  thematiques: string[];
   ajoutManuel?: AjoutManuel;
 }
 
@@ -155,6 +159,96 @@ describe("Ajouts manuels (e2e)", () => {
 
       const { status } = await ajouterService("00000000-0000-0000-0000-000000000000", "un-service");
       expect(status).toBe(404);
+    });
+  });
+
+  describe("Ajouter un service HORS catalogue", () => {
+    const ajouterLibre = (projetId: string, libre: object, message?: string) =>
+      appeler<{ decisionId: string }>("POST", `/projets/${projetId}/services/ajouts`, {
+        service: libre,
+        message,
+      });
+
+    it("affiche un service que l'agent décrit lui-même", async () => {
+      // Un outil local, un service partenaire pas encore benchmarké : il existe, et personne
+      // d'autre que l'agent ne peut le décrire. Le catalogue est le NÔTRE — son absence n'est pas
+      // une preuve d'inexistence, contrairement à une aide absente d'Aides-territoires.
+      const projetId = await creerProjet(EAU);
+
+      const { status } = await ajouterLibre(
+        projetId,
+        {
+          nom: "Cadastre solaire de la métropole",
+          description: "Estime le potentiel photovoltaïque de chaque toiture du territoire.",
+          url: "https://cadastre-solaire.exemple.fr",
+          libelleLien: "Ouvrir le cadastre",
+          operateur: "Métropole",
+        },
+        "Outil local, pas au benchmark DINUM",
+      );
+      expect(status).toBe(201);
+
+      const [s] = await getServices(projetId);
+      expect(s.nom).toBe("Cadastre solaire de la métropole");
+      expect(s.ajoutManuel?.message).toBe("Outil local, pas au benchmark DINUM");
+    });
+
+    it("n'INVENTE aucune classification : categories et thematiques restent vides", async () => {
+      // On ne connaît pas la classification de ce service. Le dire est plus honnête que de la
+      // fabriquer — et `horsCatalogue` permet au client de distinguer cette ABSENCE d'information
+      // d'une information.
+      const projetId = await creerProjet(EAU);
+
+      await ajouterLibre(projetId, { nom: "Outil local", description: "Un outil interne." });
+
+      const [s] = await getServices(projetId);
+      expect(s.categories).toEqual([]);
+      expect(s.thematiques).toEqual([]);
+      expect(s.ajoutManuel?.horsCatalogue).toBe(true);
+    });
+
+    it("ne marque PAS horsCatalogue un service du catalogue", async () => {
+      await global.testDbService.database
+        .insert(servicesNumeriques)
+        .values([service({ slug: "au-catalogue", nom: "Au catalogue", classification: VELO })]);
+      const projetId = await creerProjet(EAU);
+
+      await ajouterService(projetId, "au-catalogue");
+
+      const [s] = await getServices(projetId);
+      expect(s.ajoutManuel?.horsCatalogue).toBeUndefined();
+    });
+
+    it("refuse `slug` ET `service` ensemble", async () => {
+      // Lequel afficherait-on ? Choisir en silence serait pire que refuser.
+      await global.testDbService.database
+        .insert(servicesNumeriques)
+        .values([service({ slug: "au-catalogue", nom: "Au catalogue" })]);
+      const projetId = await creerProjet(EAU);
+
+      const { status } = await appeler("POST", `/projets/${projetId}/services/ajouts`, {
+        slug: "au-catalogue",
+        service: { nom: "Autre", description: "Autre chose." },
+      });
+      expect(status).toBe(400);
+    });
+
+    it("refuse ni l'un ni l'autre", async () => {
+      const projetId = await creerProjet(EAU);
+
+      const { status } = await appeler("POST", `/projets/${projetId}/services/ajouts`, { message: "sans objet" });
+      expect(status).toBe(400);
+    });
+
+    it("se retire comme n'importe quel ajout", async () => {
+      const projetId = await creerProjet(EAU);
+
+      const { body } = await ajouterLibre(projetId, { nom: "Outil local", description: "Un outil interne." });
+      expect(await getServices(projetId)).toHaveLength(1);
+
+      await appeler("DELETE", `/projets/${projetId}/ajouts/${body.decisionId}`);
+
+      expect(await getServices(projetId)).toEqual([]);
     });
   });
 

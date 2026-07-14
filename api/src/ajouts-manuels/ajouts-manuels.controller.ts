@@ -53,8 +53,14 @@ export class AjoutsManuelsController {
   @ApiOperation({
     summary: "Ajouter un service numérique à la main sur un projet",
     description:
-      "Le service doit exister au catalogue (404 sinon) : un slug inconnu produirait un ajout " +
-      "qu'aucune lecture ne saurait résoudre — donc invisible, donc un bug silencieux.",
+      "Deux façons, et EXACTEMENT une des deux.\n\n" +
+      "• `slug` — le service est AU CATALOGUE. On ne recopie rien : sa fiche reste la source de " +
+      "vérité et continuera d'évoluer (logo, description, lien). Un slug inconnu est un 404.\n\n" +
+      "• `service` — il n'y est PAS (outil local, service partenaire pas encore benchmarké). " +
+      "L'agent le décrit lui-même : nom, description, lien. Ces informations sont figées, car " +
+      "c'est lui la source — il n'y a aucune autorité extérieure à tenir en phase, contrairement " +
+      "à une aide. Sa classification reste inconnue : `categories` et `thematiques` sortent VIDES, " +
+      "on ne les invente pas, et le drapeau `ajoutManuel.horsCatalogue` le signale au client.",
   })
   @ApiEndpointResponses({ successStatus: 201, response: AjoutCreeResponse, description: "Ajout enregistré" })
   ajouterService(

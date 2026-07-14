@@ -35,6 +35,33 @@ export const TYPE_AJOUT = "ajout_manuel";
 
 export type ObjetAjoutable = "aide" | "service_numerique";
 
+/**
+ * Un service HORS catalogue, décrit par l'agent lui-même : un outil local, un service partenaire
+ * pas encore benchmarké. Figé dans le payload de la décision.
+ *
+ * POURQUOI FIGER EST LÉGITIME ICI, ALORS QUE ÇA NE L'ÉTAIT PAS POUR UNE AIDE. Le catalogue de
+ * services est LE NÔTRE : un service qui n'y figure pas existe quand même, et personne d'autre ne
+ * peut le décrire — l'agent EST la source de vérité, il n'y a rien à tenir en phase. Une aide, au
+ * contraire, n'existe que dans Aides-territoires : la recopier, ce serait entretenir une copie qui
+ * vieillit face à une autorité qui, elle, continue d'évoluer.
+ *
+ * Un service DU catalogue n'est jamais recopié, pour la même raison retournée : sa fiche reste la
+ * source, et elle continuera de changer (logo, description, lien). Le figer ici l'aurait dédoublé.
+ */
+export interface ServiceLibre {
+  nom: string;
+  description: string;
+  url?: string;
+  libelleLien?: string;
+  operateur?: string;
+  logoUrl?: string;
+}
+
+/** Le payload d'une décision `ajout_manuel` : présent seulement pour un service hors catalogue. */
+export interface PayloadAjout {
+  service?: ServiceLibre;
+}
+
 /** Ce qu'on rend au client : la trace de l'ajout, attachée à l'aide ou au service concerné. */
 export interface AjoutManuel {
   /** L'id de la décision — c'est lui qu'il faut fournir pour révoquer l'ajout. */
@@ -44,4 +71,6 @@ export interface AjoutManuel {
   /** Qui a ajouté : la plateforme émettrice, dérivée de la clé d'API. */
   plateforme: string;
   date: string;
+  /** Services uniquement : le service a été saisi à la main, il n'est pas au catalogue. */
+  horsCatalogue?: boolean;
 }
