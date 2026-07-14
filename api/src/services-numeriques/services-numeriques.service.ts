@@ -3,6 +3,7 @@ import { DatabaseService } from "@database/database.service";
 import { servicesNumeriques } from "@database/schema";
 import { AidesMatchingService } from "@/aides/aides-matching.service";
 import { AideClassification } from "@/aides/dto/aides.dto";
+import { AjoutsManuelsService } from "@/ajouts-manuels/ajouts-manuels.service";
 import { ProjetResponse } from "@projets/dto/projet.dto";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import {
@@ -48,6 +49,7 @@ export class ServicesNumeriquesService {
     private readonly dbService: DatabaseService,
     private readonly getProjetsService: GetProjetsService,
     private readonly matchingService: AidesMatchingService,
+    private readonly ajoutsManuels: AjoutsManuelsService,
   ) {}
 
   /**
@@ -69,16 +71,37 @@ export class ServicesNumeriquesService {
    * `findOneWithSource` : le projet peut vivre dans public.projets, data_mec ou data_tet.
    * Aucun service → 200 avec une liste vide, jamais 404.
    */
-  async findForProjet(projetId: string, baseUrl: string): Promise<ProjetServicesResponse> {
+  async findForProjet(projetId: string, baseUrl: string, plateforme: string): Promise<ProjetServicesResponse> {
     const { projet } = await this.getProjetsService.findOneWithSource(projetId);
 
     const catalogue = await this.dbService.database.select().from(servicesNumeriques);
+    const ajouts = await this.ajoutsManuels.actifs(projetId, "service_numerique", plateforme);
 
     const pertinents = this.scorer(projet, catalogue)
-      .filter((s) => s.score >= SEUIL_PERTINENCE)
+      .filter((s) => s.score >= SEUIL_PERTINENCE && !ajouts.has(s.ligne.slug))
       .sort((a, b) => b.score - a.score || a.ligne.nom.localeCompare(b.ligne.nom));
 
-    return { services: pertinents.map(({ ligne }) => this.toResponse(ligne, baseUrl)) };
+    // Les ajouts manuels EN TÊTE : quelqu'un les a délibérément mis là. Les noyer dans le tri par
+    // score les rendrait indiscernables du résultat du moteur — or c'est précisément la distinction
+    // qu'on veut rendre visible.
+    //
+    // Un service à la fois pertinent ET ajouté à la main n'apparaît QU'UNE fois (filtré ci-dessus),
+    // avec sa marque d'ajout : le dédoublonnage doit se faire ici, pas dans le client.
+    const parSlug = new Map(catalogue.map((l) => [l.slug, l]));
+    const manuels = [...ajouts.entries()]
+      .map(([slug, { ajout }]) => {
+        const ligne = parSlug.get(slug);
+        return ligne ? { ligne, ajout } : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null)
+      .sort((a, b) => a.ligne.nom.localeCompare(b.ligne.nom));
+
+    return {
+      services: [
+        ...manuels.map(({ ligne, ajout }) => ({ ...this.toResponse(ligne, baseUrl), ajoutManuel: ajout })),
+        ...pertinents.map(({ ligne }) => this.toResponse(ligne, baseUrl)),
+      ],
+    };
   }
 
   /**

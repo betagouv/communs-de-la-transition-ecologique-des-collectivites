@@ -36,6 +36,7 @@ import { QuestionnairesModule } from "@/questionnaires/questionnaires.module";
 import { RecommandationsModule } from "@/recommandations/recommandations.module";
 import { ServicesNumeriquesModule } from "@/services-numeriques/services-numeriques.module";
 import { AdminModule } from "@/admin/admin.module";
+import { AjoutsManuelsModule } from "@/ajouts-manuels/ajouts-manuels.module";
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { AdminModule } from "@/admin/admin.module";
     RecommandationsModule,
     ServicesNumeriquesModule,
     AdminModule,
+    AjoutsManuelsModule,
   ],
   controllers: [HealthController],
   providers: [AppService, ThrottlerGuardProvider, RequestLoggingInterceptor],

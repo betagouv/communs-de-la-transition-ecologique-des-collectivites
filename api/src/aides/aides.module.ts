@@ -8,12 +8,12 @@ import { ProjetsModule } from "@projets/projets.module";
 import { ClassificationModule } from "@/projet-qualification/classification/classification.module";
 import { PROJECT_QUALIFICATION_QUEUE_NAME } from "@/projet-qualification/const";
 import { CustomLogger } from "@logging/logger.service";
+import { AjoutsManuelsModule } from "@/ajouts-manuels/ajouts-manuels.module";
+import { AidesPerimetreModule } from "./aides-perimetre.module";
 import { AidesController } from "./aides.controller";
-import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
 import { AidesTextualMatchingService } from "./aides-textual-matching.service";
-import { AidesCacheService } from "./aides-cache.service";
 import { AidesSyncProcessor, AIDES_SYNC_QUEUE_NAME, AIDES_SYNC_JOB_NAME } from "./aides-sync.processor";
 import { AidesWarmupService } from "./aides-warmup.service";
 import { AidesFeedbackService } from "./aides-feedback.service";
@@ -23,6 +23,8 @@ import { AidesFeedbackService } from "./aides-feedback.service";
     ConfigModule,
     ProjetsModule,
     ClassificationModule,
+    AidesPerimetreModule,
+    AjoutsManuelsModule,
     BullModule.registerQueue({
       name: AIDES_SYNC_QUEUE_NAME,
     }),
@@ -36,11 +38,9 @@ import { AidesFeedbackService } from "./aides-feedback.service";
   ],
   controllers: [AidesController],
   providers: [
-    AidesTerritoiresService,
     AideClassificationService,
     AidesMatchingService,
     AidesTextualMatchingService,
-    AidesCacheService,
     AidesWarmupService,
     AidesFeedbackService,
     AidesSyncProcessor,

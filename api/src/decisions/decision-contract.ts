@@ -27,7 +27,15 @@ export type ObjetType = (typeof OBJET_TYPES)[number];
 // qui permet à l'arbitrage de lui survivre : une recommandation qui disparaît puis
 // réapparaît (la collectivité revient sur ses réponses) retrouve son arbitrage.
 // 'recommandation' n'est jamais un type d'objet A.
-export const OBJET_B_TYPES = [...OBJET_TYPES, "pcaet", "recommandation"] as const;
+// L'objet B peut ENFIN désigner une aide ou un service numérique (ajout_manuel). On n'y stocke
+// QUE l'identifiant : l'id Aides-territoires pour une aide, le slug du catalogue pour un service.
+// L'aide est résolue au frais à chaque lecture, dans les aides du périmètre du projet. Si elle a
+// été clôturée ou dépubliée entre-temps, elle cesse simplement de s'afficher — c'est le
+// comportement correct : mieux vaut ne rien montrer qu'envoyer une collectivité candidater à une
+// aide morte. (Aides-territoires ne sait de toute façon PAS récupérer une aide par son id :
+// /aids/<id>/ répond 404, et ?id=<n> est silencieusement ignoré — il renvoie tout le catalogue.)
+// Ni 'aide' ni 'service_numerique' n'est jamais un type d'objet A.
+export const OBJET_B_TYPES = [...OBJET_TYPES, "pcaet", "recommandation", "aide", "service_numerique"] as const;
 export type ObjetBType = (typeof OBJET_B_TYPES)[number];
 
 // Vocabulaire fermé des types de décision.
@@ -39,6 +47,7 @@ export const DECISION_TYPES = [
   "projet_statut",
   "correction_signalee",
   "recommandation_arbitrage",
+  "ajout_manuel",
 ] as const;
 export type DecisionType = (typeof DECISION_TYPES)[number];
 
@@ -133,6 +142,19 @@ const CONTRACT: Record<DecisionType, DecisionSpec> = {
     objetATypes: ["projet"],
     objetB: { required: true, types: ["recommandation"] },
     verdict: { required: true, values: RECOMMANDATION_VERDICTS },
+    payload: "free",
+  },
+  // Ajout à la main d'une aide ou d'un service numérique sur un projet, quand le moteur ne l'a
+  // pas trouvé (ou l'a mal classé). Le MESSAGE d'accompagnement va dans `commentaire`, qui existe
+  // déjà sur toute décision — d'où un payload libre, et vide en pratique.
+  //
+  // Pas de verdict : la décision EST l'ajout. Le retrait se fait par la révocation universelle
+  // (verdict='annule' + supersedes) — inutile d'inventer un verdict "retire" qui ferait double
+  // emploi et créerait deux façons de dire la même chose.
+  ajout_manuel: {
+    objetATypes: ["projet"],
+    objetB: { required: true, types: ["aide", "service_numerique"] },
+    verdict: { required: false },
     payload: "free",
   },
 };

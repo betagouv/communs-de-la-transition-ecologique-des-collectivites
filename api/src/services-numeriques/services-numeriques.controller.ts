@@ -22,7 +22,8 @@ export class ServicesNumeriquesController {
       "Renvoie les services déjà sélectionnés, curés et ORDONNÉS par pertinence décroissante par l'API. " +
       "Le client affiche la liste telle quelle : il ne filtre ni ne trie (il peut proposer des filtres par " +
       "catégorie, purement côté client). Aucun critère de sélection n'est exposé. Aucun service → 200 avec " +
-      "une liste vide.",
+      "une liste vide. Les services AJOUTÉS À LA MAIN sur ce projet remontent en tête, marqués " +
+      "`ajoutManuel` (avec le message de la personne qui les a ajoutés).",
   })
   @ApiParam({ name: "projetId", description: "Identifiant Communs du projet (UUID)." })
   @ApiEndpointResponses({
@@ -34,7 +35,7 @@ export class ServicesNumeriquesController {
     @Req() request: Request,
     @Param("projetId", ParseUUIDPipe) projetId: string,
   ): Promise<ProjetServicesResponse> {
-    return this.servicesNumeriquesService.findForProjet(projetId, origine(request));
+    return this.servicesNumeriquesService.findForProjet(projetId, origine(request), request.serviceType!);
   }
 }
 
