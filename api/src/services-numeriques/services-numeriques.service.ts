@@ -112,11 +112,8 @@ export class ServicesNumeriquesService {
   /**
    * Un service saisi à la main par un agent.
    *
-   * `categories` et `thematiques` sortent VIDES, et on ne les réclame pas à l'agent : les
-   * thématiques ne servent qu'à SÉLECTIONNER un service pour un projet, et ici la sélection est
-   * déjà faite — par un humain. Exiger une donnée dont personne ne se servira n'aurait aucun sens.
-   * Vides plutôt qu'absents : un client qui ferait `service.thematiques.map(...)` planterait sur
-   * `undefined`.
+   * `categories` sort VIDE : on ne connaît pas la nature de ce service, et on ne la demande pas —
+   * c'est une donnée d'affichage facultative, pas une condition d'existence.
    *
    * `logoUrl` n'est PAS absolutisé : l'API n'héberge que les logos du catalogue. Une URL fournie
    * par un agent est déjà absolue, ou elle n'est rien.
@@ -127,7 +124,6 @@ export class ServicesNumeriquesService {
       nom: s.nom,
       description: s.description,
       categories: [],
-      thematiques: [],
       logoUrl: s.logoUrl,
       operateur: s.operateur,
       redirection: s.url ? { url: s.url, libelle: s.libelleLien } : undefined,
@@ -162,8 +158,13 @@ export class ServicesNumeriquesService {
   /**
    * Projection vers le contrat public.
    *
-   * Les CRITÈRES DE SÉLECTION ne franchissent jamais la frontière : `classification`, `phases`
-   * et `presentationGenerique` n'ont aucun équivalent dans le DTO (§1 et §9 de la spec).
+   * Les CRITÈRES DE SÉLECTION ne franchissent jamais la frontière : `classification`, `phases` et
+   * `presentationGenerique` n'ont aucun équivalent dans le DTO (§1 et §9 de la spec).
+   *
+   * `thematiques` en faisait partie sans qu'on le voie : c'était la classification, exposée sous
+   * forme de libellés. Le contrat se contredisait donc lui-même. Retiré — un client qui l'aurait
+   * affichée aurait montré à une collectivité les entrailles du moteur de sélection, et non une
+   * information sur le service.
    *
    * `profilGeneraliste`, lui, est exposé — parce que ce n'en est plus un : il ne décide plus
    * de rien côté serveur, il décrit le service (utilisable par un non-spécialiste ?) au même
@@ -179,7 +180,6 @@ export class ServicesNumeriquesService {
       logoUrl: absolutiser(l.logoUrl, baseUrl),
       categories: l.categories as Categorie[],
       niveauExpertise: (l.niveauExpertise as NiveauExpertise | null) ?? undefined,
-      thematiques: l.classification.thematiques.map((t) => t.label),
       profilGeneraliste: ternaireVersBooleen(l.profilGeneraliste),
       operateur: l.operateur ?? undefined,
       redirection: l.redirectionUrl ? { url: l.redirectionUrl, libelle: l.redirectionLibelle ?? undefined } : undefined,

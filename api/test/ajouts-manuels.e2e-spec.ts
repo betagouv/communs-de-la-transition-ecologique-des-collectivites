@@ -17,7 +17,6 @@ interface Service {
   nom: string;
   description: string;
   categories: string[];
-  thematiques: string[];
   ajoutManuel?: AjoutManuel;
 }
 
@@ -193,17 +192,15 @@ describe("Ajouts manuels (e2e)", () => {
       expect(s.ajoutManuel?.message).toBe("Outil local, pas au benchmark DINUM");
     });
 
-    it("ne réclame aucune thématique, et n'en invente aucune", async () => {
-      // Les thématiques ne servent qu'à SÉLECTIONNER un service pour un projet. Ici la sélection
-      // est déjà faite, par un humain : exiger une donnée dont personne ne se servira n'aurait
-      // aucun sens. Vides plutôt qu'absents : `service.thematiques.map(...)` ne doit pas planter.
+    it("ne réclame aucune classification, et n'en invente aucune", async () => {
+      // On ne demande à l'agent ni thématiques ni catégories : la sélection est déjà faite, par
+      // lui. Exiger une donnée dont personne ne se servira n'aurait aucun sens.
       const projetId = await creerProjet(EAU);
 
       await ajouterLibre(projetId, { nom: "Outil local", description: "Un outil interne." });
 
       const [s] = await getServices(projetId);
       expect(s.categories).toEqual([]);
-      expect(s.thematiques).toEqual([]);
     });
 
     it("signale la PROVENANCE : ce service ne vient pas de notre catalogue", async () => {
