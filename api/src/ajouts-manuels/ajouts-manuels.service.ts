@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
 import { decisions, servicesNumeriques } from "@database/schema";
@@ -53,6 +53,8 @@ export class AjoutsManuelsService {
       );
     }
 
+    await this.refuserDoublon(projetId, "aide", String(dto.aideId), plateforme, `L'aide ${dto.aideId}`);
+
     return this.enregistrer(projetId, "aide", String(dto.aideId), dto.message, dto.auteur, plateforme);
   }
 
@@ -100,12 +102,60 @@ export class AjoutsManuelsService {
         );
       }
 
+      await this.refuserDoublon(projetId, "service_numerique", dto.slug, plateforme, `Le service "${dto.slug}"`);
+
       return this.enregistrer(projetId, "service_numerique", dto.slug, dto.message, dto.auteur, plateforme);
+    }
+
+    // Un service HORS catalogue n'a pas d'identifiant stable : chaque ajout produit un UUID neuf.
+    // On dédoublonne donc sur son NOM — sans quoi un double-clic créerait deux fois le même service,
+    // et rien ne le signalerait.
+    const nom = dto.service!.nom.trim();
+    const actifs = await this.actifs(projetId, "service_numerique", plateforme);
+    const homonyme = [...actifs.values()].find(
+      (a) => a.service?.nom.trim().localeCompare(nom, undefined, { sensitivity: "base" }) === 0,
+    );
+
+    if (homonyme) {
+      throw new ConflictException(
+        `Le service « ${nom} » est déjà attaché à ce projet (ajout ${homonyme.ajout.decisionId}). ` +
+          `Retirez-le avant de le rajouter, ou modifiez son nom s'il s'agit d'un autre service.`,
+      );
     }
 
     return this.enregistrer(projetId, "service_numerique", randomUUID(), dto.message, dto.auteur, plateforme, {
       service: dto.service,
     });
+  }
+
+  /**
+   * REFUSE un ajout déjà actif, plutôt que d'en créer un second.
+   *
+   * Sans ce garde-fou, deux ajouts du même objet produisaient DEUX décisions actives. La lecture les
+   * indexe par identifiant, donc le doublon était masqué — mais le message affiché devenait
+   * arbitraire (celui de la dernière décision rencontrée), et surtout RETIRER L'UNE NE FAISAIT PAS
+   * DISPARAÎTRE L'OBJET : l'autre le maintenait. Une panne silencieuse, découverte en la
+   * reproduisant sur staging.
+   *
+   * 409, et non 400 : la requête est valide, c'est l'ÉTAT qui s'y oppose. Le message donne l'id de
+   * la décision existante — sans lui, on ne saurait pas quoi retirer pour pouvoir rajouter.
+   */
+  private async refuserDoublon(
+    projetId: string,
+    objetBType: ObjetAjoutable,
+    objetBId: string,
+    plateforme: string,
+    quoi: string,
+  ): Promise<void> {
+    const actifs = await this.actifs(projetId, objetBType, plateforme);
+    const existant = actifs.get(objetBId);
+
+    if (existant) {
+      throw new ConflictException(
+        `${quoi} est déjà attaché à ce projet (ajout ${existant.ajout.decisionId}). ` +
+          `Retirez-le d'abord si vous voulez changer son message.`,
+      );
+    }
   }
 
   private async enregistrer(

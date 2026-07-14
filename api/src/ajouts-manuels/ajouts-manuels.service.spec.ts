@@ -24,8 +24,16 @@ describe("AjoutsManuelsService — garde du périmètre (aides)", () => {
 
   const aide = (id: number) => ({ id, name: `Aide ${id}` }) as Aide;
 
-  const construire = (aidesDuPerimetre: Aide[]) => {
+  const construire = (aidesDuPerimetre: Aide[], ajoutsDejaActifs: unknown[] = []) => {
     const decisionsService = { create: jest.fn().mockResolvedValue({ id: "decision-1" }) };
+
+    // `refuserDoublon` interroge les ajouts déjà actifs : un ajout ne doit pas pouvoir être fait
+    // deux fois (sinon retirer l'un ne fait pas disparaître l'objet — l'autre le maintient).
+    const dbService = {
+      database: {
+        select: () => ({ from: () => ({ where: () => Promise.resolve(ajoutsDejaActifs) }) }),
+      },
+    };
     const perimetre = {
       extractCodesInsee: jest.fn().mockReturnValue(["44109"]),
       fetchAidesForPerimeterCodes: jest.fn().mockResolvedValue(aidesDuPerimetre),
@@ -37,7 +45,7 @@ describe("AjoutsManuelsService — garde du périmètre (aides)", () => {
     };
 
     const service = new AjoutsManuelsService(
-      {} as unknown as DatabaseService,
+      dbService as unknown as DatabaseService,
       decisionsService as unknown as DecisionsService,
       projets as unknown as GetProjetsService,
       perimetre as unknown as AidesPerimetreService,

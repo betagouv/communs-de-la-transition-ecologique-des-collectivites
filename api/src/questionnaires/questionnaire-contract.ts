@@ -2,9 +2,15 @@
 // Contrat des questionnaires spécialisés
 // ============================================================
 //
-// Un questionnaire est du CONTENU éditorial produit par un partenaire (AtoutBiodiv) et
-// validé avec nous : il vit en JSON dans content/questionnaires/ et content/recommandations/,
-// versionné en Git et relu en PR. Ce fichier n'en définit que la FORME et l'évaluation.
+// Un questionnaire est du CONTENU éditorial produit par un partenaire (AtoutBiodiv). Il vit EN BASE
+// (table `questionnaires`) et s'édite depuis le back-office. Les JSON de content/ ne sont plus
+// qu'un AMORÇAGE (`pnpm seed:questionnaires`), comme le CSV DINUM pour le catalogue de services.
+//
+// Ce fichier n'en définit que la FORME et l'évaluation. La validation, elle, vit dans
+// questionnaire-validation.ts et s'applique à CHAQUE écriture — elle remplace le refus de démarrage
+// qu'on avait quand les questionnaires étaient dans le dépôt.
+//
+// Documentation destinée aux éditeurs : docs/api/GUIDE_QUESTIONNAIRES.md
 //
 // Frontière stricte : `condition` (et la classification d'éligibilité) ne sortent JAMAIS de
 // l'API. Elles sont évaluées côté serveur, et les DTO de réponse ne les portent pas. Exposer
@@ -75,10 +81,9 @@ export interface BanniereDef {
 /**
  * Fichier content/questionnaires/<slug>.json, tel que le partenaire l'écrit.
  *
- * Il ne porte QUE du contenu affichable : ni éligibilité, ni condition. L'éligibilité est
- * décidée par Communs (spec §2 : « toute la logique métier vit dans Communs »), par score de
- * matching sur les trois axes de classification — voir content/classification.ts. Un fichier
- * qui porterait encore un champ `eligibilite` est rejeté au démarrage (cf. content/index.ts).
+ * Il ne porte QUE du contenu affichable : ni éligibilité, ni condition. L'éligibilité est décidée
+ * par Communs (spec §2 : « toute la logique métier vit dans Communs »), par les ÉTIQUETTES REQUISES
+ * — un critère, pas un score. Un fichier qui porterait encore un champ `eligibilite` est rejeté.
  */
 export interface QuestionnaireFichier {
   slug: string;
