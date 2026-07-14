@@ -10,6 +10,7 @@ import { Catalogue } from "./components/Catalogue";
 import { QuestionnairesSimules } from "./components/QuestionnairesSimules";
 import { CatalogueQuestionnaires } from "./components/CatalogueQuestionnaires";
 import { Services } from "./components/Services";
+import { Apercu } from "./components/Apercu";
 import { compterEtiquettes, type Contenu, type Simulation, type Taxonomies } from "./types";
 
 /**
@@ -163,6 +164,12 @@ export default function App() {
                         </div>
                       )}
 
+                      {/* CE QUE L'API RENVOIE RÉELLEMENT — les réponses exactes des endpoints
+                          publics, produites par les mêmes fonctions qui servent MEC. */}
+                      <Apercu projetId={projet.id} />
+
+                      {/* DIAGNOSTIC — pourquoi les autres candidats sont écartés. L'aperçu ne
+                          montre que les retenus : il ne dit pas ce qui manque aux autres. */}
                       <QuestionnairesSimules questionnaires={simulation.questionnaires} />
                       <Services services={simulation.services} seuilApi={simulation.seuils.pertinence} />
                     </>

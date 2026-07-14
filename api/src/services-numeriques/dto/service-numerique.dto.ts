@@ -87,8 +87,12 @@ export class ProjetServicesResponse {
   @ApiProperty({
     type: [ServiceResponse],
     description:
-      "Services déjà sélectionnés, curés et ORDONNÉS par pertinence décroissante par l'API. " +
-      "Le client affiche la liste telle quelle : il ne filtre ni ne trie.",
+      "Services sélectionnés et ORDONNÉS par pertinence décroissante par l'API. Le client affiche la " +
+      "liste telle quelle : il ne trie pas, et n'a pas à refaire la sélection.\n\n" +
+      "Il peut en revanche demander un autre SEUIL (`?seuil=`) : une plateforme peut légitimement " +
+      "vouloir être plus permissive ou plus stricte. Mais c'est l'API qui l'applique — le client ne " +
+      "rejoue pas la règle de son côté, sinon deux définitions de la pertinence coexisteraient et " +
+      "finiraient par diverger.",
   })
   services!: ServiceResponse[];
 }

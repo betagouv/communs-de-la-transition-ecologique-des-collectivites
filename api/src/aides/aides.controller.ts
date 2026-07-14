@@ -13,7 +13,6 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { ConfigService } from "@nestjs/config";
 import { Request, Response } from "express";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
@@ -28,26 +27,20 @@ import {
 } from "@/projet-qualification/const";
 import { AidesTerritoiresService } from "./aides-territoires.service";
 import { AideClassificationService } from "./aide-classification.service";
-import { AidesMatchingService } from "./aides-matching.service";
-import { AidesTextualMatchingService } from "./aides-textual-matching.service";
 import { AidesCacheService } from "./aides-cache.service";
 import { AidesPerimetreService } from "./aides-perimetre.service";
-import { AjoutsManuelsService } from "@/ajouts-manuels/ajouts-manuels.service";
-import { fondreAjouts } from "@/ajouts-manuels/fondre-ajouts";
+import { AidesMoteurService } from "./aides-moteur.service";
+import { AidesProjetService } from "./aides-projet.service";
 import { AidesWarmupService } from "./aides-warmup.service";
 import { AidesFeedbackService } from "./aides-feedback.service";
 import { AideFeedbackResponse, CreateAideFeedbackRequest, DeleteAideFeedbackRequest } from "./dto/aide-feedback.dto";
 import {
-  Aide,
   AideClassification,
-  AideMatchResult,
   AidesListResponse,
   AidesSearchRequest,
   AidesSyncResponse,
-  AideWithClassification,
   ClassificationPendingResponse,
 } from "./dto/aides.dto";
-import { MatchThresholds } from "./aides-matching.service";
 
 const CLASSIFICATION_RETRY_AFTER_SECONDS = 15;
 
@@ -55,9 +48,6 @@ const CLASSIFICATION_RETRY_AFTER_SECONDS = 15;
 // plancher de "rescue" pour qu'une aide non matchée thématiquement remonte.
 // Le thématique (labels de classification) est plus fiable que le lexical :
 // il domine nettement le score combiné, le textuel reste un bonus + rescue.
-const W_THEMATIC = 0.85;
-const W_TEXTUAL = 0.15;
-const MIN_TEXTUAL_RESCUE = 0.35;
 
 @ApiBearerAuth()
 @ApiTags("Aides")
@@ -67,15 +57,13 @@ export class AidesController {
   constructor(
     private readonly atService: AidesTerritoiresService,
     private readonly classificationService: AideClassificationService,
-    private readonly matchingService: AidesMatchingService,
-    private readonly textualMatchingService: AidesTextualMatchingService,
     private readonly cacheService: AidesCacheService,
     private readonly perimetreService: AidesPerimetreService,
-    private readonly ajoutsManuels: AjoutsManuelsService,
+    private readonly moteur: AidesMoteurService,
+    private readonly aidesProjet: AidesProjetService,
     private readonly warmupService: AidesWarmupService,
     private readonly feedbackService: AidesFeedbackService,
     private readonly projetsService: GetProjetsService,
-    private readonly configService: ConfigService,
     @InjectQueue(PROJECT_QUALIFICATION_QUEUE_NAME) private readonly qualificationQueue: Queue,
     private readonly logger: CustomLogger,
   ) {}
@@ -168,11 +156,11 @@ export class AidesController {
     const aideThreshold = this.parseUnitInterval("aideThreshold", aideThresholdRaw);
     const projetThreshold = this.parseUnitInterval("projetThreshold", projetThresholdRaw);
 
-    // 1. Load project (throws 404 if not found) + détecte la source pour
-    //    pouvoir tagger correctement un éventuel job de classification.
+    // 1. Projet (404 si absent) + source, pour tagger correctement un éventuel job.
     const { projet, source } = await this.projetsService.findOneWithSource(projetId);
 
-    // 2. If not classified yet → enqueue classification + return 202
+    // 2. Non classifié → on relance le job et on répond 202. C'est le SEUL morceau qui reste ici :
+    //    il touche au code HTTP et à la file d'attente, pas au contenu.
     if (!projet.classificationScores) {
       const triggered = await this.triggerClassificationIfNeeded(projetId, source);
       res.status(202).setHeader("Retry-After", String(CLASSIFICATION_RETRY_AFTER_SECONDS));
@@ -184,62 +172,14 @@ export class AidesController {
       };
     }
 
-    // 3. Extract code_insee from project collectivités
-    const codesInsee = this.perimetreService.extractCodesInsee(projet.collectivites);
-
-    if (codesInsee.length === 0) {
-      this.logger.warn(
-        `Project ${projetId} has no collectivités with code_insee, fetching aides without territory filter`,
-      );
-    }
-
-    // 4. Fetch aides for each territory (union) — deduplicate by aide id
-    const allAides = await this.perimetreService.fetchAidesForPerimeterCodes(codesInsee);
-
-    // Les aides AJOUTÉES À LA MAIN sur ce projet. On les résout dans les aides du périmètre : une
-    // aide n'est persistée nulle part, et Aides-territoires ne sait pas la récupérer par son id.
-    // Si elle a été clôturée ou dépubliée depuis l'ajout, elle n'est plus là — elle cesse alors de
-    // s'afficher, ce qui est le comportement voulu : mieux vaut ne rien montrer que d'envoyer une
-    // collectivité candidater à une aide morte.
-    const ajouts = await this.ajoutsManuels.actifs(projetId, "aide", request.serviceType!);
-
-    if (allAides.length === 0) {
-      return { status: "no_aides_on_perimeter", aides: [], total: 0 };
-    }
-
-    // 5. Get classifications for these aides (from DB cache)
-    const aideIds = allAides.map((a) => String(a.id));
-    const classifications = await this.classificationService.getCachedClassifications(aideIds);
-
-    // 6-7. Matching thématique (+ textuel optionnel), enrichissement et tri —
-    //      logique partagée avec POST /aides/recherche.
-    const textualEnabled = this.isTextualMatchingEnabled(textualOverride);
-    const reponse = this.buildMatchedResponse(projet.classificationScores, allAides, classifications, {
+    // 3. Tout le reste est l'affaire du domaine — et c'est EXACTEMENT ce que le back-office appelle,
+    //    pour montrer ce que l'API renvoie réellement plutôt qu'une reconstitution.
+    return this.aidesProjet.pourProjet(projetId, request.serviceType!, {
       maxResults,
       cutoff,
       thresholds: { projet: projetThreshold, aide: aideThreshold },
-      textualEnabled,
-      textualText: `${projet.nom} ${projet.description ?? ""}`,
+      textualEnabled: this.moteur.textuelActif(textualOverride),
     });
-
-    // La fusion s'applique SUR le résultat du moteur, pas dedans : le moteur reste un pur
-    // scoreur/classeur, que POST /aides/recherche partage sans rien savoir des ajouts manuels.
-    const parId = new Map(allAides.map((a) => [String(a.id), a]));
-    const aides = fondreAjouts<AideWithClassification>({
-      ajouts,
-      resoudre: (idAt, ajout) => {
-        const aide = parId.get(idAt);
-        // Aide clôturée ou dépubliée depuis l'ajout : on ne sait plus la résoudre, et on ne
-        // fabrique rien. Mieux vaut ne rien montrer qu'envoyer candidater à une aide morte.
-        return aide ? { ...aide, classification: classifications.get(idAt), ajoutManuel: ajout } : undefined;
-      },
-      duMoteur: reponse.aides,
-      idDe: (a) => String(a.id),
-      nomDe: (a) => a.name,
-    });
-
-    if (aides.length === 0) return { status: "no_match", aides: [], total: allAides.length };
-    return { status: "ok", aides, total: allAides.length };
   }
 
   @TrackApiUsage()
@@ -279,109 +219,13 @@ export class AidesController {
 
     // Le texte libre ne sert qu'au matching textuel optionnel.
     const textualEnabled = dto.textual === true;
-    return this.buildMatchedResponse(searchScores, allAides, classifications, {
+    return this.moteur.classer(searchScores, allAides, classifications, {
       maxResults,
       cutoff,
       thresholds: { projet: dto.projetThreshold, aide: dto.aideThreshold },
       textualEnabled,
       textualText: dto.query ?? "",
     });
-  }
-
-  /**
-   * Matching thématique (+ textuel optionnel), enrichissement et tri d'un
-   * ensemble d'aides contre une classification. Partagé par GET /aides et
-   * POST /aides/recherche. `total` reflète le nombre d'aides du périmètre
-   * avant filtrage par le matching.
-   */
-  private buildMatchedResponse(
-    scores: AideClassification,
-    allAides: Aide[],
-    classifications: Map<string, AideClassification>,
-    options: {
-      maxResults: number;
-      cutoff: number;
-      thresholds: MatchThresholds;
-      textualEnabled: boolean;
-      textualText: string;
-    },
-  ): AidesListResponse {
-    const { maxResults, cutoff, thresholds, textualEnabled, textualText } = options;
-
-    // Matching thématique — on passe allAides.length pour ne rien pré-trancher
-    // avant la combinaison textuelle optionnelle.
-    const matchResults = new Map<string, AideMatchResult>();
-    for (const r of this.matchingService.match(scores, classifications, allAides.length, thresholds)) {
-      matchResults.set(r.idAt, r);
-    }
-
-    // Matching textuel (BM25) — opt-in. Tourne sur toutes les aides du
-    // périmètre, y compris celles non encore classifiées.
-    const textualResults = textualEnabled ? this.textualMatchingService.score(textualText, allAides) : null;
-
-    let enriched: AideWithClassification[] = allAides.map((aide) => {
-      const idAt = String(aide.id);
-      const classification = classifications.get(idAt);
-      const match = matchResults.get(idAt);
-
-      const base: AideWithClassification = {
-        ...aide,
-        classification: classification ?? undefined,
-        matchingScore: match?.score,
-        normalizedScore: match?.normalizedScore,
-        axesMatched: match?.axesMatched,
-        labelsCommuns: match?.labelsCommuns,
-      };
-
-      if (!textualResults) return base;
-
-      const textual = textualResults.get(idAt);
-      const thematicScore = match?.normalizedScore ?? 0;
-      const textualScore = textual?.score ?? 0;
-      return {
-        ...base,
-        textualScore,
-        combinedScore: W_THEMATIC * thematicScore + W_TEXTUAL * textualScore,
-        matchedTerms: textual?.matchedTerms,
-      };
-    });
-
-    if (textualEnabled) {
-      // Rescue + booster : on garde tout match thématique, plus toute aide
-      // dont le score textuel dépasse le plancher de rescue. Tri par score combiné.
-      // Le cutoff écarte les aides sous le score de pertinence minimal demandé.
-      enriched = enriched
-        .filter(
-          (a) =>
-            (a.matchingScore !== undefined || (a.textualScore ?? 0) >= MIN_TEXTUAL_RESCUE) &&
-            (a.combinedScore ?? 0) >= cutoff,
-        )
-        .sort((a, b) => (b.combinedScore ?? 0) - (a.combinedScore ?? 0))
-        .slice(0, maxResults);
-    } else {
-      // Comportement historique : matching thématique seul.
-      // Le cutoff filtre sur le score de pertinence normalisé (0-1).
-      enriched = enriched
-        .filter((a) => a.matchingScore !== undefined && (a.normalizedScore ?? 0) >= cutoff)
-        .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
-        .slice(0, maxResults);
-    }
-
-    if (enriched.length === 0) {
-      return { status: "no_match", aides: [], total: allAides.length };
-    }
-
-    return { status: "ok", aides: enriched, total: allAides.length };
-  }
-
-  /**
-   * Le matching textuel est opt-in. Override par requête (`?textual=true|false`)
-   * sinon flag d'env `AIDES_TEXTUAL_MATCHING_ENABLED` (défaut désactivé).
-   */
-  private isTextualMatchingEnabled(override?: string): boolean {
-    if (override === "true") return true;
-    if (override === "false") return false;
-    return this.configService.get<string>("AIDES_TEXTUAL_MATCHING_ENABLED") === "true";
   }
 
   /**

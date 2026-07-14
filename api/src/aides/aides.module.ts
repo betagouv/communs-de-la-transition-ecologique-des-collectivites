@@ -13,6 +13,8 @@ import { AidesPerimetreModule } from "./aides-perimetre.module";
 import { AidesController } from "./aides.controller";
 import { AideClassificationService } from "./aide-classification.service";
 import { AidesMatchingService } from "./aides-matching.service";
+import { AidesMoteurService } from "./aides-moteur.service";
+import { AidesProjetService } from "./aides-projet.service";
 import { AidesTextualMatchingService } from "./aides-textual-matching.service";
 import { AidesSyncProcessor, AIDES_SYNC_QUEUE_NAME, AIDES_SYNC_JOB_NAME } from "./aides-sync.processor";
 import { AidesWarmupService } from "./aides-warmup.service";
@@ -40,12 +42,18 @@ import { AidesFeedbackService } from "./aides-feedback.service";
   providers: [
     AideClassificationService,
     AidesMatchingService,
+    AidesMoteurService,
+    AidesProjetService,
     AidesTextualMatchingService,
     AidesWarmupService,
     AidesFeedbackService,
     AidesSyncProcessor,
   ],
-  exports: [AideClassificationService],
+  // Le MOTEUR est exporté : le back-office simule le classement des aides avec des réglages
+  // arbitraires. Le recopier pour lui aurait donné deux implémentations d'une même règle.
+  // `AidesProjetService` est exporté : le back-office doit montrer ce que l'API renvoie RÉELLEMENT.
+  // Il appelle donc la MÊME fonction que GET /aides, et non une reconstitution qui divergerait.
+  exports: [AideClassificationService, AidesMoteurService, AidesProjetService],
 })
 export class AidesModule implements OnModuleInit {
   constructor(

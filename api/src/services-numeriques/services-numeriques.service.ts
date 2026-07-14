@@ -73,7 +73,22 @@ export class ServicesNumeriquesService {
    * `findOneWithSource` : le projet peut vivre dans public.projets, data_mec ou data_tet.
    * Aucun service → 200 avec une liste vide, jamais 404.
    */
-  async findForProjet(projetId: string, baseUrl: string, plateforme: string): Promise<ProjetServicesResponse> {
+  async findForProjet(
+    projetId: string,
+    baseUrl: string,
+    plateforme: string,
+    /**
+     * Seuil de pertinence, exposé au client (`?seuil=`). Défaut : celui de l'API.
+     *
+     * Une plateforme peut légitimement vouloir être plus permissive ou plus stricte. Le SEUIL est
+     * donc à elle ; le DÉFAUT reste à nous — c'est lui qui fait foi, et c'est lui qu'on règle quand
+     * la pertinence est en cause.
+     *
+     * Le rendre paramétrable, plutôt que de le laisser un client le rejouer de son côté, est ce qui
+     * évite l'émulation : c'est l'API qui décide, avec le réglage qu'on lui demande d'appliquer.
+     */
+    seuil: number = SEUIL_PERTINENCE,
+  ): Promise<ProjetServicesResponse> {
     // Trois lectures INDÉPENDANTES sur un chemin chaud (chaque fiche projet) : en série, c'était
     // trois allers-retours là où une vague suffit.
     const [{ projet }, catalogue, ajouts] = await Promise.all([
@@ -83,7 +98,7 @@ export class ServicesNumeriquesService {
     ]);
 
     const pertinents = this.scorer(projet, catalogue)
-      .filter((s) => s.score >= SEUIL_PERTINENCE)
+      .filter((s) => s.score >= seuil)
       .sort((a, b) => b.score - a.score || a.ligne.nom.localeCompare(b.ligne.nom))
       .map(({ ligne }) => this.toResponse(ligne, baseUrl));
 

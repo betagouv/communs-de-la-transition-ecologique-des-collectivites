@@ -3,6 +3,10 @@ import { DatabaseModule } from "@database/database.module";
 import { ProjetsModule } from "@projets/projets.module";
 import { AidesMatchingService } from "@/aides/aides-matching.service";
 import { QuestionnairesModule } from "@/questionnaires/questionnaires.module";
+import { AidesModule } from "@/aides/aides.module";
+import { AidesPerimetreModule } from "@/aides/aides-perimetre.module";
+import { ServicesNumeriquesModule } from "@/services-numeriques/services-numeriques.module";
+import { RecommandationsModule } from "@/recommandations/recommandations.module";
 import { AdminController } from "./admin.controller";
 import { AdminService } from "./admin.service";
 
@@ -17,7 +21,15 @@ import { AdminService } from "./admin.service";
  * questionnaires resteront lisibles et éditables par l'API, simplement plus par un écran.
  */
 @Module({
-  imports: [DatabaseModule, ProjetsModule, QuestionnairesModule],
+  imports: [
+    DatabaseModule,
+    ProjetsModule,
+    QuestionnairesModule,
+    AidesModule,
+    AidesPerimetreModule,
+    ServicesNumeriquesModule,
+    RecommandationsModule,
+  ],
   controllers: [AdminController],
   // Même moteur de score que les aides, les questionnaires et les services : la simulation doit
   // dire la VÉRITÉ. Un portage du scoring dans le back-office afficherait des chiffres faux, et

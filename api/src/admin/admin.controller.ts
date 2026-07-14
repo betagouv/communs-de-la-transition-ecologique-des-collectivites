@@ -1,9 +1,10 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from "@nestjs/common";
+import { Request } from "express";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { AdminService } from "./admin.service";
-import { ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
+import { ApercuRequest, ApercuResponse, ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
 
 /**
  * Back-office : voir le contenu, et simuler ce que l'API renverrait pour un projet RÉEL.
@@ -51,6 +52,25 @@ export class AdminController {
     return this.adminService.contenu();
   }
 
+  @Post("apercu")
+  @HttpCode(200)
+  @ApiOperation({
+    summary: "Ce que l'API renvoie RÉELLEMENT pour un projet",
+    description:
+      "Les quatre réponses telles que la plateforme les reçoit : aides, services numériques, " +
+      "questionnaires, recommandations. PAS une émulation — ces sections appellent EXACTEMENT les " +
+      "fonctions qui servent MEC. Une reconstitution finirait par diverger, et un outil qui ment sur " +
+      "ce que voit la collectivité est pire que pas d'outil.\n\n" +
+      "`plateforme` est obligatoire : les ajouts manuels et les arbitrages sont CLOISONNÉS par " +
+      "plateforme. Sans elle, on afficherait une liste que personne ne reçoit.\n\n" +
+      "Les paramètres de `GET /aides` (limit, cutoff, seuils de confiance, matching textuel, et même " +
+      "le texte de la recherche) sont réglables. Les valeurs réellement appliquées sont rendues.",
+  })
+  @ApiEndpointResponses({ successStatus: 200, response: ApercuResponse, description: "Aperçu" })
+  apercu(@Req() request: Request, @Body() dto: ApercuRequest): Promise<ApercuResponse> {
+    return this.adminService.apercu(dto, origine(request));
+  }
+
   @Post("simuler")
   // POST parce qu'on envoie un corps, mais une simulation ne CRÉE rien : 200, pas 201.
   @HttpCode(200)
@@ -66,4 +86,13 @@ export class AdminController {
   simuler(@Body() dto: SimulationRequest): Promise<SimulationResponse> {
     return this.adminService.simuler(dto);
   }
+}
+
+/**
+ * Origine publique de l'API, pour rendre absolues les URLs de logos qu'elle héberge — comme le fait
+ * le vrai endpoint des services. L'aperçu doit rendre les MÊMES URLs que MEC reçoit.
+ */
+function origine(request: Request): string {
+  const protocole = (request.headers["x-forwarded-proto"] as string | undefined)?.split(",")[0] ?? request.protocol;
+  return `${protocole}://${request.get("host") ?? ""}`;
 }
