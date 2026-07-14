@@ -95,6 +95,10 @@ export default function App() {
 
   return (
     <>
+      {/* SUR QUELLE API SUIS-JE ? Rien ne le disait, et c'est un vrai piège : le back-office tourne
+          en local mais peut viser n'importe quelle API (locale, staging), figée au lancement par
+          VITE_API_TARGET. On perd un temps fou à croire qu'une clé est mauvaise alors qu'on parle à
+          la mauvaise machine. */}
       <Header
         brandTop={
           <>
@@ -105,7 +109,7 @@ export default function App() {
         }
         homeLinkProps={{ href: "/", title: "Accueil - Les Communs" }}
         serviceTitle="Les Communs de la transition écologique"
-        serviceTagline="Back-office — simulation et édition"
+        serviceTagline={`Back-office — ${cible()}`}
         quickAccessItems={[
           {
             buttonProps: {
@@ -199,4 +203,18 @@ export default function App() {
       </div>
     </>
   );
+}
+
+/**
+ * L'API que ce back-office interroge, telle qu'elle a été fixée au lancement.
+ *
+ * `VITE_API_TARGET` est lue au démarrage du serveur de dev et ne peut pas changer ensuite : la
+ * changer impose de relancer `pnpm dev`. L'afficher évite l'erreur qui coûte le plus cher — croire
+ * que sa clé est refusée alors qu'on parle à la mauvaise API.
+ */
+function cible(): string {
+  const url = (import.meta.env.VITE_API_TARGET as string | undefined) ?? "http://localhost:3000";
+  if (url.includes("staging")) return "STAGING";
+  if (url.includes("prod")) return "⚠ PRODUCTION";
+  return `local (${url})`;
 }

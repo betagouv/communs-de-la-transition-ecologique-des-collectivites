@@ -99,5 +99,27 @@ export const ajouterService = (
 ): Promise<{ decisionId: string }> =>
   appeler("/admin/ajouts/service", { projetId, plateforme, slug, message: message?.trim() ? message : undefined });
 
+/**
+ * Un service HORS CATALOGUE, décrit par l'agent lui-même.
+ *
+ * LÉGITIME ICI, ET PAS POUR UNE AIDE : le catalogue de services est LE NÔTRE. Un service qui n'y
+ * figure pas existe quand même — un outil local, un service partenaire pas encore benchmarké — et
+ * personne d'autre que l'agent ne peut le décrire. Une aide, elle, n'existe que dans
+ * Aides-territoires : hors de là, aucune autorité ne la valide, et nous n'aurions aucun moyen de la
+ * tenir à jour.
+ */
+export const ajouterServiceLibre = (
+  projetId: string,
+  plateforme: string,
+  service: { nom: string; description: string; url?: string; operateur?: string },
+  message?: string,
+): Promise<{ decisionId: string }> =>
+  appeler("/admin/ajouts/service", {
+    projetId,
+    plateforme,
+    service,
+    message: message?.trim() ? message : undefined,
+  });
+
 export const retirerAjout = (decisionId: string, plateforme: string): Promise<unknown> =>
   appeler(`/admin/ajouts/${decisionId}?plateforme=${encodeURIComponent(plateforme)}`, undefined, "DELETE");
