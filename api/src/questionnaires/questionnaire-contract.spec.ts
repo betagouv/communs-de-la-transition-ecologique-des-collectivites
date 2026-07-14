@@ -5,7 +5,7 @@ const def = (): QuestionnaireDef => ({
   version: 1,
   source: { nom: "Test" },
   banniere: { titre: "T", sousTitre: "ST" },
-  classification: { thematiques: [], sites: [], interventions: [] },
+  etiquettesRequises: { thematiques: [], sites: [], interventions: [] },
   questions: [
     {
       id: "q1",

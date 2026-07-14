@@ -4,9 +4,9 @@ import { DatabaseService } from "@database/database.service";
 import { projetQuestionnaireReponses } from "@database/schema";
 import { ProjetResponse } from "@projets/dto/projet.dto";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
-import { AidesMatchingService } from "@/aides/aides-matching.service";
 import { AideClassification } from "@/aides/dto/aides.dto";
 import { QUESTIONNAIRES } from "./content";
+import { SEUIL_CONFIANCE, type EtiquettesRequises } from "./content/classification";
 import { calculerStatut, reconcilierReponses, type QuestionnaireDef } from "./questionnaire-contract";
 import { ProjetQuestionnairesResponse, QuestionnaireResponse } from "./dto/questionnaire.dto";
 
@@ -14,27 +14,41 @@ import { ProjetQuestionnairesResponse, QuestionnaireResponse } from "./dto/quest
 export interface QuestionnaireEtat {
   def: QuestionnaireDef;
   reponses: Record<string, string>;
-  /** Score de pertinence normalisé [0, 1] du questionnaire pour ce projet. Interne — n'est pas exposé. */
-  score: number;
 }
 
 /**
- * Score normalisé minimal pour qu'un questionnaire soit proposé. Même échelle que le
- * `cutoff` des aides (AidesController) : normalizedScore = score / score maximal théorique
- * du projet, donc 1.0 = le questionnaire couvre parfaitement toutes les étiquettes du projet.
+ * Le projet porte-t-il TOUTES les étiquettes qui définissent ce questionnaire ?
  *
- * 0.3 est délibérément permissif : un questionnaire est une invitation à réfléchir, pas une
- * aide qu'on propose à tort. Un faux positif coûte un onglet ignoré ; un faux négatif coûte
- * une opportunité de biodiversité jamais vue.
+ * C'est un CRITÈRE, pas un score. Un questionnaire n'est pas une aide : une aide ressemble plus
+ * ou moins à un projet, un score a du sens ; un questionnaire, lui, s'applique ou ne s'applique
+ * pas — c'est une salle des fêtes, ou ce n'en est pas une.
+ *
+ * Le score de matching a été essayé et il échoue ici pour une raison structurelle : il normalise
+ * par le maximum du PROJET. Deux projets portant tous deux « Place ou centre-bourg » obtenaient
+ * 1,00 et 0,11 selon que leur classification était pauvre ou riche — le second était écarté alors
+ * qu'il est bel et bien une place. Un critère ne doit pas dépendre de la largeur de la
+ * classification d'à côté.
+ *
+ * Exporté : le back-office rejoue la même fonction pour expliquer POURQUOI un questionnaire n'est
+ * pas proposé (quelle étiquette manque). Une seule définition de l'éligibilité, jamais deux.
  */
-export const SEUIL_ELIGIBILITE = 0.3;
+export function etiquettesManquantes(
+  scoresProjet: AideClassification,
+  requises: EtiquettesRequises,
+): { axe: keyof EtiquettesRequises; label: string }[] {
+  const porte = (axe: keyof EtiquettesRequises, label: string) =>
+    scoresProjet[axe].some((e) => e.label === label && e.score >= SEUIL_CONFIANCE);
+
+  return (["thematiques", "sites", "interventions"] as const).flatMap((axe) =>
+    requises[axe].filter((label) => !porte(axe, label)).map((label) => ({ axe, label })),
+  );
+}
 
 @Injectable()
 export class QuestionnairesService {
   constructor(
     private readonly dbService: DatabaseService,
     private readonly getProjetsService: GetProjetsService,
-    private readonly matchingService: AidesMatchingService,
   ) {}
 
   /**
@@ -56,35 +70,25 @@ export class QuestionnairesService {
       .from(projetQuestionnaireReponses)
       .where(eq(projetQuestionnaireReponses.projetId, projetId));
 
-    const etats = eligibles.map(({ def, score }) => {
+    const etats = eligibles.map((def) => {
       const ligne = lignes.find((l) => l.slug === def.slug);
-      return { def, score, reponses: reconcilierReponses(def, ligne?.reponses ?? {}) };
+      return { def, reponses: reconcilierReponses(def, ligne?.reponses ?? {}) };
     });
 
     return { projet, etats };
   }
 
   /**
-   * Éligibilité par SCORE, avec le moteur de matching des aides : le questionnaire est
-   * classifié sur les mêmes trois axes qu'un projet et qu'une aide (thématiques 0.45, sites
-   * 0.35, interventions 0.20), et son score normalisé contre la classification du projet
-   * décide s'il est proposé.
-   *
-   * Un projet non encore classifié (classificationScores absent — le job LLM n'a pas tourné)
-   * ne se voit proposer aucun questionnaire. Contrairement aux aides, on ne renvoie pas 202 :
-   * la spec impose une liste vide en 200 pour un projet non éligible, et un questionnaire
+   * Un projet non encore classifié (le job LLM n'a pas tourné) ne se voit proposer aucun
+   * questionnaire : on ne sait rien de lui, on n'a donc rien à lui demander. Contrairement aux
+   * aides, on ne renvoie pas 202 — la spec impose une liste vide en 200, et un questionnaire
    * n'est pas un contenu qu'on fait attendre.
    */
-  private questionnairesEligibles(projet: ProjetResponse): { def: QuestionnaireDef; score: number }[] {
+  private questionnairesEligibles(projet: ProjetResponse): QuestionnaireDef[] {
     const scoresProjet = projet.classificationScores;
     if (!scoresProjet) return [];
 
-    const parSlug = new Map<string, AideClassification>(QUESTIONNAIRES.map((q) => [q.slug, q.classification]));
-
-    return this.matchingService
-      .match(scoresProjet, parSlug, QUESTIONNAIRES.length)
-      .filter((m) => m.normalizedScore >= SEUIL_ELIGIBILITE)
-      .map((m) => ({ def: questionnaireRequis(m.idAt), score: m.normalizedScore }));
+    return QUESTIONNAIRES.filter((def) => etiquettesManquantes(scoresProjet, def.etiquettesRequises).length === 0);
   }
 
   async findForProjet(projetId: string): Promise<ProjetQuestionnairesResponse> {
@@ -167,11 +171,4 @@ export class QuestionnairesService {
       reponses,
     };
   }
-}
-
-/** Le moteur ne renvoie que des clés issues du registre : un slug absent serait un bug interne. */
-function questionnaireRequis(slug: string): QuestionnaireDef {
-  const def = QUESTIONNAIRES.find((q) => q.slug === slug);
-  if (!def) throw new Error(`Questionnaire "${slug}" absent du registre alors que le matching l'a retourné`);
-  return def;
 }

@@ -1,4 +1,4 @@
-import { AideClassification } from "@/aides/dto/aides.dto";
+import type { EtiquettesRequises } from "./content/classification";
 
 // ============================================================
 // Contrat des questionnaires spécialisés
@@ -116,12 +116,11 @@ export interface RecommandationsFichier {
 
 export interface QuestionnaireDef extends QuestionnaireFichier {
   /**
-   * Classification du questionnaire sur les trois axes (thématiques, sites, interventions),
-   * dans les MÊMES taxonomies fermées que les projets et les aides. C'est elle qui alimente
-   * le score de matching qui décide de l'éligibilité. Détenue par Communs, pas par le
-   * partenaire. NE SORT JAMAIS DE L'API.
+   * Étiquettes qui DÉFINISSENT le questionnaire, dans les taxonomies fermées du schéma commun.
+   * Le projet doit TOUTES les porter (confiance ≥ SEUIL_CONFIANCE) pour que le questionnaire lui
+   * soit proposé. Détenues par Communs, pas par le partenaire. NE SORTENT JAMAIS DE L'API.
    */
-  classification: AideClassification;
+  etiquettesRequises: EtiquettesRequises;
   recommandations: RecommandationDef[];
 }
 
