@@ -1,4 +1,4 @@
-import type { Contenu, Simulation } from "./types";
+import type { Contenu, QuestionnaireEdition, Simulation, Taxonomies } from "./types";
 
 /**
  * La clé d'administration vit en sessionStorage, jamais en localStorage : elle disparaît à la
@@ -18,14 +18,14 @@ export class CleRefusee extends Error {
   }
 }
 
-async function appeler<T>(chemin: string, corps?: unknown): Promise<T> {
+async function appeler<T>(chemin: string, corps?: unknown, methode?: "GET" | "POST" | "PUT" | "DELETE"): Promise<T> {
   const cle = lireCle();
   if (!cle) throw new CleRefusee();
 
   // `/api` est réécrit par le proxy Vite (voir vite.config.ts) : pas de requête cross-origin,
   // donc rien à ouvrir côté API.
   const reponse = await fetch(`/api${chemin}`, {
-    method: corps === undefined ? "GET" : "POST",
+    method: methode ?? (corps === undefined ? "GET" : "POST"),
     headers: { Authorization: `Bearer ${cle}`, "Content-Type": "application/json" },
     ...(corps === undefined ? {} : { body: JSON.stringify(corps) }),
   });
@@ -35,9 +35,14 @@ async function appeler<T>(chemin: string, corps?: unknown): Promise<T> {
     throw new CleRefusee();
   }
   if (!reponse.ok) {
-    const detail = (await reponse.json().catch(() => null)) as { message?: string } | null;
-    throw new Error(detail?.message ?? `L'API a répondu ${reponse.status}.`);
+    // Le message de l'API est TOUT ce qu'a la personne qui édite : elle n'a pas accès au code.
+    // « lieu « Place ou centre bourg » hors de la taxonomie » se corrige ; « erreur 400 » non.
+    const detail = (await reponse.json().catch(() => null)) as { message?: string | string[] } | null;
+    const message = Array.isArray(detail?.message) ? detail.message.join(" ") : detail?.message;
+    throw new Error(message ?? `L'API a répondu ${reponse.status}.`);
   }
+  // 204 (suppression) n'a pas de corps.
+  if (reponse.status === 204) return undefined as T;
   return (await reponse.json()) as T;
 }
 
@@ -45,3 +50,11 @@ export const getContenu = (): Promise<Contenu> => appeler<Contenu>("/admin/conte
 
 export const simuler = (projetId: string, reponses?: Record<string, Record<string, string>>): Promise<Simulation> =>
   appeler<Simulation>("/admin/simuler", { projetId, ...(reponses ? { reponses } : {}) });
+
+export const getTaxonomies = (): Promise<Taxonomies> => appeler<Taxonomies>("/admin/taxonomies");
+
+export const enregistrerQuestionnaire = (slug: string, def: QuestionnaireEdition): Promise<unknown> =>
+  appeler("/admin/questionnaires/" + encodeURIComponent(slug), def, "PUT");
+
+export const supprimerQuestionnaire = (slug: string): Promise<void> =>
+  appeler<void>("/admin/questionnaires/" + encodeURIComponent(slug), undefined, "DELETE");

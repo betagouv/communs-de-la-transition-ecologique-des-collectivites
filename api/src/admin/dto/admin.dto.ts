@@ -186,3 +186,24 @@ export class QuestionnaireEditionRequest {
   @IsString()
   editePar?: string;
 }
+
+/**
+ * Les taxonomies FERMÉES du schéma commun, servies à l'éditeur.
+ *
+ * Sans elles, le back-office devrait recopier les 137 thématiques, 58 lieux et 15 modalités — et
+ * une copie dérive. On réintroduirait exactement la coquille que la validation vient d'éliminer,
+ * mais du côté du client, où personne ne la verrait.
+ *
+ * L'éditeur ne propose donc QUE des étiquettes valides : le sélecteur rend la faute impossible,
+ * plutôt que de la rattraper après coup.
+ */
+export class TaxonomiesResponse {
+  @ApiProperty({ type: [String], description: "Les 137 thématiques." })
+  thematiques!: string[];
+
+  @ApiProperty({ type: [String], description: "Les 58 lieux." })
+  sites!: string[];
+
+  @ApiProperty({ type: [String], description: "Les 15 modalités d'intervention." })
+  interventions!: string[];
+}

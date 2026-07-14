@@ -9,7 +9,16 @@ import type { QuestionnaireDef } from "@/questionnaires/questionnaire-contract";
 import { calculerStatut, evaluerCondition, reconcilierReponses } from "@/questionnaires/questionnaire-contract";
 import { etiquettesManquantes } from "@/questionnaires/questionnaires.service";
 import { facteurPhase, SEUIL_PERTINENCE, type PoidsParPhase } from "@/services-numeriques/service-numerique-contract";
-import { ContenuResponse, QuestionnaireEditionRequest, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
+import { interventions } from "@/projet-qualification/classification/const/interventions";
+import { sites } from "@/projet-qualification/classification/const/sites";
+import { thematiques } from "@/projet-qualification/classification/const/thematiques";
+import {
+  ContenuResponse,
+  QuestionnaireEditionRequest,
+  SimulationRequest,
+  SimulationResponse,
+  TaxonomiesResponse,
+} from "./dto/admin.dto";
 
 /**
  * Service d'administration : voir le contenu tel qu'il est, et SIMULER ce que l'API renverrait
@@ -46,6 +55,21 @@ export class AdminService {
     private readonly matchingService: AidesMatchingService,
     private readonly questionnairesRepository: QuestionnairesRepository,
   ) {}
+
+  /**
+   * Les taxonomies fermées, pour que l'éditeur ne propose QUE des étiquettes valides.
+   *
+   * Le sélecteur rend la coquille IMPOSSIBLE, là où la validation ne fait que la rattraper. Les
+   * deux sont utiles : le sélecteur pour l'humain qui édite, la validation pour tout ce qui écrit
+   * sans passer par l'écran.
+   */
+  taxonomies(): TaxonomiesResponse {
+    return {
+      thematiques: [...thematiques],
+      sites: [...sites],
+      interventions: [...interventions],
+    };
+  }
 
   /**
    * Édite un questionnaire. On DÉLÈGUE au dépôt : c'est lui qui valide, et c'est la même porte que

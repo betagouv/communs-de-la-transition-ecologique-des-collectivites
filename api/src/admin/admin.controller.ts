@@ -3,7 +3,13 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { AdminService } from "./admin.service";
-import { ContenuResponse, QuestionnaireEditionRequest, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
+import {
+  ContenuResponse,
+  QuestionnaireEditionRequest,
+  SimulationRequest,
+  SimulationResponse,
+  TaxonomiesResponse,
+} from "./dto/admin.dto";
 
 /**
  * Back-office : voir le contenu, et simuler ce que l'API renverrait pour un projet RÉEL.
@@ -41,6 +47,20 @@ export class AdminController {
   @ApiEndpointResponses({ successStatus: 200, response: ContenuResponse, description: "Contenu courant" })
   contenu(): Promise<ContenuResponse> {
     return this.adminService.contenu();
+  }
+
+  @Get("taxonomies")
+  @ApiOperation({
+    summary: "Les taxonomies fermées du schéma commun",
+    description:
+      "137 thématiques, 58 lieux, 15 modalités. Servies à l'éditeur pour qu'il ne propose QUE des " +
+      "étiquettes valides : le sélecteur rend la coquille impossible, là où la validation ne fait " +
+      "que la rattraper. Sans cet endpoint, le back-office devrait recopier les listes — et une " +
+      "copie dérive.",
+  })
+  @ApiEndpointResponses({ successStatus: 200, response: TaxonomiesResponse, description: "Taxonomies" })
+  taxonomies(): TaxonomiesResponse {
+    return this.adminService.taxonomies();
   }
 
   @Put("questionnaires/:slug")

@@ -16,7 +16,7 @@ const LIBELLE_AXE: Record<string, string> = {
  * Place ou centre-bourg » dit exactement quoi regarder : soit la classification du projet est
  * fausse, soit le questionnaire vise autre chose.
  */
-export function Questionnaires({ questionnaires }: { questionnaires: QuestionnaireSimule[] }) {
+export function QuestionnairesSimules({ questionnaires }: { questionnaires: QuestionnaireSimule[] }) {
   return (
     <section className={fr.cx("fr-mt-6w")}>
       <h2 className={fr.cx("fr-h4")}>Questionnaires</h2>

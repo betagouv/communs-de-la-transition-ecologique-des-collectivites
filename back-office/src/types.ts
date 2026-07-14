@@ -84,13 +84,42 @@ export interface Simulation {
   seuils: Seuils;
 }
 
+/** Les taxonomies fermées, servies par l'API. Jamais recopiées ici : une copie dérive. */
+export type Taxonomies = Record<Axe, string[]>;
+
+export interface QuestionDef {
+  id: string;
+  type: string;
+  intitule: string;
+  options: { id: string; libelle: string; signal?: string; aide?: string }[];
+}
+
+export interface RecommandationDef {
+  id: string;
+  titre: string;
+  description?: string;
+  condition: true | { question: string; parmi: string[] };
+  [autre: string]: unknown;
+}
+
 export interface QuestionnaireContenu {
   slug: string;
   libelle: string;
   version: number;
-  etiquettesRequises: Record<Axe, string[]>;
-  questions: { id: string; libelle: string; options: { id: string; libelle: string }[] }[];
-  recommandations: { id: string; titre: string; condition: unknown }[];
+  banniere: { icone?: string; titre?: string; sousTitre?: string };
+  etiquettesRequises: Taxonomies;
+  questions: QuestionDef[];
+  recommandations: RecommandationDef[];
+}
+
+/** Le document ENTIER, tel qu'il part en PUT. Pas de PATCH : voir admin.controller.ts. */
+export interface QuestionnaireEdition {
+  sourceNom: string;
+  banniere: QuestionnaireContenu["banniere"];
+  questions: QuestionDef[];
+  recommandations: RecommandationDef[];
+  etiquettesRequises: Taxonomies;
+  editePar?: string;
 }
 
 export interface ServiceContenu {
