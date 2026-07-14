@@ -53,39 +53,42 @@ export class ServicesNumeriquesService {
   /**
    * Services numériques pertinents pour un projet, prêts à afficher.
    *
+   * LE SCORE SEUL DÉCIDE. Aucun repêchage, aucun verrou de curation — exactement comme pour les
+   * aides et les questionnaires.
+   *
+   * POURQUOI AUCUN REPÊCHAGE GÉNÉRIQUE. Le benchmark marque certains services « à présenter dans
+   * une présentation générique et peu contextualisée » : c'est une propriété utile pour une page
+   * VITRINE (un annuaire, une liste d'accueil), où il n'y a pas de contexte. Une fiche projet est
+   * l'exact opposé — elle est le contexte. Les faire remonter ici noyait 4 services parfaitement
+   * ciblés sous 50 qui n'avaient rien à voir avec le projet.
+   *
+   * Une liste vide est une réponse LÉGITIME, et plus utile qu'une liste de remplissage : elle dit
+   * « le catalogue n'a rien pour ce projet », ce qui est une information. Un projet de salle des
+   * fêtes n'a aucun service numérique dédié, et c'est un fait, pas une panne.
+   *
    * `findOneWithSource` : le projet peut vivre dans public.projets, data_mec ou data_tet.
    * Aucun service → 200 avec une liste vide, jamais 404.
    */
   async findForProjet(projetId: string, baseUrl: string): Promise<ProjetServicesResponse> {
     const { projet } = await this.getProjetsService.findOneWithSource(projetId);
 
-    // Aucun verrou de curation : c'est le SCORE seul qui décide, comme pour les aides et les
-    // questionnaires. Les 51 lignes non renseignées du benchmark (ni thématique, ni catégorie)
-    // s'éliminent d'elles-mêmes — leur score est nul et elles ne sont pas génériques.
     const catalogue = await this.dbService.database.select().from(servicesNumeriques);
 
-    const scores = this.scorer(projet, catalogue);
-
-    // 1. PERTINENCE — au-dessus du seuil, trié par score décroissant.
-    const pertinents = scores.filter((s) => s.score >= SEUIL_PERTINENCE).sort((a, b) => b.score - a.score);
-
-    // 2. FALLBACK — les services transverses (« à présenter dans une présentation générique »)
-    //    remontent même sans correspondance fine, APRÈS les pertinents. Sans cela, les services
-    //    dépourvus de thématique fine ne seraient jamais affichés, et un projet non encore
-    //    classifié ne verrait aucun service du tout.
-    const generiques = scores
-      .filter((s) => s.score < SEUIL_PERTINENCE && s.ligne.presentationGenerique === "oui")
+    const pertinents = this.scorer(projet, catalogue)
+      .filter((s) => s.score >= SEUIL_PERTINENCE)
       .sort((a, b) => b.score - a.score || a.ligne.nom.localeCompare(b.ligne.nom));
 
-    return { services: [...pertinents, ...generiques].map(({ ligne }) => this.toResponse(ligne, baseUrl)) };
+    return { services: pertinents.map(({ ligne }) => this.toResponse(ligne, baseUrl)) };
   }
 
   /**
    * Score de pertinence = score de matching sur les trois axes (le MÊME moteur que les aides
    * et les questionnaires), modulé par la phase du projet.
    *
-   * Un projet non classifié (le job LLM n'a pas tourné) donne un score nul à tout le monde :
-   * seuls les services génériques remonteront. C'est voulu.
+   * Un projet non classifié (le job LLM n'a pas tourné) donne un score nul à tout le monde, donc
+   * une liste vide. C'est voulu : on ne sait rien de ce projet, on n'a donc rien à en dire. Le
+   * masquer derrière une liste de services de remplissage ferait passer une donnée manquante
+   * pour un résultat.
    */
   private scorer(projet: ProjetResponse, lignes: LigneCatalogue[]): { ligne: LigneCatalogue; score: number }[] {
     const scoresProjet = projet.classificationScores;

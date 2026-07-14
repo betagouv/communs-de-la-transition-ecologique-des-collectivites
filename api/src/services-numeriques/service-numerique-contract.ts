@@ -60,9 +60,12 @@ export function facteurPhase(phases: PoidsParPhase, phaseProjet: ProjetPhase | n
  * Score normalisé minimal pour qu'un service soit jugé PERTINENT. Même échelle que le
  * `cutoff` des aides et le seuil des questionnaires.
  *
- * En dessous, un service curé n'est pas écarté pour autant : s'il porte
- * `presentationGenerique = oui`, il remonte en fallback, classé après les services
- * réellement pertinents (§8.3). C'est indispensable ici : 7 des 28 services curés du
- * benchmark n'ont AUCUNE thématique fine renseignée et scoreraient zéro à jamais.
+ * En dessous, le service n'est pas affiché. Point. Il n'y a pas de repêchage : sur trois projets
+ * réels de staging, ce seuil sépare proprement (0,64 pour Bénéfriches sur une friche ; 0,03 pour
+ * EnvErgo sur un espace commercial).
+ *
+ * Les services du benchmark sans thématique fine scoreront donc zéro à jamais et resteront
+ * invisibles. C'est un défaut de DONNÉES, à corriger dans le benchmark — pas à masquer par une
+ * règle d'affichage qui noierait les services réellement pertinents.
  */
 export const SEUIL_PERTINENCE = 0.3;

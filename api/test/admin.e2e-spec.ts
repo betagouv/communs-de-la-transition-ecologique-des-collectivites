@@ -142,7 +142,10 @@ describe("Back-office (e2e)", () => {
       expect(questionnaires[0].reponses).toEqual({});
     });
 
-    it("distingue « pertinent » de « remonté en fallback générique »", async () => {
+    it("montre le sort réel des services : le score seul décide, sans repêchage", async () => {
+      // Le back-office doit refléter EXACTEMENT ce que fait l'API. S'il affichait encore un
+      // « repêché » que l'API ne pratique plus, il mentirait sur ce que verra la collectivité —
+      // et ce serait pire que pas d'écran du tout.
       await global.testDbService.database.insert(servicesNumeriques).values([
         {
           slug: "pertinent",
@@ -163,16 +166,17 @@ describe("Back-office (e2e)", () => {
       ]);
       const projetId = await creerProjet(EAU);
 
-      const { body } = await appeler<{ services: { slug: string; motif: string; retenu: boolean }[] }>(
+      const { body } = await appeler<{ services: { slug: string; retenu: boolean; score: number }[] }>(
         "POST",
         "/admin/simuler",
         { projetId },
       );
 
       const parSlug = new Map(body.services.map((s) => [s.slug, s]));
-      expect(parSlug.get("pertinent")!.motif).toBe("pertinence");
-      expect(parSlug.get("transverse")!.motif).toBe("generique");
-      expect(parSlug.get("transverse")!.retenu).toBe(true);
+      expect(parSlug.get("pertinent")!.retenu).toBe(true);
+      // Marqué « présentation générique », et pourtant écarté : ce drapeau ne décide plus de rien.
+      expect(parSlug.get("transverse")!.retenu).toBe(false);
+      expect(parSlug.get("transverse")!.score).toBe(0);
     });
 
     it("dit pourquoi un projet non classifié ne voit rien, au lieu d'une liste vide muette", async () => {

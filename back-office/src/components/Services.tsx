@@ -3,13 +3,7 @@ import { fr } from "@codegouvfr/react-dsfr";
 import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import { ToggleSwitch } from "@codegouvfr/react-dsfr/ToggleSwitch";
 import { Etiquettes } from "./Etiquettes";
-import { motifAuSeuil, type Motif, type ServiceSimule } from "../types";
-
-const LIBELLE_MOTIF: Record<Motif, { texte: string; severite: "success" | "info" | "warning" }> = {
-  pertinence: { texte: "pertinent", severite: "success" },
-  generique: { texte: "repêché", severite: "info" },
-  ecarte: { texte: "écarté", severite: "warning" },
-};
+import { retenuAuSeuil, type ServiceSimule } from "../types";
 
 const pourcent = (n: number) => `${(n * 100).toFixed(0)} %`;
 
@@ -19,26 +13,25 @@ const pourcent = (n: number) => `${(n * 100).toFixed(0)} %`;
  * POURQUOI UN CURSEUR. L'API renvoie TOUS les candidats avec leur score, pas seulement les
  * retenus : rejouer la sélection à un autre seuil est donc de l'arithmétique locale, sans rappel
  * réseau. On voit l'effet d'un réglage avant de le figer dans le code — c'est la seule façon
- * honnête de choisir un seuil, plutôt que de le deviner puis de constater en production.
+ * honnête de choisir un seuil, plutôt que de le deviner puis de le constater en production.
+ *
+ * Le score seul décide : il n'y a pas de repêchage. Une liste vide est une réponse légitime.
  */
 export function Services({ services, seuilApi }: { services: ServiceSimule[]; seuilApi: number }) {
   const [seuil, setSeuil] = useState(seuilApi);
   const [masquerEcartes, setMasquerEcartes] = useState(true);
 
   const { comptes, visibles } = useMemo(() => {
-    const avecMotif = services.map((s) => ({ ...s, motifLocal: motifAuSeuil(s, seuil) }));
-    const compter = (m: Motif) => avecMotif.filter((s) => s.motifLocal === m).length;
+    const avecVerdict = services.map((s) => ({ ...s, affiche: retenuAuSeuil(s, seuil) }));
 
     return {
       comptes: {
-        pertinence: compter("pertinence"),
-        generique: compter("generique"),
-        ecarte: compter("ecarte"),
-        // Ce chiffre est le vrai diagnostic : un service qui ne partage AUCUNE étiquette avec le
-        // projet ne peut être remonté que par repêchage. Aucun seuil ne le rendra pertinent.
-        sansRecouvrement: avecMotif.filter((s) => s.score === 0).length,
+        affiches: avecVerdict.filter((s) => s.affiche).length,
+        // Le vrai diagnostic : un service qui ne partage AUCUNE étiquette avec le projet ne peut
+        // pas remonter, quel que soit le seuil. Baisser le curseur ne joue que sur les autres.
+        sansRecouvrement: avecVerdict.filter((s) => s.score === 0).length,
       },
-      visibles: masquerEcartes ? avecMotif.filter((s) => s.motifLocal !== "ecarte") : avecMotif,
+      visibles: masquerEcartes ? avecVerdict.filter((s) => s.affiche) : avecVerdict,
     };
   }, [services, seuil, masquerEcartes]);
 
@@ -74,22 +67,23 @@ export function Services({ services, seuilApi }: { services: ServiceSimule[]; se
         />
 
         <p className={fr.cx("fr-mt-2w", "fr-mb-0")}>
-          <Badge severity="success" noIcon>
-            {comptes.pertinence} pertinents
-          </Badge>{" "}
-          <Badge severity="info" noIcon>
-            {comptes.generique} repêchés
-          </Badge>{" "}
-          <Badge severity="warning" noIcon>
-            {comptes.ecarte} écartés
+          <Badge severity={comptes.affiches > 0 ? "success" : "warning"} noIcon>
+            {comptes.affiches} affiché{comptes.affiches > 1 ? "s" : ""} sur {services.length}
           </Badge>
         </p>
 
         <p className={fr.cx("fr-text--sm", "fr-mt-2w", "fr-mb-0")}>
           {comptes.sansRecouvrement} des {services.length} services ne partagent <strong>aucune</strong> étiquette avec
-          ce projet : aucun seuil ne les rendra pertinents. Baisser le curseur ne joue que sur les{" "}
+          ce projet : aucun seuil ne les fera remonter. Le curseur ne joue que sur les{" "}
           {services.length - comptes.sansRecouvrement} autres.
         </p>
+
+        {comptes.affiches === 0 && (
+          <p className={fr.cx("fr-text--sm", "fr-mt-2w", "fr-mb-0")}>
+            Une liste vide est une réponse légitime : elle dit que le catalogue n&apos;a rien pour ce projet, ce qui est
+            une information. C&apos;est plus utile qu&apos;une liste de remplissage.
+          </p>
+        )}
       </div>
 
       <ToggleSwitch
@@ -114,26 +108,23 @@ export function Services({ services, seuilApi }: { services: ServiceSimule[]; se
             </tr>
           </thead>
           <tbody>
-            {visibles.map((s) => {
-              const { texte, severite } = LIBELLE_MOTIF[s.motifLocal];
-              return (
-                <tr key={s.slug}>
-                  <td>{s.nom}</td>
-                  <td>
-                    <strong>{s.score.toFixed(2)}</strong>
-                  </td>
-                  <td className={fr.cx("fr-text--xs")}>{s.facteurPhase < 1 ? `× ${pourcent(s.facteurPhase)}` : "—"}</td>
-                  <td>
-                    <Badge severity={severite} noIcon small>
-                      {texte}
-                    </Badge>
-                  </td>
-                  <td>
-                    <Etiquettes communes={s.etiquettesCommunes} />
-                  </td>
-                </tr>
-              );
-            })}
+            {visibles.map((s) => (
+              <tr key={s.slug}>
+                <td>{s.nom}</td>
+                <td>
+                  <strong>{s.score.toFixed(2)}</strong>
+                </td>
+                <td className={fr.cx("fr-text--xs")}>{s.facteurPhase < 1 ? `× ${pourcent(s.facteurPhase)}` : "—"}</td>
+                <td>
+                  <Badge severity={s.affiche ? "success" : "warning"} noIcon small>
+                    {s.affiche ? "affiché" : "écarté"}
+                  </Badge>
+                </td>
+                <td>
+                  <Etiquettes communes={s.etiquettesCommunes} />
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

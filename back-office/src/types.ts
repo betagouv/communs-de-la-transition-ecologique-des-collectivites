@@ -17,9 +17,6 @@ export interface EtiquetteScoree {
 export type Classification = Record<Axe, EtiquetteScoree[]>;
 export type EtiquettesCommunes = Record<Axe, string[]>;
 
-/** Pourquoi un service est affiché — ou ne l'est pas. */
-export type Motif = "pertinence" | "generique" | "ecarte";
-
 export interface Seuils {
   eligibilite: number;
   pertinence: number;
@@ -49,10 +46,8 @@ export interface ServiceSimule {
   facteurPhase: number;
   score: number;
   retenu: boolean;
-  motif: Motif;
   etiquettesCommunes: EtiquettesCommunes;
   profilGeneraliste: string | null;
-  presentationGenerique: string | null;
   categories: string[];
 }
 
@@ -63,13 +58,11 @@ export interface ServiceSimule {
  * score, jamais seulement les retenus : déplacer le seuil est donc de l'arithmétique côté
  * navigateur, sans rappeler l'API. On voit l'effet d'un réglage avant de le figer dans le code.
  *
- * Doit rester la copie exacte de `motifDe` dans api/src/admin/admin.service.ts — sinon l'écran
- * ment sur ce que ferait la vraie API.
+ * Le score seul décide — il n'y a pas de repêchage. Cette fonction doit rester la copie exacte
+ * de la règle appliquée dans api/src/services-numeriques/services-numeriques.service.ts, sinon
+ * l'écran ment sur ce que verra la collectivité.
  */
-export const motifAuSeuil = (service: ServiceSimule, seuil: number): Motif => {
-  if (service.score >= seuil) return "pertinence";
-  return service.presentationGenerique === "oui" ? "generique" : "ecarte";
-};
+export const retenuAuSeuil = (service: ServiceSimule, seuil: number): boolean => service.score >= seuil;
 
 export interface ProjetSimule {
   id: string;

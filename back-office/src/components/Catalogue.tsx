@@ -30,15 +30,15 @@ export function Catalogue({ contenu }: { contenu: Contenu }) {
   }, [contenu.services, filtre]);
 
   const sansThematique = contenu.services.filter((s) => s.classification.thematiques.length === 0).length;
-  const generiques = contenu.services.filter((s) => s.presentationGenerique === "oui").length;
 
   return (
     <section className={fr.cx("fr-mt-4w")}>
       <div className={fr.cx("fr-callout", "fr-mb-3w")}>
         <p className={fr.cx("fr-mb-0")}>
-          <strong>{contenu.services.length}</strong> services — <strong>{sansThematique}</strong> sans aucune thématique
-          (donc jamais pertinents pour aucun projet, seulement repêchables) — <strong>{generiques}</strong> repêchables
-          en présentation générique.
+          <strong>{contenu.services.length}</strong> services, dont <strong>{sansThematique}</strong> sans aucune
+          thématique. Ces derniers ne remonteront <strong>jamais</strong>, sur aucun projet : sans thématique, leur
+          score est nul par construction, et il n&apos;y a pas de repêchage. C&apos;est un défaut de données à corriger
+          dans le benchmark — la liste ci-dessous les met en tête.
         </p>
       </div>
 
@@ -57,7 +57,6 @@ export function Catalogue({ contenu }: { contenu: Contenu }) {
               </th>
               <th scope="col">Lieux</th>
               <th scope="col">Modalités</th>
-              <th scope="col">Repêchable</th>
             </tr>
           </thead>
           <tbody>
@@ -87,7 +86,6 @@ export function Catalogue({ contenu }: { contenu: Contenu }) {
                 <td className={fr.cx("fr-text--xs")}>
                   {s.classification.interventions.map((t) => t.label).join(", ") || "—"}
                 </td>
-                <td>{s.presentationGenerique === "oui" ? "oui" : "—"}</td>
               </tr>
             ))}
           </tbody>

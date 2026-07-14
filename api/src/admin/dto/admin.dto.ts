@@ -101,23 +101,8 @@ export class ServiceSimuleResponse {
   @ApiProperty({ description: "Facteur de phase appliqué (0.5 à 1)." }) facteurPhase!: number;
   @ApiProperty({ description: "Score final = scoreBrut × facteurPhase." }) score!: number;
   @ApiProperty() retenu!: boolean;
-  @ApiProperty({
-    enum: ["pertinence", "generique", "ecarte"],
-    description:
-      "POURQUOI il est retenu (ou non). « pertinence » et « generique » sont deux raisons très " +
-      "différentes d'être affiché — les confondre fausse toute lecture du catalogue.",
-  })
-  motif!: "pertinence" | "generique" | "ecarte";
   @ApiProperty({ type: Object }) etiquettesCommunes!: AideLabelsCommuns;
   @ApiPropertyOptional({ nullable: true }) profilGeneraliste!: string | null;
-  @ApiPropertyOptional({
-    nullable: true,
-    description:
-      "Le drapeau qui décide du repêchage en fallback. Exposé pour que le back-office puisse " +
-      "recalculer le motif à un AUTRE seuil que celui en vigueur — sans lui, déplacer le curseur " +
-      "au-dessus du score d'un service ne dirait pas s'il retombe en « generique » ou en « ecarte ».",
-  })
-  presentationGenerique!: string | null;
   @ApiProperty({ type: [String] }) categories!: string[];
 }
 

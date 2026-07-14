@@ -27,12 +27,6 @@ import { ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/ad
  * Ce module est ADDITIF et ISOLÉ : rien ne l'importe, il ne modifie rien. Le supprimer, c'est
  * `rm -rf src/admin` plus UNE ligne dans app.module.ts.
  */
-/** Distingue les trois raisons possibles — les confondre fausserait la lecture du catalogue. */
-function motifDe(pertinent: boolean, generique: boolean): "pertinence" | "generique" | "ecarte" {
-  if (pertinent) return "pertinence";
-  return generique ? "generique" : "ecarte";
-}
-
 @Injectable()
 export class AdminService {
   constructor(
@@ -164,25 +158,18 @@ export class AdminService {
         const brut = match?.normalizedScore ?? 0;
         const facteur = facteurPhase(s.phases as PoidsParPhase, phase);
         const score = brut * facteur;
-        const pertinent = score >= SEUIL_PERTINENCE;
-        const generique = !pertinent && s.presentationGenerique === "oui";
-
         return {
           slug: s.slug,
           nom: s.nom,
           scoreBrut: brut,
           facteurPhase: facteur,
           score,
-          retenu: pertinent || generique,
-          // Distinguer « pertinent » de « remonté en fallback » : ce sont deux raisons très
-          // différentes d'être affiché, et les confondre fausse toute lecture du catalogue.
-          motif: motifDe(pertinent, generique),
+          // Le score seul décide : il n'y a plus de repêchage générique. Le back-office doit
+          // montrer EXACTEMENT ce que fait l'API, sans quoi il ment sur ce que verra la
+          // collectivité.
+          retenu: score >= SEUIL_PERTINENCE,
           etiquettesCommunes: match?.labelsCommuns ?? { thematiques: [], sites: [], interventions: [] },
           profilGeneraliste: s.profilGeneraliste,
-          // Le drapeau qui décide du repêchage. Sans lui, le back-office ne peut pas rejouer la
-          // sélection à un autre seuil : il saurait qu'un service passe sous la barre, mais pas
-          // s'il retombe en « generique » ou disparaît.
-          presentationGenerique: s.presentationGenerique,
           categories: s.categories,
         };
       })
