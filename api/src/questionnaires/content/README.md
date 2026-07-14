@@ -32,21 +32,38 @@ réapparaît — un champ mort ne doit pas pouvoir revenir en silence dans une P
 
 ## Comment l'éligibilité fonctionne réellement
 
-Chaque questionnaire est **classifié comme l'est une aide**, sur les trois mêmes axes, dans
-les mêmes taxonomies (`classification.ts`, typé : une étiquette hors taxonomie ne compile
-pas). L'éligibilité est ensuite un **score**, calculé par le moteur du matching des aides
-(`AidesMatchingService`, réutilisé tel quel) :
+Chaque questionnaire déclare les **étiquettes qui le définissent**, dans les taxonomies fermées
+du schéma commun (`classification.ts`, typé : une étiquette hors taxonomie ne compile pas).
 
-- pondération par axe : thématiques 0.45, sites 0.35, interventions 0.20 ;
-- seuil de confiance 0.8 : une étiquette dont le LLM n'est pas sûr ne compte pas ;
-- score normalisé dans [0, 1], comparé à `SEUIL_ELIGIBILITE` (0.3, dans
-  `questionnaires.service.ts`).
+La règle : **le projet doit porter TOUTES ces étiquettes**, avec une confiance ≥ 0.8 (le même
+seuil que le matching des aides — en dessous, le job LLM hésite, on n'agit pas dessus).
 
-Le seuil est délibérément permissif : un faux positif coûte un onglet ignoré, un faux négatif
-coûte une opportunité de biodiversité jamais vue.
+**Toutes**, et non au moins une. Sur `atoutbiodiv-solaire` (« école » + « solaire sur le bâti »),
+« école » seule attraperait n'importe quel projet d'école, et « solaire » seul n'importe quelle
+installation photovoltaïque. C'est la conjonction qui définit le questionnaire.
 
-Conséquence directe : un projet **non encore classifié** (le job LLM n'a pas tourné) ne se
-voit proposer aucun questionnaire.
+### Pourquoi un critère, et pas un score
+
+Le score de matching des aides a été essayé ici, et il échoue pour une raison **structurelle** :
+il normalise par le maximum du **projet**. Deux projets portant tous deux « Place ou centre-bourg »
+obtenaient 1.00 et 0.11 selon que leur classification était pauvre ou riche — le second était
+écarté alors qu'il est bel et bien une place.
+
+Un questionnaire n'est pas une aide. Une aide _ressemble_ plus ou moins à un projet : un score a
+du sens. Un questionnaire, lui, s'applique ou ne s'applique pas — c'est une salle des fêtes, ou
+ce n'en est pas une. Un critère ne doit pas dépendre de la largeur de la classification d'à côté.
+
+Bénéfice secondaire : on peut dire **pourquoi** un questionnaire n'est pas proposé (« il manque
+le lieu _Place ou centre-bourg_ »). Un score de 0.11 ne se corrige pas ; une étiquette manquante,
+si — soit la classification du projet est fausse, soit le questionnaire vise autre chose.
+
+Conséquence directe : un projet **non encore classifié** (le job LLM n'a pas tourné) ne se voit
+proposer aucun questionnaire.
+
+### Le garde-fou qui compte
+
+Un questionnaire qui n'exige **aucune** étiquette serait proposé à **tous** les projets — une
+conjonction vide est vraie. Le chargeur refuse de démarrer dans ce cas.
 
 ## Ajouter un questionnaire
 

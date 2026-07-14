@@ -6,7 +6,7 @@ import { AideClassification, AideMatchResult } from "@/aides/dto/aides.dto";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { QUESTIONNAIRES } from "@/questionnaires/content";
 import { calculerStatut, evaluerCondition, reconcilierReponses } from "@/questionnaires/questionnaire-contract";
-import { SEUIL_ELIGIBILITE } from "@/questionnaires/questionnaires.service";
+import { etiquettesManquantes } from "@/questionnaires/questionnaires.service";
 import { facteurPhase, SEUIL_PERTINENCE, type PoidsParPhase } from "@/services-numeriques/service-numerique-contract";
 import { ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/admin.dto";
 
@@ -27,6 +27,16 @@ import { ContenuResponse, SimulationRequest, SimulationResponse } from "./dto/ad
  * Ce module est ADDITIF et ISOLÉ : rien ne l'importe, il ne modifie rien. Le supprimer, c'est
  * `rm -rf src/admin` plus UNE ligne dans app.module.ts.
  */
+/** Toutes les étiquettes requises, à plat — le cas « projet non classifié ». */
+function requisesAPlat(def: (typeof QUESTIONNAIRES)[number]): { axe: string; label: string }[] {
+  const { thematiques, sites, interventions } = def.etiquettesRequises;
+  return [
+    ...thematiques.map((label) => ({ axe: "thematiques", label })),
+    ...sites.map((label) => ({ axe: "sites", label })),
+    ...interventions.map((label) => ({ axe: "interventions", label })),
+  ];
+}
+
 @Injectable()
 export class AdminService {
   constructor(
@@ -45,7 +55,7 @@ export class AdminService {
         libelle: q.source.nom,
         version: q.version,
         banniere: q.banniere,
-        classification: q.classification,
+        etiquettesRequises: q.etiquettesRequises,
         questions: q.questions,
         recommandations: q.recommandations,
       })),
@@ -60,7 +70,7 @@ export class AdminService {
         phases: s.phases as PoidsParPhase,
         logoUrl: s.logoUrl,
       })),
-      seuils: { eligibilite: SEUIL_ELIGIBILITE, pertinence: SEUIL_PERTINENCE },
+      seuils: { pertinence: SEUIL_PERTINENCE },
     };
   }
 
@@ -87,7 +97,7 @@ export class AdminService {
       },
       questionnaires: this.simulerQuestionnaires(scoresProjet, requete.reponses ?? {}),
       services: await this.simulerServices(scoresProjet, projet.phase),
-      seuils: { eligibilite: SEUIL_ELIGIBILITE, pertinence: SEUIL_PERTINENCE },
+      seuils: { pertinence: SEUIL_PERTINENCE },
     };
   }
 
@@ -108,27 +118,29 @@ export class AdminService {
     );
   }
 
+  /**
+   * L'éligibilité est un CRITÈRE, pas un score : on rend donc les étiquettes qui MANQUENT.
+   *
+   * « non proposé, score 0,11 » n'apprend rien et ne se corrige pas. « non proposé : il manque
+   * le lieu Place ou centre-bourg » dit exactement quoi regarder — soit la classification du
+   * projet est fausse, soit le questionnaire vise autre chose.
+   */
   private simulerQuestionnaires(
     scoresProjet: AideClassification | null,
     reponsesParSlug: Record<string, Record<string, string>>,
   ): SimulationResponse["questionnaires"] {
-    const parSlug = new Map<string, AideClassification>(QUESTIONNAIRES.map((q) => [q.slug, q.classification]));
-    const scores = this.confronter(scoresProjet, parSlug);
-
     return QUESTIONNAIRES.map((def) => {
-      const match = scores.get(def.slug);
-      const score = match?.normalizedScore ?? 0;
+      // Sans classification, TOUTES les étiquettes requises manquent : c'est la vérité, et c'est
+      // plus parlant qu'un « non éligible » sans motif.
+      const manquantes = scoresProjet ? etiquettesManquantes(scoresProjet, def.etiquettesRequises) : requisesAPlat(def);
       const reponses = reconcilierReponses(def, reponsesParSlug[def.slug] ?? {});
       const statut = calculerStatut(def, reponses);
-      const retenu = score >= SEUIL_ELIGIBILITE;
+      const retenu = manquantes.length === 0;
 
       return {
         slug: def.slug,
-        score,
         retenu,
-        // Pourquoi ce score : les étiquettes réellement partagées avec le projet. Sans ça, un
-        // score de 0,12 est un chiffre opaque et on ne peut rien en faire.
-        etiquettesCommunes: match?.labelsCommuns ?? { thematiques: [], sites: [], interventions: [] },
+        etiquettesManquantes: manquantes,
         statut,
         reponses,
         recommandations: def.recommandations.map((r) => ({
@@ -140,7 +152,7 @@ export class AdminService {
           declenchee: retenu && statut !== "non_commence" && evaluerCondition(r.condition, reponses),
         })),
       };
-    }).sort((a, b) => b.score - a.score);
+    }).sort((a, b) => a.etiquettesManquantes.length - b.etiquettesManquantes.length || a.slug.localeCompare(b.slug));
   }
 
   private async simulerServices(

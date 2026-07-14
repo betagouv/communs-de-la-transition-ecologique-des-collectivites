@@ -69,55 +69,57 @@ describe("Back-office (e2e)", () => {
   });
 
   describe("GET /admin/contenu", () => {
-    it("expose les conditions et la classification d'éligibilité — l'inverse du contrat public", async () => {
+    it("expose les conditions et les étiquettes d'éligibilité — l'inverse du contrat public", async () => {
       const { body } = await appeler<{
         questionnaires: {
           slug: string;
-          classification: AideClassification;
+          etiquettesRequises: { sites: string[] };
           recommandations: { condition: unknown }[];
         }[];
-        seuils: { eligibilite: number; pertinence: number };
+        seuils: { pertinence: number };
       }>("GET", "/admin/contenu");
 
       const salle = body.questionnaires.find((q) => q.slug === "atoutbiodiv-salle")!;
 
-      expect(salle.classification.sites.map((s) => s.label)).toContain(
-        "Salle des fêtes, salle associative, pôle musical",
-      );
+      expect(salle.etiquettesRequises.sites).toContain("Salle des fêtes, salle associative, pôle musical");
       expect(salle.recommandations.every((r) => r.condition !== undefined)).toBe(true);
-      expect(body.seuils.eligibilite).toBeGreaterThan(0);
+      expect(body.seuils.pertinence).toBeGreaterThan(0);
     });
   });
 
   describe("POST /admin/simuler", () => {
-    it("simule sur un projet RÉEL et renvoie TOUS les candidats, y compris sous le seuil", async () => {
+    it("renvoie TOUS les questionnaires, proposés comme non proposés", async () => {
       const projetId = await creerProjet(SALLE);
 
       const { status, body } = await appeler<{
-        questionnaires: { slug: string; score: number; retenu: boolean }[];
+        questionnaires: { slug: string; retenu: boolean }[];
       }>("POST", "/admin/simuler", { projetId });
 
       expect(status).toBe(200);
-      // Les 4 questionnaires sont rendus, pas seulement le retenu : sans la distribution
-      // complète, on ne peut pas régler le seuil.
+      // Les 4 sont rendus, pas seulement le retenu : n'afficher que les retenus ne dirait pas
+      // POURQUOI les autres sont absents, et c'est justement ce qu'on vient chercher ici.
       expect(body.questionnaires).toHaveLength(4);
 
       const retenus = body.questionnaires.filter((q) => q.retenu);
       expect(retenus.map((q) => q.slug)).toEqual(["atoutbiodiv-salle"]);
-      expect(body.questionnaires.every((q) => typeof q.score === "number")).toBe(true);
     });
 
-    it("explique le score par les étiquettes partagées avec le projet", async () => {
+    it("dit QUELLE étiquette manque à un questionnaire non proposé", async () => {
       const projetId = await creerProjet(SALLE);
 
       const { body } = await appeler<{
-        questionnaires: { slug: string; etiquettesCommunes: { sites: string[] } }[];
+        questionnaires: { slug: string; retenu: boolean; etiquettesManquantes: { axe: string; label: string }[] }[];
       }>("POST", "/admin/simuler", { projetId });
 
-      const salle = body.questionnaires.find((q) => q.slug === "atoutbiodiv-salle")!;
+      const parSlug = new Map(body.questionnaires.map((q) => [q.slug, q]));
 
-      // Un score de 0,9 sans justification est un chiffre opaque. C'est ça qui le rend actionnable.
-      expect(salle.etiquettesCommunes.sites).toContain("Salle des fêtes, salle associative, pôle musical");
+      // Le proposé n'a rien qui manque — c'est la définition même de l'éligibilité.
+      expect(parSlug.get("atoutbiodiv-salle")!.etiquettesManquantes).toEqual([]);
+
+      // « il manque le lieu Place ou centre-bourg » se corrige. « score 0,11 » ne se corrige pas.
+      expect(parSlug.get("atoutbiodiv-place")!.etiquettesManquantes).toEqual([
+        { axe: "sites", label: "Place ou centre-bourg" },
+      ]);
     });
 
     it("simule l'effet de réponses SANS les enregistrer", async () => {

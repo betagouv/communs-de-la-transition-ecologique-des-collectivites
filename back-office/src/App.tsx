@@ -148,10 +148,7 @@ export default function App() {
                         </div>
                       )}
 
-                      <Questionnaires
-                        questionnaires={simulation.questionnaires}
-                        seuil={simulation.seuils.eligibilite}
-                      />
+                      <Questionnaires questionnaires={simulation.questionnaires} />
                       <Services services={simulation.services} seuilApi={simulation.seuils.pertinence} />
                     </>
                   )}

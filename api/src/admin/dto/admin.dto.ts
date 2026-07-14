@@ -16,11 +16,15 @@ import type {
 // Le contrat servi à MEC, lui, ne change pas d'un iota.
 
 export class SeuilsResponse {
-  @ApiProperty({ description: "Score normalisé minimal pour qu'un questionnaire soit proposé." })
-  eligibilite!: number;
-
   @ApiProperty({ description: "Score normalisé minimal pour qu'un service soit jugé pertinent." })
   pertinence!: number;
+}
+
+export class EtiquetteManquanteResponse {
+  @ApiProperty({ enum: ["thematiques", "sites", "interventions"] })
+  axe!: string;
+
+  @ApiProperty() label!: string;
 }
 
 export class QuestionnaireContenuResponse {
@@ -28,8 +32,8 @@ export class QuestionnaireContenuResponse {
   @ApiProperty() libelle!: string;
   @ApiProperty() version!: number;
   @ApiProperty({ type: Object }) banniere!: BanniereDef;
-  @ApiProperty({ type: Object, description: "Classification d'éligibilité — jamais exposée à MEC." })
-  classification!: AideClassification;
+  @ApiProperty({ type: Object, description: "Étiquettes définissantes — jamais exposées à MEC." })
+  etiquettesRequises!: { thematiques: readonly string[]; sites: readonly string[]; interventions: readonly string[] };
   @ApiProperty({ type: [Object] }) questions!: QuestionDef[];
   @ApiProperty({ type: [Object], description: "Recommandations AVEC leur condition — jamais exposée à MEC." })
   recommandations!: RecommandationDef[];
@@ -85,10 +89,16 @@ export class RecommandationSimuleeResponse {
 
 export class QuestionnaireSimuleResponse {
   @ApiProperty() slug!: string;
-  @ApiProperty({ description: "Score normalisé [0,1] du questionnaire pour ce projet." }) score!: number;
-  @ApiProperty({ description: "Au-dessus du seuil d'éligibilité." }) retenu!: boolean;
-  @ApiProperty({ type: Object, description: "Pourquoi ce score : les étiquettes partagées avec le projet." })
-  etiquettesCommunes!: AideLabelsCommuns;
+  @ApiProperty({ description: "Le projet porte TOUTES les étiquettes définissantes du questionnaire." })
+  retenu!: boolean;
+  @ApiProperty({
+    type: [EtiquetteManquanteResponse],
+    description:
+      "Les étiquettes que le projet NE porte PAS (confiance < 0,8). Vide = questionnaire proposé. " +
+      "L'éligibilité est un critère, pas un score : « il manque le lieu Place ou centre-bourg » " +
+      "dit quoi regarder, là où « score 0,11 » n'apprend rien.",
+  })
+  etiquettesManquantes!: EtiquetteManquanteResponse[];
   @ApiProperty() statut!: StatutQuestionnaire;
   @ApiProperty({ type: Object }) reponses!: Record<string, string>;
   @ApiProperty({ type: [RecommandationSimuleeResponse] }) recommandations!: RecommandationSimuleeResponse[];
