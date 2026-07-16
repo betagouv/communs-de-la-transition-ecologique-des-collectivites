@@ -4,7 +4,7 @@ import { RequestLoggingInterceptor } from "@/logging/request-logging.interceptor
 import { GlobalExceptionFilter } from "@/exceptions/global-exception-filter";
 import { CustomLogger } from "@/logging/logger.service";
 import { MatomoService } from "@/matomo";
-import { json } from "express";
+import { json, type NextFunction, type Request, type Response } from "express";
 import { ProjetsModule } from "@projets/projets.module";
 import { ServicesModule } from "./services/services.module";
 import { ProjetQualificationModule } from "@/projet-qualification/projet-qualification.module";
@@ -24,9 +24,21 @@ export function setupApp(app: INestApplication) {
 
   app.useLogger(logger);
 
-  // Bulk endpoint accepts large payloads (80k+ projects from MEC CRTE)
-  app.use("/projets/bulk", json({ limit: "50mb" }));
-  app.use(json({ limit: "100kb" }));
+  // Les endpoints « bulk » reçoivent d'énormes corps (80k+ projets du CRTE de MEC) ; tout le reste
+  // est plafonné bas pour se protéger.
+  //
+  // ON DÉCIDE SUR LE SUFFIXE DU CHEMIN, pas sur un préfixe fixe. Le premier essai posait
+  // l'override sur `/projets/bulk` — mais Express matche `app.use(chemin, …)` par PRÉFIXE, et le
+  // bulk de MEC vit à `/mec/v1/projets/bulk`. Ce chemin ne matchait donc pas, retombait sur les
+  // 100 Ko, et tout import MEC réel partait en 500 (PayloadTooLargeError). Vu en prod.
+  //
+  // `endsWith` couvre les DEUX bulk existants (public et MEC) et tout futur `.../projets/bulk`,
+  // sans qu'on ait à réénumérer les chemins — c'est exactement ce que l'ancien code oubliait.
+  const corpsVolumineux = json({ limit: "50mb" });
+  const corpsStandard = json({ limit: "100kb" });
+  app.use((req: Request, res: Response, next: NextFunction) =>
+    (req.path.endsWith("/projets/bulk") ? corpsVolumineux : corpsStandard)(req, res, next),
+  );
 
   app.useGlobalFilters(new GlobalExceptionFilter(logger));
 
