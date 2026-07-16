@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.0](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.103...v0.2.0) (2026-07-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **services:** retirer `thematiques` du contrat public
+
+### Features
+
+* **ajouts-manuels:** ajouter à la main une aide ou un service sur un projet ([6be236b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6be236b891f224c598cac386e35badbad850f839))
+* **ajouts-manuels:** ajouter un service HORS catalogue, décrit par l'agent ([bf0a399](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/bf0a399bd1b2a2417a588fb94b65f4d455363354))
+* **api:** descriptions et classifications générées, bug de découpage corrigé ([6aa791b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6aa791b0bebe276d8cd9aa96cd1245d6222b7e4b))
+* **api:** génération des descriptions manquantes depuis les sites, sans hallucination ([cfe2d8d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/cfe2d8d4ac51926dd44a9809714a45bf3d22c2ba))
+* **api:** questionnaires, recommandations et catalogue de services numériques ([2f489ae](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2f489ae4dda29caefe65c00e48f6800ba254189e))
+* **api:** tout le catalogue proposé, « profil généraliste » filtrable, logos complétés ([a5f04e3](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/a5f04e37167507f096baa2fcf07affba3b20226e))
+* **api:** vrais logos des services numériques, hébergés par l'API ([e236568](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e2365688b51815c428a8868a53251789aa3668f1))
+* **back-office:** ajouter et retirer une aide ou un service depuis l'écran ([2487ba4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2487ba48b35152b959084fede67d7b7f7993487a))
+* **back-office:** console de lecture et de simulation, supprimable ([d817d0b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d817d0b14c67b3c520f4f12a1ebf7ded26024e88))
+* **back-office:** éditeur de questionnaires ([1ad5dfe](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/1ad5dfed0a0487ab1ae4c923c4c8c6a2875491ab))
+* **back-office:** montrer ce que l'API renvoie RÉELLEMENT, et non une émulation ([e41cac4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e41cac4fdf5417f6bfbfc516b9df513abac23195))
+* **questionnaires:** définition en base, éditable depuis le back-office ([dd06315](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/dd06315054ef9dc82d52f5c1dc43d944b52da74e))
+* **questionnaires:** éligibilité par étiquette, et non par score ([12a3614](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/12a3614e48c8d2ec845b164b65e195922ed10406))
+* **recommandations:** exposer l'identifiant de l'aide dans les financements ([ad8c98d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ad8c98d9d24921eec394e40fdee7f6f561c8fbbe))
+* **services:** retirer `thematiques` du contrat public ([83fe494](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/83fe494ced7741dc331ae9330f6c62bf0e3b834d))
+
+
+### Bug Fixes
+
+* **back-office:** rendre l'écran lisible — cible, réglages, service hors catalogue ([5c46e78](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/5c46e78e26e02840bd2f9268ff185b4ca61dc887))
+* **mec:** lever la limite de corps sur /mec/v1/projets/bulk (500 en prod) ([6542212](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6542212bc3199a0d11028378e086ea1f9a793f12))
+* **services:** supprimer le repêchage générique, le score seul décide ([976c0ae](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/976c0ae7f9de83cc61c98bd4df2c7bf4cf5d0f09))
+
 ## [0.1.103](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.102...v0.1.103) (2026-07-10)
 
 
