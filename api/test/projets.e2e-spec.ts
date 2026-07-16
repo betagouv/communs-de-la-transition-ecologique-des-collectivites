@@ -2,6 +2,7 @@
 
 import { getFormattedDate } from "./helpers/get-formatted-date";
 import { createApiClient } from "@test/helpers/api-client";
+import { E2E_BASE_URL } from "@test/helpers/e2e-port";
 import { CompetenceCode, Levier } from "@/shared/types";
 import { mockedDefaultCollectivite, mockProjetPayload } from "@test/mocks/mockProjetPayload";
 import { collectivites, PhaseStatut, ProjetPhase } from "@database/schema";
@@ -376,6 +377,36 @@ describe("Projets (e2e)", () => {
   });
 
   describe("POST /projets/bulk", () => {
+    // RÉGRESSION PROD (juillet 2026). Le bulk de MEC vit à `/mec/v1/projets/bulk`, mais l'override
+    // de corps volumineux (50 Mo) était posé sur `/projets/bulk` — un PRÉFIXE qui ne matche pas le
+    // chemin MEC. Tout import MEC réel dépassait donc les 100 Ko par défaut et partait en 500
+    // (PayloadTooLargeError). Ce test envoie > 100 Ko à la route MEC et vérifie qu'elle NE renvoie
+    // PAS 413 : le corps doit être parsé, pas rejeté pour sa taille.
+    it("accepte un corps MEC de plus de 100 Ko sur /mec/v1/projets/bulk (pas de 413)", async () => {
+      // ~250 projets, chacun avec une description remplie : le JSON dépasse largement 100 Ko, tout
+      // en restant très loin des 50 Mo. Assez pour franchir l'ancienne limite, pas pour toucher la
+      // nouvelle.
+      const bourrage = "x".repeat(400);
+      const projets = Array.from({ length: 250 }, (_, i) => ({
+        nom: `Projet volumineux ${i}`,
+        externalId: `bulk-taille-${i}`,
+        collectivites: [mockedDefaultCollectivite],
+        description: bourrage,
+      }));
+      const corps = JSON.stringify({ projets });
+      expect(corps.length).toBeGreaterThan(100 * 1024);
+
+      const reponse = await fetch(`${E2E_BASE_URL}/mec/v1/projets/bulk`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${process.env.MEC_API_KEY}`, "Content-Type": "application/json" },
+        body: corps,
+      });
+
+      // Le point du test : PAS 413. Avant le correctif, c'était 413 → 500 côté client.
+      expect(reponse.status).not.toBe(413);
+      expect(reponse.status).toBe(201);
+    });
+
     const validProjets: { projets: CreateProjetRequest[] } = {
       projets: [mockProjetPayload({ externalId: "bulk-projet-1" }), mockProjetPayload({ externalId: "bulk-projet-2" })],
     };
