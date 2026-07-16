@@ -382,15 +382,16 @@ describe("Projets (e2e)", () => {
     // chemin MEC. Tout import MEC réel dépassait donc les 100 Ko par défaut et partait en 500
     // (PayloadTooLargeError). Ce test envoie > 100 Ko à la route MEC et vérifie qu'elle NE renvoie
     // PAS 413 : le corps doit être parsé, pas rejeté pour sa taille.
-    it("accepte un corps MEC de plus de 100 Ko sur /mec/v1/projets/bulk (pas de 413)", async () => {
-      // ~250 projets, chacun avec une description remplie : le JSON dépasse largement 100 Ko, tout
-      // en restant très loin des 50 Mo. Assez pour franchir l'ancienne limite, pas pour toucher la
-      // nouvelle.
+    it("accepte un corps de plus de 100 Ko sur /mec/v1/projets/bulk (parsé, pas rejeté pour sa taille)", async () => {
+      // Projets VOLONTAIREMENT INVALIDES (nom manquant) : on ne veut RIEN persister. cleanDatabase
+      // ne tronque pas data_mec.projets_operationnels — un test qui y écrirait polluerait les
+      // suivants (fuite constatée en CI). Le corps invalide est quand même PARSÉ avant d'être
+      // validé : c'est tout ce qu'il faut pour prouver que la taille est acceptée.
+      //
+      // ~250 entrées avec du bourrage : le JSON dépasse 100 Ko, tout en restant loin des 50 Mo.
       const bourrage = "x".repeat(400);
       const projets = Array.from({ length: 250 }, (_, i) => ({
-        nom: `Projet volumineux ${i}`,
         externalId: `bulk-taille-${i}`,
-        collectivites: [mockedDefaultCollectivite],
         description: bourrage,
       }));
       const corps = JSON.stringify({ projets });
@@ -402,9 +403,10 @@ describe("Projets (e2e)", () => {
         body: corps,
       });
 
-      // Le point du test : PAS 413. Avant le correctif, c'était 413 → 500 côté client.
-      expect(reponse.status).not.toBe(413);
-      expect(reponse.status).toBe(201);
+      // AVANT le correctif : le corps > 100 Ko échoue au parsing (PayloadTooLargeError) → 500.
+      // APRÈS : le corps est parsé, puis la validation rejette les projets sans nom → 400.
+      // C'est ce passage de 500 à 400 qui prouve le correctif, sans écrire une seule ligne.
+      expect(reponse.status).toBe(400);
     });
 
     const validProjets: { projets: CreateProjetRequest[] } = {
