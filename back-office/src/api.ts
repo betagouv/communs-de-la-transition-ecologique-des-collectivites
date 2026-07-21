@@ -22,9 +22,11 @@ async function appeler<T>(chemin: string, corps?: unknown, methode?: "GET" | "PO
   const cle = lireCle();
   if (!cle) throw new CleRefusee();
 
-  // `/api` est réécrit par le proxy Vite (voir vite.config.ts) : pas de requête cross-origin,
-  // donc rien à ouvrir côté API.
-  const reponse = await fetch(`/api${chemin}`, {
+  // EN DEV : le proxy Vite réécrit `/api` → l'API cible (VITE_API_TARGET), donc pas de CORS.
+  // EN PROD : le back-office est servi PAR l'API (même origine), on appelle donc `/admin/…`
+  // directement, sans préfixe. `import.meta.env.DEV` distingue les deux sans configuration.
+  const base = import.meta.env.DEV ? "/api" : "";
+  const reponse = await fetch(`${base}${chemin}`, {
     method: methode ?? (corps === undefined ? "GET" : "POST"),
     headers: { Authorization: `Bearer ${cle}`, "Content-Type": "application/json" },
     ...(corps === undefined ? {} : { body: JSON.stringify(corps) }),

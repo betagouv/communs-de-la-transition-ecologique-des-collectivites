@@ -5,6 +5,7 @@ import { setupApp } from "./setup-app";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { serveDemoWidget } from "@/serve-demo-widget";
 import { serveStatisticsDashboard } from "@/serve-statistics-dashboard";
+import { serveBackOffice } from "@/serve-back-office";
 import { serveRessources } from "@/serve-ressources";
 import { serveLogos } from "@/serve-logos";
 import { setupReferentielDoc } from "@/referentiel/referentiel-doc.setup";
@@ -39,6 +40,7 @@ async function bootstrap() {
   setupSwaggerHub(app);
   serveDemoWidget(app);
   serveStatisticsDashboard(app);
+  serveBackOffice(app);
   serveRessources(app);
   serveLogos(app);
   serveLandingPages(app);
