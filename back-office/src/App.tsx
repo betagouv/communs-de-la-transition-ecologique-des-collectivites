@@ -213,8 +213,16 @@ export default function App() {
  * que sa clé est refusée alors qu'on parle à la mauvaise API.
  */
 function cible(): string {
+  // EN PROD, le back-office est servi PAR l'API : la cible est l'origine courante.
+  if (!import.meta.env.DEV) {
+    const h = window.location.host;
+    if (h.includes("staging")) return "STAGING";
+    // La prod porte le domaine public (api.collectivites…) ou l'app prod Scalingo.
+    return "⚠ PRODUCTION";
+  }
+  // EN DEV, la cible est celle du proxy Vite.
   const url = (import.meta.env.VITE_API_TARGET as string | undefined) ?? "http://localhost:3000";
   if (url.includes("staging")) return "STAGING";
-  if (url.includes("prod")) return "⚠ PRODUCTION";
+  if (url.includes("prod") || url.includes("collectivites")) return "⚠ PRODUCTION";
   return `local (${url})`;
 }
