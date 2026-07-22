@@ -7,7 +7,6 @@ import {
   IsObject,
   IsOptional,
   IsString,
-  IsUUID,
   Max,
   Min,
 } from "class-validator";
@@ -71,10 +70,11 @@ export class ContenuResponse {
 export class SimulationRequest {
   @ApiProperty({
     description:
-      "Identifiant d'un projet RÉEL. On simule sur une vraie classification, avec ses trous : " +
-      "un projet fictif composé à la main dirait ce qu'on veut entendre.",
+      "Identifiant d'un projet RÉEL : communId (UUID) ou id MEC (external_id). On simule sur une " +
+      "vraie classification, avec ses trous : un projet fictif composé à la main dirait ce qu'on veut entendre.",
   })
-  @IsUUID()
+  @IsString()
+  @IsNotEmpty()
   projetId!: string;
 
   @ApiPropertyOptional({
@@ -202,8 +202,9 @@ export class ParametresAidesDto {
 }
 
 export class ApercuRequest {
-  @ApiProperty({ description: "Identifiant d'un projet RÉEL." })
-  @IsUUID()
+  @ApiProperty({ description: "Identifiant d'un projet RÉEL : communId (UUID) ou id MEC (external_id)." })
+  @IsString()
+  @IsNotEmpty()
   projetId!: string;
 
   @ApiProperty({
