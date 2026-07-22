@@ -53,10 +53,32 @@ export class AidesTerritoiresService {
   }
 
   /**
-   * Fetch a single page from AT API with retry on transient errors (429, 502, 503, 504).
+   * Oublie le bearer token en cache pour forcer une ré-authentification au prochain appel.
+   * Notre TTL de 23h n'est qu'une hypothèse : si AT invalide le token plus tôt (rotation,
+   * incident, redémarrage côté AT), il faut pouvoir en redemander un sans attendre l'échéance.
    */
-  private async fetchPage(url: string, token: string): Promise<AidesTerritoiresResponse> {
+  private invalidateBearerToken(): void {
+    this.bearerToken = null;
+    this.bearerExpiresAt = 0;
+  }
+
+  /**
+   * Fetch a single page from AT API, robuste aux défaillances d'Aides-Territoires.
+   *
+   * AT renvoie des 401 de DEUX natures, qu'on traite différemment :
+   *   1. token réellement périmé avant notre TTL de 23h → il faut ré-authentifier ;
+   *   2. 401 INTERMITTENT sur un token pourtant valide (backend AT flaky : un même token est
+   *      accepté puis rejeté à quelques secondes d'intervalle, observé en prod) → il faut
+   *      simplement retenter.
+   * On combine les deux : au 1er 401/403 on jette le token en cache et on rejoue tout de suite
+   * (couvre le cas 1, gratuit) ; si AT continue de renvoyer 401/403, on le traite comme une
+   * erreur transitoire (429/5xx) et on retente avec backoff — au lieu de laisser un hoquet d'AT
+   * remonter en 500 chez l'appelant.
+   */
+  private async fetchPage(url: string): Promise<AidesTerritoiresResponse> {
+    let reauthed = false;
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      const token = await this.getBearerToken();
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -65,7 +87,22 @@ export class AidesTerritoiresService {
         return (await response.json()) as AidesTerritoiresResponse;
       }
 
-      if (!RETRYABLE_STATUS_CODES.includes(response.status) || attempt === MAX_RETRIES) {
+      const isAuthError = response.status === 401 || response.status === 403;
+
+      // Cas 1 — 1er 401/403 : le token est peut-être périmé. On le jette et on rejoue
+      // immédiatement avec un token frais, sans consommer de tentative ni attendre.
+      if (isAuthError && !reauthed) {
+        reauthed = true;
+        this.invalidateBearerToken();
+        this.logger.warn(`AT API ${response.status} on ${url}, re-authenticating and retrying`);
+        attempt--;
+        continue;
+      }
+
+      // Cas 2 — 401/403 persistant (AT flaky) ou erreur transitoire (429/5xx) : on retente
+      // avec backoff. Tout le reste (4xx applicatif) échoue immédiatement.
+      const retryable = isAuthError || RETRYABLE_STATUS_CODES.includes(response.status);
+      if (!retryable || attempt === MAX_RETRIES) {
         throw new Error(`AT API error: ${response.status} ${response.statusText}`);
       }
 
@@ -86,7 +123,6 @@ export class AidesTerritoiresService {
    * @returns All aides matching the query
    */
   async fetchAides(params: Record<string, string> = {}): Promise<Aide[]> {
-    const token = await this.getBearerToken();
     const allAides: Aide[] = [];
     let page = 1;
     let hasMore = true;
@@ -95,7 +131,7 @@ export class AidesTerritoiresService {
       const queryParams = new URLSearchParams({ ...params, page_size: "50", page: String(page) });
       const url = `${this.baseUrl}/aids/?${queryParams}`;
 
-      const data = await this.fetchPage(url, token);
+      const data = await this.fetchPage(url);
       allAides.push(...data.results);
 
       hasMore = data.next !== null;
