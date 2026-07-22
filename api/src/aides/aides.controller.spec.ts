@@ -138,7 +138,7 @@ describe("AidesController", () => {
 
     mockQualificationQueue = {
       getJob: jest.fn().mockResolvedValue(null),
-      add: jest.fn().mockResolvedValue({ id: "auto-classify:test-id" }),
+      add: jest.fn().mockResolvedValue({ id: "auto-classify-test-id" }),
     } as unknown as jest.Mocked<Queue>;
 
     mockFeedbackService = {
@@ -274,8 +274,12 @@ describe("AidesController", () => {
       expect(mockQualificationQueue.add).toHaveBeenCalledWith(
         PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
         { projetId: "test-id" },
-        expect.objectContaining({ jobId: "auto-classify:test-id" }),
+        expect.objectContaining({ jobId: "auto-classify-test-id" }),
       );
+      // Garde anti-régression : BullMQ rejette tout jobId contenant `:` (séparateur de clés Redis).
+      // Le mock ne valide pas cette règle, d'où le 500 passé inaperçu — on l'ancre donc ici.
+      const enqueuedOpts = mockQualificationQueue.add.mock.calls[0][2] as { jobId: string };
+      expect(enqueuedOpts.jobId).not.toContain(":");
     });
 
     it("should tag the classification job with schema=data_mec when projet comes from data_mec", async () => {
@@ -294,7 +298,7 @@ describe("AidesController", () => {
       expect(mockQualificationQueue.add).toHaveBeenCalledWith(
         PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
         { projetId: "test-id", schema: "data_mec" },
-        expect.objectContaining({ jobId: "auto-classify:test-id" }),
+        expect.objectContaining({ jobId: "auto-classify-test-id" }),
       );
     });
 
@@ -314,7 +318,7 @@ describe("AidesController", () => {
       expect(mockQualificationQueue.add).toHaveBeenCalledWith(
         PROJECT_QUALIFICATION_CLASSIFICATION_JOB,
         { ficheActionId: "test-id" },
-        expect.objectContaining({ jobId: "auto-classify:test-id" }),
+        expect.objectContaining({ jobId: "auto-classify-test-id" }),
       );
     });
 
