@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
+import { and, eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
-import { servicesNumeriques } from "@database/schema";
+import { mecExternalIds, servicesNumeriques } from "@database/schema";
 import { AidesMatchingService } from "@/aides/aides-matching.service";
 import { AidesMoteurService } from "@/aides/aides-moteur.service";
 import { AidesProjetService } from "@/aides/aides-projet.service";
@@ -34,6 +35,9 @@ import { ApercuRequest, ApercuResponse, ContenuResponse, SimulationRequest, Simu
  * vit dans QuestionnairesModule, pas ici — sans quoi jeter l'écran rendrait le contenu non
  * éditable. Le supprimer, c'est `rm -rf src/admin` plus UNE ligne dans app.module.ts.
  */
+/** communId interne. Tout id qui n'a pas cette forme est traité comme un external_id de plateforme. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Toutes les étiquettes requises, à plat — le cas « projet non classifié ». */
 function requisesAPlat(def: QuestionnaireDef): { axe: string; label: string }[] {
   const { thematiques, sites, interventions } = def.etiquettesRequises;
@@ -81,13 +85,14 @@ export class AdminService {
     };
 
     const seuilServices = dto.seuilServices ?? SEUIL_PERTINENCE;
+    const projetId = await this.resoudreProjetId(dto.projetId);
 
     const [aides, services, questionnaires, recommandations] = await Promise.all([
-      this.aidesProjet.pourProjet(dto.projetId, dto.plateforme, reglagesAides),
+      this.aidesProjet.pourProjet(projetId, dto.plateforme, reglagesAides),
       // Le seuil est PASSÉ à l'API, pas rejoué ici : c'est elle qui décide, avec le réglage demandé.
-      this.servicesNumeriques.findForProjet(dto.projetId, baseUrl, dto.plateforme, seuilServices),
-      this.questionnaires.findForProjet(dto.projetId),
-      this.recommandations.findForProjet(dto.projetId, dto.plateforme),
+      this.servicesNumeriques.findForProjet(projetId, baseUrl, dto.plateforme, seuilServices),
+      this.questionnaires.findForProjet(projetId),
+      this.recommandations.findForProjet(projetId, dto.plateforme),
     ]);
 
     return { aides, services, questionnaires, recommandations, reglagesAides, seuilServices };
@@ -130,7 +135,8 @@ export class AdminService {
    * de la collectivité. On peut donc explorer librement l'effet d'une réponse sans polluer.
    */
   async simuler(requete: SimulationRequest): Promise<SimulationResponse> {
-    const { projet } = await this.getProjetsService.findOneWithSource(requete.projetId);
+    const projetId = await this.resoudreProjetId(requete.projetId);
+    const { projet } = await this.getProjetsService.findOneWithSource(projetId);
     const scoresProjet = projet.classificationScores;
 
     return {
@@ -148,6 +154,26 @@ export class AdminService {
       services: await this.simulerServices(scoresProjet, projet.phase),
       seuils: { pertinence: SEUIL_PERTINENCE },
     };
+  }
+
+  /**
+   * Le back-office accepte soit le communId interne (UUID), soit un id MEC (l'external_id que voit
+   * la collectivité, ex. « 200001 »). Confort d'usage : on colle l'id qu'on a sous les yeux dans MEC.
+   *
+   * Un id non-UUID est résolu via data_mec.external_ids → communId. Introuvable : on renvoie l'entrée
+   * telle quelle, et findOneWithSource (ou les services aval) lèvera un 404 explicite.
+   */
+  private async resoudreProjetId(entree: string): Promise<string> {
+    const id = entree.trim();
+    if (UUID_RE.test(id)) return id;
+
+    const [row] = await this.dbService.database
+      .select({ objetId: mecExternalIds.objetId })
+      .from(mecExternalIds)
+      .where(and(eq(mecExternalIds.serviceType, "MEC"), eq(mecExternalIds.externalId, id)))
+      .limit(1);
+
+    return row?.objetId ?? id;
   }
 
   /**
