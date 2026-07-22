@@ -252,7 +252,10 @@ export class AidesController {
    * Returns true if a new job was enqueued, false if one was already in flight.
    */
   private async triggerClassificationIfNeeded(projetId: string, source: ProjetSource): Promise<boolean> {
-    const jobId = `auto-classify:${projetId}`;
+    // Pas de `:` dans le jobId : BullMQ (>=5) le réserve comme séparateur de clés Redis et rejette
+    // tout id custom qui en contient (« Custom Id cannot contain : »). Un `:` ici faisait donc lever
+    // une exception à l'enqueue → 500 sur GET /aides pour tout projet non encore classifié.
+    const jobId = `auto-classify-${projetId}`;
     const existing = await this.qualificationQueue.getJob(jobId);
 
     if (existing) {
