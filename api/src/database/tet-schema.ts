@@ -1,4 +1,4 @@
-import { index, jsonb, pgSchema, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { index, jsonb, pgSchema, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
@@ -15,16 +15,24 @@ export const dataTetSchema = pgSchema("data_tet");
 // Replaces hardcoded mecId/tetId columns per the v0.2 FAQ recommendation:
 // "Le mapping sera géré par l'API Collectivités dans une table de jonction
 //  external_ids(objetId, serviceType, externalId)"
+//
+// objet_type discriminates the namespace: source platforms use distinct id
+// sequences per object kind (a TeT plan id can equal a TeT fiche id), so a
+// lookup by (service_type, external_id) alone is ambiguous.
+export const TET_OBJET_TYPES = ["fiche_action", "plan_transition"] as const;
+export type TetObjetType = (typeof TET_OBJET_TYPES)[number];
+
 export const tetExternalIds = dataTetSchema.table(
   "external_ids",
   {
     objetId: uuid("objet_id").notNull(),
     serviceType: text("service_type").notNull(), // e.g. "TeT", "MEC", "FondsVert"
+    objetType: text("objet_type").$type<TetObjetType>().notNull(),
     externalId: text("external_id").notNull(),
   },
   (t) => [
     primaryKey({ columns: [t.objetId, t.serviceType] }),
-    index("tet_external_ids_external_idx").on(t.serviceType, t.externalId),
+    uniqueIndex("tet_external_ids_lookup_uidx").on(t.serviceType, t.objetType, t.externalId),
   ],
 );
 

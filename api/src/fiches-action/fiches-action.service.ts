@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { DatabaseService } from "@database/database.service";
+import { DatabaseService, Tx } from "@database/database.service";
 import {
   tetFichesAction,
   tetPlansTransition,
@@ -48,7 +48,13 @@ export class FichesActionService {
       const [parentExternal] = await db
         .select({ objetId: tetExternalIds.objetId })
         .from(tetExternalIds)
-        .where(and(eq(tetExternalIds.serviceType, serviceType), eq(tetExternalIds.externalId, dto.parentExternalId)))
+        .where(
+          and(
+            eq(tetExternalIds.serviceType, serviceType),
+            eq(tetExternalIds.objetType, "fiche_action"),
+            eq(tetExternalIds.externalId, dto.parentExternalId),
+          ),
+        )
         .limit(1);
       parentUuid = parentExternal?.objetId ?? null;
     }
@@ -73,33 +79,53 @@ export class FichesActionService {
       sourceMetadata,
     };
 
-    // 5. Check if fiche already exists (via external_ids)
-    const [existingExternal] = await db
-      .select({ objetId: tetExternalIds.objetId })
-      .from(tetExternalIds)
-      .where(and(eq(tetExternalIds.serviceType, serviceType), eq(tetExternalIds.externalId, dto.externalId)))
-      .limit(1);
+    // 5-6. Upsert fiche, its external id mapping, its plans and their links —
+    // atomically, so a failure never leaves a fiche stripped of its plan links.
+    const ficheId = await db.transaction(async (tx) => {
+      const [existingExternal] = await tx
+        .select({ objetId: tetExternalIds.objetId })
+        .from(tetExternalIds)
+        .where(
+          and(
+            eq(tetExternalIds.serviceType, serviceType),
+            eq(tetExternalIds.objetType, "fiche_action"),
+            eq(tetExternalIds.externalId, dto.externalId),
+          ),
+        )
+        .limit(1);
 
-    let ficheId: string;
+      let ficheId: string;
 
-    if (existingExternal) {
-      ficheId = existingExternal.objetId;
-      await db.update(tetFichesAction).set(fieldsToSet).where(eq(tetFichesAction.id, ficheId));
-    } else {
-      const [inserted] = await db.insert(tetFichesAction).values(fieldsToSet).returning();
-      ficheId = inserted.id;
+      if (existingExternal) {
+        ficheId = existingExternal.objetId;
+        const updated = await tx
+          .update(tetFichesAction)
+          .set(fieldsToSet)
+          .where(eq(tetFichesAction.id, ficheId))
+          .returning({ id: tetFichesAction.id });
+        if (updated.length === 0) {
+          // Orphan mapping (fiche row gone): recreate under the mapped UUID
+          this.logger.warn(`Orphan external_ids mapping for fiche ${ficheId} — recreating fiches_action row`);
+          await tx.insert(tetFichesAction).values({ id: ficheId, ...fieldsToSet });
+        }
+      } else {
+        const [inserted] = await tx.insert(tetFichesAction).values(fieldsToSet).returning();
+        ficheId = inserted.id;
 
-      await db.insert(tetExternalIds).values({
-        objetId: ficheId,
-        serviceType,
-        externalId: dto.externalId,
-      });
-    }
+        await tx.insert(tetExternalIds).values({
+          objetId: ficheId,
+          serviceType,
+          objetType: "fiche_action",
+          externalId: dto.externalId,
+        });
+      }
 
-    // 6. Upsert plans and link them
-    if (dto.plans?.length) {
-      await this.upsertPlans(ficheId, dto.plans, serviceType);
-    }
+      if (dto.plans?.length) {
+        await this.upsertPlans(tx, ficheId, dto.plans, serviceType);
+      }
+
+      return ficheId;
+    });
 
     // 7. Schedule classification if not yet classified
     const [fiche] = await db
@@ -232,37 +258,52 @@ export class FichesActionService {
     return { siren: null, territoireCommunes: null };
   }
 
-  private async upsertPlans(ficheActionId: string, plans: PlanReference[], serviceType: string): Promise<void> {
-    const db = this.dbService.database;
-
-    await db.delete(tetFichesActionToPlans).where(eq(tetFichesActionToPlans.ficheActionId, ficheActionId));
+  private async upsertPlans(tx: Tx, ficheActionId: string, plans: PlanReference[], serviceType: string): Promise<void> {
+    await tx.delete(tetFichesActionToPlans).where(eq(tetFichesActionToPlans.ficheActionId, ficheActionId));
 
     for (const plan of plans) {
-      const [existingPlan] = await db
+      const [existingPlan] = await tx
         .select({ objetId: tetExternalIds.objetId })
         .from(tetExternalIds)
-        .where(and(eq(tetExternalIds.serviceType, serviceType), eq(tetExternalIds.externalId, plan.externalId)))
+        .where(
+          and(
+            eq(tetExternalIds.serviceType, serviceType),
+            eq(tetExternalIds.objetType, "plan_transition"),
+            eq(tetExternalIds.externalId, plan.externalId),
+          ),
+        )
         .limit(1);
 
       let planId: string;
 
       if (existingPlan) {
         planId = existingPlan.objetId;
-        await db
+        const updated = await tx
           .update(tetPlansTransition)
           .set({ nom: plan.nom ?? null, type: plan.type ?? null })
-          .where(eq(tetPlansTransition.id, planId));
+          .where(eq(tetPlansTransition.id, planId))
+          .returning({ id: tetPlansTransition.id });
+        if (updated.length === 0) {
+          // Orphan mapping (plan row gone): recreate under the mapped UUID
+          this.logger.warn(`Orphan external_ids mapping for plan ${planId} — recreating plans_transition row`);
+          await tx.insert(tetPlansTransition).values({ id: planId, nom: plan.nom ?? null, type: plan.type ?? null });
+        }
       } else {
-        const [inserted] = await db
+        const [inserted] = await tx
           .insert(tetPlansTransition)
           .values({ nom: plan.nom ?? null, type: plan.type ?? null })
           .returning();
         planId = inserted.id;
 
-        await db.insert(tetExternalIds).values({ objetId: planId, serviceType, externalId: plan.externalId });
+        await tx.insert(tetExternalIds).values({
+          objetId: planId,
+          serviceType,
+          objetType: "plan_transition",
+          externalId: plan.externalId,
+        });
       }
 
-      await db.insert(tetFichesActionToPlans).values({ ficheActionId, planTransitionId: planId }).onConflictDoNothing();
+      await tx.insert(tetFichesActionToPlans).values({ ficheActionId, planTransitionId: planId }).onConflictDoNothing();
     }
   }
 
