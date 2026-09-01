@@ -175,8 +175,11 @@ export class ServicesContextService {
       iframeUrl: service_context.iframeUrl ?? services.iframeUrl,
       name: service_context.name ?? services.name,
       isListed: service_context.isListed ?? services.isListed,
-      // workaround to a specific jsonb array bug in drizzle https://github.com/drizzle-team/drizzle-orm/issues/2913
-      extraFields: (service_context.extraFields ?? []) as ExtraFieldConfig[],
+      // Feature "extra-fields" retirée (faille YesWeHack : écriture publique / IDOR). Les routes
+      // GET/POST /projets/:id/extra-fields n'existent plus ; on n'annonce donc plus aucun champ,
+      // ce qui éteint le formulaire de saisie même sur les widgets déjà déployés (qui ne le
+      // rendent que si l'API renvoie des extraFields). La config stockée est purgée par migration.
+      extraFields: [] as ExtraFieldConfig[],
     }));
   }
 }
