@@ -1,15 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  IsBoolean,
-  IsInt,
-  IsNotEmpty,
-  IsNumber,
-  IsObject,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-} from "class-validator";
+import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, Max, Min } from "class-validator";
 import { AideClassification, AideLabelsCommuns } from "@/aides/dto/aides.dto";
 import { ProjetPhase } from "@database/schema";
 import type { PoidsParPhase } from "@/services-numeriques/service-numerique-contract";
