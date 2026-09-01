@@ -10,10 +10,8 @@ import { BulkCreateProjetsRequest, BulkCreateProjetsResponse } from "./dto/bulk-
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { Public } from "@/auth/public.decorator";
 import { UUIDDto } from "@/shared/dto/uuid";
-import { ExtraFieldsService } from "@projets/services/extra-fields/extra-fields.service";
 import { GetProjetsService } from "@projets/services/get-projets/get-projets.service";
 import { CreateProjetsService } from "@projets/services/create-projets/create-projets.service";
-import { CreateProjetExtraFieldRequest, ExtraField } from "@projets/dto/extra-fields.dto";
 import { extractApiKey } from "@projets/extract-api-key";
 import { UpdateProjetsService } from "@projets/services/update-projets/update-projets.service";
 import { ProjectPublicInfoResponse } from "@projets/dto/project-public-info.dto";
@@ -32,7 +30,6 @@ export class ProjetsController {
     private readonly projetCreateService: CreateProjetsService,
     private readonly projetFindService: GetProjetsService,
     private readonly projetUpdateService: UpdateProjetsService,
-    private readonly extraFieldsService: ExtraFieldsService,
   ) {}
 
   @ApiOperation({ summary: "Get all Projets" })
@@ -67,27 +64,9 @@ export class ProjetsController {
     return this.projetFindService.getPublicInfo(id, idType);
   }
 
-  @Public()
-  @ApiEndpointResponses({ successStatus: 200, response: ExtraField, isArray: true })
-  @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
-  @ApiParam({ name: "id", type: String, required: true })
-  @Get(":id/extra-fields")
-  getExtraFields(@ProjectId() id: ProjectIdType[IdType], @Query("idType") idType: IdType): Promise<ExtraField[]> {
-    return this.extraFieldsService.getExtraFieldsByProjetId(id, idType);
-  }
-
-  @Public()
-  @ApiEndpointResponses({ successStatus: 201, response: ExtraField, isArray: true })
-  @ApiQuery({ name: "idType", enum: idTypes, required: true, description: "Type of ID provided" })
-  @ApiParam({ name: "id", type: String, required: true })
-  @Post(":id/extra-fields")
-  updateExtraFields(
-    @ProjectId() id: ProjectIdType[IdType],
-    @Query("idType") idType: IdType,
-    @Body() extraFieldsDto: CreateProjetExtraFieldRequest,
-  ): Promise<ExtraField[]> {
-    return this.extraFieldsService.createExtraFields(id, extraFieldsDto, idType);
-  }
+  // Les routes GET/POST :id/extra-fields ont été retirées (faille YesWeHack : écriture
+  // publique non authentifiée / IDOR sur n'importe quel projet). La feature avait un seul
+  // consommateur réel (le champ "surface" du widget Bénéfriches, dormant depuis 04/2026).
 
   @TrackApiUsage()
   @Post()
