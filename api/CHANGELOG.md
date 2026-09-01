@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.0...v0.2.1) (2026-09-01)
+
+
+### Features
+
+* **back-office:** servir l'écran d'admin sur /back-office (même origine) ([178cee4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/178cee49609b9030ff68763b901d01376ffa980d))
+* **back-office:** simuler accepte aussi un id MEC (external_id) ([4eb9fbf](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/4eb9fbf8821f7e721876bef93d03f6e750f8f90b))
+
+
+### Bug Fixes
+
+* **aides:** jobId de classification sans `:` (rejeté par BullMQ) ([ecff87f](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ecff87f0e9dea4fd123547ba4cfdcff29d85e640))
+* **aides:** ré-auth + retry sur 401/403 d'Aides-Territoires ([24dba5b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/24dba5b090569f6d4cc6f55cf8bed90f81f7a86a))
+* **back-office:** projetId accepte un id MEC (et pas seulement un UUID) ([fc8bd41](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/fc8bd411747d1e06cb82f3d7fec529736f0850b0)), closes [#536](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/536)
+* **fiches-action:** discriminate object type in external_ids lookups ([016a3cc](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/016a3cc1cd0e2e28b079f7336cc49b9903476104))
+
 ## [0.2.0](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.1.103...v0.2.0) (2026-07-16)
 
 
