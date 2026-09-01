@@ -19,6 +19,11 @@ export class TestDatabaseService extends DatabaseService {
       "data_tc_plans.fiches_action_to_plans_transition",
       "data_tc_plans.fiches_action",
       "data_tc_plans.plans_transition",
+      // TeT webhook tables (data_tet schema, children first)
+      "data_tet.fiches_action_to_plans",
+      "data_tet.external_ids",
+      "data_tet.fiches_action",
+      "data_tet.plans_transition",
       // Referentiel tables (api_referentiel schema, children first)
       "api_referentiel.groupement_competences",
       "api_referentiel.perimetres",
