@@ -1,10 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class PcaetReferenceDto {
-  @ApiPropertyOptional({ nullable: true, description: "Nom du PCAET." })
+  // nom / sirenPorteur / source sont TOUJOURS présents dans la réponse (éventuellement null),
+  // donc @ApiProperty (requis) + type explicite : sans `type`, openapi-typescript génère
+  // `Record<string, never> | null` au lieu de `string | null`, et @ApiPropertyOptional les
+  // rendait optionnels côté client à tort (signalé par Sylvain / MEC).
+  @ApiProperty({ type: String, nullable: true, description: "Nom du PCAET." })
   nom!: string | null;
 
-  @ApiPropertyOptional({ nullable: true, description: "SIREN du porteur du PCAET." })
+  @ApiProperty({ type: String, nullable: true, description: "SIREN du porteur du PCAET." })
   sirenPorteur!: string | null;
 
   @ApiProperty({
@@ -14,10 +18,15 @@ export class PcaetReferenceDto {
   })
   presentDansTet!: boolean;
 
-  @ApiPropertyOptional({ nullable: true, description: "External ID TeT du PCAET, si présent dans le snapshot TeT." })
+  @ApiPropertyOptional({
+    type: String,
+    nullable: true,
+    description: "External ID TeT du PCAET, si présent dans le snapshot TeT.",
+  })
   tetExternalId?: string | null;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
+    type: String,
     // Canal 'live' exclu de facto : seuls 'snapshot' et 'opendata' alimentent la référence.
     enum: ["snapshot", "opendata"],
     nullable: true,
