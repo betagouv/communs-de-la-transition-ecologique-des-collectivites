@@ -27,7 +27,7 @@ describe("ClassificationService - Integration Tests", () => {
 
   afterAll(async () => {
     await teardownTestModule(testDbService, module);
-  }, 10000);
+  }, 30000);
 
   describe("Projet classification - Real LLM calls", () => {
     it("should classify a building renovation project", async () => {

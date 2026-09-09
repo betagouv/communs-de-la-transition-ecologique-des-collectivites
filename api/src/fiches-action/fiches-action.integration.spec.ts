@@ -46,7 +46,9 @@ describe("FichesActionService - Integration Tests", () => {
 
   afterAll(async () => {
     await teardownTestModule(testDbService, module);
-  }, 10000);
+    // Teardown fait de l'I/O réel (TRUNCATE de ~24 tables + fermeture des connexions
+    // BullMQ/Redis via module.close()) ; 10 s flanchait par intermittence sous charge CI.
+  }, 30000);
 
   describe("external id namespace collision (fiche vs plan)", () => {
     it("should create the plan and its link when the plan externalId equals an existing fiche externalId", async () => {
