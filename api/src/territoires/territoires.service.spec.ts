@@ -225,25 +225,30 @@ describe("TerritoiresService", () => {
 
     it("404 quand l'external_id résout vers un projet orphelin (hors schéma commun)", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
-      execute.mockResolvedValueOnce({ rows: [] }); // projet absent de projets_operationnels
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // projetsOperationnelsExists
+        .mockResolvedValueOnce({ rows: [] }); // projet absent de projets_operationnels
       await expect(service.qualification("mec-orphan")).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it("découpe les leviers, normalise proba et date, expose sites/interventions/leviers LLM", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
-      execute.mockResolvedValueOnce({
-        rows: [
-          {
-            leviersSgpe: "Vélo,Covoiturage",
-            llmThematiques: [{ label: "Mobilité", score: 0.9 }],
-            llmSites: [{ label: "Voirie", score: 0.8 }],
-            llmInterventions: [{ label: "Aménagement", score: 0.7 }],
-            llmLeviers: [{ label: "Vélo", score: 0.95 }],
-            llmProbabiliteTe: 0.87,
-            llmClassifiedAt: new Date("2026-07-01T08:00:00.000Z"),
-          },
-        ],
-      });
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // projetsOperationnelsExists
+        .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // assertProjetInSchemaCommun : présent
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              leviersSgpe: "Vélo,Covoiturage",
+              llmThematiques: [{ label: "Mobilité", score: 0.9 }],
+              llmSites: [{ label: "Voirie", score: 0.8 }],
+              llmInterventions: [{ label: "Aménagement", score: 0.7 }],
+              llmLeviers: [{ label: "Vélo", score: 0.95 }],
+              llmProbabiliteTe: 0.87,
+              llmClassifiedAt: new Date("2026-07-01T08:00:00.000Z"),
+            },
+          ],
+        });
 
       const result = await service.qualification("mec-123");
 
@@ -264,19 +269,22 @@ describe("TerritoiresService", () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
       // La colonne llm_leviers n'existe pas encore dans schema_commun_v2 : to_jsonb(p) ->
       // 'llm_leviers' renvoie NULL, jamais de 500.
-      execute.mockResolvedValueOnce({
-        rows: [
-          {
-            leviersSgpe: null,
-            llmThematiques: null,
-            llmSites: null,
-            llmInterventions: null,
-            llmLeviers: null,
-            llmProbabiliteTe: null,
-            llmClassifiedAt: null,
-          },
-        ],
-      });
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // projetsOperationnelsExists
+        .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // assertProjetInSchemaCommun : présent
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              leviersSgpe: null,
+              llmThematiques: null,
+              llmSites: null,
+              llmInterventions: null,
+              llmLeviers: null,
+              llmProbabiliteTe: null,
+              llmClassifiedAt: null,
+            },
+          ],
+        });
 
       const result = await service.qualification("mec-123");
 
@@ -299,13 +307,16 @@ describe("TerritoiresService", () => {
 
     it("404 quand le projet est orphelin (hors schéma commun)", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
-      execute.mockResolvedValueOnce({ rows: [] }); // existence projet → absent
+      execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // projetsOperationnelsExists
+        .mockResolvedValueOnce({ rows: [] }); // existence projet → absent
       await expect(service.planFichesTerritoire("mec-orphan")).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it("renvoie pcaet vide sans communes rattachées", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
       execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // projetsOperationnelsExists
         .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence projet
         .mockResolvedValueOnce({ rows: [] }); // communes du projet
       const result = await service.planFichesTerritoire("mec-123");
@@ -315,6 +326,7 @@ describe("TerritoiresService", () => {
     it("renvoie pcaet vide quand la table de référence n'existe pas encore (chantier T4)", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
       execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // projetsOperationnelsExists
         .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence projet
         .mockResolvedValueOnce({ rows: [{ insee: "01001" }] }) // communes du projet
         .mockResolvedValueOnce({ rows: [{ present: false }] }); // pcaet_reference absente en prod
@@ -325,6 +337,7 @@ describe("TerritoiresService", () => {
     it("mappe les PCAET et leur rattachement (décision active la plus récente)", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
       execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // projetsOperationnelsExists
         .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence projet
         .mockResolvedValueOnce({ rows: [{ insee: "01001" }] }) // communes du projet
         .mockResolvedValueOnce({ rows: [{ present: true }] }) // pcaet_reference présente
@@ -358,19 +371,20 @@ describe("TerritoiresService", () => {
       });
       // La requête de rattachement départage les created_at égaux (id DESC) et exclut
       // les révocations (verdict='annule').
-      const rattachementSql = renderSql((execute.mock.calls[4] as unknown[])[0]);
+      const rattachementSql = renderSql((execute.mock.calls[5] as unknown[])[0]);
       expect(rattachementSql).toContain("d.id DESC");
       expect(rattachementSql).toContain("verdict IS DISTINCT FROM");
 
       // presentDansTet / tetExternalId neutralisent la chaîne vide (tet_external_id='' sur
       // les fiches sans deep-link TeT ⇒ absence réelle, pas présence).
-      const pcaetSql = renderSql((execute.mock.calls[3] as unknown[])[0]);
+      const pcaetSql = renderSql((execute.mock.calls[4] as unknown[])[0]);
       expect(pcaetSql).toContain("NULLIF(pr.tet_external_id, '')");
     });
 
     it("rattachement='aucun' quand aucune décision active", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]);
       execute
+        .mockResolvedValueOnce({ rows: [{ present: true }] }) // projetsOperationnelsExists
         .mockResolvedValueOnce({ rows: [{ ok: 1 }] }) // existence projet
         .mockResolvedValueOnce({ rows: [{ insee: "01001" }] }) // communes
         .mockResolvedValueOnce({ rows: [{ present: true }] }) // pcaet_reference présente

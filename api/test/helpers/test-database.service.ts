@@ -24,6 +24,9 @@ export class TestDatabaseService extends DatabaseService {
       "data_tet.external_ids",
       "data_tet.fiches_action",
       "data_tet.plans_transition",
+      // MEC ingestion tables (data_mec schema)
+      "data_mec.external_ids",
+      "data_mec.projets_operationnels",
       // Referentiel tables (api_referentiel schema, children first)
       "api_referentiel.groupement_competences",
       "api_referentiel.perimetres",

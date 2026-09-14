@@ -642,6 +642,9 @@ export class TerritoiresService {
    */
   async qualification(externalId: string): Promise<QualificationResponse> {
     const projetId = await this.resolveMecProjetId(externalId);
+    // Même garde que planFichesTerritoire : schema_commun_v2 (livrable ETL) peut être absent
+    // hors prod → 404 explicite plutôt qu'un 500 « relation does not exist ».
+    await this.assertProjetInSchemaCommun(projetId);
 
     const [row] = await this.query<{
       leviersSgpe: string | null;
@@ -736,6 +739,13 @@ export class TerritoiresService {
   // ~1 053 external_ids MEC pointent vers un objet absent de schema_commun_v2
   // (non synchronisé). On matérialise ce cas par un 404 explicite.
   private async assertProjetInSchemaCommun(projetId: string): Promise<void> {
+    // schema_commun_v2 est un livrable ETL (cycle blue-green), déployé indépendamment et
+    // absent tant que l'ETL n'a pas tourné (ex. staging). Sans garde, la requête lève
+    // « relation does not exist » → 500 systématique. On dégrade en 404 (projet non résoluble
+    // dans le schéma commun) — même intention que pcaetReferenceExists / resolvePcaet.
+    if (!(await this.projetsOperationnelsExists())) {
+      throw new NotFoundException(this.orphanMessage(projetId));
+    }
     const rows = await this.query<{ ok: number }>(sql`
       SELECT 1 AS ok FROM schema_commun_v2.projets_operationnels WHERE id = ${projetId} LIMIT 1
     `);
@@ -749,6 +759,15 @@ export class TerritoiresService {
   private async pcaetReferenceExists(): Promise<boolean> {
     const [row] = await this.query<{ present: boolean }>(
       sql`SELECT to_regclass('schema_commun_v2.pcaet_reference') IS NOT NULL AS present`,
+    );
+    return row?.present === true;
+  }
+
+  // Même garde pour la table socle du schéma commun (livrable ETL, absente hors prod tant
+  // que le pipeline n'a pas tourné). to_regclass renvoie NULL si la relation n'existe pas.
+  private async projetsOperationnelsExists(): Promise<boolean> {
+    const [row] = await this.query<{ present: boolean }>(
+      sql`SELECT to_regclass('schema_commun_v2.projets_operationnels') IS NOT NULL AS present`,
     );
     return row?.present === true;
   }
