@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.1...v0.2.2) (2026-09-14)
+
+
+### Bug Fixes
+
+* **projets:** retire public extra-fields endpoints (unauth write / IDOR) ([2945a5a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2945a5a750e2e3290cc1747182805bb1179d0e4b)), closes [#YWH-PGM10356-244](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/YWH-PGM10356-244)
+* **territoires:** type PcaetReferenceDto OpenAPI fields correctly ([620e1f5](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/620e1f55d5195e3c22bbfcdd71b87805fd483601))
+
 ## [0.2.1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.0...v0.2.1) (2026-09-01)
 
 
