@@ -3,7 +3,15 @@ import { eq, and } from "drizzle-orm";
 import { FichesActionService } from "./fiches-action.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
-import { tetExternalIds, tetPlansTransition, tetFichesAction, tetFichesActionToPlans } from "@database/schema";
+import {
+  tetExternalIds,
+  tetPlansTransition,
+  tetFichesAction,
+  tetFichesActionToPlans,
+  refCommunes,
+  refGroupements,
+  refPerimetres,
+} from "@database/schema";
 import { CreateFicheActionRequest } from "./dto/create-fiche-action.dto";
 
 /**
@@ -49,6 +57,85 @@ describe("FichesActionService - Integration Tests", () => {
     // Teardown fait de l'I/O réel (TRUNCATE de ~24 tables + fermeture des connexions
     // BullMQ/Redis via module.close()) ; 10 s flanchait par intermittence sous charge CI.
   }, 30000);
+
+  // Issue #497 — le webhook TeT porte le SIREN dans collectivites[].code (EPCI), mais l'ingestion
+  // ne le propageait pas au plan_transition (siren/communes vides à 100 % → PCAET exclus de
+  // pcaet_reference, couverture plafonnée à ~50 %). Le plan porte le SIREN du PORTEUR (EPCI) :
+  // direct pour une fiche EPCI, résolu commune → EPCI via le référentiel pour une fiche commune.
+  describe("mapping SIREN/communes du plan à l'ingestion (#497)", () => {
+    const EPCI_SIREN = "200072049";
+    const EPCI_COMMUNES = ["59001", "59002"];
+    const COMMUNE_INSEE = "59350"; // Lille
+    const COMMUNE_EPCI = "200093201"; // MEL
+
+    beforeEach(async () => {
+      const db = testDbService.database;
+      await db.insert(refGroupements).values([
+        { siren: EPCI_SIREN, nom: "EPCI Test", type: "CC" },
+        { siren: COMMUNE_EPCI, nom: "MEL", type: "METRO" },
+      ]);
+      await db.insert(refCommunes).values([
+        { codeInsee: EPCI_COMMUNES[0], siren: "210590010", nom: "Commune A" },
+        { codeInsee: EPCI_COMMUNES[1], siren: "210590028", nom: "Commune B" },
+        { codeInsee: COMMUNE_INSEE, siren: "215903508", nom: "Lille" },
+      ]);
+      await db.insert(refPerimetres).values([
+        { sirenGroupement: EPCI_SIREN, codeInseeCommune: EPCI_COMMUNES[0] },
+        { sirenGroupement: EPCI_SIREN, codeInseeCommune: EPCI_COMMUNES[1] },
+        { sirenGroupement: COMMUNE_EPCI, codeInseeCommune: COMMUNE_INSEE },
+      ]);
+    });
+
+    afterEach(async () => {
+      const db = testDbService.database;
+      await db.delete(refPerimetres);
+      await db.delete(refCommunes);
+      await db.delete(refGroupements);
+    });
+
+    const planRowFor = async (externalId: string) => {
+      const db = testDbService.database;
+      const [row] = await db
+        .select({
+          siren: tetPlansTransition.collectiviteResponsableSiren,
+          communes: tetPlansTransition.territoireCommunes,
+        })
+        .from(tetExternalIds)
+        .innerJoin(tetPlansTransition, eq(tetPlansTransition.id, tetExternalIds.objetId))
+        .where(and(eq(tetExternalIds.objetType, "plan_transition"), eq(tetExternalIds.externalId, externalId)))
+        .limit(1);
+      return row;
+    };
+
+    it("fiche EPCI : le plan porte le SIREN de l'EPCI (porteur direct) et ses communes", async () => {
+      await service.createOrUpdate(
+        ficheDto({
+          nom: "Liaisons cyclables",
+          externalId: "144374",
+          collectivites: [{ code: EPCI_SIREN, type: "EPCI" }],
+          plans: [{ externalId: "6819", nom: "SCHEMA DIRECTEUR CYCLABLE", type: "Plan Mobilité" }],
+        }),
+      );
+
+      const plan = await planRowFor("6819");
+      expect(plan.siren).toBe(EPCI_SIREN);
+      expect(plan.communes).toEqual(expect.arrayContaining(EPCI_COMMUNES));
+    });
+
+    it("fiche Commune : le plan porte le SIREN de l'EPCI porteur (résolu commune → EPCI)", async () => {
+      await service.createOrUpdate(
+        ficheDto({
+          nom: "Rénovation école",
+          externalId: "144375",
+          collectivites: [{ code: COMMUNE_INSEE, type: "Commune" }],
+          plans: [{ externalId: "7000", nom: "PCAET MEL", type: "PCAET" }],
+        }),
+      );
+
+      const plan = await planRowFor("7000");
+      expect(plan.siren).toBe(COMMUNE_EPCI);
+    });
+  });
 
   describe("external id namespace collision (fiche vs plan)", () => {
     it("should create the plan and its link when the plan externalId equals an existing fiche externalId", async () => {
