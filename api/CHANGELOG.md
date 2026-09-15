@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.3](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.2...v0.2.3) (2026-09-15)
+
+
+### Bug Fixes
+
+* **fiches-action:** map PCAET porteur SIREN + communes onto ingested plans ([#497](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/issues/497)) ([6b571e1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6b571e16ed6563714c5d1106679095dc9f6617cd))
+* **territoires:** 404 instead of 500 when schema_commun_v2 is absent ([e6a920a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/e6a920a4329a6e6acbfc8d9d3a62e17883117f85))
+
 ## [0.2.2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.1...v0.2.2) (2026-09-14)
 
 
