@@ -62,6 +62,12 @@ export class FichesActionService {
     // 2. Resolve collectivite SIREN and territoire communes
     const { siren, territoireCommunes } = await this.resolveCollectivite(dto.collectivites[0]);
 
+    // 2b. Résout le PORTEUR du/des PCAET référencés (issue #497) : c'est un EPCI. Pour une fiche
+    // EPCI, c'est la collectivité elle-même ; pour une fiche commune, on remonte à son EPCI via le
+    // référentiel. Propagé aux plans_transition pour que le canal webhook alimente pcaet_reference
+    // (dédup par SIREN porteur) au lieu d'être exclu faute de SIREN.
+    const planPorteur = await this.resolvePlanPorteur(dto.collectivites[0]);
+
     // 3. Build source metadata (fields not in v0.2 schema)
     const sourceMetadata = this.buildSourceMetadata(dto);
 
@@ -121,7 +127,7 @@ export class FichesActionService {
       }
 
       if (dto.plans?.length) {
-        await this.upsertPlans(tx, ficheId, dto.plans, serviceType);
+        await this.upsertPlans(tx, ficheId, dto.plans, serviceType, planPorteur);
       }
 
       return ficheId;
@@ -258,7 +264,56 @@ export class FichesActionService {
     return { siren: null, territoireCommunes: null };
   }
 
-  private async upsertPlans(tx: Tx, ficheActionId: string, plans: PlanReference[], serviceType: string): Promise<void> {
+  /**
+   * Résout le PORTEUR d'un PCAET (toujours un EPCI) depuis la collectivité de la fiche (issue #497) :
+   * - fiche EPCI : la collectivité EST le porteur → SIREN direct + communes du périmètre ;
+   * - fiche commune : on remonte à l'EPCI de la commune via le référentiel (refPerimetres) → SIREN
+   *   de l'EPCI + communes de cet EPCI. Faute d'EPCI connu, on retombe sur la commune seule.
+   * Une commune peut appartenir à plusieurs groupements ; on prend le premier (le référentiel ne
+   * porte que les EPCI à fiscalité propre en pratique). Si TeT doit un jour désigner explicitement
+   * le porteur, ce point sera à revoir.
+   */
+  private async resolvePlanPorteur(collectivite?: {
+    type: string;
+    code: string;
+  }): Promise<{ siren: string | null; territoireCommunes: string[] | null }> {
+    if (!collectivite) return { siren: null, territoireCommunes: null };
+    const db = this.dbService.database;
+
+    if (collectivite.type === "EPCI") {
+      return this.resolveCollectivite(collectivite);
+    }
+
+    if (collectivite.type === "Commune") {
+      const [perim] = await db
+        .select({ sirenGroupement: refPerimetres.sirenGroupement })
+        .from(refPerimetres)
+        .where(eq(refPerimetres.codeInseeCommune, collectivite.code))
+        .limit(1);
+      const epciSiren = perim?.sirenGroupement ?? null;
+      if (!epciSiren) {
+        return { siren: null, territoireCommunes: [collectivite.code] };
+      }
+      const communes = await db
+        .select({ codeInsee: refPerimetres.codeInseeCommune })
+        .from(refPerimetres)
+        .where(eq(refPerimetres.sirenGroupement, epciSiren));
+      return {
+        siren: epciSiren,
+        territoireCommunes: communes.length > 0 ? communes.map((c) => c.codeInsee) : [collectivite.code],
+      };
+    }
+
+    return { siren: null, territoireCommunes: null };
+  }
+
+  private async upsertPlans(
+    tx: Tx,
+    ficheActionId: string,
+    plans: PlanReference[],
+    serviceType: string,
+    porteur: { siren: string | null; territoireCommunes: string[] | null },
+  ): Promise<void> {
     await tx.delete(tetFichesActionToPlans).where(eq(tetFichesActionToPlans.ficheActionId, ficheActionId));
 
     for (const plan of plans) {
@@ -280,18 +335,34 @@ export class FichesActionService {
         planId = existingPlan.objetId;
         const updated = await tx
           .update(tetPlansTransition)
-          .set({ nom: plan.nom ?? null, type: plan.type ?? null })
+          .set({
+            nom: plan.nom ?? null,
+            type: plan.type ?? null,
+            collectiviteResponsableSiren: porteur.siren,
+            territoireCommunes: porteur.territoireCommunes,
+          })
           .where(eq(tetPlansTransition.id, planId))
           .returning({ id: tetPlansTransition.id });
         if (updated.length === 0) {
           // Orphan mapping (plan row gone): recreate under the mapped UUID
           this.logger.warn(`Orphan external_ids mapping for plan ${planId} — recreating plans_transition row`);
-          await tx.insert(tetPlansTransition).values({ id: planId, nom: plan.nom ?? null, type: plan.type ?? null });
+          await tx.insert(tetPlansTransition).values({
+            id: planId,
+            nom: plan.nom ?? null,
+            type: plan.type ?? null,
+            collectiviteResponsableSiren: porteur.siren,
+            territoireCommunes: porteur.territoireCommunes,
+          });
         }
       } else {
         const [inserted] = await tx
           .insert(tetPlansTransition)
-          .values({ nom: plan.nom ?? null, type: plan.type ?? null })
+          .values({
+            nom: plan.nom ?? null,
+            type: plan.type ?? null,
+            collectiviteResponsableSiren: porteur.siren,
+            territoireCommunes: porteur.territoireCommunes,
+          })
           .returning();
         planId = inserted.id;
 
