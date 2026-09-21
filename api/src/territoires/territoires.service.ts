@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { mecExternalIds, services } from "@database/schema";
+import { mecExternalIds, mecProjetsOperationnels, services } from "@database/schema";
 import { and, eq, sql, SQL } from "drizzle-orm";
 import { activeDecisionPredicate, notTombstonePredicate } from "@/decisions/active-decisions";
 import { DECISION_TYPES } from "@/decisions/decision-contract";
@@ -552,14 +552,11 @@ export class TerritoiresService {
    */
   async planFichesTerritoire(externalId: string): Promise<PlansTerritoireResponse> {
     const projetId = await this.resolveMecProjetId(externalId);
-    await this.assertProjetInSchemaCommun(projetId);
-
-    const communeRows = await this.query<{ insee: string }>(sql`
-      SELECT insee_com AS insee
-      FROM schema_commun_v2.liens_projets_communes
-      WHERE projet_id = ${projetId}
-    `);
-    const communes = communeRows.map((r) => r.insee);
+    // Territoire du projet lu depuis data_mec (communes résolues à l'ingestion via api_referentiel),
+    // et non plus depuis schema_commun_v2.liens_projets_communes (livrable ETL absent hors prod, qui
+    // rendait la route inutilisable sur staging). territoire_communes est peuplé à 100% en prod ;
+    // liste vide (→ 200 sans PCAET) si le projet n'a pas de communes résolues.
+    const communes = await this.communesForMecProjet(projetId);
     if (communes.length === 0) {
       return { pcaet: [], fichesActionSuggerees: [] };
     }
@@ -734,6 +731,19 @@ export class TerritoiresService {
       throw new NotFoundException(`Projet MEC inconnu pour l'external_id ${externalId}`);
     }
     return row.objetId;
+  }
+
+  // Communes (codes INSEE) du territoire d'un projet MEC, lues dans data_mec.projets_operationnels
+  // (résolues à l'ingestion via api_referentiel). Remplace schema_commun_v2.liens_projets_communes :
+  // plus de dépendance à l'ETL pour la géo-résolution. Liste vide si le projet est absent de
+  // data_mec.projets_operationnels ou sans communes résolues.
+  private async communesForMecProjet(projetId: string): Promise<string[]> {
+    const [row] = await this.dbService.database
+      .select({ communes: mecProjetsOperationnels.territoireCommunes })
+      .from(mecProjetsOperationnels)
+      .where(eq(mecProjetsOperationnels.id, projetId))
+      .limit(1);
+    return row?.communes ?? [];
   }
 
   // ~1 053 external_ids MEC pointent vers un objet absent de schema_commun_v2
