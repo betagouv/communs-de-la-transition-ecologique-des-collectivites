@@ -433,5 +433,6 @@ export const servicesNumeriques = pgTable(
 export * from "./referentiel-schema";
 export * from "./plans-fiches-schema";
 export * from "./tet-schema";
+export * from "./snapshot-tet-schema";
 export * from "./mec-schema";
 export * from "./decisions-schema";

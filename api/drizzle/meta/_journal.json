@@ -351,6 +351,13 @@
       "when": 1789995961988,
       "tag": "0049_tet_collectivite_id",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1790009504808,
+      "tag": "0050_snapshot_tet_siren",
+      "breakpoints": true
     }
   ]
 }
