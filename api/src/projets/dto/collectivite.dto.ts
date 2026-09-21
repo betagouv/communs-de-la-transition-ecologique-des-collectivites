@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsIn, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsIn, IsOptional, IsString } from "class-validator";
 import { collectiviteType, CollectiviteType, collectiviteTypeEnum } from "@database/schema";
 
 export class CollectiviteReference {
@@ -15,6 +15,18 @@ export class CollectiviteReference {
   @ApiProperty({ description: "Code of the collectivite, codeInsee for communes and codeEpci/siren for EPCI" })
   @IsString()
   code!: string;
+
+  // Identifiant interne de la collectivité côté plateforme source (TeT), fourni par le webhook TeT.
+  // Nécessaire au deep-link MEC→TeT (/collectivite/:collectiviteId/...). Optionnel : toutes les
+  // sources ne l'envoient pas. Accepté ici pour ne pas rejeter le payload (whitelist stricte) ;
+  // la propagation/stockage pour construire le deep-link est un chantier séparé.
+  @ApiPropertyOptional({
+    type: String,
+    description: "Identifiant interne de la collectivité côté source (ex. collectiviteId TeT), pour le deep-link.",
+  })
+  @IsOptional()
+  @IsString()
+  collectiviteId?: string;
 }
 
 export class Collectivite {
