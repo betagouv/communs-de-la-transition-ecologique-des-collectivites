@@ -52,6 +52,9 @@ export const tetPlansTransition = dataTetSchema.table(
     periodeFin: text("periode_fin"),
     collectiviteResponsableSiren: text("collectivite_responsable_siren"),
     territoireCommunes: text("territoire_communes").array(),
+    // Id interne de la collectivité côté TeT (porteur), pour le deep-link MEC→TeT
+    // /collectivite/:tetCollectiviteId/plans/:planId. Fourni par le webhook TeT.
+    tetCollectiviteId: text("tet_collectivite_id"),
 
     // Lifecycle
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -80,6 +83,9 @@ export const tetFichesAction = dataTetSchema.table(
     leviersSgpe: text("leviers_sgpe").array(),
     collectiviteResponsableSiren: text("collectivite_responsable_siren"),
     territoireCommunes: text("territoire_communes").array(),
+    // Id interne de la collectivité côté TeT, pour le deep-link MEC→TeT
+    // /collectivite/:tetCollectiviteId/actions/:actionId. Fourni par le webhook TeT.
+    tetCollectiviteId: text("tet_collectivite_id"),
     classificationThematiques: text("classification_thematiques").array(),
 
     // Parent relationship (sous-action → action, not in v0.2 but needed for TeT hierarchy)

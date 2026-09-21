@@ -137,6 +137,78 @@ describe("FichesActionService - Integration Tests", () => {
     });
   });
 
+  // Deep-link MEC→TeT : le webhook TeT porte l'id interne de la collectivité (collectivites[].collectiviteId).
+  // On le stocke sur la fiche (deep-link action) et, quand la collectivité est un EPCI, sur le plan
+  // (deep-link PCAET, dont le porteur est l'EPCI). Pour une fiche commune on ne peut pas dériver l'id
+  // TeT de l'EPCI porteur (absent du référentiel) → le plan reste null.
+  describe("stockage du collectiviteId TeT à l'ingestion (deep-link)", () => {
+    const TET_COLL_ID = "4936";
+
+    const ficheCollIdFor = async (externalId: string) => {
+      const db = testDbService.database;
+      const [row] = await db
+        .select({ tetCollectiviteId: tetFichesAction.tetCollectiviteId })
+        .from(tetExternalIds)
+        .innerJoin(tetFichesAction, eq(tetFichesAction.id, tetExternalIds.objetId))
+        .where(and(eq(tetExternalIds.objetType, "fiche_action"), eq(tetExternalIds.externalId, externalId)))
+        .limit(1);
+      return row?.tetCollectiviteId ?? null;
+    };
+
+    const planCollIdFor = async (externalId: string) => {
+      const db = testDbService.database;
+      const [row] = await db
+        .select({ tetCollectiviteId: tetPlansTransition.tetCollectiviteId })
+        .from(tetExternalIds)
+        .innerJoin(tetPlansTransition, eq(tetPlansTransition.id, tetExternalIds.objetId))
+        .where(and(eq(tetExternalIds.objetType, "plan_transition"), eq(tetExternalIds.externalId, externalId)))
+        .limit(1);
+      return row?.tetCollectiviteId ?? null;
+    };
+
+    it("fiche EPCI : la fiche ET le plan portent le collectiviteId TeT", async () => {
+      await service.createOrUpdate(
+        ficheDto({
+          nom: "PCAET EPCI",
+          externalId: "144380",
+          collectivites: [{ code: "200023778", type: "EPCI", collectiviteId: TET_COLL_ID }],
+          plans: [{ externalId: "6900", nom: "PCAET", type: "PCAET" }],
+        }),
+      );
+
+      expect(await ficheCollIdFor("144380")).toBe(TET_COLL_ID);
+      expect(await planCollIdFor("6900")).toBe(TET_COLL_ID);
+    });
+
+    it("fiche Commune : la fiche porte le collectiviteId TeT, le plan reste null (porteur non dérivable)", async () => {
+      await service.createOrUpdate(
+        ficheDto({
+          nom: "Fiche commune",
+          externalId: "144381",
+          collectivites: [{ code: "59350", type: "Commune", collectiviteId: TET_COLL_ID }],
+          plans: [{ externalId: "6901", nom: "PCAET", type: "PCAET" }],
+        }),
+      );
+
+      expect(await ficheCollIdFor("144381")).toBe(TET_COLL_ID);
+      expect(await planCollIdFor("6901")).toBeNull();
+    });
+
+    it("sans collectiviteId : fiche et plan restent null (rétrocompat)", async () => {
+      await service.createOrUpdate(
+        ficheDto({
+          nom: "Fiche sans id TeT",
+          externalId: "144382",
+          collectivites: [{ code: "200023778", type: "EPCI" }],
+          plans: [{ externalId: "6902", nom: "PCAET", type: "PCAET" }],
+        }),
+      );
+
+      expect(await ficheCollIdFor("144382")).toBeNull();
+      expect(await planCollIdFor("6902")).toBeNull();
+    });
+  });
+
   describe("external id namespace collision (fiche vs plan)", () => {
     it("should create the plan and its link when the plan externalId equals an existing fiche externalId", async () => {
       // A fiche already ingested under externalId "31000"
