@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.3...v0.2.4) (2026-09-21)
+
+
+### Features
+
+* **fiches-action:** store TeT collectiviteId for MEC→TeT deep-link ([6bc11c2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6bc11c24b05c456ac6a603aac5dd403ce0099705))
+
+
+### Bug Fixes
+
+* **fiches-action:** accept optional collectiviteId in webhook collectivites ([6eef3fb](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6eef3fb0af0c232613f7849733f8e77204db7cb5))
+
 ## [0.2.3](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.2...v0.2.3) (2026-09-15)
 
 
