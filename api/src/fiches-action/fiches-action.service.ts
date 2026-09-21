@@ -68,6 +68,16 @@ export class FichesActionService {
     // (dédup par SIREN porteur) au lieu d'être exclu faute de SIREN.
     const planPorteur = await this.resolvePlanPorteur(dto.collectivites[0]);
 
+    // 2c. Id interne de la collectivité côté TeT, pour le deep-link MEC→TeT.
+    // - Sur la FICHE : l'id de sa propre collectivité (deep-link action, valable quel que soit le type).
+    // - Sur le PLAN (porteur PCAET = EPCI) : uniquement si la collectivité de la fiche EST un EPCI ;
+    //   pour une fiche commune on ne peut pas dériver l'id TeT de l'EPCI porteur (les ids TeT ne sont
+    //   pas dans notre référentiel) → on laisse null plutôt que d'y mettre l'id de la commune.
+    const ficheCollectiviteRef = dto.collectivites[0];
+    const ficheTetCollectiviteId = ficheCollectiviteRef?.collectiviteId ?? null;
+    const planTetCollectiviteId =
+      ficheCollectiviteRef?.type === "EPCI" ? (ficheCollectiviteRef.collectiviteId ?? null) : null;
+
     // 3. Build source metadata (fields not in v0.2 schema)
     const sourceMetadata = this.buildSourceMetadata(dto);
 
@@ -81,6 +91,7 @@ export class FichesActionService {
       leviersSgpe: dto.leviers ?? null,
       collectiviteResponsableSiren: siren,
       territoireCommunes,
+      tetCollectiviteId: ficheTetCollectiviteId,
       parentId: parentUuid,
       sourceMetadata,
     };
@@ -127,7 +138,10 @@ export class FichesActionService {
       }
 
       if (dto.plans?.length) {
-        await this.upsertPlans(tx, ficheId, dto.plans, serviceType, planPorteur);
+        await this.upsertPlans(tx, ficheId, dto.plans, serviceType, {
+          ...planPorteur,
+          collectiviteId: planTetCollectiviteId,
+        });
       }
 
       return ficheId;
@@ -312,7 +326,7 @@ export class FichesActionService {
     ficheActionId: string,
     plans: PlanReference[],
     serviceType: string,
-    porteur: { siren: string | null; territoireCommunes: string[] | null },
+    porteur: { siren: string | null; territoireCommunes: string[] | null; collectiviteId: string | null },
   ): Promise<void> {
     await tx.delete(tetFichesActionToPlans).where(eq(tetFichesActionToPlans.ficheActionId, ficheActionId));
 
@@ -340,6 +354,7 @@ export class FichesActionService {
             type: plan.type ?? null,
             collectiviteResponsableSiren: porteur.siren,
             territoireCommunes: porteur.territoireCommunes,
+            tetCollectiviteId: porteur.collectiviteId,
           })
           .where(eq(tetPlansTransition.id, planId))
           .returning({ id: tetPlansTransition.id });
@@ -352,6 +367,7 @@ export class FichesActionService {
             type: plan.type ?? null,
             collectiviteResponsableSiren: porteur.siren,
             territoireCommunes: porteur.territoireCommunes,
+            tetCollectiviteId: porteur.collectiviteId,
           });
         }
       } else {
@@ -362,6 +378,7 @@ export class FichesActionService {
             type: plan.type ?? null,
             collectiviteResponsableSiren: porteur.siren,
             territoireCommunes: porteur.territoireCommunes,
+            tetCollectiviteId: porteur.collectiviteId,
           })
           .returning();
         planId = inserted.id;
