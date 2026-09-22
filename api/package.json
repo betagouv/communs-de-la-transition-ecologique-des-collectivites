@@ -42,6 +42,7 @@
     "import:projects-tet": "cd scripts/import-projets-tet && cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register import-projets-tet.ts import-projets-tet-data.csv",
     "import:tc-opendata": "cross-env NODE_ENV=development npx ts-node -r tsconfig-paths/register scripts/import-tc-opendata/import-tc-opendata.ts",
     "rebuild:tet-snapshot": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/rebuild-tet-snapshot/rebuild-tet-snapshot.ts",
+    "replay:tet-fiches": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/replay-tet-fiches/replay-tet-fiches.ts",
     "import:benchmark-dinum": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/import-benchmark-dinum/import-benchmark-dinum.ts",
     "seed:questionnaires": "cross-env TS_NODE_TRANSPILE_ONLY=1 npx ts-node -r tsconfig-paths/register scripts/seed-questionnaires/seed-questionnaires.ts",
     "release": "commit-and-tag-version",
