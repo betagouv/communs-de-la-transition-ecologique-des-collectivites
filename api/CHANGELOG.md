@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.6](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.5...v0.2.6) (2026-09-22)
+
+
+### Features
+
+* **territoires:** serve PCAET from an owned pcaet.reference view + expose deep-link ([bfb40d3](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/bfb40d3a35a0227541b8f28d75f232bb9698853f))
+
 ## [0.2.5](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.4...v0.2.5) (2026-09-22)
 
 
