@@ -444,14 +444,7 @@ export class TerritoiresService {
   private async resolvePcaet(
     cle: string,
   ): Promise<{ sirenPorteur: string; nom: string | null; source: string | null; communes: string[] }> {
-    // pcaet_reference (matview) est un livrable ETL déployé séparément : garde to_regclass
-    // (cf. planFichesTerritoire) — 404 explicite plutôt qu'un 500 « relation does not exist ».
-    if (!(await this.pcaetReferenceExists())) {
-      throw new NotFoundException(
-        "Référence PCAET indisponible (matérialisation schema_commun_v2.pcaet_reference non déployée).",
-      );
-    }
-
+    // Référence PCAET possédée (pcaet.reference) : plus de dépendance à l'ETL schema_commun_v2.
     const [row] = await this.query<{
       sirenPorteur: string;
       nom: string | null;
@@ -459,13 +452,11 @@ export class TerritoiresService {
       communes: string[] | null;
     }>(sql`
       SELECT pr.siren_porteur AS "sirenPorteur", pr.nom, pr.source_nom AS source, pr.communes
-      FROM schema_commun_v2.pcaet_reference pr
+      FROM pcaet.reference pr
       WHERE pr.siren_porteur = ${cle}
-         OR NULLIF(pr.plan_id_opendata, '') = ${cle}
-         OR NULLIF(pr.plan_id_snapshot, '') = ${cle}
-         OR NULLIF(pr.plan_id_live, '') = ${cle}
+         OR pr.tet_external_id = ${cle}
       -- Départage déterministe si une clé coïncidait avec un SIREN ET un plan_id (jamais
-      -- observé : SIREN à 9 chiffres, plan_id en UUID) : la correspondance SIREN prime.
+      -- observé : SIREN à 9 chiffres, plan_id numérique) : la correspondance SIREN prime.
       ORDER BY (pr.siren_porteur = ${cle}) DESC
       LIMIT 1
     `);
@@ -561,30 +552,25 @@ export class TerritoiresService {
       return { pcaet: [], fichesActionSuggerees: [] };
     }
 
-    // pcaet_reference est produite par un chantier distinct (T4) et peut ne pas encore
-    // exister en production : on dégrade en liste vide plutôt que de renvoyer un 500
-    // "relation does not exist". Une fois la table créée, l'endpoint sert les données
-    // sans changement de code. (Même esprit que la garde IF EXISTS de la migration.)
-    if (!(await this.pcaetReferenceExists())) {
-      return { pcaet: [], fichesActionSuggerees: [] };
-    }
-
+    // Référence PCAET POSSÉDÉE (pcaet.reference, vue sur data_tet + snapshot_tet_api +
+    // data_tc_plans + api_referentiel) : plus de dépendance à l'ETL schema_commun_v2, et le
+    // couple deep-link (planId = tet_external_id, collectiviteId) est exposé.
     const pcaetRows = await this.query<{
       nom: string | null;
       sirenPorteur: string | null;
       presentDansTet: boolean;
       tetExternalId: string | null;
+      collectiviteId: string | null;
       source: string | null;
     }>(sql`
       SELECT
         pr.nom,
         pr.siren_porteur AS "sirenPorteur",
-        -- tet_external_id vaut '' (chaîne vide) sur les lignes sans deep-link TeT, pas NULL :
-        -- neutralisé par NULLIF pour que presentDansTet/tetExternalId reflètent l'absence réelle.
-        (NULLIF(pr.tet_external_id, '') IS NOT NULL) AS "presentDansTet",
-        NULLIF(pr.tet_external_id, '') AS "tetExternalId",
+        (pr.tet_external_id IS NOT NULL) AS "presentDansTet",
+        pr.tet_external_id AS "tetExternalId",
+        pr.collectivite_id AS "collectiviteId",
         pr.source_nom AS source
-      FROM schema_commun_v2.pcaet_reference pr
+      FROM pcaet.reference pr
       WHERE pr.communes && ${textArray(communes)}
       ORDER BY pr.nom
     `);
@@ -599,10 +585,11 @@ export class TerritoiresService {
         sirenPorteur: r.sirenPorteur,
         presentDansTet: r.presentDansTet,
         tetExternalId: r.tetExternalId ?? null,
+        collectiviteId: r.collectiviteId ?? null,
         source: r.source,
         rattachement: (r.sirenPorteur != null ? rattachements.get(r.sirenPorteur) : undefined) ?? "aucun",
       })),
-      // TODO(T4+): dériver des fiches action suggérées depuis les PCAET rattachés (bonus hors scope immédiat).
+      // TODO: dériver des fiches action suggérées depuis les PCAET rattachés (bonus hors scope immédiat).
       fichesActionSuggerees: [],
     };
   }
@@ -762,15 +749,6 @@ export class TerritoiresService {
     if (rows.length === 0) {
       throw new NotFoundException(this.orphanMessage(projetId));
     }
-  }
-
-  // La table de référence PCAET est un livrable du chantier T4, déployé indépendamment.
-  // to_regclass renvoie NULL si la relation n'existe pas (lookup catalogue, sans erreur).
-  private async pcaetReferenceExists(): Promise<boolean> {
-    const [row] = await this.query<{ present: boolean }>(
-      sql`SELECT to_regclass('schema_commun_v2.pcaet_reference') IS NOT NULL AS present`,
-    );
-    return row?.present === true;
   }
 
   // Même garde pour la table socle du schéma commun (livrable ETL, absente hors prod tant

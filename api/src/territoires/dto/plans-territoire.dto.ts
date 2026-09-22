@@ -13,22 +13,31 @@ export class PcaetReferenceDto {
 
   @ApiProperty({
     description:
-      "Le PCAET est-il présent dans le snapshot TeT (tet_external_id renseigné) ? " +
-      "Indique la présence dans le snapshot, sans garantir un deep-link exploitable.",
+      "Le PCAET a-t-il un identifiant de plan TeT (tetExternalId) exploitable pour le deep-link ? " +
+      "Vrai quand le plan provient du canal live ou snapshot TeT.",
   })
   presentDansTet!: boolean;
 
   @ApiPropertyOptional({
     type: String,
     nullable: true,
-    description: "External ID TeT du PCAET, si présent dans le snapshot TeT.",
+    description: "Identifiant du plan côté TeT (= planId du deep-link /collectivite/:collectiviteId/plans/:planId).",
   })
   tetExternalId?: string | null;
 
+  @ApiPropertyOptional({
+    type: String,
+    nullable: true,
+    description:
+      "Identifiant interne de la collectivité porteuse côté TeT (= collectiviteId du deep-link " +
+      "/collectivite/:collectiviteId/plans/:planId). Null si le PCAET ne vient que de l'opendata.",
+  })
+  collectiviteId?: string | null;
+
   @ApiProperty({
     type: String,
-    // Canal 'live' exclu de facto : seuls 'snapshot' et 'opendata' alimentent la référence.
-    enum: ["snapshot", "opendata"],
+    // Canal du plan représentatif retenu (dédup par SIREN, priorité live > snapshot > opendata).
+    enum: ["live", "snapshot", "opendata"],
     nullable: true,
     description: "Source de la fiche PCAET de référence (source_nom).",
   })

@@ -300,17 +300,16 @@ describe("TerritoiresService", () => {
   });
 
   describe("planFichesTerritoire", () => {
-    // Flux après découplage ETL : resolveMecProjetId (selectLimit #1) → communesForMecProjet
-    // (selectLimit #2, lit data_mec) → pcaetReferenceExists (execute #0) → pcaet_reference
-    // (execute #1) → rattachement (execute #2). Plus d'accès schema_commun_v2 côté projet.
+    // Flux étape 2 : resolveMecProjetId (selectLimit #1) → communesForMecProjet (selectLimit #2,
+    // data_mec) → pcaet.reference (vue possédée, execute #0) → rattachement (execute #1).
+    // Plus aucune dépendance schema_commun_v2, et le couple deep-link (tetExternalId/planId +
+    // collectiviteId) est exposé.
     it("404 quand l'external_id est inconnu", async () => {
       selectLimit.mockResolvedValueOnce([]);
       await expect(service.planFichesTerritoire("mec-unknown")).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it("renvoie pcaet vide (200) quand le projet n'a pas de communes dans data_mec", async () => {
-      // Projet connu (external_id résolu) mais sans communes résolues (ou absent de
-      // projets_operationnels) → dégradation en liste vide, plus de 404 « hors schéma commun ».
       selectLimit
         .mockResolvedValueOnce([{ objetId: "proj-uuid" }]) // resolveMecProjetId
         .mockResolvedValueOnce([]); // communesForMecProjet → aucune ligne data_mec
@@ -326,24 +325,24 @@ describe("TerritoiresService", () => {
       expect(result).toEqual({ pcaet: [], fichesActionSuggerees: [] });
     });
 
-    it("renvoie pcaet vide quand la table de référence n'existe pas encore (chantier T4)", async () => {
+    it("renvoie pcaet vide quand aucun PCAET ne couvre les communes", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]).mockResolvedValueOnce([{ communes: ["01001"] }]);
-      execute.mockResolvedValueOnce({ rows: [{ present: false }] }); // pcaet_reference absente
+      execute.mockResolvedValueOnce({ rows: [] }); // pcaet.reference → aucun PCAET couvrant
       const result = await service.planFichesTerritoire("mec-123");
       expect(result).toEqual({ pcaet: [], fichesActionSuggerees: [] });
     });
 
-    it("mappe les PCAET et leur rattachement (décision active la plus récente)", async () => {
+    it("mappe les PCAET (avec deep-link) et leur rattachement (décision active la plus récente)", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]).mockResolvedValueOnce([{ communes: ["01001"] }]);
       execute
-        .mockResolvedValueOnce({ rows: [{ present: true }] }) // pcaet_reference présente
         .mockResolvedValueOnce({
           rows: [
             {
               nom: "PCAET Test",
               sirenPorteur: "200000172",
               presentDansTet: true,
-              tetExternalId: "tet-9",
+              tetExternalId: "6819",
+              collectiviteId: "4936",
               source: "snapshot",
             },
           ],
@@ -358,7 +357,8 @@ describe("TerritoiresService", () => {
             nom: "PCAET Test",
             sirenPorteur: "200000172",
             presentDansTet: true,
-            tetExternalId: "tet-9",
+            tetExternalId: "6819",
+            collectiviteId: "4936",
             source: "snapshot",
             rattachement: "confirme",
           },
@@ -367,20 +367,19 @@ describe("TerritoiresService", () => {
       });
       // La requête de rattachement départage les created_at égaux (id DESC) et exclut
       // les révocations (verdict='annule').
-      const rattachementSql = renderSql((execute.mock.calls[2] as unknown[])[0]);
+      const rattachementSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
       expect(rattachementSql).toContain("d.id DESC");
       expect(rattachementSql).toContain("verdict IS DISTINCT FROM");
 
-      // presentDansTet / tetExternalId neutralisent la chaîne vide (tet_external_id='' sur
-      // les fiches sans deep-link TeT ⇒ absence réelle, pas présence).
-      const pcaetSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
-      expect(pcaetSql).toContain("NULLIF(pr.tet_external_id, '')");
+      // Lecture de la référence PCAET POSSÉDÉE (plus de schema_commun_v2), avec collectivite_id.
+      const pcaetSql = renderSql((execute.mock.calls[0] as unknown[])[0]);
+      expect(pcaetSql).toContain("FROM pcaet.reference");
+      expect(pcaetSql).toContain("collectivite_id");
     });
 
     it("rattachement='aucun' quand aucune décision active", async () => {
       selectLimit.mockResolvedValueOnce([{ objetId: "proj-uuid" }]).mockResolvedValueOnce([{ communes: ["01001"] }]);
       execute
-        .mockResolvedValueOnce({ rows: [{ present: true }] }) // pcaet_reference présente
         .mockResolvedValueOnce({
           rows: [
             {
@@ -388,6 +387,7 @@ describe("TerritoiresService", () => {
               sirenPorteur: "244400404",
               presentDansTet: false,
               tetExternalId: null,
+              collectiviteId: null,
               source: "opendata",
             },
           ],
@@ -397,6 +397,7 @@ describe("TerritoiresService", () => {
       const result = await service.planFichesTerritoire("mec-123");
 
       expect(result.pcaet[0].rattachement).toBe("aucun");
+      expect(result.pcaet[0].collectiviteId).toBeNull();
     });
   });
 
@@ -412,8 +413,7 @@ describe("TerritoiresService", () => {
 
     it("résout une clé SIREN, renvoie l'en-tête pcaet + les groupes + le rattachement par groupe", async () => {
       execute
-        .mockResolvedValueOnce({ rows: [{ present: true }] }) // pcaet_reference présente
-        .mockResolvedValueOnce({ rows: [pcaetRow] }) // résolution de la clé
+        .mockResolvedValueOnce({ rows: [pcaetRow] }) // résolution de la clé (pcaet.reference)
         .mockResolvedValueOnce({
           rows: [{ confiance: "CERTAIN", traces: [{ role: "projet", source: "MEC", id: "p1" }], total: "1" }],
         }) // page de groupes
@@ -437,57 +437,42 @@ describe("TerritoiresService", () => {
           },
         ],
       });
-      // 6 requêtes : existence + résolution + page + decisions[] + rattachement + signal.
-      expect(execute).toHaveBeenCalledTimes(6);
+      // 5 requêtes : résolution + page + decisions[] + rattachement + signal (plus de garde ETL).
+      expect(execute).toHaveBeenCalledTimes(5);
       // La requête de rattachement cible CE pcaet, départage les created_at égaux (id DESC)
       // et exclut les révocations (verdict='annule').
-      const rattachementSql = renderSql((execute.mock.calls[4] as unknown[])[0]);
+      const rattachementSql = renderSql((execute.mock.calls[3] as unknown[])[0]);
       expect(rattachementSql).toContain("rattachement_pcaet");
       expect(rattachementSql).toContain("d.objet_b_id");
       expect(rattachementSql).toContain("d.id DESC");
       expect(rattachementSql).toContain("verdict IS DISTINCT FROM");
     });
 
-    it("résout aussi une clé plan_id (NULLIF neutralise les canaux vides)", async () => {
-      execute
-        .mockResolvedValueOnce({ rows: [{ present: true }] })
-        .mockResolvedValueOnce({ rows: [pcaetRow] })
-        .mockResolvedValueOnce({ rows: [] }); // page vide → pas d'enrichissement ni de rattachement
+    it("résout aussi une clé plan_id (SIREN ou tet_external_id) sur la vue possédée", async () => {
+      execute.mockResolvedValueOnce({ rows: [pcaetRow] }).mockResolvedValueOnce({ rows: [] }); // page vide → pas d'enrichissement ni de rattachement
 
-      const result = await service.plansProjetsTerritoire("019ce410-84fe-7174-a27c-4cec8c632cf4", params, "MEC");
+      const result = await service.plansProjetsTerritoire("6819", params, "MEC");
 
       expect(result.pcaet.sirenPorteur).toBe("244400404");
       expect(result).toMatchObject({ total: 0, groupes: [] });
       // Page vide → aucune requête de décisions/rattachement/signal.
-      expect(execute).toHaveBeenCalledTimes(3);
-      // La résolution accepte SIREN OU plan_id, en neutralisant les canaux vides.
-      const resolveSql = renderSql((execute.mock.calls[1] as unknown[])[0]);
+      expect(execute).toHaveBeenCalledTimes(2);
+      // La résolution accepte SIREN OU plan_id, sur la référence POSSÉDÉE.
+      const resolveSql = renderSql((execute.mock.calls[0] as unknown[])[0]);
+      expect(resolveSql).toContain("FROM pcaet.reference");
       expect(resolveSql).toContain("siren_porteur");
-      expect(resolveSql).toContain("plan_id_opendata");
-      expect(resolveSql).toContain("NULLIF");
+      expect(resolveSql).toContain("tet_external_id");
     });
 
     it("404 quand la clé ne résout aucun PCAET", async () => {
-      execute
-        .mockResolvedValueOnce({ rows: [{ present: true }] }) // référence présente
-        .mockResolvedValueOnce({ rows: [] }); // clé inconnue
+      execute.mockResolvedValueOnce({ rows: [] }); // clé inconnue
       await expect(service.plansProjetsTerritoire("999999999", params, "MEC")).rejects.toBeInstanceOf(
         NotFoundException,
       );
     });
 
-    it("404 quand la référence PCAET n'est pas encore matérialisée", async () => {
-      execute.mockResolvedValueOnce({ rows: [{ present: false }] });
-      await expect(service.plansProjetsTerritoire("244400404", params, "MEC")).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
-      // Aucune requête de résolution lancée quand la matview est absente.
-      expect(execute).toHaveBeenCalledTimes(1);
-    });
-
     it("rattachement='suggere' à défaut de décision, sur le signal pcaet_operation_inscrite", async () => {
       execute
-        .mockResolvedValueOnce({ rows: [{ present: true }] })
         .mockResolvedValueOnce({ rows: [pcaetRow] })
         .mockResolvedValueOnce({
           rows: [{ confiance: null, traces: [{ role: "projet", source: "MEC", id: "p1" }], total: "1" }],
@@ -502,7 +487,6 @@ describe("TerritoiresService", () => {
 
     it("rattachement='aucun' sans décision ni signal", async () => {
       execute
-        .mockResolvedValueOnce({ rows: [{ present: true }] })
         .mockResolvedValueOnce({ rows: [pcaetRow] })
         .mockResolvedValueOnce({
           rows: [{ confiance: null, traces: [{ role: "projet", source: "MEC", id: "p1" }], total: "1" }],
@@ -517,7 +501,6 @@ describe("TerritoiresService", () => {
 
     it("une décision humaine prime toujours sur le signal (infirme > suggere)", async () => {
       execute
-        .mockResolvedValueOnce({ rows: [{ present: true }] })
         .mockResolvedValueOnce({ rows: [pcaetRow] })
         .mockResolvedValueOnce({
           rows: [{ confiance: null, traces: [{ role: "projet", source: "MEC", id: "p1" }], total: "1" }],
@@ -532,7 +515,6 @@ describe("TerritoiresService", () => {
 
     it("la décision la plus récente prime en cas de décisions actives contradictoires", async () => {
       execute
-        .mockResolvedValueOnce({ rows: [{ present: true }] })
         .mockResolvedValueOnce({ rows: [pcaetRow] })
         .mockResolvedValueOnce({
           rows: [{ confiance: null, traces: [{ role: "projet", source: "MEC", id: "p1" }], total: "1" }],
