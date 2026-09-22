@@ -3,23 +3,28 @@ import { NotFoundException } from "@nestjs/common";
 import { TerritoiresService } from "./territoires.service";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
-import { mecExternalIds, mecProjetsOperationnels } from "@database/schema";
+import {
+  mecExternalIds,
+  mecProjetsOperationnels,
+  refCommunes,
+  refGroupements,
+  refPerimetres,
+  snapshotTetPlans,
+} from "@database/schema";
 
 /**
- * Découplage ETL (2026-09-21) : GET /projets/mec/:externalId/plans-territoire ne dépend plus de
- * schema_commun_v2 pour le TERRITOIRE du projet. Les communes sont lues dans data_mec
- * (territoire_communes, résolu à l'ingestion via api_referentiel), et non plus dans
- * schema_commun_v2.liens_projets_communes (livrable ETL absent hors prod, cf. incident Sylvain
- * du 14/09 qui renvoyait 500 puis, après garde, 404 systématique en staging).
+ * Découplage ETL du pont : GET /projets/mec/:externalId/plans-territoire ne dépend plus du tout de
+ * schema_commun_v2.
+ * - Étape 1 : le TERRITOIRE du projet est lu dans data_mec (territoire_communes), plus dans
+ *   schema_commun_v2.liens_projets_communes.
+ * - Étape 2 : les PCAET sont lus dans la vue POSSÉDÉE `pcaet.reference` (data_tet + snapshot_tet_api
+ *   + data_tc_plans + api_referentiel), plus dans la matview ETL schema_commun_v2.pcaet_reference.
+ *   La réponse expose le couple deep-link (tetExternalId = planId, collectiviteId).
  *
- * Nouveau contrat : la route dégrade en 200 (liste vide) quand la donnée manque, et ne 404 que
- * pour un external_id MEC inconnu. Seul pcaet_reference reste lu dans schema_commun_v2 (étape 2 :
- * matview possédée) → 200 vide tant qu'elle est absente (staging), plus jamais de 500/404 ETL.
- *
- * La base de test (migrations seules) n'a PAS schema_commun_v2 : elle reproduit la condition staging.
- * qualification reste, elle, dépendante de schema_commun_v2 dans cette PR (re-sourcée à l'étape 1a).
+ * Contrat : 200 (liste vide) quand la donnée manque, 404 seulement pour un external_id MEC inconnu.
+ * qualification reste dépendante de schema_commun_v2 (re-sourcée plus tard, étape 1a différée).
  */
-describe("TerritoiresService - découplage ETL de plans-territoire (integration)", () => {
+describe("TerritoiresService - pont découplé de l'ETL (integration)", () => {
   let service: TerritoiresService;
   let module: TestingModule;
   let testDbService: TestDatabaseService;
@@ -41,17 +46,60 @@ describe("TerritoiresService - découplage ETL de plans-territoire (integration)
   });
 
   afterEach(async () => {
-    await testDbService.database.delete(mecProjetsOperationnels);
-    await testDbService.database.delete(mecExternalIds);
+    const db = testDbService.database;
+    await db.delete(snapshotTetPlans);
+    await db.delete(refPerimetres);
+    await db.delete(refCommunes);
+    await db.delete(refGroupements);
+    await db.delete(mecProjetsOperationnels);
+    await db.delete(mecExternalIds);
   });
 
   afterAll(async () => {
     await teardownTestModule(testDbService, module);
   }, 30000);
 
-  it("plansTerritoire dégrade en 200 (liste vide) quand pcaet_reference est absente, projet avec communes", async () => {
-    // Projet présent dans data_mec avec des communes résolues → la géo-résolution ne passe PAS
-    // par schema_commun_v2. pcaet_reference absente (base de test) → 200 vide, plus de 404 ETL.
+  it("plansTerritoire renvoie le PCAET du territoire AVEC le deep-link (planId + collectiviteId) depuis la vue possédée", async () => {
+    const db = testDbService.database;
+    const EPCI_SIREN = "200000172";
+    const COMMUNE = "01001";
+    // Référentiel : la commune du projet appartient à l'EPCI porteur (expansion SIREN → communes).
+    await db.insert(refGroupements).values({ siren: EPCI_SIREN, nom: "CC Test", type: "CC" });
+    await db.insert(refCommunes).values({ codeInsee: COMMUNE, siren: "210100012", nom: "Commune Test" });
+    await db.insert(refPerimetres).values({ sirenGroupement: EPCI_SIREN, codeInseeCommune: COMMUNE });
+    // Snapshot TeT : un PCAET porté par cet EPCI, avec les 2 ids du deep-link + SIREN résolu.
+    await db.insert(snapshotTetPlans).values({
+      planId: 6819,
+      planNom: "PCAET Test",
+      planType: "Plan Climat Air Énergie Territorial",
+      collectiviteId: 4936,
+      collectiviteNom: "CC Test",
+      siren: EPCI_SIREN,
+      sirenSource: "groupement_exact",
+    });
+    // Projet MEC localisé sur la commune.
+    await db.insert(mecProjetsOperationnels).values({
+      id: PROJET_ID,
+      nom: "Projet test",
+      territoireCommunes: [COMMUNE],
+    });
+
+    const result = await service.planFichesTerritoire(EXTERNAL_ID);
+
+    expect(result.pcaet).toEqual([
+      {
+        nom: "PCAET Test",
+        sirenPorteur: EPCI_SIREN,
+        presentDansTet: true,
+        tetExternalId: "6819",
+        collectiviteId: "4936",
+        source: "snapshot",
+        rattachement: "aucun",
+      },
+    ]);
+  });
+
+  it("plansTerritoire renvoie 200 (liste vide) quand aucun PCAET ne couvre les communes du projet", async () => {
     await testDbService.database.insert(mecProjetsOperationnels).values({
       id: PROJET_ID,
       nom: "Projet test",
@@ -63,8 +111,7 @@ describe("TerritoiresService - découplage ETL de plans-territoire (integration)
     });
   });
 
-  it("plansTerritoire dégrade en 200 (liste vide) quand le projet n'a pas de communes dans data_mec", async () => {
-    // external_id résolu mais aucune ligne projets_operationnels → plus de 404 « hors schéma commun ».
+  it("plansTerritoire renvoie 200 (liste vide) quand le projet n'a pas de communes dans data_mec", async () => {
     await expect(service.planFichesTerritoire(EXTERNAL_ID)).resolves.toEqual({
       pcaet: [],
       fichesActionSuggerees: [],
@@ -76,7 +123,6 @@ describe("TerritoiresService - découplage ETL de plans-territoire (integration)
   });
 
   it("qualification dégrade en 404 quand schema_commun_v2.projets_operationnels est absent", async () => {
-    // Non encore re-sourcée sur data_mec (étape 1a) : garde ETL toujours active ici.
     await expect(service.qualification(EXTERNAL_ID)).rejects.toBeInstanceOf(NotFoundException);
   });
 });
