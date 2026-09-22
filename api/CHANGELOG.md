@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.5](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.4...v0.2.5) (2026-09-22)
+
+
+### Features
+
+* **snapshot-tet:** rebuild snapshot_tet_api.plans with resolved porteur SIREN ([2d4c987](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/2d4c98795117e61b11f8da906c3c83f11ff2f985))
+* **territoires:** resolve plans-territoire from data_mec, not the ETL schema ([9cb15b2](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/9cb15b297d4646a851f202fccb1fb1a4fb87da52))
+
 ## [0.2.4](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.3...v0.2.4) (2026-09-21)
 
 
