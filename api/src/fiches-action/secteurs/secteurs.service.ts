@@ -51,7 +51,7 @@ export interface SecteursResult {
  */
 @Injectable()
 export class SecteursService {
-  static readonly METHODE = "mapping-jean-v1/agregation-jean-v1";
+  static readonly METHODE = "mapping-jean-v1.1/agregation-jean-v1";
 
   private static readonly POIDS_THEMATIQUE = 1;
   private static readonly POIDS_SITE = 0.35;
