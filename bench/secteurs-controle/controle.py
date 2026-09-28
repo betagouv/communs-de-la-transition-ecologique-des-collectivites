@@ -61,16 +61,24 @@ def norm(s):
 
 
 def load_mapping():
-    """Lit la table depuis la source du repo (const généré de l'endpoint)."""
-    src = HERE.parent.parent / "api/src/fiches-action/secteurs/secteurs-mapping.const.ts"
-    text = src.read_text()
-    tables = {}
-    for name, key in (("MAPPING_THEMATIQUES", "th"), ("MAPPING_SITES", "si"), ("MAPPING_LEVIERS", "le")):
-        block = text.split(f"export const {name}")[1].split("};")[0]
-        table = {}
-        for m in re.finditer(r'"([^"]+)": \{ direct: (\[[^\]]*\])', block):
-            table[m.group(1)] = json.loads(m.group(2))
-        tables[key] = table
+    """Charge la table depuis le const COMPILÉ (source de vérité — le parsing regex du
+    TS a déjà mordu : prettier déquote les clés mono-mot et replie les entrées)."""
+    import subprocess
+    api = HERE.parent.parent / "api"
+    # hors du repo : le package.json racine ("type": "module") ferait interpreter le .js en ESM
+    outdir = Path("/private/tmp/claude-501") / "secteurs-const"
+    subprocess.run(["npx", "tsc", "--module", "commonjs", "--target", "es2020", "--outDir", str(outdir),
+                    "src/fiches-action/secteurs/secteurs-mapping.const.ts"], cwd=api, check=True, capture_output=True)
+    dump = subprocess.run(["node", "-e",
+        f"const m = require('{outdir}/secteurs-mapping.const.js');"
+        "console.log(JSON.stringify({th: m.MAPPING_THEMATIQUES, si: m.MAPPING_SITES, le: m.MAPPING_LEVIERS}))"],
+        check=True, capture_output=True, text=True)
+    raw = json.loads(dump.stdout.strip().splitlines()[-1])
+    tables = {k: {label: entry["direct"] for label, entry in v.items()} for k, v in raw.items()}
+    if "th" not in tables:
+        raise RuntimeError(f"dump inattendu: {dump.stdout[:200]}")
+    for key, mini in (("th", 156), ("si", 77), ("le", 67)):
+        assert len(tables[key]) >= mini, f"{key}: table incomplete ({len(tables[key])})"
     return tables
 
 
