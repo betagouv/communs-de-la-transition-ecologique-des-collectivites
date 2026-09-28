@@ -17,6 +17,8 @@ import {
   PROJECT_QUALIFICATION_QUEUE_NAME,
 } from "@/projet-qualification/const";
 import { CreateFicheActionRequest, PlanReference } from "./dto/create-fiche-action.dto";
+import { SecteursService } from "./secteurs/secteurs.service";
+import { SecteursResponse } from "./secteurs/dto/secteurs.dto";
 
 @Injectable()
 export class FichesActionService {
@@ -24,7 +26,63 @@ export class FichesActionService {
     private readonly dbService: DatabaseService,
     @InjectQueue(PROJECT_QUALIFICATION_QUEUE_NAME) private qualificationQueue: Queue,
     private readonly logger: CustomLogger,
+    private readonly secteursService: SecteursService,
   ) {}
+
+  /**
+   * Secteurs réglementaires d'une fiche action, calculés à la lecture depuis ses
+   * labels persistés (classification LLM + leviers SGPE déclarés). Accepte l'ID
+   * interne (UUID) ou, à défaut, l'externalId TeT de la fiche.
+   */
+  async getSecteurs(id: string): Promise<SecteursResponse> {
+    const db = this.dbService.database;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+    let ficheId = id;
+    if (!isUuid) {
+      const [mapping] = await db
+        .select({ objetId: tetExternalIds.objetId })
+        .from(tetExternalIds)
+        .where(
+          and(
+            eq(tetExternalIds.serviceType, "TeT"),
+            eq(tetExternalIds.objetType, "fiche_action"),
+            eq(tetExternalIds.externalId, id),
+          ),
+        )
+        .limit(1);
+      if (!mapping) {
+        throw new NotFoundException(`Fiche action with ID ${id} not found`);
+      }
+      ficheId = mapping.objetId;
+    }
+
+    const [fiche] = await db
+      .select({
+        id: tetFichesAction.id,
+        classificationScores: tetFichesAction.classificationScores,
+        leviersSgpe: tetFichesAction.leviersSgpe,
+      })
+      .from(tetFichesAction)
+      .where(eq(tetFichesAction.id, ficheId))
+      .limit(1);
+
+    if (!fiche) {
+      throw new NotFoundException(`Fiche action with ID ${id} not found`);
+    }
+
+    const classification = fiche.classificationScores
+      ? { thematiques: fiche.classificationScores.thematiques ?? [], sites: fiche.classificationScores.sites ?? [] }
+      : null;
+    const { direct, contribution } = this.secteursService.computeSecteurs(classification, fiche.leviersSgpe);
+
+    return {
+      id: fiche.id,
+      secteursDirect: direct,
+      secteursContribution: contribution,
+      methode: SecteursService.METHODE,
+    };
+  }
 
   /**
    * Build source metadata from webhook fields not in schema v0.2

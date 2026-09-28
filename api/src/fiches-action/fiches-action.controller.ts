@@ -5,6 +5,7 @@ import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
 import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 import { CreateFicheActionRequest, CreateFicheActionResponse } from "./dto/create-fiche-action.dto";
+import { SecteursResponse } from "./secteurs/dto/secteurs.dto";
 import { FichesActionService } from "./fiches-action.service";
 
 @ApiBearerAuth()
@@ -41,6 +42,26 @@ export class FichesActionController {
   })
   async findOne(@Param("id") id: string) {
     return this.fichesActionService.findOne(id);
+  }
+
+  @TrackApiUsage()
+  @Get(":id/secteurs")
+  @ApiOperation({
+    summary: "Secteurs réglementaires d'une fiche action",
+    description:
+      "Les 8 secteurs réglementaires (résidentiel, tertiaire, transport routier, autres transports, agriculture, " +
+      "déchets, industrie hors branche énergie, branche énergie), calculés à la lecture depuis les labels de la " +
+      "fiche (classification + leviers SGPE) via un mapping déterministe. Deux sémantiques exposées : " +
+      "« association directe » et « contribution » (effets indirects répartis). Accepte l'ID interne (UUID) " +
+      "ou l'externalId TeT de la fiche.",
+  })
+  @ApiEndpointResponses({
+    successStatus: 200,
+    response: SecteursResponse,
+    description: "Secteurs réglementaires de la fiche action",
+  })
+  async getSecteurs(@Param("id") id: string): Promise<SecteursResponse> {
+    return this.fichesActionService.getSecteurs(id);
   }
 
   @TrackApiUsage()
