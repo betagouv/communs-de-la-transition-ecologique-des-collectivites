@@ -51,9 +51,11 @@ export class FichesActionController {
     description:
       "Les 8 secteurs réglementaires (résidentiel, tertiaire, transport routier, autres transports, agriculture, " +
       "déchets, industrie hors branche énergie, branche énergie), calculés à la lecture depuis les labels de la " +
-      "fiche (classification + leviers SGPE) via un mapping déterministe. Deux sémantiques exposées : " +
-      "« association directe » et « contribution » (effets indirects répartis). Accepte l'ID interne (UUID) " +
-      "ou l'externalId TeT de la fiche.",
+      "fiche (classification + leviers SGPE) via un mapping déterministe. Sémantique : le secteur que l'action " +
+      "VISE (rattachement dans un plan climat — une action de sensibilisation au tri se rattache aux déchets), " +
+      "pas un inventaire des émissions produites par l'activité elle-même. Deux lectures exposées : " +
+      "« association directe » (secteur dont relève l'objet de l'action) et « contribution » (secteurs d'effet, " +
+      "reports indirects répartis). Accepte l'ID interne (UUID) ou l'externalId TeT de la fiche.",
   })
   @ApiEndpointResponses({
     successStatus: 200,
