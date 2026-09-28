@@ -3,7 +3,11 @@
 // — 167 thématiques, 86 sites, 67 leviers SGPE ; deux sémantiques :
 // « direct » (secteur du projet) et « contribution » (secteurs d'effet, poids répartis).
 // Clés normalisées (minuscules, sans accents ni ponctuation) — voir normalizeLabel().
-// GÉNÉRÉ depuis l'artefact source — ne pas éditer à la main.
+// GÉNÉRÉ depuis l'artefact source — ne pas éditer à la main, sauf amendements validés :
+// v1.1 (28/09/2026, validé Jean Perret, cf. exports/secteurs-controle-2026-09-28-recommandations.md) :
+//   « chauffage bois » 60/30 → 40/20/+40 branche énergie ; « changement chaudières gaz + rénovation
+//   (résidentiel) » 100 rés. → 70/+30 branche énergie (chaufferies collectives et réseaux de chaleur,
+//   corrections simulées sur le stock : +47/−43 et +20/−19 accords/contradictions).
 
 export interface SecteurParts {
   direct: number[];
@@ -80,7 +84,7 @@ export const MAPPING_THEMATIQUES: Record<string, SecteurParts> = {
     contribution: [0, 80, 0, 0, 0, 0, 0, 0],
   },
   "chauffage biogaz": { direct: [50, 30, 0, 0, 0, 0, 0, 0], contribution: [35, 25, 0, 0, 0, 0, 0, 40] },
-  "chauffage bois": { direct: [60, 30, 0, 0, 0, 0, 0, 0], contribution: [60, 30, 0, 0, 0, 0, 0, 0] },
+  "chauffage bois": { direct: [40, 20, 0, 0, 0, 0, 0, 40], contribution: [40, 20, 0, 0, 0, 0, 0, 40] },
   "chauffage geothermie": { direct: [40, 30, 0, 0, 0, 0, 0, 0], contribution: [40, 30, 0, 0, 0, 0, 0, 30] },
   "chauffage renouvelable": { direct: [50, 30, 0, 0, 0, 0, 0, 0], contribution: [50, 30, 0, 0, 0, 0, 0, 20] },
   "chauffage residus agricoles et alimentaires": {
@@ -472,8 +476,8 @@ export const MAPPING_LEVIERS: Record<string, SecteurParts> = {
     contribution: [0, 100, 0, 0, 0, 0, 0, 0],
   },
   "changement chaudieres gaz renovation residentiel": {
-    direct: [100, 0, 0, 0, 0, 0, 0, 0],
-    contribution: [100, 0, 0, 0, 0, 0, 0, 0],
+    direct: [70, 0, 0, 0, 0, 0, 0, 30],
+    contribution: [70, 0, 0, 0, 0, 0, 0, 30],
   },
   "changement chaudieres gaz renovation tertiaire": {
     direct: [0, 100, 0, 0, 0, 0, 0, 0],
