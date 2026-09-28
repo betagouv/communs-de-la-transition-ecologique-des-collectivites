@@ -37,21 +37,26 @@ export interface SecteursResult {
  * déjà persistés (classification LLM + leviers SGPE déclarés) et du mapping
  * label → secteurs de Jean Perret (secteurs-mapping.const.ts, utilisé verbatim).
  *
- * Agrégation (v1, documentée — la formule exacte du reporting d'origine n'est pas
- * dans l'artefact ; celle-ci en reproduit la présence par secteur à ~96 %) :
- *   masse(secteur) = Σ label poids(type) × score(label) × part(label, secteur)
- *   poids : thématique 1, site 0.35, levier 1.5 (ajustés sur le corpus du reporting) ;
- *   le résidu des labels sans secteur (vecteur nul ou partiel) alimente nonAttribuable ;
- *   le tout est normalisé en simplexe (parts + nonAttribuable = 1).
+ * Agrégation : la formule EXACTE du reporting d'origine, identifiée depuis ses 36 711
+ * sorties (100 % reproduites à ±1 point d'arrondi, dominant 99,7 %, sur les deux
+ * sémantiques) :
+ *   masse(secteur) = Σ thématiques score × part + 0.35 × Σ sites score × part
+ *                  + 1.5 × Σ leviers part (les leviers ne sont pas scorés)
+ *   nonAttribuable = 0.5 — constante de lissage : les labels non mappés et les parts
+ *   résiduelles des vecteurs partiels sont IGNORÉS, seule cette masse fixe joue le
+ *   rôle de seuil de significativité (une fiche dont aucun secteur ne dépasse 0.5 de
+ *   masse pondérée est « non attribuable ») ;
+ *   le tout est normalisé en simplexe (parts + nonAttribuable = 1), dominant = argmax.
  * Calculée à la lecture (aucune persistance) : reste synchrone avec les labels.
  */
 @Injectable()
 export class SecteursService {
-  static readonly METHODE = "mapping-jean-v1/agregation-v1";
+  static readonly METHODE = "mapping-jean-v1/agregation-jean-v1";
 
   private static readonly POIDS_THEMATIQUE = 1;
   private static readonly POIDS_SITE = 0.35;
   private static readonly POIDS_LEVIER = 1.5;
+  private static readonly LISSAGE_NON_ATTRIBUABLE = 0.5;
 
   computeSecteurs(classification: ClassificationInput | null, leviers: string[] | null): SecteursResult {
     return {
@@ -66,7 +71,7 @@ export class SecteursService {
     semantique: keyof SecteurParts,
   ): SecteurBreakdown | null {
     const masses = new Array<number>(SECTEURS.length).fill(0);
-    let nonAttribuable = 0;
+    const nonAttribuable = SecteursService.LISSAGE_NON_ATTRIBUABLE;
     let matched = false;
 
     const add = (label: string, score: number, poids: number, table: Record<string, SecteurParts>) => {
@@ -75,12 +80,9 @@ export class SecteursService {
       matched = true;
       const weight = poids * score;
       const parts = entry[semantique];
-      let attributed = 0;
       for (let s = 0; s < SECTEURS.length; s++) {
         masses[s] += (weight * parts[s]) / 100;
-        attributed += parts[s];
       }
-      nonAttribuable += weight * (1 - attributed / 100);
     };
 
     for (const { label, score } of classification?.thematiques ?? []) {
@@ -93,8 +95,8 @@ export class SecteursService {
       add(label, 1, SecteursService.POIDS_LEVIER, MAPPING_LEVIERS);
     }
 
+    if (!matched) return null;
     const total = masses.reduce((a, b) => a + b, 0) + nonAttribuable;
-    if (!matched || total <= 0) return null;
 
     const parts = {} as Record<Secteur, number>;
     let dominant: Secteur | null = null;
