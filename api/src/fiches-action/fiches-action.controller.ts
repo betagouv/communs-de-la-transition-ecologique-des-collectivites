@@ -53,9 +53,12 @@ export class FichesActionController {
       "déchets, industrie hors branche énergie, branche énergie), calculés à la lecture depuis les labels de la " +
       "fiche (classification + leviers SGPE) via un mapping déterministe. Sémantique : le secteur que l'action " +
       "VISE (rattachement dans un plan climat — une action de sensibilisation au tri se rattache aux déchets), " +
-      "pas un inventaire des émissions produites par l'activité elle-même. Deux lectures exposées : " +
-      "« association directe » (secteur dont relève l'objet de l'action) et « contribution » (secteurs d'effet, " +
-      "reports indirects répartis). Accepte l'ID interne (UUID) ou l'externalId TeT de la fiche.",
+      "pas un inventaire des émissions produites par l'activité elle-même. Convention transports (SECTEN) : " +
+      "« transport routier » couvre tout véhicule sur route, y compris bus, cars, covoiturage et véhicules " +
+      "électriques ; « autres transports » couvre les modes actifs (vélo, marche), le ferroviaire et le fluvial. " +
+      "Deux lectures exposées : « association directe » (secteur dont relève l'objet de l'action) et " +
+      "« contribution » (secteurs d'effet, reports indirects répartis). Accepte l'ID interne (UUID) ou " +
+      "l'externalId TeT de la fiche.",
   })
   @ApiEndpointResponses({
     successStatus: 200,
