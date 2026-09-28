@@ -3,6 +3,7 @@ import { DatabaseService } from "@database/database.service";
 import { CustomLogger } from "@logging/logger.service";
 import { Queue } from "bullmq";
 import { CreateFicheActionRequest } from "./dto/create-fiche-action.dto";
+import { SecteursService } from "./secteurs/secteurs.service";
 
 describe("FichesActionService", () => {
   let service: FichesActionService;
@@ -11,7 +12,7 @@ describe("FichesActionService", () => {
     const mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() } as unknown as CustomLogger;
     const mockQueue = {} as unknown as Queue;
     const mockDbService = {} as unknown as DatabaseService;
-    service = new FichesActionService(mockDbService, mockQueue, mockLogger);
+    service = new FichesActionService(mockDbService, mockQueue, mockLogger, new SecteursService());
   });
 
   describe("buildSourceMetadata", () => {
