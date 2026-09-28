@@ -3,6 +3,7 @@ import { BullModule } from "@nestjs/bullmq";
 import { PROJECT_QUALIFICATION_QUEUE_NAME } from "@/projet-qualification/const";
 import { FichesActionController } from "./fiches-action.controller";
 import { FichesActionService } from "./fiches-action.service";
+import { SecteursService } from "./secteurs/secteurs.service";
 
 @Module({
   imports: [
@@ -11,6 +12,6 @@ import { FichesActionService } from "./fiches-action.service";
     }),
   ],
   controllers: [FichesActionController],
-  providers: [FichesActionService],
+  providers: [FichesActionService, SecteursService],
 })
 export class FichesActionModule {}
