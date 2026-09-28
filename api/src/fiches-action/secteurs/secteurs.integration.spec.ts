@@ -52,12 +52,12 @@ describe("FichesActionService.getSecteurs - Integration Tests", () => {
     const result = await service.getSecteurs(ficheId);
 
     expect(result.id).toBe(ficheId);
-    expect(result.methode).toBe("mapping-jean-v1/agregation-v1");
+    expect(result.methode).toBe("mapping-jean-v1/agregation-jean-v1");
     expect(result.secteursDirect).not.toBeNull();
     expect(result.secteursDirect!.dominant).toBe("dechets");
-    // masses : dechets 0.9 + 1.5 = 2.4 ; tertiaire 0.35×0.5 = 0.175
-    expect(result.secteursDirect!.parts.dechets).toBeCloseTo(2.4 / 2.575, 4);
-    expect(result.secteursDirect!.parts.tertiaire).toBeCloseTo(0.175 / 2.575, 4);
+    // masses : dechets 0.9 + 1.5 = 2.4 ; tertiaire 0.35×0.5 = 0.175 ; + lissage 0.5 → T = 3.075
+    expect(result.secteursDirect!.parts.dechets).toBeCloseTo(2.4 / 3.075, 4);
+    expect(result.secteursDirect!.parts.tertiaire).toBeCloseTo(0.175 / 3.075, 4);
     expect(result.secteursContribution!.dominant).toBe("dechets");
   });
 

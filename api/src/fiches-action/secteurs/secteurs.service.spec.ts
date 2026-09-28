@@ -40,8 +40,9 @@ describe("SecteursService", () => {
       );
       expect(result.direct).not.toBeNull();
       expect(result.direct!.dominant).toBe("dechets");
-      expect(result.direct!.parts.dechets).toBeCloseTo(1, 5);
-      expect(result.direct!.nonAttribuable).toBeCloseTo(0, 5);
+      // masse dechets 1, lissage non attribuable 0.5 → T = 1.5
+      expect(result.direct!.parts.dechets).toBeCloseTo(1 / 1.5, 5);
+      expect(result.direct!.nonAttribuable).toBeCloseTo(0.5 / 1.5, 5);
     });
 
     it("is tolerant to accents, punctuation and case in label lookup", () => {
@@ -54,9 +55,10 @@ describe("SecteursService", () => {
 
     it("splits multi-sector rules (Bio-carburants: contribution 70/30 branche énergie/agriculture)", () => {
       const result = service.computeSecteurs(null, ["Bio-carburants"]);
-      expect(result.direct!.parts.branche_energie).toBeCloseTo(1, 5);
-      expect(result.contribution!.parts.branche_energie).toBeCloseTo(0.7, 5);
-      expect(result.contribution!.parts.agriculture).toBeCloseTo(0.3, 5);
+      // levier : poids 1.5, T = 1.5 + 0.5 = 2
+      expect(result.direct!.parts.branche_energie).toBeCloseTo(1.5 / 2, 5);
+      expect(result.contribution!.parts.branche_energie).toBeCloseTo(1.05 / 2, 5);
+      expect(result.contribution!.parts.agriculture).toBeCloseTo(0.45 / 2, 5);
       expect(result.contribution!.dominant).toBe("branche_energie");
     });
 
@@ -66,16 +68,17 @@ describe("SecteursService", () => {
         "Vélo",
       ]);
       const parts = result.direct!.parts;
-      // masses attendues : dechets 1×1 = 1 ; autres_transports 1.5×1 = 1.5 → normalisées
-      expect(parts.autres_transports).toBeCloseTo(1.5 / 2.5, 5);
-      expect(parts.dechets).toBeCloseTo(1 / 2.5, 5);
+      // masses : dechets 1×1 = 1 ; autres_transports 1.5×1 = 1.5 ; + lissage 0.5 → T = 3
+      expect(parts.autres_transports).toBeCloseTo(1.5 / 3, 5);
+      expect(parts.dechets).toBeCloseTo(1 / 3, 5);
       expect(result.direct!.dominant).toBe("autres_transports");
       // la sémantique contribution du levier Vélo bascule sur le report modal routier
       expect(result.contribution!.parts.transport_routier).toBeGreaterThan(0);
     });
 
-    it("accumulates residual mass as nonAttribuable and can make it dominant", () => {
-      // « International » ne mappe sur aucun secteur (vecteur nul)
+    it("lets the smoothing constant dominate weak signals (non attribuable)", () => {
+      // « International » (vecteur nul) est ignoré ; seule la masse dechets 0.2 reste,
+      // face au lissage constant 0.5 → la fiche est non attribuable
       const result = service.computeSecteurs(
         {
           thematiques: [
@@ -87,8 +90,8 @@ describe("SecteursService", () => {
         [],
       );
       expect(result.direct!.dominant).toBeNull();
-      expect(result.direct!.nonAttribuable).toBeCloseTo(0.9 / 1.1, 5);
-      expect(result.direct!.parts.dechets).toBeCloseTo(0.2 / 1.1, 5);
+      expect(result.direct!.nonAttribuable).toBeCloseTo(0.5 / 0.7, 5);
+      expect(result.direct!.parts.dechets).toBeCloseTo(0.2 / 0.7, 5);
     });
 
     it("normalizes parts + nonAttribuable to a unit simplex", () => {
