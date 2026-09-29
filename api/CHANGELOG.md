@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.8](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.7...v0.2.8) (2026-09-29)
+
+
+### Features
+
+* **fiches-action:** resolve tet external ids on all fiche endpoints ([bfdb520](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/bfdb52037613621c547848b3c2a043bb8c06cac6))
+
 ## [0.2.7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.6...v0.2.7) (2026-09-29)
 
 
