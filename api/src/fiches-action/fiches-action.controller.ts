@@ -38,7 +38,9 @@ export class FichesActionController {
   @Get(":id")
   @ApiOperation({
     summary: "Récupérer une fiche action par ID",
-    description: "Retourne la fiche action avec ses plans liés, ses IDs externes et sa classification.",
+    description:
+      "Retourne la fiche action avec ses plans liés, ses IDs externes et sa classification. " +
+      "Accepte l'ID interne (UUID) ou l'externalId TeT.",
   })
   async findOne(@Param("id") id: string) {
     return this.fichesActionService.findOne(id);
@@ -73,7 +75,8 @@ export class FichesActionController {
   @Patch(":id")
   @ApiOperation({
     summary: "Mettre à jour partiellement une fiche action",
-    description: "Met à jour les champs fournis sans écraser les autres.",
+    description:
+      "Met à jour les champs fournis sans écraser les autres. Accepte l'ID interne (UUID) ou l'externalId TeT.",
   })
   async update(
     @Param("id") id: string,
