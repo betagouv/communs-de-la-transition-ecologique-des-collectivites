@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.7](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.6...v0.2.7) (2026-09-29)
+
+
+### Features
+
+* **fiches-action:** align secteurs aggregation with exact recovered formula ([93bbe50](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/93bbe50736154480cb29306f73e2efb4415280b9))
+* **fiches-action:** apply validated mapping amendments (v1.1) ([6e758e5](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6e758e508dd2c38a7f3e74e9e1f542b85cbe7873))
+* **fiches-action:** expose secteurs reglementaires endpoint for tet ([16240e3](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/16240e399f46dc7e4108b29c8547afdba4a27692))
+
+
+### Bug Fixes
+
+* **bench:** load secteurs mapping from compiled const, not regex over ts ([d992482](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d99248255dcd4b3b7facd71d3221f7ee3abc59c3))
+
 ## [0.2.6](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.5...v0.2.6) (2026-09-22)
 
 
