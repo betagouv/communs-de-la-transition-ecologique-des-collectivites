@@ -92,6 +92,25 @@ describe("FichesActionService.getSecteurs - Integration Tests", () => {
     expect(result.secteursDirect).not.toBeNull();
   });
 
+  it("resolves the externalId on findOne and update too (parity with /secteurs)", async () => {
+    const db = testDbService.database;
+    const ficheId = await insertFiche({ nom: "Fiche parite ids" });
+    await db.insert(tetExternalIds).values({
+      objetId: ficheId,
+      serviceType: "TeT",
+      objetType: "fiche_action",
+      externalId: "424242",
+    });
+
+    const fiche = await service.findOne("424242");
+    expect(fiche.id).toBe(ficheId);
+
+    const updated = await service.update("424242", { nom: "Fiche parite ids v2" });
+    expect(updated.id).toBe(ficheId);
+    const again = await service.findOne(ficheId);
+    expect(again.nom).toBe("Fiche parite ids v2");
+  });
+
   it("throws a 404 for an unknown id", async () => {
     await expect(service.getSecteurs("00000000-0000-7000-8000-000000000000")).rejects.toThrow(NotFoundException);
     await expect(service.getSecteurs("999999")).rejects.toThrow(NotFoundException);

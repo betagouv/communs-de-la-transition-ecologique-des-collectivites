@@ -30,32 +30,37 @@ export class FichesActionService {
   ) {}
 
   /**
+   * Résout un identifiant de fiche : UUID interne tel quel, sinon externalId TeT
+   * (namespace serviceType TeT + objet_type fiche_action). 404 si inconnu.
+   */
+  private async resolveFicheId(id: string): Promise<string> {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    if (isUuid) return id;
+
+    const [mapping] = await this.dbService.database
+      .select({ objetId: tetExternalIds.objetId })
+      .from(tetExternalIds)
+      .where(
+        and(
+          eq(tetExternalIds.serviceType, "TeT"),
+          eq(tetExternalIds.objetType, "fiche_action"),
+          eq(tetExternalIds.externalId, id),
+        ),
+      )
+      .limit(1);
+    if (!mapping) {
+      throw new NotFoundException(`Fiche action with ID ${id} not found`);
+    }
+    return mapping.objetId;
+  }
+
+  /**
    * Secteurs réglementaires d'une fiche action, calculés à la lecture depuis ses
-   * labels persistés (classification LLM + leviers SGPE déclarés). Accepte l'ID
-   * interne (UUID) ou, à défaut, l'externalId TeT de la fiche.
+   * labels persistés (classification LLM + leviers SGPE déclarés).
    */
   async getSecteurs(id: string): Promise<SecteursResponse> {
     const db = this.dbService.database;
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-
-    let ficheId = id;
-    if (!isUuid) {
-      const [mapping] = await db
-        .select({ objetId: tetExternalIds.objetId })
-        .from(tetExternalIds)
-        .where(
-          and(
-            eq(tetExternalIds.serviceType, "TeT"),
-            eq(tetExternalIds.objetType, "fiche_action"),
-            eq(tetExternalIds.externalId, id),
-          ),
-        )
-        .limit(1);
-      if (!mapping) {
-        throw new NotFoundException(`Fiche action with ID ${id} not found`);
-      }
-      ficheId = mapping.objetId;
-    }
+    const ficheId = await this.resolveFicheId(id);
 
     const [fiche] = await db
       .select({
@@ -221,8 +226,9 @@ export class FichesActionService {
 
   async findOne(id: string) {
     const db = this.dbService.database;
+    const ficheId = await this.resolveFicheId(id);
 
-    const [fiche] = await db.select().from(tetFichesAction).where(eq(tetFichesAction.id, id)).limit(1);
+    const [fiche] = await db.select().from(tetFichesAction).where(eq(tetFichesAction.id, ficheId)).limit(1);
 
     if (!fiche) {
       throw new NotFoundException(`Fiche action with ID ${id} not found`);
@@ -232,7 +238,7 @@ export class FichesActionService {
     const externalIds = await db
       .select({ serviceType: tetExternalIds.serviceType, externalId: tetExternalIds.externalId })
       .from(tetExternalIds)
-      .where(eq(tetExternalIds.objetId, id));
+      .where(eq(tetExternalIds.objetId, ficheId));
 
     // Get linked plans
     const planLinks = await db
@@ -243,7 +249,7 @@ export class FichesActionService {
       })
       .from(tetFichesActionToPlans)
       .innerJoin(tetPlansTransition, eq(tetFichesActionToPlans.planTransitionId, tetPlansTransition.id))
-      .where(eq(tetFichesActionToPlans.ficheActionId, id));
+      .where(eq(tetFichesActionToPlans.ficheActionId, ficheId));
 
     return {
       ...fiche,
@@ -257,11 +263,12 @@ export class FichesActionService {
 
   async update(id: string, dto: Partial<CreateFicheActionRequest>): Promise<{ id: string }> {
     const db = this.dbService.database;
+    const ficheId = await this.resolveFicheId(id);
 
     const [existing] = await db
       .select({ id: tetFichesAction.id })
       .from(tetFichesAction)
-      .where(eq(tetFichesAction.id, id))
+      .where(eq(tetFichesAction.id, ficheId))
       .limit(1);
 
     if (!existing) {
@@ -287,10 +294,10 @@ export class FichesActionService {
     }
 
     if (Object.keys(fieldsToUpdate).length > 0) {
-      await db.update(tetFichesAction).set(fieldsToUpdate).where(eq(tetFichesAction.id, id));
+      await db.update(tetFichesAction).set(fieldsToUpdate).where(eq(tetFichesAction.id, ficheId));
     }
 
-    return { id };
+    return { id: ficheId };
   }
 
   /**
