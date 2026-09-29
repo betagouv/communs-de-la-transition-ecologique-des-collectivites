@@ -48,7 +48,7 @@ export class SecteursResponse {
 
   @ApiProperty({
     description: "Version de la méthode (mapping déterministe + agrégation) ayant produit la réponse.",
-    example: "mapping-jean-v1/agregation-v1",
+    example: "mapping-v1.1/agregation-v1",
   })
   methode!: string;
 }

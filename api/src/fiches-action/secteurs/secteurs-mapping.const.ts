@@ -1,10 +1,11 @@
 // Mapping déterministe labels → 8 secteurs réglementaires (parts en %, ordre SECTEURS).
-// Source : artefact de Jean Perret (dashboard « Affectation sectorielle des projets », sept. 2026)
+// Source : référentiel métier interne (reporting « Affectation sectorielle des projets », sept. 2026)
 // — 167 thématiques, 86 sites, 67 leviers SGPE ; deux sémantiques :
 // « direct » (secteur du projet) et « contribution » (secteurs d'effet, poids répartis).
 // Clés normalisées (minuscules, sans accents ni ponctuation) — voir normalizeLabel().
 // GÉNÉRÉ depuis l'artefact source — ne pas éditer à la main, sauf amendements validés :
-// v1.1 (28/09/2026, validé Jean Perret, cf. exports/secteurs-controle-2026-09-28-recommandations.md) :
+// v1.1 (28/09/2026, validé par le responsable du référentiel — contrôle qualité sur le stock, cf.
+// exports/secteurs-controle-2026-09-28-recommandations.md) :
 //   « chauffage bois » 60/30 → 40/20/+40 branche énergie ; « changement chaudières gaz + rénovation
 //   (résidentiel) » 100 rés. → 70/+30 branche énergie (chaufferies collectives et réseaux de chaleur,
 //   corrections simulées sur le stock : +47/−43 et +20/−19 accords/contradictions).

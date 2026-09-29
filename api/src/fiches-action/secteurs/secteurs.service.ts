@@ -35,7 +35,7 @@ export interface SecteursResult {
 /**
  * Affectation sectorielle déterministe d'une fiche action, à partir de ses labels
  * déjà persistés (classification LLM + leviers SGPE déclarés) et du mapping
- * label → secteurs de Jean Perret (secteurs-mapping.const.ts, utilisé verbatim).
+ * label → secteurs du référentiel métier (secteurs-mapping.const.ts).
  *
  * Agrégation : la formule EXACTE du reporting d'origine, identifiée depuis ses 36 711
  * sorties (100 % reproduites à ±1 point d'arrondi, dominant 99,7 %, sur les deux
@@ -51,7 +51,7 @@ export interface SecteursResult {
  */
 @Injectable()
 export class SecteursService {
-  static readonly METHODE = "mapping-jean-v1.1/agregation-jean-v1";
+  static readonly METHODE = "mapping-v1.1/agregation-v1";
 
   private static readonly POIDS_THEMATIQUE = 1;
   private static readonly POIDS_SITE = 0.35;
