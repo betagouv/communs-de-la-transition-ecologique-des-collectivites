@@ -13,7 +13,7 @@ Désaccords flagués :
 
 Sorties (~/Projects/workspace/exports) :
   secteurs-controle-<date>.csv          — une ligne par fiche en désaccord
-  secteurs-controle-<date>-regles.md    — agrégat par règle de mapping (pour Jean)
+  secteurs-controle-<date>-regles.md    — agrégat par règle de mapping (pour le responsable du référentiel)
 Reprise sur interruption : les jugements sont append-only dans results/.
 
 Usage : bench/classification/.venv, clés dans bench/classification/.env
