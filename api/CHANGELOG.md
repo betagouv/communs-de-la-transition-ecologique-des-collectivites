@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.8...v0.2.9) (2026-10-01)
+
+
+### Features
+
+* **scripts:** add replay-tet-fiches to backfill fiches from a TeT export ([fb6a53b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/fb6a53b5e898667b685a6e7b5996afe5050d8287))
+
+
+### Bug Fixes
+
+* **secteurs:** make swagger example coherent (dominant = argmax of parts) ([d4b204d](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d4b204d5cc7400ec2d7e53a32f0bd0f6235390ab))
+
 ## [0.2.8](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.7...v0.2.8) (2026-09-29)
 
 
