@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.10](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.9...v0.2.10) (2026-10-02)
+
+
+### Features
+
+* **auth:** database-backed api keys with env-key transition ([584970e](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/584970e99efd5ac1230ba3fb6181bfd5d17eeba9))
+
 ## [0.2.9](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.8...v0.2.9) (2026-10-01)
 
 
