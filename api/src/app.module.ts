@@ -2,6 +2,7 @@ import { Module, NestModule, MiddlewareConsumer } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { DatabaseModule } from "@database/database.module";
+import { AuthModule } from "@/auth/auth.module";
 import { LoggerModule } from "@/logging/logger.module";
 import { RequestLoggingInterceptor } from "@/logging/request-logging.interceptor";
 import { ThrottlerModule } from "@nestjs/throttler";
@@ -75,6 +76,7 @@ import { AjoutsManuelsModule } from "@/ajouts-manuels/ajouts-manuels.module";
       inject: [ConfigService],
     }),
     DatabaseModule,
+    AuthModule,
     ProjetsModule,
     ServicesModule,
     LoggerModule,
