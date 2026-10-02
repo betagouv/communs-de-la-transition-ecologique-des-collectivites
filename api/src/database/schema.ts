@@ -29,6 +29,21 @@ export const collectiviteType = ["Commune", "EPCI"] as const;
 export const collectiviteTypeEnum = pgEnum("collectivite_type", collectiviteType);
 export type CollectiviteType = (typeof collectiviteTypeEnum.enumValues)[number];
 
+// Clés d'API partenaires : plusieurs clés par service, hashées (SHA-256), révocables
+// sans redéploiement. Les clés historiques en variables d'env restent valides pendant
+// la transition (cf. ApiKeyGuard).
+export const apiKeys = pgTable("api_keys", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
+  keyHash: text("key_hash").notNull().unique(),
+  serviceType: text("service_type").notNull(),
+  name: text("name").notNull(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  lastUsedAt: timestamp("last_used_at"),
+});
+
 export const projets = pgTable("projets", {
   id: uuid("id")
     .primaryKey()

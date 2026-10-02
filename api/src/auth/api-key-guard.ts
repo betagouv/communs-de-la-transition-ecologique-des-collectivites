@@ -3,6 +3,7 @@ import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedExceptio
 import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
+import { ApiKeysService, hashApiKey } from "./api-keys.service";
 
 // Add service type to Request interface
 declare global {
@@ -14,15 +15,25 @@ declare global {
   }
 }
 
+/** TTL du cache des clés résolues en base — borne aussi la fréquence du last_used_at. */
+const DB_KEY_CACHE_TTL_MS = 60_000;
+
+/**
+ * Deux sources de vérité pendant la transition :
+ * 1. les clés historiques en variables d'env (une par service) — inchangées ;
+ * 2. la table api_keys (plusieurs clés par service, hashées, révocables sans redeploy).
+ */
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
-  private readonly apiKeys: Record<string, ServiceType>;
+  private readonly envApiKeys: Record<string, ServiceType>;
+  private readonly dbKeyCache = new Map<string, { serviceType: ServiceType; expiresAt: number }>();
 
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
     private readonly reflector: Reflector,
+    private readonly apiKeysService: ApiKeysService,
   ) {
-    this.apiKeys = {
+    this.envApiKeys = {
       [this.configService.get<string>("MEC_API_KEY")!]: "MEC",
       [this.configService.get<string>("TET_API_KEY")!]: "TeT",
       [this.configService.get<string>("RECOCO_API_KEY")!]: "Recoco",
@@ -33,7 +44,7 @@ export class ApiKeyGuard implements CanActivate {
     };
   }
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.get<boolean>("isPublic", context.getHandler());
 
     if (isPublic) {
@@ -48,7 +59,8 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     const apiKey = authHeader.split(" ")[1];
-    const serviceType = this.apiKeys[apiKey];
+
+    const serviceType = this.envApiKeys[apiKey] ?? (await this.resolveDbKey(apiKey));
 
     if (!serviceType) {
       throw new UnauthorizedException("Invalid API key");
@@ -58,5 +70,23 @@ export class ApiKeyGuard implements CanActivate {
     request.serviceType = serviceType;
 
     return true;
+  }
+
+  private async resolveDbKey(apiKey: string): Promise<ServiceType | null> {
+    const keyHash = hashApiKey(apiKey);
+
+    const cached = this.dbKeyCache.get(keyHash);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.serviceType;
+    }
+
+    const found = await this.apiKeysService.findActiveByHash(keyHash);
+    if (!found) {
+      this.dbKeyCache.delete(keyHash);
+      return null;
+    }
+
+    this.dbKeyCache.set(keyHash, { serviceType: found.serviceType, expiresAt: Date.now() + DB_KEY_CACHE_TTL_MS });
+    return found.serviceType;
   }
 }
