@@ -40,6 +40,8 @@ export const apiKeys = pgTable("api_keys", {
   serviceType: text("service_type").notNull(),
   name: text("name").notNull(),
   active: boolean("active").notNull().default(true),
+  // Clé limitée aux méthodes sûres (GET/HEAD/OPTIONS) : toute écriture est refusée par le guard.
+  readOnly: boolean("read_only").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   lastUsedAt: timestamp("last_used_at"),
 });

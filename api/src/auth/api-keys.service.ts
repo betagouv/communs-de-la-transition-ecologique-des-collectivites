@@ -8,6 +8,7 @@ import { ServiceType } from "@/shared/types";
 export interface ActiveApiKey {
   serviceType: ServiceType;
   name: string;
+  readOnly: boolean;
 }
 
 /** Les clés ne sont jamais stockées en clair : seule l'empreinte SHA-256 est en base. */
@@ -21,7 +22,7 @@ export class ApiKeysService {
 
   async findActiveByHash(keyHash: string): Promise<ActiveApiKey | null> {
     const [row] = await this.databaseService.database
-      .select({ serviceType: apiKeys.serviceType, name: apiKeys.name, id: apiKeys.id })
+      .select({ serviceType: apiKeys.serviceType, name: apiKeys.name, readOnly: apiKeys.readOnly, id: apiKeys.id })
       .from(apiKeys)
       .where(and(eq(apiKeys.keyHash, keyHash), eq(apiKeys.active, true)))
       .limit(1);
@@ -35,6 +36,6 @@ export class ApiKeysService {
       .where(eq(apiKeys.id, row.id))
       .catch(() => undefined);
 
-    return { serviceType: row.serviceType as ServiceType, name: row.name };
+    return { serviceType: row.serviceType as ServiceType, name: row.name, readOnly: row.readOnly };
   }
 }
