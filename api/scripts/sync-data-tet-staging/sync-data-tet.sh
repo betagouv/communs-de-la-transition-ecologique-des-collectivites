@@ -76,8 +76,14 @@ for table in "${TABLES[@]}"; do
     source_columns=$("${PSQL[@]}" -d "$FROM_DB_URL" -Atc "$(columns_query "$table")")
     target_columns=$("${PSQL[@]}" -d "$TO_DB_URL" -Atc "$(columns_query "$table")")
 
-    if [ -z "$source_columns" ] || [ -z "$target_columns" ]; then
-        incompatibilities+="  $SCHEMA.$table is missing on the source or on the target"$'\n'
+    # information_schema only lists what the connected user may read: an empty answer
+    # means a missing table or a missing privilege.
+    if [ -z "$source_columns" ]; then
+        incompatibilities+="  $SCHEMA.$table is missing on the source, or the source user cannot read it"$'\n'
+        continue
+    fi
+    if [ -z "$target_columns" ]; then
+        incompatibilities+="  $SCHEMA.$table is missing on the target"$'\n'
         continue
     fi
 
