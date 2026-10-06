@@ -44,9 +44,7 @@ jobs:
 
       - name: Install Scalingo CLI
         run: |
-          curl -fsSL -O https://cli-dl.scalingo.com/install
-          bash install
-          rm install
+          curl -fsSL https://cli-dl.scalingo.com/install | bash
 
       - name: Setup SSH (required by db-tunnel)
         run: |
