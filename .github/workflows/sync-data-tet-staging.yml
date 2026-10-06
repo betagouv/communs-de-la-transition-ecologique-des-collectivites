@@ -1,0 +1,95 @@
+name: Sync data_tet production → staging (nightly)
+run-name: sync data_tet production → staging${{ inputs.dry_run && ' (dry run)' || '' }}
+
+# TeT restores its staging database from production every night (22:00 UTC, see
+# data_layer/backup in their repository). We replace our staging data_tet schema with the
+# production one afterwards, so that both stagings hold the same fiches.
+# Must run after their dump: our snapshot has to be a superset of theirs.
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        type: boolean
+        description: 'Run every check and export from production, but write nothing to staging.'
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-data-tet-staging
+  cancel-in-progress: false
+
+env:
+  PROD_APP: les-communs-transition-ecologique-api-prod
+  STAGING_APP: les-communs-transition-ecologique-api-staging
+  PROD_DB_NAME: les_communs_7671
+  STAGING_DB_NAME: les_communs_204
+  PROD_TUNNEL_PORT: 10000
+  STAGING_TUNNEL_PORT: 10001
+
+jobs:
+  sync:
+    name: Replace staging data_tet with production
+    if: github.repository == 'betagouv/communs-de-la-transition-ecologique-des-collectivites'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install Scalingo CLI
+        run: |
+          curl -fsSL -O https://cli-dl.scalingo.com/install
+          bash install
+          rm install
+
+      - name: Setup SSH (required by db-tunnel)
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Open database tunnels
+        env:
+          SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
+        run: |
+          scalingo login --api-token "$SCALINGO_API_TOKEN"
+
+          nohup scalingo --app "$PROD_APP" db-tunnel -i ~/.ssh/id_rsa -p "$PROD_TUNNEL_PORT" SCALINGO_POSTGRESQL_URL > /tmp/tunnel-prod.log 2>&1 &
+          nohup scalingo --app "$STAGING_APP" db-tunnel -i ~/.ssh/id_rsa -p "$STAGING_TUNNEL_PORT" SCALINGO_POSTGRESQL_URL > /tmp/tunnel-staging.log 2>&1 &
+
+          for port in "$PROD_TUNNEL_PORT" "$STAGING_TUNNEL_PORT"; do
+            for attempt in $(seq 1 30); do
+              if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
+                echo "Tunnel on port $port is up."
+                continue 2
+              fi
+              sleep 1
+            done
+            echo "Tunnel on port $port did not come up."
+            cat /tmp/tunnel-*.log
+            exit 1
+          done
+
+      - name: Sync data_tet
+        env:
+          # Read-only database user on production, dedicated to this job.
+          PROD_SYNC_DB_USER: ${{ secrets.PROD_SYNC_DB_USER }}
+          PROD_SYNC_DB_PASSWORD: ${{ secrets.PROD_SYNC_DB_PASSWORD }}
+          DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+        run: |
+          staging_url=$(scalingo --app "$STAGING_APP" env-get SCALINGO_POSTGRESQL_URL)
+          staging_password=$(sed -E 's|^[^:]+://[^:]+:([^@]+)@.*$|\1|' <<< "$staging_url")
+          echo "::add-mask::$staging_password"
+
+          export TO_DB_URL
+          TO_DB_URL=$(sed -E "s|@[^/]+/|@127.0.0.1:$STAGING_TUNNEL_PORT/|" <<< "$staging_url")
+          export FROM_DB_URL="postgres://$PROD_SYNC_DB_USER:$PROD_SYNC_DB_PASSWORD@127.0.0.1:$PROD_TUNNEL_PORT/$PROD_DB_NAME?sslmode=prefer"
+          export EXPECTED_TO_DB_NAME="$STAGING_DB_NAME"
+
+          bash api/scripts/sync-data-tet-staging/sync-data-tet.sh
