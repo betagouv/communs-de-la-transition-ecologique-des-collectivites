@@ -76,7 +76,10 @@ jobs:
 
       - name: Sync data_tet
         env:
-          # Read-only database user on production, dedicated to this job.
+          # Read-only database user on production, dedicated to this job. Scalingo read-only
+          # users can only read the public schema: this one also needs, once,
+          #   GRANT USAGE ON SCHEMA data_tet TO <user>;
+          #   GRANT SELECT ON ALL TABLES IN SCHEMA data_tet TO <user>;
           PROD_SYNC_DB_USER: ${{ secrets.PROD_SYNC_DB_USER }}
           PROD_SYNC_DB_PASSWORD: ${{ secrets.PROD_SYNC_DB_PASSWORD }}
           DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
