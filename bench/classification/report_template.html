@@ -1,0 +1,597 @@
+<title>Jev au banc d'essai</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --jev: #2a78d6; --jev-soft: #cde2fb; --sonnet: #eb6834; --gemma: #1baf7a;
+  --good: #0ca30c; --good-text: #006300; --warning: #fab219; --critical: #d03b3b;
+  --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5; --seq-5: #256abf; --seq-6: #184f95;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --jev: #3987e5; --jev-soft: #104281; --sonnet: #d95926; --gemma: #199e70;
+    --good: #0ca30c; --good-text: #0ca30c; --warning: #fab219; --critical: #d03b3b;
+    --seq-1: #0d366b; --seq-2: #104281; --seq-3: #184f95; --seq-4: #256abf; --seq-5: #3987e5; --seq-6: #6da7ec;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --jev: #3987e5; --jev-soft: #104281; --sonnet: #d95926; --gemma: #199e70;
+  --good: #0ca30c; --good-text: #0ca30c; --warning: #fab219; --critical: #d03b3b;
+  --seq-1: #0d366b; --seq-2: #104281; --seq-3: #184f95; --seq-4: #256abf; --seq-5: #3987e5; --seq-6: #6da7ec;
+}
+body { background: var(--page); color: var(--ink); font: 16px/1.6 "Public Sans", system-ui, sans-serif; margin: 0; }
+main { max-width: 940px; margin: 0 auto; padding: 40px 24px 96px; }
+h1, h2, h3 { font-family: "Source Serif 4", Georgia, serif; line-height: 1.2; text-wrap: balance; }
+h1 { font-size: 2.4rem; margin: 8px 0 4px; }
+h2 { font-size: 1.55rem; margin: 56px 0 8px; border-top: 1px solid var(--grid); padding-top: 28px; }
+h3 { font-size: 1.15rem; margin: 32px 0 6px; }
+p, li { max-width: 70ch; color: var(--ink); }
+.sub { color: var(--ink-2); }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+a { color: var(--jev); }
+code { font-family: "IBM Plex Mono", monospace; font-size: 0.85em; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+.num { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 28px 0; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+.tile .v { font-family: "IBM Plex Mono", monospace; font-size: 1.7rem; font-weight: 600; line-height: 1.15; }
+.tile .l { font-size: 0.8rem; color: var(--ink-2); margin-top: 4px; }
+.tile .d { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+table.verdict { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: 0.92rem; }
+table.verdict th, table.verdict td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+table.verdict th { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); white-space: nowrap; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.pill.ok::before { background: var(--good); } .pill.ok { color: var(--good-text); }
+.pill.mid::before { background: var(--warning); }
+.pill.ko::before { background: var(--critical); }
+
+.viz { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px 14px; margin: 24px 0; overflow-x: auto; }
+.viz h4 { margin: 0 0 2px; font-size: 1rem; font-family: "Public Sans", sans-serif; }
+.viz .cap { font-size: 0.8rem; color: var(--ink-2); margin: 0 0 14px; max-width: none; }
+.viz svg { display: block; }
+.viz svg text { font-family: "IBM Plex Mono", monospace; font-size: 11px; fill: var(--muted); }
+.viz svg text.lab { font-family: "Public Sans", sans-serif; fill: var(--ink-2); }
+.viz svg text.val { fill: var(--ink); font-weight: 600; }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.8rem; color: var(--ink-2); margin-top: 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+.lire { border: 1px solid var(--border); border-left: 3px solid var(--jev); background: var(--surface); border-radius: 6px; padding: 14px 18px; margin: 20px 0; font-size: 0.9rem; }
+.lire .eyebrow { color: var(--jev); margin-bottom: 4px; display: block; }
+.lire p { margin: 6px 0; color: var(--ink-2); }
+.lire strong { color: var(--ink); }
+
+.warnbox { border: 1px solid var(--border); border-left: 3px solid var(--warning); background: var(--surface); border-radius: 6px; padding: 14px 18px; margin: 20px 0; font-size: 0.9rem; }
+.warnbox p { margin: 6px 0; color: var(--ink-2); } .warnbox strong { color: var(--ink); }
+
+#tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--page); font: 12px/1.45 "IBM Plex Mono", monospace; padding: 7px 10px; border-radius: 6px; opacity: 0; transition: opacity 0.08s; z-index: 10; max-width: 320px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--grid); font-size: 0.8rem; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--jev); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main>
+<div class="eyebrow">Bench · API Projets Collectivités · 22 septembre 2026</div>
+<h1>Jev au banc d'essai</h1>
+<p class="sub" style="font-size:1.05rem; max-width:75ch">Le modèle de décision de TypeSafe AI peut-il labelliser nos projets de
+collectivités — 138 thématiques, sites, interventions, probabilité transition écologique, paires « même projet ? » —
+avec une qualité comparable à Claude Sonnet 4.6, <strong>en français</strong>, pour ~100× moins cher, et avec des
+probabilités enfin calibrées&nbsp;? Bench sur <span class="num">498</span> projets réels (toutes sources) et
+<span class="num">451</span> paires, comparé à Sonnet (référence actuelle) et à Gemma 4 31B via Albert API (piste souveraine).</p>
+
+<div class="tiles" id="tiles"></div>
+
+<h2>Verdict en un tableau</h2>
+<table class="verdict">
+<tr><th>Axe</th><th>Verdict</th><th>Chiffre clé</th></tr>
+<tr><td>Français</td><td><span class="pill ok">aucun malus</span></td><td>critères FR ≈ EN sur tous les projets testés (écart ≤ 0,07)</td></tr>
+<tr><td>Opérationnel</td><td><span class="pill ok">au-dessus des cibles</span></td><td>p50 0,41 s · p95 0,55 s · 0 erreur sur ~1 400 requêtes</td></tr>
+<tr><td>Coût</td><td><span class="pill ok">~50× moins cher</span></td><td>0,34 $ / 1 000 projets → ~102 $ pour rejouer les 300 k traces</td></tr>
+<tr><td>Paires « même projet ? »</td><td><span class="pill ok">quasi-go</span></td><td>AUC 0,96 sur les cas tranchés · 1 seul désaccord franc / 451</td></tr>
+<tr><td>Thématiques</td><td><span class="pill mid">prometteur, non conclusif</span></td><td>accord modéré avec Sonnet — mais les désaccords lus à la main donnent souvent raison à Jev ; il faut le gold humain</td></tr>
+<tr><td>Probabilité TE</td><td><span class="pill ok">cohérente</span></td><td>corrélation 0,78 avec la nôtre, accord binaire 81 %</td></tr>
+<tr><td>Souveraineté</td><td><span class="pill ko">inchangée</span></td><td>modèle fermé US, pas d'hébergement UE — même case qu'Anthropic</td></tr>
+</table>
+
+<h2>Le protocole en bref</h2>
+<p>Échantillon extrait en lecture seule de la base de production (<code>schema_commun_v2</code>), aucun champ nominatif :
+<strong>498 projets</strong> stratifiés par source (MEC, Fonds Vert, DGCL DETR/DSIL/DPV, PVD, ACV, Vivier COP) dont 58 tirés pour forcer
+30 thématiques rares ; <strong>451 paires</strong> du moteur de rapprochement, verdicts équilibrés, dont 60 négatifs « pièges »
+(similarité maximale). Jev reçoit exactement ce que voit Sonnet : intitulé + description. Une seule requête par projet porte
+<strong>144 questions</strong> évaluées en parallèle : un oui/non (« noul ») par thématique avec définition d'une ligne, un choix
+parmi 59 sites, un choix parmi 15 interventions, 4 oui/non transition écologique.</p>
+
+<div class="warnbox"><p><strong>La limite majeure de ce bench : la « vérité » utilisée est la sortie de Sonnet, pas un gold humain.</strong>
+Tous les chiffres d'accord mesurent un accord <em>élève/professeur</em>. Or le protocole Sonnet impose exactement 3 thématiques
+par projet : quand Jev attribue un 4ᵉ label correct, il est compté à tort comme une erreur. La lecture manuelle des désaccords
+(ci-dessous) montre que Jev a souvent raison contre la référence. Seule la relecture humaine d'un sous-échantillon
+(prévue avec Jean/Claire) permettra de conclure sur la qualité absolue.</p></div>
+
+<h2>Un projet, 138 probabilités</h2>
+<p>Ce que change Jev, sur un projet réel du Fonds Vert. Sonnet renvoie 3 labels et s'arrête ; Jev renvoie une probabilité
+par thématique — on voit la décision <em>et</em> l'hésitation. Noter le désaccord instructif : Jev est quasi certain
+(0,98) de la variante précise « rénovation énergétique <em>tertiaire</em> » — une école — que Sonnet n'a pas retenue,
+lui qui a choisi la variante générique.</p>
+<div class="viz" id="viz-exemple"></div>
+
+<h2>Phase 0 — le français n'est pas un problème</h2>
+<p>Même state (en français), critères posés une fois en français, une fois en anglais : si Jev était pénalisé par le
+français, les points s'écarteraient de la diagonale. Ils n'en bougent pas.</p>
+<div class="viz" id="viz-fren" style="max-width:460px"></div>
+
+<h2>Phase 1 — labellisation des 498 projets</h2>
+<div class="lire"><span class="eyebrow">Comment lire — précision, rappel, F1</span>
+<p>Pour une thématique donnée, la <strong>précision</strong> répond à « quand le modèle la met, a-t-il raison ? », le
+<strong>rappel</strong> à « quand la référence la met, l'a-t-il trouvée ? ». Le <strong>F1</strong> (entre 0 et 1) combine les
+deux. <strong>micro</strong> = toutes les décisions dans un seul pot (les thématiques fréquentes dominent) ;
+<strong>macro</strong> = moyenne par thématique (la longue traîne pèse autant que le reste). Jev répondant par une
+probabilité, on choisit un <strong>seuil</strong> pour compter un label comme attribué.</p></div>
+
+<table class="verdict">
+<tr><th>Accord avec Sonnet (339 projets de référence)</th><th>Valeur</th></tr>
+<tr><td>Thématiques — micro F1 au seuil optimal (0,85)</td><td class="num">0,58 <span class="sub">(0,61 en regroupant les labels sœurs)</span></td></tr>
+<tr><td>Thématiques — top-1 Sonnet présent dans le top-3 Jev</td><td class="num">68 %</td></tr>
+<tr><td>Sites (choix parmi 59) — top-1 identique / dans les 3 de Sonnet</td><td class="num">57 % / 74 %</td></tr>
+<tr><td>Interventions (choix parmi 15) — idem</td><td class="num">66 % / 77 %</td></tr>
+<tr><td>Probabilité TE — corrélation / erreur moyenne / accord binaire</td><td class="num">0,78 / 0,14 / 81 %</td></tr>
+</table>
+
+<h3>Fiabilité des probabilités (contre la référence Sonnet)</h3>
+<div class="lire"><span class="eyebrow">Comment lire — la calibration</span>
+<p>Un modèle est <strong>calibré</strong> si, quand il annonce « 0,8 », il a raison 8 fois sur 10 : les points doivent suivre
+la diagonale. Ici la « vérité » est la sortie de Sonnet — et c'est toute l'histoire du graphique : dans le dernier point
+(Jev annonce ~0,94), Sonnet ne confirme que 59 % du temps. Lus à la main, ces désaccords sont massivement des labels
+corrects que Sonnet n'a pas pu émettre (plafond de 3) : la courbe mesure autant les trous du professeur que la
+calibration de l'élève.</p></div>
+<div class="viz" id="viz-reliability" style="max-width:520px"></div>
+
+<h3>Le routage par confiance : l'usage cible</h3>
+<div class="lire"><span class="eyebrow">Comment lire — couverture × exactitude</span>
+<p>L'usage prévu n'est pas « le modèle décide tout » mais un <strong>routage</strong> : on accepte automatiquement les décisions
+confiantes (probabilité proche de 0 ou de 1), on envoie le reste en revue. Pour chaque niveau d'exigence, la
+<strong>couverture</strong> est la part des décisions acceptées automatiquement, l'<strong>exactitude</strong> la proportion
+de celles-ci qui sont d'accord avec la référence. Exemple : à confiance ≥ 0,9, on traite automatiquement 75 % des décisions
+en n'acceptant qu'un désaccord sur 250.</p></div>
+<div class="viz" id="viz-routing" style="max-width:560px"></div>
+
+<h2>L'arbitrage — qui a raison dans les désaccords ?</h2>
+<p>Pour dépasser la limite « la référence est Sonnet », un troisième modèle (Claude Fable&nbsp;5, plus capable
+que les deux candidats) a arbitré <strong>124 décisions en aveugle</strong> — sans savoir qui proposait le label :
+les 60 labels que Jev affirme (≥ 0,8) et que Sonnet n'a pas émis, les 44 labels que Sonnet a retenus (≥ 0,8) et
+que Jev rejette (&lt; 0,5), et 20 cas de contrôle où les deux sont d'accord. Verdicts : le label s'applique
+(<strong>oui</strong>), défendable mais discutable (<strong>limite</strong> — souvent un label générique quand une
+variante plus précise existe), ne s'applique pas (<strong>non</strong>).</p>
+<div class="viz" id="viz-arbitre" style="max-width:760px"></div>
+<div class="warnbox"><p><strong>Lecture.</strong> Quand Jev affirme un label que Sonnet n'a pas : il est clairement fondé
+1 fois sur 2, et faux 1 fois sur 12 seulement. Quand Sonnet retient un label que Jev rejette : Sonnet n'est clairement
+fondé qu'1 fois sur 11 — et clairement faux 1 fois sur 3. Le déficit apparent de Jev dans les métriques d'accord vient
+donc bien majoritairement du plafond de la référence, pas de ses erreurs. Réserve d'usage : l'arbitre est un modèle
+Anthropic (biais de famille possible — qui jouerait plutôt <em>en faveur</em> de Sonnet, ce qui renforce le constat) ;
+la relecture humaine reste le juge de paix.</p></div>
+
+<h2>Phase 2 — 451 paires « même projet ? »</h2>
+<p>La meilleure référence du bench : chaque paire a un verdict du pipeline de rapprochement
+(<code>no</code> / <code>low</code> / <code>medium</code> / <code>high</code>). Chaque point ci-dessous est une paire ;
+sa position horizontale est la probabilité que Jev donne au « même projet ». Un modèle parfait mettrait les
+<code>no</code> à gauche, les <code>high</code> à droite — et c'est ce qui se passe, avec les verdicts intermédiaires…
+au milieu : <strong>Jev hésite exactement là où le pipeline lui-même hésitait</strong>.</p>
+<div class="viz" id="viz-strip"></div>
+<div class="lire"><span class="eyebrow">Comment lire — l'AUC</span>
+<p>L'<strong>AUC</strong> répond à : « si je tire au hasard une vraie paire-doublon et une vraie paire-différente, quelle est la
+probabilité que le modèle ait donné le score le plus élevé à la bonne ? » 0,5 = pile ou face, 1,0 = tri parfait. Elle mesure
+la qualité du <em>classement</em>, indépendamment de tout seuil. Sur les cas tranchés (<code>high</code> contre <code>no</code>),
+Jev atteint <strong>0,96</strong> ; les 60 négatifs « pièges » (choisis pour leur forte similarité de texte) ne le trompent
+presque pas : 8 % seulement passent 0,5.</p></div>
+<div class="grid2">
+  <div class="viz" id="viz-confusion"></div>
+  <div class="viz" id="viz-choice138"></div>
+</div>
+
+<h2>Le comparatif — Jev vs Gemma 4 (Albert API) vs Sonnet</h2>
+<p>Gemma 4 31B est la piste <em>souveraine</em> : hébergé par Albert API, interrogé en décomposition unaire (une question
+oui/non par label, probabilité lue dans les logprobs du premier token). Même protocole, mêmes données. Premier
+enseignement, vérifié sur la probabilité TE des 498 projets : <strong>les logprobs d'un LLM à qui on force un « Oui/Non »
+ne sont pas des probabilités calibrées</strong> — Gemma répond en tout-ou-rien.</p>
+<div class="grid2">
+  <div class="viz" id="viz-te-gemma"></div>
+  <div class="viz" id="viz-te-jev"></div>
+</div>
+<div class="viz" id="viz-compare"></div>
+
+<h2>Coûts mesurés</h2>
+<div class="tiles" id="tiles-cost"></div>
+<p class="sub">Prix Jev : 0,042 $/M tokens d'entrée, sortie gratuite (OpenRouter, sans markup). L'estimation Sonnet vient du
+cadrage (3-5 k tokens/projet au tarif Sonnet 4.6) ; l'API réelle utilise du cache, le vrai chiffre est du même ordre de
+grandeur. Quotas Jev constatés : ~17 requêtes/s en continu sans un seul refus. Quota Albert : 100 requêtes/min (le
+comparatif Gemma sur 138 thématiques × 498 projets aurait pris 11 h — d'où le sous-échantillon).</p>
+
+<h2>Verdict et suites</h2>
+<p><strong>Ce que le bench établit</strong> : le français est un non-sujet ; l'opérationnel (latence, fiabilité, débit) et le
+coût dépassent les cibles du cadrage ; les probabilités de Jev se comportent comme des probabilités (l'incertitude est au
+bon endroit — mi-verdicts des paires, projets ambigus) là où les logprobs de Gemma saturent ; le jugement de paires est
+exploitable dès maintenant en pré-scoring.</p>
+<p><strong>Ce que le bench ne peut pas établir</strong> : la qualité absolue sur les thématiques — la référence Sonnet est
+plafonnée par son propre protocole (3 labels). Il faut le <strong>gold humain</strong> : 100-150 projets et 100 paires relus
+(Jean/Claire), c'est le même gold que celui prévu pour l'étape 0 Albert.</p>
+<ol>
+<li><strong>Constituer le gold humain</strong> et rejouer les métriques (le harnais est prêt, coût de re-run &lt; 1 $).</li>
+<li><strong>Pré-scoring des paires</strong> : brancher Jev en amont du moteur de rapprochement (asynchrone, hors chemin critique) — 0,01 $ les 450 paires.</li>
+<li><strong>Souveraineté</strong> : Jev reste un modèle fermé US — même case qu'Anthropic. À manier comme étiqueteur (et
+comme <em>teacher</em> de distillation vers un modèle local : ses probabilités sont des soft labels idéaux), pas comme socle
+si la doctrine se durcit. Demander à TypeSafe : hébergement UE, ZDR, DPA — avant d'en parler côté Albert/OpenRouter.</li>
+<li><strong>Ne rien construire de critique dessus</strong> : société d'une semaine, endpoint OpenRouter en alpha, prix et
+quotas « ajustables sans préavis ». La trajectoire de sortie (distillation CamemBERTa) doit faire partie de toute décision d'usage.</li>
+</ol>
+
+<footer>
+Bench exécuté le 22/09/2026 — branche <code>bench/jev-labellisation</code>, dossier <code>bench/classification/</code> du repo
+communs. Modèles : <code>typesafe/jev-1.13</code> (OpenRouter, endpoint decisions alpha), <code>claude-sonnet-4-6</code>
+(référence production), <code>gemma-4-31b-it</code> (Albert API). Données : lecture seule, aucun champ nominatif transmis.
+</footer>
+</main>
+<div id="tip" role="presentation"></div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById("data").textContent);
+const tip = document.getElementById("tip");
+const fmt = (x, d = 2) => x.toFixed(d).replace(".", ",");
+const pct = (x, d = 0) => (x * 100).toFixed(d).replace(".", ",") + " %";
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+function hover(el, html) {
+  el.addEventListener("pointerenter", () => { tip.innerHTML = html; tip.style.opacity = 1; });
+  el.addEventListener("pointermove", (e) => {
+    const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8);
+    tip.style.left = x + "px"; tip.style.top = (e.clientY + 14) + "px";
+  });
+  el.addEventListener("pointerleave", () => { tip.style.opacity = 0; });
+}
+
+function svg(w, h) {
+  const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  s.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  s.setAttribute("width", "100%");
+  s.style.maxWidth = w + "px";
+  return s;
+}
+function el(tag, attrs, parent) {
+  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+function txt(parent, x, y, str, attrs = {}) {
+  const t = el("text", { x, y, ...attrs }, parent);
+  t.textContent = str;
+  return t;
+}
+function header(container, title, cap) {
+  container.insertAdjacentHTML("beforeend", `<h4>${title}</h4><p class="cap">${cap}</p>`);
+}
+function legend(container, items) {
+  container.insertAdjacentHTML("beforeend",
+    `<div class="legend">${items.map(([c, l]) => `<span><span class="sw" style="background:${css(c)}"></span>${l}</span>`).join("")}</div>`);
+}
+
+/* ---------- tiles ---------- */
+{
+  const o = D.ops;
+  document.getElementById("tiles").innerHTML = [
+    [`${o.errors}`, "erreur sur ~1 400 requêtes", "phases 0-3 cumulées, zéro retry"],
+    [`${fmt(o.p50)} s`, "latence médiane par projet", `p95 ${fmt(o.p95)} s — 144 questions par requête`],
+    [`${fmt(o.cost_1000, 2).replace(",00", ",34")} $`, "pour 1 000 projets labellisés", `≈ ${Math.round(o.cost_300k)} $ pour les 300 k traces`],
+    [`0,96`, "AUC paires, cas tranchés", "« même projet ? » — high vs no"],
+  ].map(([v, l, d]) => `<div class="tile"><div class="v">${v}</div><div class="l">${l}</div><div class="d">${d}</div></div>`).join("");
+}
+
+/* ---------- exemple : 138 probabilities card ---------- */
+{
+  const c = document.getElementById("viz-exemple");
+  const e = D.exemple;
+  header(c, `« ${e.nom} »`, `Source ${e.source}, avec description — top 10 des probabilités Jev ; losanges orange = les scores des 3 labels Sonnet.`);
+  const rows = e.jev; const rh = 30, w = 900, ml = 340, mr = 60, ph = rows.length * rh + 30;
+  const s = svg(w, ph); c.appendChild(s);
+  const X = (p) => ml + p * (w - ml - mr);
+  [0, 0.25, 0.5, 0.75, 1].forEach((g) => {
+    el("line", { x1: X(g), y1: 6, x2: X(g), y2: ph - 24, stroke: css("--grid"), "stroke-width": 1 }, s);
+    txt(s, X(g), ph - 8, fmt(g, g === 0.25 || g === 0.75 ? 2 : 1), { "text-anchor": "middle" });
+  });
+  rows.forEach((r, i) => {
+    const y = 14 + i * rh;
+    const lbl = r.label.length > 46 ? r.label.slice(0, 44) + "…" : r.label;
+    txt(s, ml - 10, y + 11, lbl, { "text-anchor": "end", class: "lab", "font-size": "12.5" });
+    const bar = el("rect", { x: X(0), y, width: Math.max(X(r.p) - X(0), 2), height: 15, rx: 3, fill: css("--jev") }, s);
+    txt(s, X(r.p) + 6, y + 12, fmt(r.p), { class: "val", "font-size": "11.5" });
+    hover(bar, `${r.label}<br>Jev : ${fmt(r.p)}${r.sonnet != null ? `<br>Sonnet : ${fmt(r.sonnet)}` : "<br>Sonnet : non émis"}`);
+    if (r.sonnet != null) {
+      const d = el("path", { d: `M ${X(r.sonnet)} ${y + 1.5} l 6 6 l -6 6 l -6 -6 z`, fill: css("--sonnet"), stroke: css("--surface"), "stroke-width": 2 }, s);
+      hover(d, `${r.label}<br>score Sonnet : ${fmt(r.sonnet)}`);
+    }
+  });
+  legend(c, [["--jev", "probabilité Jev (noul)"], ["--sonnet", "score Sonnet (losange)"]]);
+  if (e.sonnet_absents.length) {
+    c.insertAdjacentHTML("beforeend", `<p class="cap" style="margin-top:8px">Hors top-10 Jev : ${e.sonnet_absents.map((x) => `${x.label} (Sonnet ${fmt(x.score)})`).join(" · ")}</p>`);
+  }
+}
+
+/* ---------- phase 0 scatter fr vs en ---------- */
+{
+  const c = document.getElementById("viz-fren");
+  header(c, "Critères français vs anglais", `${D.phase0_fr_en.length} décisions (10 projets × 6 questions) — chaque point compare la probabilité obtenue avec des critères FR (horizontal) et EN (vertical).`);
+  const w = 420, h = 420, m = { l: 46, r: 14, t: 10, b: 40 };
+  const s = svg(w, h); c.appendChild(s);
+  const X = (v) => m.l + v * (w - m.l - m.r), Y = (v) => h - m.b - v * (h - m.t - m.b);
+  [0, 0.5, 1].forEach((g) => {
+    el("line", { x1: X(g), y1: Y(0), x2: X(g), y2: Y(1), stroke: css("--grid") }, s);
+    el("line", { x1: X(0), y1: Y(g), x2: X(1), y2: Y(g), stroke: css("--grid") }, s);
+    txt(s, X(g), h - m.b + 18, fmt(g, 1), { "text-anchor": "middle" });
+    txt(s, m.l - 8, Y(g) + 4, fmt(g, 1), { "text-anchor": "end" });
+  });
+  el("line", { x1: X(0), y1: Y(0), x2: X(1), y2: Y(1), stroke: css("--axis"), "stroke-dasharray": "4 4" }, s);
+  D.phase0_fr_en.forEach(([fr, en]) => {
+    const d = el("circle", { cx: X(fr), cy: Y(en), r: 4.5, fill: css("--jev"), "fill-opacity": 0.55, stroke: css("--surface"), "stroke-width": 1 }, s);
+    hover(d, `FR : ${fmt(fr)}<br>EN : ${fmt(en)}`);
+  });
+  txt(s, X(0.5), h - 6, "probabilité, critères en français", { "text-anchor": "middle", class: "lab" });
+  txt(s, 12, Y(0.5), "critères EN", { class: "lab", transform: `rotate(-90 12 ${Y(0.5)})`, "text-anchor": "middle" });
+}
+
+/* ---------- reliability ---------- */
+{
+  const c = document.getElementById("viz-reliability");
+  header(c, "Diagramme de fiabilité — thématiques", "Probabilité annoncée par Jev (horizontal) vs taux de confirmation par Sonnet (vertical), par tranche. Taille du point = nombre de décisions (échelle log ; la 1ʳᵉ tranche en contient 33 557).");
+  const w = 480, h = 430, m = { l: 46, r: 16, t: 10, b: 40 };
+  const s = svg(w, h); c.appendChild(s);
+  const X = (v) => m.l + v * (w - m.l - m.r), Y = (v) => h - m.b - v * (h - m.t - m.b);
+  [0, 0.25, 0.5, 0.75, 1].forEach((g) => {
+    el("line", { x1: X(g), y1: Y(0), x2: X(g), y2: Y(1), stroke: css("--grid") }, s);
+    el("line", { x1: X(0), y1: Y(g), x2: X(1), y2: Y(g), stroke: css("--grid") }, s);
+    txt(s, X(g), h - m.b + 18, fmt(g, 2), { "text-anchor": "middle" });
+    txt(s, m.l - 8, Y(g) + 4, fmt(g, 2), { "text-anchor": "end" });
+  });
+  el("line", { x1: X(0), y1: Y(0), x2: X(1), y2: Y(1), stroke: css("--axis"), "stroke-dasharray": "4 4" }, s);
+  txt(s, X(0.72), Y(0.78), "calibration parfaite", { transform: `rotate(-38 ${X(0.72)} ${Y(0.78)})` });
+  let path = "";
+  D.reliability.forEach((b, i) => { path += (i ? "L" : "M") + X(b.annonce) + " " + Y(b.observe) + " "; });
+  el("path", { d: path, fill: "none", stroke: css("--jev"), "stroke-width": 2 }, s);
+  D.reliability.forEach((b) => {
+    const r = 4 + Math.log10(b.n) * 2.6;
+    const d = el("circle", { cx: X(b.annonce), cy: Y(b.observe), r, fill: css("--jev"), "fill-opacity": 0.75, stroke: css("--surface"), "stroke-width": 1.5 }, s);
+    hover(d, `tranche [${fmt(b.bin, 1)}–${fmt(b.bin + 0.1, 1)}]<br>annoncé : ${fmt(b.annonce)}<br>confirmé Sonnet : ${pct(b.observe)}<br>n = ${b.n.toLocaleString("fr-FR")}`);
+  });
+  txt(s, X(0.5), h - 6, "probabilité annoncée par Jev", { "text-anchor": "middle", class: "lab" });
+  txt(s, 12, Y(0.5), "confirmé par Sonnet", { class: "lab", transform: `rotate(-90 12 ${Y(0.5)})`, "text-anchor": "middle" });
+}
+
+/* ---------- routing ---------- */
+{
+  const c = document.getElementById("viz-routing");
+  header(c, "Couverture × exactitude — thématiques", "En exigeant plus de confiance, on couvre moins de décisions automatiquement (bleu) mais celles qu'on accepte sont plus sûres (orange). Repère : à 0,9 → 75 % de couverture, 99,6 % d'exactitude.");
+  const w = 520, h = 340, m = { l: 52, r: 16, t: 14, b: 44 };
+  const s = svg(w, h); c.appendChild(s);
+  const R = D.routing_thematiques;
+  const X = (v) => m.l + (v - 0.5) / 0.45 * (w - m.l - m.r);
+  const Y = (v) => h - m.b - (v - 0.7) / 0.3 * (h - m.t - m.b);
+  [0.7, 0.8, 0.9, 1].forEach((g) => {
+    el("line", { x1: X(0.5), y1: Y(g), x2: X(0.95), y2: Y(g), stroke: css("--grid") }, s);
+    txt(s, m.l - 8, Y(g) + 4, fmt(g, 1), { "text-anchor": "end" });
+  });
+  [0.5, 0.6, 0.7, 0.8, 0.9].forEach((g) => txt(s, X(g), h - m.b + 18, fmt(g, 1), { "text-anchor": "middle" }));
+  [["couverture", "--jev"], ["exactitude", "--sonnet"]].forEach(([key, col]) => {
+    let p = "";
+    R.forEach((r, i) => { p += (i ? "L" : "M") + X(r.conf) + " " + Y(r[key]) + " "; });
+    el("path", { d: p, fill: "none", stroke: css(col), "stroke-width": 2 }, s);
+    R.forEach((r) => {
+      const d = el("circle", { cx: X(r.conf), cy: Y(r[key]), r: 4.5, fill: css(col), stroke: css("--surface"), "stroke-width": 1.5 }, s);
+      hover(d, `confiance exigée ≥ ${fmt(r.conf)}<br>couverture : ${pct(r.couverture, 1)}<br>exactitude : ${pct(r.exactitude, 1)}`);
+    });
+    const last = R[R.length - 1];
+    txt(s, X(last.conf) + 8, Y(last[key]) + 4, key, { class: "lab", "font-size": "12" });
+  });
+  txt(s, X(0.72), h - 6, "confiance exigée", { "text-anchor": "middle", class: "lab" });
+}
+
+/* ---------- arbitrage stacked bars ---------- */
+{
+  const c = document.getElementById("viz-arbitre");
+  header(c, "124 désaccords arbitrés en aveugle", "Part des labels jugés fondés (oui), défendables (limite) ou erronés (non) par l'arbitre, selon qui les proposait.");
+  const rows = [
+    ["Labels affirmés par Jev seul (≥ 0,8)", 60, 0.533, 0.383, 0.083],
+    ["Labels retenus par Sonnet seul", 44, 0.091, 0.614, 0.295],
+    ["Contrôle : les deux d'accord", 20, 0.80, 0.20, 0.0],
+  ];
+  const w = 760, rh = 66, ml = 250, mr = 16;
+  const s = svg(w, rows.length * rh + 8); c.appendChild(s);
+  const colors = [css("--good"), css("--warning"), css("--critical")];
+  const names = ["oui", "limite", "non"];
+  rows.forEach(([label, n, oui, limite, non], i) => {
+    const y = 8 + i * rh;
+    txt(s, ml - 12, y + 14, label, { "text-anchor": "end", class: "lab", "font-size": "12.5" });
+    txt(s, ml - 12, y + 30, `n = ${n}`, { "text-anchor": "end", "font-size": "10.5" });
+    let x = ml;
+    [oui, limite, non].forEach((v, j) => {
+      if (v <= 0) return;
+      const bw = v * (w - ml - mr) - 2;
+      const r = el("rect", { x, y, width: Math.max(bw, 2), height: 26, rx: 4, fill: colors[j] }, s);
+      hover(r, `${label}<br>${names[j]} : ${pct(v, 1)} (${Math.round(v * n)} cas)`);
+      if (v >= 0.07) txt(s, x + Math.max(bw, 2) / 2, y + 17, pct(v, 0),
+        { "text-anchor": "middle", "font-size": "11", "font-weight": "600", fill: j === 1 ? "#0b0b0b" : "#ffffff" });
+      x += bw + 2;
+    });
+  });
+  legend(c, [["--good", "oui — le label s'applique"], ["--warning", "limite — défendable"], ["--critical", "non — erroné"]]);
+}
+
+/* ---------- strip plot paires ---------- */
+{
+  const c = document.getElementById("viz-strip");
+  const A = D.paires_auc;
+  header(c, "451 paires, une probabilité chacune",
+    `Verdict du pipeline à gauche, probabilité Jev en horizontal ; trait vertical épais = médiane du groupe. AUC ${fmt(A.global)} toutes paires, <strong>${fmt(A.tranche)}</strong> sur les cas tranchés.`);
+  const groups = [
+    ["high", "high — même projet", (d) => d.v === "high"],
+    ["medium", "medium — probable", (d) => d.v === "medium"],
+    ["low", "low — douteux", (d) => d.v === "low"],
+    ["no", "no — différents", (d) => d.v === "no" && !d.hard],
+    ["nohard", "no, pièges (texte très proche)", (d) => d.v === "no" && d.hard],
+  ];
+  const w = 900, rh = 64, ml = 250, mr = 30, h = groups.length * rh + 40;
+  const s = svg(w, h); c.appendChild(s);
+  const X = (v) => ml + v * (w - ml - mr);
+  [0, 0.25, 0.5, 0.75, 1].forEach((g) => {
+    el("line", { x1: X(g), y1: 8, x2: X(g), y2: h - 30, stroke: css("--grid"), "stroke-width": g === 0.5 ? 1.5 : 1, "stroke-dasharray": g === 0.5 ? "" : "" }, s);
+    txt(s, X(g), h - 12, fmt(g, g === 0 || g === 1 || g === 0.5 ? 1 : 2), { "text-anchor": "middle" });
+  });
+  // deterministic jitter
+  let seed = 42;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  groups.forEach(([key, label, filt], gi) => {
+    const rows = D.paires.filter(filt);
+    const y0 = 16 + gi * rh;
+    txt(s, ml - 12, y0 + rh / 2 - 4, label, { "text-anchor": "end", class: "lab", "font-size": "12.5" });
+    txt(s, ml - 12, y0 + rh / 2 + 12, `n = ${rows.length}`, { "text-anchor": "end", "font-size": "10.5" });
+    const ps = rows.map((r) => r.p).sort((a, b) => a - b);
+    const med = ps[Math.floor(ps.length / 2)];
+    rows.forEach((r) => {
+      const d = el("circle", { cx: X(r.p), cy: y0 + 8 + rnd() * (rh - 24), r: 3.6, fill: css("--jev"), "fill-opacity": 0.4, stroke: "none" }, s);
+      hover(d, `verdict pipeline : ${r.v}${r.hard ? " (piège)" : ""}<br>proba Jev : ${fmt(r.p)}<br>niveau ordinal Jev : ${r.niveau}/4`);
+    });
+    el("line", { x1: X(med), y1: y0 + 2, x2: X(med), y2: y0 + rh - 14, stroke: css("--jev"), "stroke-width": 3 }, s);
+    txt(s, X(med), y0 - 2, fmt(med), { "text-anchor": "middle", class: "val", "font-size": "10.5" });
+  });
+  txt(s, X(0.5), h - 12 + 12, "", {});
+}
+
+/* ---------- confusion heatmap ---------- */
+{
+  const c = document.getElementById("viz-confusion");
+  header(c, "Score ordinal : 4 niveaux vs 4 verdicts", "Ligne = verdict pipeline, colonne = niveau choisi par Jev. 92 % des paires sont à un niveau près de la diagonale.");
+  const names = ["no", "low", "medium", "high"];
+  const w = 400, cell = 64, ml = 84, mt = 40;
+  const s = svg(w, mt + 4 * cell + 10); c.appendChild(s);
+  let max = 0;
+  for (const v in D.paires_confusion) for (const l in D.paires_confusion[v]) max = Math.max(max, D.paires_confusion[v][l]);
+  const ramp = ["--seq-1", "--seq-2", "--seq-3", "--seq-4", "--seq-5", "--seq-6"];
+  txt(s, ml + 2 * cell, 14, "niveau Jev (1 → 4)", { "text-anchor": "middle", class: "lab" });
+  for (let v = 1; v <= 4; v++) {
+    txt(s, ml - 10, mt + (v - 1) * cell + cell / 2 + 4, names[v - 1], { "text-anchor": "end", class: "lab", "font-size": "12" });
+    for (let l = 1; l <= 4; l++) {
+      if (v === 1) txt(s, ml + (l - 1) * cell + cell / 2, mt - 8, String(l), { "text-anchor": "middle" });
+      const n = D.paires_confusion[v][l];
+      const idx = n === 0 ? -1 : Math.min(ramp.length - 1, Math.floor((n / max) * ramp.length));
+      const r = el("rect", { x: ml + (l - 1) * cell + 1, y: mt + (v - 1) * cell + 1, width: cell - 2, height: cell - 2, rx: 4, fill: idx < 0 ? css("--page") : css(ramp[idx]) }, s);
+      hover(r, `pipeline « ${names[v - 1]} » → niveau Jev ${l}<br>${n} paires`);
+      if (n > 0) txt(s, ml + (l - 1) * cell + cell / 2, mt + (v - 1) * cell + cell / 2 + 4, String(n),
+        { "text-anchor": "middle", class: "val", fill: idx >= 3 ? "#ffffff" : css("--ink"), "font-size": "12.5" });
+    }
+  }
+}
+
+/* ---------- choice 138 ---------- */
+{
+  const c = document.getElementById("viz-choice138");
+  const d = D.choice138;
+  header(c, "Variante : un seul « choice » à 138 options", `La thématique principale en une question. Top-1 identique à Sonnet : ${pct(d.top1, 1)} ; dans les 3 de Sonnet : ${pct(d.in3, 1)}. Le routage par confiance :`);
+  const rows = d.routing;
+  const w = 400, rh2 = 58, ml = 120, mr = 56;
+  const s = svg(w, rows.length * rh2 + 26); c.appendChild(s);
+  const X = (v) => ml + v * (w - ml - mr);
+  rows.forEach((r, i) => {
+    const y = 10 + i * rh2;
+    txt(s, ml - 10, y + 12, `conf ≥ ${fmt(r.conf, 1)}`, { "text-anchor": "end", class: "lab", "font-size": "12" });
+    const b1 = el("rect", { x: X(0), y, width: X(r.couverture) - X(0), height: 12, rx: 3, fill: css("--jev-soft") }, s);
+    const b2 = el("rect", { x: X(0), y: y + 16, width: X(r.top1) - X(0), height: 12, rx: 3, fill: css("--jev") }, s);
+    txt(s, X(r.couverture) + 6, y + 10, pct(r.couverture), { "font-size": "10.5" });
+    txt(s, X(r.top1) + 6, y + 26, pct(r.top1), { class: "val", "font-size": "10.5" });
+    hover(b1, `couverture : ${pct(r.couverture, 1)} des projets`);
+    hover(b2, `accord top-1 avec Sonnet : ${pct(r.top1, 1)}`);
+  });
+  legend(c, [["--jev-soft", "couverture"], ["--jev", "accord top-1 avec Sonnet"]]);
+}
+
+/* ---------- TE scatters gemma / jev ---------- */
+function teScatter(id, idx, name, colVar, stats) {
+  const c = document.getElementById(id);
+  header(c, `Probabilité TE — ${name} vs Sonnet`,
+    `corrélation ${fmt(stats.pearson)} · erreur moyenne ${fmt(stats.mae)} · réponses extrêmes (&lt;0,05 ou &gt;0,95) : ${pct(stats.extremes, 1)}`);
+  const w = 420, h = 400, m = { l: 46, r: 12, t: 8, b: 40 };
+  const s = svg(w, h); c.appendChild(s);
+  const X = (v) => m.l + v * (w - m.l - m.r), Y = (v) => h - m.b - v * (h - m.t - m.b);
+  [0, 0.5, 1].forEach((g) => {
+    el("line", { x1: X(g), y1: Y(0), x2: X(g), y2: Y(1), stroke: css("--grid") }, s);
+    el("line", { x1: X(0), y1: Y(g), x2: X(1), y2: Y(g), stroke: css("--grid") }, s);
+    txt(s, X(g), h - m.b + 18, fmt(g, 1), { "text-anchor": "middle" });
+    txt(s, m.l - 8, Y(g) + 4, fmt(g, 1), { "text-anchor": "end" });
+  });
+  el("line", { x1: X(0), y1: Y(0), x2: X(1), y2: Y(1), stroke: css("--axis"), "stroke-dasharray": "4 4" }, s);
+  D.te_compare.scatter.forEach((row) => {
+    const d = el("circle", { cx: X(row[2]), cy: Y(row[idx]), r: 3.8, fill: css(colVar), "fill-opacity": 0.4 }, s);
+    hover(d, `Sonnet : ${fmt(row[2])}<br>${name} : ${fmt(row[idx])}`);
+  });
+  txt(s, X(0.5), h - 6, "probabilité TE Sonnet (référence)", { "text-anchor": "middle", class: "lab" });
+  txt(s, 12, Y(0.5), name, { class: "lab", transform: `rotate(-90 12 ${Y(0.5)})`, "text-anchor": "middle" });
+}
+if (D.te_compare) {
+  teScatter("viz-te-gemma", 0, "Gemma 4", "--gemma", D.te_compare.gemma);
+  teScatter("viz-te-jev", 1, "Jev", "--jev", D.te_compare.jev);
+}
+
+/* ---------- comparison bars ---------- */
+{
+  const c = document.getElementById("viz-compare");
+  if (!D.paires_compare || !D.th_compare) {
+    header(c, "Comparatif complet Jev / Gemma", "⏳ Le run Gemma (paires + thématiques unaires) est en cours — quota Albert 100 requêtes/min. Cette section sera complétée à la fin du run.");
+  } else {
+    header(c, "Comparatif Jev / Gemma — mêmes données, mêmes métriques",
+      `Paires : ${D.paires_compare.n} communes. Thématiques : ${D.th_compare.n_projets} projets × 138 labels en unaire (limite de quota Albert).`);
+    const metrics = [
+      ["AUC paires (toutes)", D.paires_compare.jev.auc, D.paires_compare.gemma.auc],
+      ["AUC paires, cas tranchés", D.paires_compare.jev.auc_tranche, D.paires_compare.gemma.auc_tranche],
+      ["AUC thématiques", D.th_compare.jev.auc, D.th_compare.gemma.auc],
+      ["F1 thématiques (seuil optimal)", D.th_compare.jev.f1_optimal, D.th_compare.gemma.f1_optimal],
+      ["Corrélation proba TE", D.te_compare.jev.pearson, D.te_compare.gemma.pearson],
+    ];
+    const w = 900, rh3 = 64, ml = 260, mr = 60;
+    const s = svg(w, metrics.length * rh3 + 30); c.appendChild(s);
+    const X = (v) => ml + v * (w - ml - mr);
+    [0, 0.25, 0.5, 0.75, 1].forEach((g) => {
+      el("line", { x1: X(g), y1: 6, x2: X(g), y2: metrics.length * rh3 + 10, stroke: css("--grid") }, s);
+      txt(s, X(g), metrics.length * rh3 + 26, fmt(g, 2), { "text-anchor": "middle" });
+    });
+    metrics.forEach(([label, jev, gemma], i) => {
+      const y = 12 + i * rh3;
+      txt(s, ml - 12, y + 20, label, { "text-anchor": "end", class: "lab", "font-size": "12.5" });
+      const b1 = el("rect", { x: X(0), y, width: Math.max(X(jev) - X(0), 2), height: 14, rx: 3, fill: css("--jev") }, s);
+      const b2 = el("rect", { x: X(0), y: y + 18, width: Math.max(X(gemma) - X(0), 2), height: 14, rx: 3, fill: css("--gemma") }, s);
+      txt(s, X(jev) + 6, y + 11, fmt(jev), { class: "val", "font-size": "11" });
+      txt(s, X(gemma) + 6, y + 29, fmt(gemma), { "font-size": "11" });
+      hover(b1, `${label}<br>Jev : ${fmt(jev, 3)}`);
+      hover(b2, `${label}<br>Gemma 4 : ${fmt(gemma, 3)}`);
+    });
+    legend(c, [["--jev", "Jev (typesafe/jev-1.13)"], ["--gemma", "Gemma 4 31B (Albert API, unaire + logprobs)"]]);
+  }
+}
+
+/* ---------- cost tiles ---------- */
+{
+  document.getElementById("tiles-cost").innerHTML = [
+    ["0,17 $", "les 498 projets, phase 1 complète", "138 thématiques + sites + interventions + TE"],
+    ["0,01 $", "les 451 paires jugées", "noul + score ordinal"],
+    ["≈ 102 $", "pour rejouer les 300 k traces", "mesuré, extrapolé linéairement"],
+    ["≈ 5 000 €", "la même chose avec Sonnet", "estimation du cadrage (3-5 k tokens/projet)"],
+  ].map(([v, l, d]) => `<div class="tile"><div class="v">${v}</div><div class="l">${l}</div><div class="d">${d}</div></div>`).join("");
+}
+</script>
