@@ -1,5 +1,12 @@
 import { ServiceType } from "@/shared/types";
-import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
@@ -18,15 +25,26 @@ declare global {
 /** TTL du cache des clés résolues en base — borne aussi la fréquence du last_used_at. */
 const DB_KEY_CACHE_TTL_MS = 60_000;
 
+/** Méthodes autorisées à une clé en lecture seule. */
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+interface ResolvedKey {
+  serviceType: ServiceType;
+  readOnly: boolean;
+}
+
 /**
  * Deux sources de vérité pendant la transition :
  * 1. les clés historiques en variables d'env (une par service) — inchangées ;
  * 2. la table api_keys (plusieurs clés par service, hashées, révocables sans redeploy).
+ *
+ * Une clé en base peut être en lecture seule : elle n'ouvre que les méthodes sûres
+ * (403 sinon). Les clés d'env restent en lecture/écriture.
  */
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
   private readonly envApiKeys: Record<string, ServiceType>;
-  private readonly dbKeyCache = new Map<string, { serviceType: ServiceType; expiresAt: number }>();
+  private readonly dbKeyCache = new Map<string, ResolvedKey & { expiresAt: number }>();
 
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
@@ -60,24 +78,31 @@ export class ApiKeyGuard implements CanActivate {
 
     const apiKey = authHeader.split(" ")[1];
 
-    const serviceType = this.envApiKeys[apiKey] ?? (await this.resolveDbKey(apiKey));
+    const envServiceType = this.envApiKeys[apiKey];
+    const resolved: ResolvedKey | null = envServiceType
+      ? { serviceType: envServiceType, readOnly: false }
+      : await this.resolveDbKey(apiKey);
 
-    if (!serviceType) {
+    if (!resolved) {
       throw new UnauthorizedException("Invalid API key");
     }
 
+    if (resolved.readOnly && !SAFE_METHODS.has(request.method)) {
+      throw new ForbiddenException("This API key is read-only");
+    }
+
     // Add the service type to the request object for future use
-    request.serviceType = serviceType;
+    request.serviceType = resolved.serviceType;
 
     return true;
   }
 
-  private async resolveDbKey(apiKey: string): Promise<ServiceType | null> {
+  private async resolveDbKey(apiKey: string): Promise<ResolvedKey | null> {
     const keyHash = hashApiKey(apiKey);
 
     const cached = this.dbKeyCache.get(keyHash);
     if (cached && cached.expiresAt > Date.now()) {
-      return cached.serviceType;
+      return cached;
     }
 
     const found = await this.apiKeysService.findActiveByHash(keyHash);
@@ -86,7 +111,8 @@ export class ApiKeyGuard implements CanActivate {
       return null;
     }
 
-    this.dbKeyCache.set(keyHash, { serviceType: found.serviceType, expiresAt: Date.now() + DB_KEY_CACHE_TTL_MS });
-    return found.serviceType;
+    const resolved = { serviceType: found.serviceType, readOnly: found.readOnly };
+    this.dbKeyCache.set(keyHash, { ...resolved, expiresAt: Date.now() + DB_KEY_CACHE_TTL_MS });
+    return resolved;
   }
 }

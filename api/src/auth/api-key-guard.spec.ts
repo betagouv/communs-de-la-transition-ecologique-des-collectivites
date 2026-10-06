@@ -1,4 +1,4 @@
-import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
+import { ExecutionContext, ForbiddenException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { ApiKeyGuard } from "./api-key-guard";
@@ -17,10 +17,10 @@ describe("ApiKeyGuard", () => {
 
   let apiKeysService: jest.Mocked<Pick<ApiKeysService, "findActiveByHash">>;
   let guard: ApiKeyGuard;
-  let request: { headers: Record<string, string>; serviceType?: string };
+  let request: { method: string; headers: Record<string, string>; serviceType?: string };
 
-  const contextFor = (authorization?: string): ExecutionContext => {
-    request = { headers: authorization ? { authorization } : {} };
+  const contextFor = (authorization?: string, method = "GET"): ExecutionContext => {
+    request = { method, headers: authorization ? { authorization } : {} };
     return {
       switchToHttp: () => ({ getRequest: () => request }),
       getHandler: () => ({}),
@@ -43,7 +43,7 @@ describe("ApiKeyGuard", () => {
   });
 
   it("accepts a database key and sets the service type", async () => {
-    apiKeysService.findActiveByHash.mockResolvedValue({ serviceType: "TeT", name: "TeT — Mehdi" });
+    apiKeysService.findActiveByHash.mockResolvedValue({ serviceType: "TeT", name: "TeT — Mehdi", readOnly: false });
 
     await expect(guard.canActivate(contextFor("Bearer ck_prod_abc123"))).resolves.toBe(true);
     expect(request.serviceType).toBe("TeT");
@@ -51,11 +51,38 @@ describe("ApiKeyGuard", () => {
   });
 
   it("caches database lookups (one query per key within the TTL)", async () => {
-    apiKeysService.findActiveByHash.mockResolvedValue({ serviceType: "MEC", name: "MEC — test" });
+    apiKeysService.findActiveByHash.mockResolvedValue({ serviceType: "MEC", name: "MEC — test", readOnly: false });
 
     await guard.canActivate(contextFor("Bearer ck_prod_cached"));
     await guard.canActivate(contextFor("Bearer ck_prod_cached"));
 
+    expect(apiKeysService.findActiveByHash).toHaveBeenCalledTimes(1);
+  });
+
+  it("lets a read-write database key through on write methods", async () => {
+    apiKeysService.findActiveByHash.mockResolvedValue({ serviceType: "TeT", name: "TeT — staging", readOnly: false });
+
+    await expect(guard.canActivate(contextFor("Bearer ck_stg_rw", "POST"))).resolves.toBe(true);
+  });
+
+  it.each(["GET", "HEAD", "OPTIONS"])("lets a read-only database key through on %s", async (method) => {
+    apiKeysService.findActiveByHash.mockResolvedValue({ serviceType: "TeT", name: "TeT — préprod", readOnly: true });
+
+    await expect(guard.canActivate(contextFor("Bearer ck_prod_ro", method))).resolves.toBe(true);
+    expect(request.serviceType).toBe("TeT");
+  });
+
+  it.each(["POST", "PUT", "PATCH", "DELETE"])("forbids %s with a read-only database key", async (method) => {
+    apiKeysService.findActiveByHash.mockResolvedValue({ serviceType: "TeT", name: "TeT — préprod", readOnly: true });
+
+    await expect(guard.canActivate(contextFor("Bearer ck_prod_ro", method))).rejects.toThrow(ForbiddenException);
+  });
+
+  it("still forbids writes when the read-only key is served from the cache", async () => {
+    apiKeysService.findActiveByHash.mockResolvedValue({ serviceType: "TeT", name: "TeT — préprod", readOnly: true });
+
+    await guard.canActivate(contextFor("Bearer ck_prod_ro", "GET"));
+    await expect(guard.canActivate(contextFor("Bearer ck_prod_ro", "POST"))).rejects.toThrow(ForbiddenException);
     expect(apiKeysService.findActiveByHash).toHaveBeenCalledTimes(1);
   });
 
