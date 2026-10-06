@@ -125,10 +125,32 @@ action de votre part.
 | « Étude d'opportunités sur les motorisations alternatives » | `transport_routier` | routier 0,62 · nonAttr 0,26 |
 | « Améliorer la biodiversité du territoire » | `null` (non attribuable) | nonAttr 0,96 — hors périmètre émissions, comportement attendu |
 
+## Environnements
+
+Vos environnements staging et préprod sont restaurés chaque nuit depuis votre production : leurs
+identifiants de fiches sont donc ceux de la production. Voici comment obtenir les secteurs dans
+chacun.
+
+| Votre environnement | Notre API | Ce que vous y trouvez |
+|---|---|---|
+| Production | `https://api.collectivites.beta.gouv.fr` | Tout le stock, écriture et lecture. |
+| Staging | `https://les-communs-transition-ecologique-api-staging.osc-fr1.scalingo.io` | Le stock de production, recopié chaque nuit (labels inclus), plus les fiches que vous créez dans la journée, classifiées pour de vrai. |
+| Préprod | Notre **production**, avec une clé en lecture seule | Tout le stock en lecture. Toute écriture est refusée (`403`). |
+
+À savoir sur le staging :
+
+- La recopie tourne vers 01:00 UTC, après votre restauration de 22:00 UTC. Elle **remplace**
+  l'intégralité des fiches TeT de notre staging : une fiche créée chez vous en staging disparaît
+  chez nous la nuit suivante, comme chez vous.
+- Si la recopie échoue une nuit, notre staging garde le contenu de la veille.
+- N'envoyez pas les webhooks de votre préprod vers notre staging : staging et préprod
+  attribuent les mêmes identifiants à des fiches différentes, elles s'écraseraient.
+
 ## Limites et accès
 
 - Auth : votre clé TeT habituelle (`Authorization: Bearer`). Limite : 500 requêtes/min.
 - `404` : identifiant inconnu (jamais synchronisé chez nous).
+- `403` : écriture tentée avec une clé en lecture seule.
 - Qualité : la table de correspondance a été contrôlée sur l'intégralité de votre stock
   (62 514 fiches) contre un juge indépendant — 2,7 % de désaccords résiduels, corrections
   intégrées (`methode: mapping-v1.1`). Signalez-nous les rattachements qui vous semblent
