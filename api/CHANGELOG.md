@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.11](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.10...v0.2.11) (2026-10-07)
+
+
+### Features
+
+* **auth:** read-only api keys ([b0c4003](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/b0c40037704729f87f77ac3a2951d02588cdd2ab))
+* **staging:** nightly replacement of staging data_tet with production ([6ced11b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/6ced11bed0803ce315d527a0220cf686897e367c))
+
+
+### Bug Fixes
+
+* **ci:** scalingo cli install step removed a file the installer already deletes ([151a2ce](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/151a2ce7b2ea8a8e166b99c915268c1d6376bc95))
+* **staging:** say when the sync source user lacks privileges on data_tet ([d230511](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d2305114c430a4a955587feda486c3d67abff5f5))
+
 ## [0.2.10](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.9...v0.2.10) (2026-10-02)
 
 
