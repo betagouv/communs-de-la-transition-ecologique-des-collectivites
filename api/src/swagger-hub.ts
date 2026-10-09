@@ -12,6 +12,7 @@ export function setupSwaggerHub(app: INestApplication) {
         { name: "API Opendata — PCAET", url: "/api/opendata/openapi.json" },
         { name: "API Projets (legacy)", url: "/api/projets/openapi.json" },
         { name: "API Dashboard TE", url: "/api/dashboard-te/openapi.json" },
+        { name: "API Consultation", url: "/api/consultation/openapi.json" },
       ],
     },
   });

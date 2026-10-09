@@ -11,6 +11,7 @@ import { serveLogos } from "@/serve-logos";
 import { setupReferentielDoc } from "@/referentiel/referentiel-doc.setup";
 import { setupOpendataDoc } from "@/plans-fiches/opendata-doc.setup";
 import { setupDashboardTeDoc } from "@/dashboard-te/dashboard-te-doc.setup";
+import { setupConsultationDoc } from "@/consultation/consultation-doc.setup";
 import { setupSwaggerHub } from "@/swagger-hub";
 import { serveLandingPages } from "@/landing/landing-pages";
 import { handleFatalError, installUncaughtErrorHandlers } from "@/shared/process/uncaught-error-handlers";
@@ -37,6 +38,7 @@ async function bootstrap() {
   setupReferentielDoc(app);
   setupOpendataDoc(app);
   setupDashboardTeDoc(app);
+  setupConsultationDoc(app);
   setupSwaggerHub(app);
   serveDemoWidget(app);
   serveStatisticsDashboard(app);
