@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.13](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.12...v0.2.13) (2026-10-09)
+
+
+### Features
+
+* **db:** materialized read of the classification labels, loader completion mode ([f1ec0dc](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f1ec0dc24314af41be81555c8bd5c28e24d0098c))
+
 ## [0.2.12](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.11...v0.2.12) (2026-10-09)
 
 
