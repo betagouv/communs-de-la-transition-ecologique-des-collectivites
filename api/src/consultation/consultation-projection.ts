@@ -3,7 +3,7 @@ import {
   FinancementConsultationDto,
   LabelsConsultationDto,
   ProjetConsultationDto,
-  SourceReferenceDto,
+  ProvenanceReferenceDto,
 } from "./dto/projet-consultation.dto";
 
 // Only labels method served today. Always filtered on: other methods may cohabit in the view.
@@ -33,7 +33,7 @@ export interface ProjetRow {
   programmes_rattachement: string[] | null;
   ouverture: string;
   nb_lignes: number;
-  sources: SourceReferenceDto[] | null;
+  sources: ProvenanceReferenceDto[] | null;
   financements: FinancementConsultationDto[] | null;
   labels_present: boolean;
   classification_thematiques: string[] | null;
@@ -90,11 +90,11 @@ const toLabels = (row: ProjetRow): LabelsConsultationDto | null => {
 /**
  * Base row → exposed contract (common schema v0.2.0 in camelCase + labels block).
  * Derived at read time, never written. The internal uuid is deliberately dropped:
- * it is regenerated at each rebuild, the reference is the `sources` block.
+ * it is regenerated at each rebuild, the reference is the `provenances` block.
  */
 export function toProjetConsultation(row: ProjetRow): ProjetConsultationDto {
   return {
-    sources: row.sources ?? [],
+    provenances: row.sources ?? [],
     nbLignesRegroupees: Number(row.nb_lignes),
     nom: row.nom,
     description: row.description,

@@ -1,17 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
-export class SourceReferenceDto {
-  @ApiProperty({ description: "Source de données d'origine (ex. dgcl, fonds-vert, decp, agences-eau)." })
-  source!: string;
+export class ProvenanceReferenceDto {
+  @ApiProperty({ description: "Provenance de la donnée (ex. dgcl, fonds-vert, decp, agences-eau)." })
+  provenance!: string;
 
   @ApiProperty({
     description:
-      "Identifiant de la ligne dans cette source. Avec `source`, c'est la clé de suivi à conserver d'un snapshot à l'autre.",
+      "Identifiant de la ligne dans cette provenance. Avec `provenance`, c'est la clé de suivi à conserver d'un snapshot à l'autre.",
   })
   idSource!: string;
 
   @ApiProperty({
-    description: "Rôle de la ligne source dans le projet consolidé (inchange, fusionne, marche_absorbe).",
+    description: "Rôle de la ligne d'origine dans le projet consolidé (inchange, fusionne, marche_absorbe).",
   })
   role!: string;
 }
@@ -127,12 +127,12 @@ export class LabelsConsultationDto {
 
 export class ProjetConsultationDto {
   @ApiProperty({
-    type: [SourceReferenceDto],
+    type: [ProvenanceReferenceDto],
     description:
-      "Référence du projet : ses clés dans les sources d'origine. Aucun identifiant interne n'est exposé " +
+      "Référence du projet : ses clés dans les provenances d'origine. Aucun identifiant interne n'est exposé " +
       "(il change à chaque reconstruction de la base).",
   })
-  sources!: SourceReferenceDto[];
+  provenances!: ProvenanceReferenceDto[];
 
   @ApiProperty({
     description:
