@@ -50,14 +50,14 @@ describe("ConsultationController", () => {
 
     it("passes the filters and the cursor through, ignoring blanks", async () => {
       await controller.projets({
-        source: "dgcl",
+        provenance: "dgcl",
         nature: " ",
         thematique: "Cours d'eau",
         millesime: "2024",
         cursor: "abc",
       });
       expect(firstArg(service.projets)).toEqual({
-        source: "dgcl",
+        provenance: "dgcl",
         nature: undefined,
         thematique: "Cours d'eau",
         millesime: 2024,
@@ -67,8 +67,8 @@ describe("ConsultationController", () => {
     });
 
     it("takes the first value of a repeated param", async () => {
-      await controller.projets({ source: ["dgcl", "decp"] });
-      expect(firstArg(service.projets).source).toBe("dgcl");
+      await controller.projets({ provenance: ["dgcl", "decp"] });
+      expect(firstArg(service.projets).provenance).toBe("dgcl");
     });
 
     it("rejects an invalid millesime with a 400 before reaching the service", () => {
