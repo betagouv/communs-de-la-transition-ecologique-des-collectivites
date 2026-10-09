@@ -245,9 +245,9 @@ describe("ConsultationService (integration)", () => {
 
         const ecole = result.data[0];
         expect(ecole.nbLignesRegroupees).toBe(2);
-        expect(ecole.sources).toEqual([
-          { source: "dgcl", idSource: ECOLE, role: "inchange" },
-          { source: "fonds-vert", idSource: ECOLE_DOUBLON, role: "inchange" },
+        expect(ecole.provenances).toEqual([
+          { provenance: "dgcl", idSource: ECOLE, role: "inchange" },
+          { provenance: "fonds-vert", idSource: ECOLE_DOUBLON, role: "inchange" },
         ]);
         expect(ecole.financements.map((f) => f.source).sort()).toEqual(["DETR", "Fonds Vert"]);
       });
@@ -297,8 +297,8 @@ describe("ConsultationService (integration)", () => {
         expect(all.map((p) => p.nom)).toEqual(["Rénovation de l'école", "Station d'épuration", "x"]);
       });
 
-      it("filters by source, keeping a group as soon as one of its lines matches", async () => {
-        const result = await service.projetsCollectivite(PARIS, { limit: 50, source: "fonds-vert" });
+      it("filters by provenance, keeping a group as soon as one of its lines matches", async () => {
+        const result = await service.projetsCollectivite(PARIS, { limit: 50, provenance: "fonds-vert" });
         expect(result.total).toBe(1);
         expect(result.data[0].nom).toBe("Rénovation de l'école");
         expect(result.data[0].nbLignesRegroupees).toBe(2);
@@ -360,7 +360,7 @@ describe("ConsultationService (integration)", () => {
       });
 
       it("applies the filters across collectivities, pagination included", async () => {
-        const all = await walk((cursor) => service.projets({ limit: 1, cursor, source: "agences-eau" }));
+        const all = await walk((cursor) => service.projets({ limit: 1, cursor, provenance: "agences-eau" }));
         expect(all.map((p) => p.nom)).toEqual(["Restauration de la mare", "Station d'épuration"]);
 
         const mobilite = await walk((cursor) => service.projets({ limit: 1, cursor, thematique: "Mobilité douce" }));

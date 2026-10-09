@@ -22,7 +22,7 @@ import { CollectiviteIndicateursDto, CollectivitesConsultationResponse } from ".
 type Row = Record<string, unknown>;
 
 export interface ProjetsFilters {
-  source?: string;
+  provenance?: string;
   nature?: string;
   thematique?: string;
   millesime?: number;
@@ -346,7 +346,7 @@ export class ConsultationService {
   // A deduplicated project matches when one of its lines satisfies every filter.
   private filterCondition(filters: ProjetsFilters): SQL {
     const conditions: SQL[] = [];
-    if (filters.source) conditions.push(sql`${filters.source} = ANY(p.sources)`);
+    if (filters.provenance) conditions.push(sql`${filters.provenance} = ANY(p.sources)`);
     if (filters.nature) conditions.push(sql`m.nature = ${filters.nature}`);
     if (filters.thematique) {
       conditions.push(sql`m.classification_thematiques @> ${textArray([filters.thematique])}`);
@@ -400,7 +400,7 @@ export class ConsultationService {
         p.localisation_latitude, p.localisation_longitude, p.localisation_adresse, p.localisation_ban_id,
         p.plan_transition_ids, p.programmes_rattachement, p.ouverture,
         cardinality(g.membres) AS nb_lignes,
-        (SELECT json_agg(json_build_object('source', ps.source, 'idSource', ps.id_source, 'role', ps.role)
+        (SELECT json_agg(json_build_object('provenance', ps.source, 'idSource', ps.id_source, 'role', ps.role)
                          ORDER BY ps.source, ps.id_source)
            FROM data_projets_consolides.projets_sources ps
           WHERE ps.projet_id = ANY(g.membres)) AS sources,

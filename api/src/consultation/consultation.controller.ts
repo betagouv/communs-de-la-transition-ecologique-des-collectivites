@@ -29,7 +29,7 @@ const BULK_LIMIT = { def: 200, max: 1000 };
 const LIMIT = { def: 50, max: 200 };
 
 const parseProjetsParams = (query: RawQuery, bounds: { def: number; max: number }): ProjetsParams => ({
-  source: nonEmpty(first(query.source)),
+  provenance: nonEmpty(first(query.provenance)),
   nature: nonEmpty(first(query.nature)),
   thematique: nonEmpty(first(query.thematique)),
   millesime: parseMillesime(nonEmpty(first(query.millesime))),
@@ -43,7 +43,7 @@ const REGIME =
 const PROJET =
   "Chaque projet suit le schéma commun v0.2.0, complété d'un bloc `labels` (provisoire : seuil de classification non calibré) " +
   "et de ses `financements`. Les doublons exacts (même collectivité, même intitulé) sont regroupés à la lecture, sans perte : " +
-  "`sources` liste toutes les lignes d'origine. `sources` (source + idSource) est la référence à conserver : " +
+  "`provenances` liste toutes les lignes d'origine. `provenances` (provenance + idSource) est la référence à conserver : " +
   "aucun identifiant interne n'est exposé.";
 
 const FILTRES =
@@ -52,7 +52,11 @@ const FILTRES =
 
 const ProjetsFiltersQueries = () =>
   applyDecorators(
-    ApiQuery({ name: "source", required: false, description: "Source de données, ex. dgcl, fonds-vert, agences-eau." }),
+    ApiQuery({
+      name: "provenance",
+      required: false,
+      description: "Provenance de la donnée, ex. dgcl, fonds-vert, agences-eau.",
+    }),
     ApiQuery({ name: "nature", required: false, description: "Nature (indicatif), ex. Projet opérationnel." }),
     ApiQuery({ name: "millesime", required: false, description: "Année d'attribution d'un financement, ex. 2024." }),
     ApiQuery({ name: "thematique", required: false, description: "Thématique (label provisoire), valeur exacte." }),
@@ -71,7 +75,7 @@ export class ConsultationController {
   @ApiOperation({
     summary: "Tous les projets de la base consolidée, paginés par curseur",
     description:
-      `${REGIME} Lecture en masse de toutes les sources, pour constituer un instantané. ${PROJET} ${FILTRES} ` +
+      `${REGIME} Lecture en masse de toutes les provenances, pour constituer un instantané. ${PROJET} ${FILTRES} ` +
       "Parcours : appeler sans `cursor`, puis repasser `nextCursor` jusqu'à obtenir null. Le curseur vaut pour un parcours ; " +
       "la base étant reconstruite périodiquement, un parcours interrompu se reprend du début. " +
       "L'API est limitée à 50 requêtes par minute et par adresse IP.",

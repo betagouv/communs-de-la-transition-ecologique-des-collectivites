@@ -30,7 +30,7 @@ const baseRow = (overrides: Partial<ProjetRow> = {}): ProjetRow => ({
   programmes_rattachement: ["CRTE"],
   ouverture: "ouvert",
   nb_lignes: 1,
-  sources: [{ source: "dgcl", idSource: "00000000-0000-5000-8000-000000000001", role: "inchange" }],
+  sources: [{ provenance: "dgcl", idSource: "00000000-0000-5000-8000-000000000001", role: "inchange" }],
   financements: [
     {
       source: "DETR",
@@ -90,12 +90,12 @@ describe("toProjetConsultation", () => {
     });
   });
 
-  it("never exposes the internal uuid: the reference is the source keys block", () => {
+  it("never exposes the internal uuid: the reference is the provenance keys block", () => {
     const projet = toProjetConsultation(baseRow());
 
     expect(projet).not.toHaveProperty("id");
-    expect(projet.sources).toEqual([
-      { source: "dgcl", idSource: "00000000-0000-5000-8000-000000000001", role: "inchange" },
+    expect(projet.provenances).toEqual([
+      { provenance: "dgcl", idSource: "00000000-0000-5000-8000-000000000001", role: "inchange" },
     ]);
   });
 
@@ -149,7 +149,7 @@ describe("toProjetConsultation", () => {
     const projet = toProjetConsultation(
       baseRow({ sources: null, financements: null, territoire_communes: null, programmes_rattachement: null }),
     );
-    expect(projet.sources).toEqual([]);
+    expect(projet.provenances).toEqual([]);
     expect(projet.financements).toEqual([]);
     expect(projet.territoireCommunes).toEqual([]);
     expect(projet.programmesRattachement).toEqual([]);
