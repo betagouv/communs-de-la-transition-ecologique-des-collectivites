@@ -150,6 +150,35 @@ describe("data_projets_consolides labels scores - Integration Tests", () => {
       });
     });
 
+    it("is mirrored column for column by the materialized view once refreshed", async () => {
+      const db = testDbService.database;
+      // a classified text without any score kept must still come out, with empty labels
+      const VIDE = "00000000-0000-7000-8000-000000000003";
+      await db.execute(
+        sql`INSERT INTO data_projets_consolides.labels_scores (source_projet_id, methode_id, codes, scores)
+            VALUES (${VIDE}, 1, '{}'::smallint[], '{}'::smallint[])`,
+      );
+      await db.execute(
+        sql`INSERT INTO data_projets_consolides.labels_rattachements (projet_id, methode_id, source_projet_id)
+            VALUES (${VIDE}, 1, ${VIDE})`,
+      );
+      await db.execute(sql`REFRESH MATERIALIZED VIEW data_projets_consolides.labels_seuil_provisoire_materialise`);
+
+      const vue = await db.execute(
+        sql`SELECT * FROM data_projets_consolides.labels_seuil_provisoire ORDER BY projet_id`,
+      );
+      const materialisee = await db.execute(
+        sql`SELECT * FROM data_projets_consolides.labels_seuil_provisoire_materialise ORDER BY projet_id`,
+      );
+
+      expect(materialisee.rows).toHaveLength(3);
+      const sansScores = vue.rows.map((ligne) =>
+        Object.fromEntries(Object.entries(ligne).filter(([k]) => k !== "scores")),
+      );
+      expect(materialisee.rows).toEqual(sansScores);
+      expect(materialisee.rows[2]).toMatchObject({ projet_id: VIDE, classification_thematiques: [], nature: null });
+    });
+
     it("keeps methods side by side so a load can be rolled back by method", async () => {
       const db = testDbService.database;
       await db.execute(
