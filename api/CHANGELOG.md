@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.15](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.14...v0.2.15) (2026-10-09)
+
+
+### Bug Fixes
+
+* **consultation:** renomme source en provenance dans le contrat ([0bd9abd](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/0bd9abdf235b8b2fada749af79b0e7c1b34b5e2d))
+
 ## [0.2.14](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.13...v0.2.14) (2026-10-09)
 
 
