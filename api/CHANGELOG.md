@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.14](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.13...v0.2.14) (2026-10-09)
+
+
+### Features
+
+* **consultation:** consultation de la base consolidée pour Turgot ([d2b070c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/d2b070c4d03e4f0d2cd5469a5b70bbbefda49bb1))
+
 ## [0.2.13](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.12...v0.2.13) (2026-10-09)
 
 
