@@ -11,7 +11,7 @@
 import { randomBytes, createHash } from "crypto";
 import { Client } from "pg";
 
-const SERVICES = ["MEC", "TeT", "Recoco", "UrbanVitaliz", "SosPonts", "FondVert", "DashboardTE"];
+const SERVICES = ["MEC", "TeT", "Recoco", "UrbanVitaliz", "SosPonts", "FondVert", "DashboardTE", "Turgot"];
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);

@@ -33,6 +33,7 @@ import { DashboardTeModule } from "@/dashboard-te/dashboard-te.module";
 import { MecModule } from "@/mec/mec.module";
 import { DecisionsModule } from "@/decisions/decisions.module";
 import { TerritoiresModule } from "@/territoires/territoires.module";
+import { ConsultationModule } from "@/consultation/consultation.module";
 import { QuestionnairesModule } from "@/questionnaires/questionnaires.module";
 import { RecommandationsModule } from "@/recommandations/recommandations.module";
 import { ServicesNumeriquesModule } from "@/services-numeriques/services-numeriques.module";
@@ -95,6 +96,7 @@ import { AjoutsManuelsModule } from "@/ajouts-manuels/ajouts-manuels.module";
     MecModule,
     DecisionsModule,
     TerritoiresModule,
+    ConsultationModule,
     QuestionnairesModule,
     RecommandationsModule,
     ServicesNumeriquesModule,
