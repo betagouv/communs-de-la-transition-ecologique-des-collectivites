@@ -70,13 +70,21 @@ Même mécanisme, autre table et **registre distinct** : `CONSOLIDATED_RESTRICTE
 (`api/src/security/restricted-sources.ts`), indexé sur `data_projets_consolides.projets_sources.source`.
 Distinct de `RESTRICTED_SOURCES` pour ne pas masquer à `/territoires` (TeT) ses propres fiches.
 
-- **Critère** : l'accord du propriétaire de chaque source (relation source × destinataire), pas le
-  drapeau `ouverture`. `ouverture` (`ouvert` / `public_sans_licence` / `interne`) est **exposé** dans
-  chaque projet comme indication de republication, il ne filtre rien.
-- **Règle anti-fuite** : une ligne est exclue dès qu'**une** de ses traces vient d'une source restreinte
-  pour l'appelant (une ligne fusionnée porte des champs de chacune de ses traces). Le filtre s'applique
-  avant le regroupement des doublons et la pagination, et à tous les agrégats (`/synthese`,
-  `/collectivites`).
+Deux verrous indépendants, tous deux **fail-closed** (sans ligne `services`, aucun scope) :
+
+1. **Niveau d'ouverture.** Par défaut, un appelant ne reçoit que les lignes `ouvert` et
+   `public_sans_licence`. Les lignes `interne` (CRTE, Fonds Vert et DGCL internes…) sont réservées aux
+   services de l'État porteurs du scope **`interne_etat`** (`CONSOLIDATED_INTERNAL_SCOPE`). Le champ
+   `ouverture` reste exposé dans chaque projet comme indication de republication.
+2. **Accord du propriétaire de la source** (relation source × destinataire) : registre ci-dessous.
+
+- **Règle anti-fuite** : une ligne est exclue dès qu'elle est `interne` pour un appelant sans
+  `interne_etat`, ou qu'**une** de ses traces vient d'une source restreinte pour lui (une ligne fusionnée
+  porte des champs de chacune de ses traces). Le filtre s'applique avant le regroupement des doublons et
+  la pagination, et à tous les agrégats (`/synthese`, `/collectivites`) : une ligne exclue ne prête à son
+  groupe ni comptage, ni provenance, ni financement.
+- **Habilitations (13/10/2026)** : `Turgot` porte `interne_etat` (migration `0057_turgot_interne_etat`,
+  ligne `services` non listée dans le widget). Aucun autre service ne le porte.
 - **Registre V0 (13/10/2026)** :
 
   | Source                                          | Scope requis              | Statut                  |
@@ -85,7 +93,8 @@ Distinct de `RESTRICTED_SOURCES` pour ne pas masquer à `/territoires` (TeT) ses
   | `communs-pvd`, `communs-acv`, `villages-avenir` | `anct_contractualisation` | ANCT : à négocier, gelé |
   | `communs-vivier-cop`                            | `cop`                     | COP : gelé              |
 
-  Tout le reste est servi aux services de l'État, CRTE et Fonds Vert compris. Un accord obtenu se
+  Toute autre source est servie, dans la limite du niveau d'ouverture de l'appelant (CRTE et Fonds Vert
+  internes compris pour un porteur d'`interne_etat`). Un accord obtenu se
   traduit par le retrait de la source du registre (tous les appelants) ou par l'octroi du scope à un
   service (procédure ci-dessus).
 
