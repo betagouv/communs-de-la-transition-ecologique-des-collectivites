@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.17](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.16...v0.2.17) (2026-10-13)
+
+
+### Features
+
+* **db:** seuil de lecture des labels relevé à 0,7 après arbitrage du gold ([97ca25c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/97ca25ccf3cd63258261eeb0771e35b8cede1d38))
+
+
+### Bug Fixes
+
+* **db:** la vue matérialisée au seuil 0,7 est reconstruite remplie puis substituée ([26ac4ca](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/26ac4ca838d538afdf88d50df8dbc99b867818fd))
+
 ## [0.2.16](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.15...v0.2.16) (2026-10-13)
 
 
