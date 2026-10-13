@@ -1,6 +1,8 @@
 import {
+  CONSOLIDATED_INTERNAL_SCOPE,
   CONSOLIDATED_RESTRICTED_SOURCES,
   forbiddenSourcesFor,
+  seesInternalLines,
   hasRestrictedSources,
   RESTRICTED_SOURCES,
 } from "./restricted-sources";
@@ -58,5 +60,18 @@ describe("CONSOLIDATED_RESTRICTED_SOURCES (base consolidée, /consultation)", ()
 
   it("laisse intact le registre de /territoires (autre table, autres clients)", () => {
     expect(Object.keys(RESTRICTED_SOURCES)).toHaveLength(0);
+  });
+});
+
+describe("lignes internes de la base consolidée (/consultation)", () => {
+  it("réserve les lignes `interne` au scope interne_etat", () => {
+    expect(CONSOLIDATED_INTERNAL_SCOPE).toBe("interne_etat");
+    expect(seesInternalLines(["interne_etat"])).toBe(true);
+    expect(seesInternalLines(["tet", "interne_etat"])).toBe(true);
+  });
+
+  it("un service sans ce scope ne voit que l'ouvert et le public sans licence (fail-closed)", () => {
+    expect(seesInternalLines([])).toBe(false);
+    expect(seesInternalLines(["tet", "cop"])).toBe(false);
   });
 });
