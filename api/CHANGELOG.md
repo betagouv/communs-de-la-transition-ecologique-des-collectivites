@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.16](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.15...v0.2.16) (2026-10-13)
+
+
+### Features
+
+* **consultation:** accès par source autorisée pour les services de l'État ([20ad1d1](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/20ad1d18c3ff7728d11dc5b6cc89fd17b1507d8e))
+* **consultation:** réserve les lignes internes au scope interne_etat ([cb06fc0](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/cb06fc0177ac1a6b955556852760216a76b2f61a))
+
 ## [0.2.15](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.14...v0.2.15) (2026-10-09)
 
 
