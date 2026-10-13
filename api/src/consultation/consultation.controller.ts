@@ -41,7 +41,9 @@ const parseProjetsParams = (query: RawQuery, bounds: { def: number; max: number 
 const REGIME =
   "Accès restreint aux services de l'État (clé d'API dédiée), en lecture seule. Ce n'est pas un jeu de données ouvert. " +
   "Seules les provenances dont le propriétaire a donné son accord sont servies : un projet dont une ligne vient " +
-  "d'une autre provenance est exclu, des listes comme des agrégats. Le champ `ouverture` dit ce qui peut être republié.";
+  "d'une autre provenance est exclu, des listes comme des agrégats. Les données internes à l'État (`ouverture` = " +
+  "`interne`) ne sont servies qu'aux services habilités, sinon seules les données ouvertes ou publiques le sont. " +
+  "Le champ `ouverture` dit ce qui peut être republié.";
 
 const PROJET =
   "Chaque projet suit le schéma commun v0.2.0, complété d'un bloc `labels` (provisoire : seuil de classification non calibré) " +

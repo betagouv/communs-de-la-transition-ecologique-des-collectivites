@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, ServiceUnavailableException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { services } from "@database/schema";
-import { CONSOLIDATED_RESTRICTED_SOURCES, forbiddenSourcesFor } from "@/security/restricted-sources";
+import { CONSOLIDATED_RESTRICTED_SOURCES, forbiddenSourcesFor, seesInternalLines } from "@/security/restricted-sources";
 import { eq, sql, SQL } from "drizzle-orm";
 import {
   CursorPosition,
@@ -341,14 +341,19 @@ export class ConsultationService {
    * Condition on `p` keeping only the lines the caller may see: a line is dropped as soon as
    * one of its traces comes from a source restricted for the caller (dropping only the trace
    * would leak, through the fused line, the fields that source contributed).
-   * The open data flag `ouverture` is not a criterion: it is exposed, not filtered on.
+   * `interne` lines are kept only for a caller holding the internal scope.
    */
   private async accesCondition(serviceType: string): Promise<SQL> {
-    const interdites = forbiddenSourcesFor(await this.serviceScopes(serviceType), CONSOLIDATED_RESTRICTED_SOURCES);
-    if (interdites.length === 0) return sql`true`;
-    return sql`NOT EXISTS (
-      SELECT 1 FROM data_projets_consolides.projets_sources acces
-      WHERE acces.projet_id = p.id AND acces.source = ANY(${textArray(interdites)}))`;
+    const scopes = await this.serviceScopes(serviceType);
+    const conditions: SQL[] = [];
+    if (!seesInternalLines(scopes)) conditions.push(sql`p.ouverture <> 'interne'`);
+    const interdites = forbiddenSourcesFor(scopes, CONSOLIDATED_RESTRICTED_SOURCES);
+    if (interdites.length > 0) {
+      conditions.push(sql`NOT EXISTS (
+        SELECT 1 FROM data_projets_consolides.projets_sources acces
+        WHERE acces.projet_id = p.id AND acces.source = ANY(${textArray(interdites)}))`);
+    }
+    return conditions.length === 0 ? sql`true` : sql.join(conditions, sql` AND `);
   }
 
   // Data scopes of the caller, matched by name (services.name = serviceType of the API key

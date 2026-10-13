@@ -57,3 +57,13 @@ export const CONSOLIDATED_RESTRICTED_SOURCES: Record<string, string> = {
   // COP : gelé.
   "communs-vivier-cop": "cop",
 };
+
+// Lines whose `ouverture` is `interne` (CRTE, internal Fonds Vert and DGCL…) are reserved to
+// State services holding this scope. Without it a caller sees `ouvert` and
+// `public_sans_licence` lines only (fail-closed). Décision du 13/10/2026.
+export const CONSOLIDATED_INTERNAL_SCOPE = "interne_etat";
+
+/** True if the caller may see the `interne` lines of the consolidated base. */
+export function seesInternalLines(callerScopes: readonly string[]): boolean {
+  return callerScopes.includes(CONSOLIDATED_INTERNAL_SCOPE);
+}

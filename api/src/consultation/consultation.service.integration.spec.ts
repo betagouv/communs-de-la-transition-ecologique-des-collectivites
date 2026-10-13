@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { TestingModule } from "@nestjs/testing";
 import { BadRequestException, ServiceUnavailableException } from "@nestjs/common";
 import { eq, sql } from "drizzle-orm";
@@ -59,12 +61,15 @@ const EPCI = "200000172";
 const COMMUNE_AIN = "210100012";
 const LYON = "216901231";
 const SIREN_VIVIER = "219999990";
-const TURGOT = "Turgot"; // no `services` row: no data scope
+const TURGOT = "Turgot"; // holds the interne_etat scope, granted by migration 0057 (applied below)
+const SANS_SCOPE = "Recoco"; // no `services` row: no data scope
+
+const GRANT_TURGOT = readFileSync(join(__dirname, "../../drizzle/0057_turgot_interne_etat.sql"), "utf8");
 
 const uuid = (n: number) => `00000000-0000-5000-8000-${String(n).padStart(12, "0")}`;
 const ECOLE = uuid(1); // Paris, dgcl, DETR 2023
-const ECOLE_DOUBLON = uuid(2); // Paris, exact duplicate of ECOLE seen by fonds-vert
-const STATION = uuid(3); // Paris, agences-eau, 2022
+const ECOLE_DOUBLON = uuid(2); // Paris, exact duplicate of ECOLE seen by fonds-vert, interne
+const STATION = uuid(3); // Paris, agences-eau, 2022, public_sans_licence
 const SANS_LABELS = uuid(4); // Paris, title too short to be classified
 const PISTE = uuid(5); // EPCI
 const MARE = uuid(6); // commune de l'Ain
@@ -77,7 +82,7 @@ const FUSION_PVD = uuid(9); // Paris, one line fused from dgcl and ANCT PVD trac
 const AIN_ACV = uuid(14); // commune de l'Ain, ANCT ACV
 const SANS_SIREN_VILLAGES = uuid(15);
 const VIVIER = uuid(16); // only project of its collectivity, COP vivier
-// Exposed although `interne`: access is granted per source, not by the open data flag.
+// `interne` lines (Lyon): served only to a caller holding the interne_etat scope.
 const CRTE = uuid(11);
 const FV_INTERNE = uuid(12);
 const DGCL_INTERNE = uuid(13);
@@ -185,6 +190,7 @@ describe("ConsultationService (integration)", () => {
     await db.delete(refPerimetres);
     await db.delete(refCommunes);
     await db.delete(refGroupements);
+    await db.delete(services).where(eq(services.name, TURGOT));
     await teardownTestModule(testDbService, module);
   }, 30000);
 
@@ -202,8 +208,14 @@ describe("ConsultationService (integration)", () => {
       for (const ddl of DDL) await db.execute(ddl);
 
       await insertProjet(ECOLE, "Rénovation de l'école", PARIS, "dgcl", { budget: 200000, departement: "75" });
-      await insertProjet(ECOLE_DOUBLON, "Renovation de l'ecole", PARIS, "fonds-vert", { departement: "75" });
-      await insertProjet(STATION, "Station d'épuration", PARIS, "agences-eau", { budget: 100000 });
+      await insertProjet(ECOLE_DOUBLON, "Renovation de l'ecole", PARIS, "fonds-vert", {
+        departement: "75",
+        ouverture: "interne",
+      });
+      await insertProjet(STATION, "Station d'épuration", PARIS, "agences-eau", {
+        budget: 100000,
+        ouverture: "public_sans_licence",
+      });
       await insertProjet(SANS_LABELS, "x", PARIS, "decp");
       await insertProjet(PISTE, "Piste cyclable", EPCI, "dgcl", { departement: "01|38" });
       await insertProjet(MARE, "Restauration de la mare", COMMUNE_AIN, "agences-eau");
@@ -274,6 +286,8 @@ describe("ConsultationService (integration)", () => {
         { codeInsee: "75056", siren: PARIS, nom: "Paris", codeDepartement: "75", codeRegion: "11" },
       ]);
       await db.insert(refPerimetres).values({ sirenGroupement: EPCI, codeInseeCommune: "01001" });
+      // other suites empty `services`: re-apply the migration rather than rely on the run order
+      await db.execute(sql.raw(GRANT_TURGOT));
 
       service = new ConsultationService(testDbService);
     });
@@ -356,8 +370,72 @@ describe("ConsultationService (integration)", () => {
           "x",
           "Fiche TeT",
         ]);
-        expect(data[0].nbLignesRegroupees).toBe(3);
+        expect(data[0].nbLignesRegroupees).toBe(2);
         expect(provenancesDe(data)).not.toContain("communs-pvd");
+        expect(data.map((p) => p.ouverture)).not.toContain("interne");
+      });
+    });
+
+    describe("data access by ouverture", () => {
+      const turgotRow = async () => {
+        const [row] = await testDbService.database.select().from(services).where(eq(services.name, TURGOT));
+        return row;
+      };
+
+      it("migration 0057 grants Turgot interne_etat on an unlisted row, keeping its other scopes", async () => {
+        const db = testDbService.database;
+        expect(await turgotRow()).toMatchObject({ dataScopes: ["interne_etat"], isListed: false });
+
+        await db
+          .update(services)
+          .set({ dataScopes: ["tet"] })
+          .where(eq(services.name, TURGOT));
+        await db.execute(sql.raw(GRANT_TURGOT));
+        await db.execute(sql.raw(GRANT_TURGOT));
+        expect((await turgotRow()).dataScopes).toEqual(["interne_etat", "tet"]);
+
+        await db
+          .update(services)
+          .set({ dataScopes: ["interne_etat"] })
+          .where(eq(services.name, TURGOT));
+      });
+
+      it("serves a caller without scope only open and public-without-licence lines, in bulk", async () => {
+        const all = await walk((cursor) => service.projets({ limit: 2, cursor }, SANS_SCOPE));
+        expect(new Set(all.map((p) => p.ouverture))).toEqual(new Set(["ouvert", "public_sans_licence"]));
+        expect(all.map((p) => p.nom)).not.toEqual(expect.arrayContaining(["Fonds Vert interne"]));
+        expect(all.map((p) => p.nom)).toContain("Station d'épuration");
+      });
+
+      it("drops an internal duplicate from its group: no line count, provenance or financement leaks", async () => {
+        const { data } = await service.projetsCollectivite(PARIS, { limit: 50 }, SANS_SCOPE);
+        const ecole = data[0];
+        expect(ecole.nom).toBe("Rénovation de l'école");
+        expect(ecole.nbLignesRegroupees).toBe(1);
+        expect(ecole.provenances).toEqual([{ provenance: "dgcl", idSource: ECOLE, role: "inchange" }]);
+        expect(ecole.financements.map((f) => f.source)).toEqual(["DETR"]);
+      });
+
+      it("keeps internal lines out of the aggregates", async () => {
+        await expect(service.projetsCollectivite(LYON, { limit: 50 }, SANS_SCOPE)).resolves.toMatchObject({
+          data: [],
+          total: 0,
+        });
+        await expect(service.synthese(LYON, SANS_SCOPE)).resolves.toMatchObject({
+          nbProjets: 0,
+          montantAttribueTotal: 0,
+        });
+        const paris = await service.synthese(PARIS, SANS_SCOPE);
+        expect(JSON.stringify(paris)).not.toContain("Fonds Vert");
+      });
+
+      it("serves internal lines to a caller holding interne_etat, restricted sources still excluded", async () => {
+        const { data, total } = await service.projetsCollectivite(LYON, { limit: 50 }, TURGOT);
+        expect(total).toBe(3);
+        const all = await walk((cursor) => service.projets({ limit: 3, cursor }, TURGOT));
+        expect(all.map((p) => p.ouverture)).toContain("interne");
+        expect(all.flatMap((p) => p.provenances.map((x) => x.provenance))).not.toContain("fiches-projets");
+        expect(data).toHaveLength(3);
       });
     });
 

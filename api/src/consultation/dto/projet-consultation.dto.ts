@@ -199,7 +199,8 @@ export class ProjetConsultationDto {
     description:
       "Régime de republication de la donnée d'origine, pour l'usage aval : `ouvert` (open data, republiable), " +
       "`public_sans_licence` (publique, sans licence de réutilisation explicite), `interne` (réservée aux services " +
-      "de l'État : consultable ici, à ne pas republier hors de l'État). Ce n'est pas un filtre d'accès.",
+      "de l'État : à ne pas republier hors de l'État). Les lignes `interne` ne sont servies qu'aux services habilités " +
+      "(scope `interne_etat`) ; les autres clés ne reçoivent que `ouvert` et `public_sans_licence`.",
   })
   ouverture!: string;
 
