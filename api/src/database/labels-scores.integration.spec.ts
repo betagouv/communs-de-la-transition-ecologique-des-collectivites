@@ -129,10 +129,11 @@ describe("data_projets_consolides labels scores - Integration Tests", () => {
       expect(rows[0]).toMatchObject({
         methode: "methode-test",
         source_projet_id: SOURCE,
-        classification_thematiques: ["Gestion des déchets", "Cours d'eau"],
+        // 0.7 for thématiques, leviers and compétences; sites and interventions keep 0.5
+        classification_thematiques: ["Gestion des déchets"],
         classification_sites: ["Installation de stockage de déchets"],
         classification_interventions: [],
-        leviers: ["Prévention des déchets"],
+        leviers: [],
         competences_m57: ["90-721"],
         nature: "Projet opérationnel",
         nature_confiance: 0.7,
@@ -177,6 +178,33 @@ describe("data_projets_consolides labels scores - Integration Tests", () => {
       );
       expect(materialisee.rows).toEqual(sansScores);
       expect(materialisee.rows[2]).toMatchObject({ projet_id: VIDE, classification_thematiques: [], nature: null });
+    });
+
+    it("falls back to the best thématique when none reaches 0.7, but not below 0.5", async () => {
+      const db = testDbService.database;
+      const REPLI = "00000000-0000-7000-8000-000000000004";
+      const RIEN = "00000000-0000-7000-8000-000000000005";
+      await db.execute(
+        sql`INSERT INTO data_projets_consolides.labels_scores (source_projet_id, methode_id, codes, scores)
+            VALUES (${REPLI}, 1, '{1,3}'::smallint[], '{55,62}'::smallint[]),
+                   (${RIEN}, 1, '{1}'::smallint[], '{45}'::smallint[])`,
+      );
+      await db.execute(
+        sql`INSERT INTO data_projets_consolides.labels_rattachements (projet_id, methode_id, source_projet_id)
+            VALUES (${REPLI}, 1, ${REPLI}), (${RIEN}, 1, ${RIEN})`,
+      );
+      await db.execute(sql`REFRESH MATERIALIZED VIEW data_projets_consolides.labels_seuil_provisoire_materialise`);
+
+      for (const objet of ["labels_seuil_provisoire", "labels_seuil_provisoire_materialise"]) {
+        const { rows } = await db.execute(
+          sql`SELECT projet_id, classification_thematiques FROM ${sql.raw(`data_projets_consolides.${objet}`)}
+              WHERE projet_id IN (${REPLI}, ${RIEN}) ORDER BY projet_id`,
+        );
+        expect(rows).toEqual([
+          { projet_id: REPLI, classification_thematiques: ["Cours d'eau"] },
+          { projet_id: RIEN, classification_thematiques: [] },
+        ]);
+      }
     });
 
     it("keeps methods side by side so a load can be rolled back by method", async () => {
