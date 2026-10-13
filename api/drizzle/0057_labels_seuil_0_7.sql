@@ -5,9 +5,11 @@
 -- Repli : si aucune thématique n'atteint 0,7, on garde la meilleure si elle atteint 0,5
 -- (évite de vider des projets correctement repérés mais avec un score modeste).
 -- Sites et interventions (familles à choix unique) restent à 0,5.
--- La vue matérialisée est recréée VIDE : la remplir après déploiement avec
---   REFRESH MATERIALIZED VIEW data_projets_consolides.labels_seuil_provisoire_materialise;
-DROP MATERIALIZED VIEW "data_projets_consolides"."labels_seuil_provisoire_materialise";
+--
+-- La vue matérialisée est lue par l'API de consultation : elle est reconstruite REMPLIE
+-- sous un autre nom puis substituée, pour que l'ancienne reste lisible pendant le calcul
+-- (~1 min en prod) et qu'aucune lecture ne tombe sur une vue vide.
+SET LOCAL work_mem = '256MB';
 --> statement-breakpoint
 CREATE OR REPLACE VIEW "data_projets_consolides"."labels_seuil_provisoire" AS
 SELECT
@@ -44,7 +46,7 @@ CROSS JOIN LATERAL (
   SELECT "data_projets_consolides"."labels_scores_lisibles"(s."methode_id", s."codes", s."scores") AS "scores"
 ) l;
 --> statement-breakpoint
-CREATE MATERIALIZED VIEW "data_projets_consolides"."labels_seuil_provisoire_materialise" AS
+CREATE MATERIALIZED VIEW "data_projets_consolides"."labels_seuil_provisoire_materialise_0_7" AS
 WITH par_texte AS (
   SELECT
     s."source_projet_id",
@@ -100,7 +102,12 @@ SELECT
 FROM "data_projets_consolides"."labels_rattachements" r
 JOIN par_texte t ON t."source_projet_id" = r."source_projet_id" AND t."methode_id" = r."methode_id"
 JOIN "data_projets_consolides"."labels_methodes" m ON m."id" = r."methode_id"
-WITH NO DATA;
+WITH DATA;
+--> statement-breakpoint
+DROP MATERIALIZED VIEW "data_projets_consolides"."labels_seuil_provisoire_materialise";
+--> statement-breakpoint
+ALTER MATERIALIZED VIEW "data_projets_consolides"."labels_seuil_provisoire_materialise_0_7"
+  RENAME TO "labels_seuil_provisoire_materialise";
 --> statement-breakpoint
 CREATE UNIQUE INDEX "labels_seuil_provisoire_materialise_pk"
   ON "data_projets_consolides"."labels_seuil_provisoire_materialise" ("projet_id", "methode");
