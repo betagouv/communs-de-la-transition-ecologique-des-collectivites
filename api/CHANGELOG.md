@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.18](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.17...v0.2.18) (2026-10-13)
+
+
+### Bug Fixes
+
+* **db:** renumérote en 0058 la migration du seuil 0,7, sautée en prod ([3da698a](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/3da698adf26b55f29f60c28a3b3f8d0efbca6a04))
+
 ## [0.2.17](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.16...v0.2.17) (2026-10-13)
 
 
