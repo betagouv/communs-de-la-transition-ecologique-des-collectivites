@@ -35,3 +35,25 @@ export function forbiddenSourcesFor(
 export function hasRestrictedSources(registry: Record<string, string> = RESTRICTED_SOURCES): boolean {
   return Object.keys(registry).length > 0;
 }
+
+// ============================================================
+// Base consolidée (/consultation) — registre distinct
+// ============================================================
+//
+// Clé   : data_projets_consolides.projets_sources.source (provenance d'une trace).
+// Valeur: scope requis, à présenter dans services.data_scopes du service appelant.
+//
+// Distinct de RESTRICTED_SOURCES : autre table, autres clients (/territoires sert TeT,
+// qui doit continuer à voir ses propres fiches). Une source est listée ici tant que son
+// propriétaire n'a pas donné son accord pour les services de l'État ; l'accord obtenu,
+// on la retire (ou on donne le scope au client concerné). Décision du 13/10/2026.
+export const CONSOLIDATED_RESTRICTED_SOURCES: Record<string, string> = {
+  // TeT : fiches internes, accès refusé.
+  "fiches-projets": "tet",
+  // ANCT : à négocier, gelé.
+  "communs-pvd": "anct_contractualisation",
+  "communs-acv": "anct_contractualisation",
+  "villages-avenir": "anct_contractualisation",
+  // COP : gelé.
+  "communs-vivier-cop": "cop",
+};
