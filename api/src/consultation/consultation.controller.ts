@@ -1,4 +1,5 @@
-import { applyDecorators, Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
+import { applyDecorators, Controller, Get, Param, Query, Req, UseGuards } from "@nestjs/common";
+import { Request } from "express";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
@@ -38,7 +39,9 @@ const parseProjetsParams = (query: RawQuery, bounds: { def: number; max: number 
 });
 
 const REGIME =
-  "Accès restreint aux services de l'État (clé d'API dédiée), en lecture seule. Ce n'est pas un jeu de données ouvert.";
+  "Accès restreint aux services de l'État (clé d'API dédiée), en lecture seule. Ce n'est pas un jeu de données ouvert. " +
+  "Seules les provenances dont le propriétaire a donné son accord sont servies : un projet dont une ligne vient " +
+  "d'une autre provenance est exclu, des listes comme des agrégats. Le champ `ouverture` dit ce qui peut être republié.";
 
 const PROJET =
   "Chaque projet suit le schéma commun v0.2.0, complété d'un bloc `labels` (provisoire : seuil de classification non calibré) " +
@@ -83,8 +86,8 @@ export class ConsultationController {
   @ProjetsFiltersQueries()
   @ApiQuery({ name: "limit", required: false, description: "Défaut 200, borné à 1..1000." })
   @ApiEndpointResponses({ successStatus: 200, response: ProjetsConsultationResponse, description: "Page de projets" })
-  projets(@Query() query: RawQuery): Promise<ProjetsConsultationResponse> {
-    return this.consultationService.projets(parseProjetsParams(query, BULK_LIMIT));
+  projets(@Query() query: RawQuery, @Req() request: Request): Promise<ProjetsConsultationResponse> {
+    return this.consultationService.projets(parseProjetsParams(query, BULK_LIMIT), request.serviceType!);
   }
 
   @TrackApiUsage()
@@ -100,8 +103,12 @@ export class ConsultationController {
     response: ProjetsCollectiviteResponse,
     description: "Page de projets de la collectivité",
   })
-  projetsCollectivite(@Param("siren") siren: string, @Query() query: RawQuery): Promise<ProjetsCollectiviteResponse> {
-    return this.consultationService.projetsCollectivite(siren, parseProjetsParams(query, LIMIT));
+  projetsCollectivite(
+    @Param("siren") siren: string,
+    @Query() query: RawQuery,
+    @Req() request: Request,
+  ): Promise<ProjetsCollectiviteResponse> {
+    return this.consultationService.projetsCollectivite(siren, parseProjetsParams(query, LIMIT), request.serviceType!);
   }
 
   @TrackApiUsage()
@@ -119,8 +126,8 @@ export class ConsultationController {
     response: SyntheseCollectiviteResponse,
     description: "Synthèse de la collectivité",
   })
-  synthese(@Param("siren") siren: string): Promise<SyntheseCollectiviteResponse> {
-    return this.consultationService.synthese(siren);
+  synthese(@Param("siren") siren: string, @Req() request: Request): Promise<SyntheseCollectiviteResponse> {
+    return this.consultationService.synthese(siren, request.serviceType!);
   }
 
   @TrackApiUsage()
@@ -143,12 +150,15 @@ export class ConsultationController {
     response: CollectivitesConsultationResponse,
     description: "Page de collectivités",
   })
-  collectivites(@Query() query: RawQuery): Promise<CollectivitesConsultationResponse> {
-    return this.consultationService.collectivites({
-      departement: nonEmpty(first(query.departement)),
-      region: nonEmpty(first(query.region)),
-      limit: toLimit(first(query.limit), LIMIT.def, LIMIT.max),
-      cursor: nonEmpty(first(query.cursor)),
-    });
+  collectivites(@Query() query: RawQuery, @Req() request: Request): Promise<CollectivitesConsultationResponse> {
+    return this.consultationService.collectivites(
+      {
+        departement: nonEmpty(first(query.departement)),
+        region: nonEmpty(first(query.region)),
+        limit: toLimit(first(query.limit), LIMIT.def, LIMIT.max),
+        cursor: nonEmpty(first(query.cursor)),
+      },
+      request.serviceType!,
+    );
   }
 }

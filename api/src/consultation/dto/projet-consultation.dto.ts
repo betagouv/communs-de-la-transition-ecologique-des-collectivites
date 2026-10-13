@@ -196,7 +196,10 @@ export class ProjetConsultationDto {
 
   @ApiProperty({
     enum: ["ouvert", "public_sans_licence", "interne"],
-    description: "Régime d'ouverture de la donnée d'origine.",
+    description:
+      "Régime de republication de la donnée d'origine, pour l'usage aval : `ouvert` (open data, republiable), " +
+      "`public_sans_licence` (publique, sans licence de réutilisation explicite), `interne` (réservée aux services " +
+      "de l'État : consultable ici, à ne pas republier hors de l'État). Ce n'est pas un filtre d'accès.",
   })
   ouverture!: string;
 

@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, ServiceUnavailableException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
-import { sql, SQL } from "drizzle-orm";
+import { services } from "@database/schema";
+import { CONSOLIDATED_RESTRICTED_SOURCES, forbiddenSourcesFor } from "@/security/restricted-sources";
+import { eq, sql, SQL } from "drizzle-orm";
 import {
   CursorPosition,
   decodeCursor,
@@ -95,8 +97,9 @@ export class ConsultationService {
   }
 
   /** Bulk read of the whole base, deduplicated at read time, by stable cursor. */
-  async projets(params: ProjetsParams): Promise<ProjetsConsultationResponse> {
+  async projets(params: ProjetsParams, serviceType: string): Promise<ProjetsConsultationResponse> {
     await this.assertBaseDisponible();
+    const acces = await this.accesCondition(serviceType);
     const { limit } = params;
     const position: CursorPosition = params.cursor ? decodeCursor(params.cursor) : { siren: "", id: UUID_ZERO };
 
@@ -105,12 +108,13 @@ export class ConsultationService {
       // Two steps so that each page only reads the collectivities it serves: the next SIRENs
       // first (index only), then their projects. One extra SIREN covers the one the cursor
       // sits in, which may have nothing left.
-      const sirens = await this.nextSirens(position.siren, params, limit + 2);
+      const sirens = await this.nextSirens(position.siren, params, acces, limit + 2);
       if (sirens.length > 0) {
         rows = await this.query<ProjetRow>(
           this.pageQuery(
             sql`p.collectivite_responsable_siren = ANY(${textArray(sirens)})`,
             sql`(g.siren, g.id) > (${position.siren}, ${position.id}::uuid)`,
+            acces,
             params,
             limit + 1,
           ),
@@ -124,6 +128,7 @@ export class ConsultationService {
         this.pageQuery(
           sql`p.collectivite_responsable_siren IS NULL`,
           sql`g.id > ${afterId}::uuid`,
+          acces,
           params,
           limit + 1 - rows.length,
         ),
@@ -134,20 +139,25 @@ export class ConsultationService {
     return this.toPage(rows, limit);
   }
 
-  async projetsCollectivite(siren: string, params: ProjetsParams): Promise<ProjetsCollectiviteResponse> {
+  async projetsCollectivite(
+    siren: string,
+    params: ProjetsParams,
+    serviceType: string,
+  ): Promise<ProjetsCollectiviteResponse> {
     this.assertSiren(siren);
     await this.assertBaseDisponible();
+    const acces = await this.accesCondition(serviceType);
     const { limit } = params;
     const afterId = params.cursor ? decodeCursor(params.cursor).id : UUID_ZERO;
     const scope = sql`p.collectivite_responsable_siren = ${siren}`;
 
     const [rows, [{ total }]] = await Promise.all([
-      this.query<ProjetRow>(this.pageQuery(scope, sql`g.id > ${afterId}::uuid`, params, limit + 1)),
+      this.query<ProjetRow>(this.pageQuery(scope, sql`g.id > ${afterId}::uuid`, acces, params, limit + 1)),
       this.query<{ total: number }>(sql`
         SELECT count(*)::int AS total FROM (
           SELECT 1
           FROM data_projets_consolides.projets p ${LABELS_JOIN}
-          WHERE ${scope}
+          WHERE ${scope} AND ${acces}
           GROUP BY ${GROUPE}
           HAVING bool_or(${this.filterCondition(params)})
         ) groupes`),
@@ -156,9 +166,10 @@ export class ConsultationService {
     return { ...this.toPage(rows, limit), total };
   }
 
-  async synthese(siren: string): Promise<SyntheseCollectiviteResponse> {
+  async synthese(siren: string, serviceType: string): Promise<SyntheseCollectiviteResponse> {
     this.assertSiren(siren);
     await this.assertBaseDisponible();
+    const acces = await this.accesCondition(serviceType);
 
     const [cellules, projets, thematiques, [taux], [collectivite]] = await Promise.all([
       this.query<{
@@ -179,18 +190,18 @@ export class ConsultationService {
                ${SOMME_ATTRIBUEE} AS montant
         FROM data_projets_consolides.financements f
         JOIN data_projets_consolides.projets p ON p.id = f.projet_id
-        WHERE p.collectivite_responsable_siren = ${siren}
+        WHERE p.collectivite_responsable_siren = ${siren} AND ${acces}
         GROUP BY 1, 2
         ORDER BY 1, 2`),
-      this.projetsParCollectivite([siren]),
-      this.thematiquesParCollectivite([siren]),
+      this.projetsParCollectivite([siren], acces),
+      this.thematiquesParCollectivite([siren], acces),
       this.query<{ nb: number; montant: string | null; budget: string | null }>(sql`
         SELECT count(*)::int AS nb, sum(l.montant) AS montant, sum(l.budget) AS budget
         FROM (
           SELECT p.budget_previsionnel AS budget, ${SOMME_ATTRIBUEE} AS montant
           FROM data_projets_consolides.projets p
           JOIN data_projets_consolides.financements f ON f.projet_id = p.id
-          WHERE p.collectivite_responsable_siren = ${siren}
+          WHERE p.collectivite_responsable_siren = ${siren} AND ${acces}
             AND p.budget_previsionnel > 0 AND p.budget_previsionnel <= ${BUDGET_MAX}
           GROUP BY p.id, p.budget_previsionnel
         ) l
@@ -262,7 +273,7 @@ export class ConsultationService {
   }
 
   /** Collectivities of a department or region (from the referential), with comparable indicators. */
-  async collectivites(params: CollectivitesParams): Promise<CollectivitesConsultationResponse> {
+  async collectivites(params: CollectivitesParams, serviceType: string): Promise<CollectivitesConsultationResponse> {
     const { departement, region, limit, cursor } = params;
     if ((departement === undefined) === (region === undefined)) {
       throw new BadRequestException("Préciser departement ou region (l'un des deux, pas les deux)");
@@ -277,6 +288,7 @@ export class ConsultationService {
       throw new BadRequestException("cursor invalide");
     }
     await this.assertBaseDisponible();
+    const acces = await this.accesCondition(serviceType);
 
     const dansTerritoire =
       departement !== undefined ? sql`c.code_departement = ${departement}` : sql`c.code_region = ${region}`;
@@ -306,9 +318,9 @@ export class ConsultationService {
     const sirens = page.map((c) => c.siren);
 
     const [projets, thematiques, financements] = await Promise.all([
-      this.projetsParCollectivite(sirens),
-      this.thematiquesParCollectivite(sirens),
-      this.financementsParCollectivite(sirens),
+      this.projetsParCollectivite(sirens, acces),
+      this.thematiquesParCollectivite(sirens, acces),
+      this.financementsParCollectivite(sirens, acces),
     ]);
 
     const data: CollectiviteIndicateursDto[] = page.map((c) => ({
@@ -323,6 +335,31 @@ export class ConsultationService {
     }));
 
     return { data, nextCursor: liste.length > limit ? sirens[sirens.length - 1] : null, ...meta };
+  }
+
+  /**
+   * Condition on `p` keeping only the lines the caller may see: a line is dropped as soon as
+   * one of its traces comes from a source restricted for the caller (dropping only the trace
+   * would leak, through the fused line, the fields that source contributed).
+   * The open data flag `ouverture` is not a criterion: it is exposed, not filtered on.
+   */
+  private async accesCondition(serviceType: string): Promise<SQL> {
+    const interdites = forbiddenSourcesFor(await this.serviceScopes(serviceType), CONSOLIDATED_RESTRICTED_SOURCES);
+    if (interdites.length === 0) return sql`true`;
+    return sql`NOT EXISTS (
+      SELECT 1 FROM data_projets_consolides.projets_sources acces
+      WHERE acces.projet_id = p.id AND acces.source = ANY(${textArray(interdites)}))`;
+  }
+
+  // Data scopes of the caller, matched by name (services.name = serviceType of the API key
+  // guard, as in TerritoiresService). No row, no scope: fail-closed.
+  private async serviceScopes(serviceType: string): Promise<string[]> {
+    const [row] = await this.dbService.database
+      .select({ dataScopes: services.dataScopes })
+      .from(services)
+      .where(eq(services.name, serviceType))
+      .limit(1);
+    return row?.dataScopes ?? [];
   }
 
   private assertSiren(siren: string): void {
@@ -361,12 +398,12 @@ export class ConsultationService {
     return conditions.length > 0 ? sql.join(conditions, sql` AND `) : sql`true`;
   }
 
-  private async nextSirens(from: string, filters: ProjetsFilters, count: number): Promise<string[]> {
+  private async nextSirens(from: string, filters: ProjetsFilters, acces: SQL, count: number): Promise<string[]> {
     const usesLabels = Boolean(filters.nature ?? filters.thematique);
     const rows = await this.query<{ siren: string }>(sql`
       SELECT DISTINCT p.collectivite_responsable_siren AS siren
       FROM data_projets_consolides.projets p ${usesLabels ? LABELS_JOIN : sql``}
-      WHERE p.collectivite_responsable_siren >= ${from} AND ${this.filterCondition(filters)}
+      WHERE p.collectivite_responsable_siren >= ${from} AND ${acces} AND ${this.filterCondition(filters)}
       ORDER BY 1
       LIMIT ${count}`);
     return rows.map((r) => r.siren);
@@ -375,15 +412,16 @@ export class ConsultationService {
   /**
    * One page of deduplicated projects within `scope`, after the `after` position.
    * A group is carried by its first line (smallest id); sources and financements are those
-   * of all its lines, so no provenance is lost.
+   * of all its lines, so no provenance is lost. Lines the caller may not see are dropped
+   * before grouping: they neither carry a group nor lend it their traces or financements.
    */
-  private pageQuery(scope: SQL, after: SQL, filters: ProjetsFilters, limit: number): SQL {
+  private pageQuery(scope: SQL, after: SQL, acces: SQL, filters: ProjetsFilters, limit: number): SQL {
     return sql`
       WITH lignes AS (
         SELECT p.id, p.collectivite_responsable_siren AS siren, ${GROUPE} AS groupe,
                (${this.filterCondition(filters)}) AS correspond
         FROM data_projets_consolides.projets p ${LABELS_JOIN}
-        WHERE ${scope}
+        WHERE ${scope} AND ${acces}
       ), groupes AS (
         SELECT id, siren,
                row_number() OVER (PARTITION BY siren, groupe ORDER BY id) AS rang,
@@ -441,19 +479,23 @@ export class ConsultationService {
 
   private async projetsParCollectivite(
     sirens: string[],
+    acces: SQL,
   ): Promise<Map<string, { nbProjets: number; nbLignes: number }>> {
     const rows = await this.query<{ siren: string; nb_projets: number; nb_lignes: number }>(sql`
       SELECT p.collectivite_responsable_siren AS siren,
              count(DISTINCT ${GROUPE})::int AS nb_projets,
              count(*)::int AS nb_lignes
       FROM data_projets_consolides.projets p ${LABELS_JOIN}
-      WHERE p.collectivite_responsable_siren = ANY(${textArray(sirens)})
+      WHERE p.collectivite_responsable_siren = ANY(${textArray(sirens)}) AND ${acces}
       GROUP BY 1`);
     return new Map(rows.map((r) => [r.siren, { nbProjets: r.nb_projets, nbLignes: r.nb_lignes }]));
   }
 
   // Per collectivity, thematics by decreasing number of (deduplicated) projects.
-  private async thematiquesParCollectivite(sirens: string[]): Promise<Map<string, ThematiqueIndicateurDto[]>> {
+  private async thematiquesParCollectivite(
+    sirens: string[],
+    acces: SQL,
+  ): Promise<Map<string, ThematiqueIndicateurDto[]>> {
     const rows = await this.query<{ siren: string; thematique: string; nb: number; montant: string | null }>(sql`
       WITH lignes AS (
         SELECT p.collectivite_responsable_siren AS siren, ${GROUPE} AS groupe,
@@ -461,7 +503,7 @@ export class ConsultationService {
                (SELECT ${SOMME_ATTRIBUEE}
                   FROM data_projets_consolides.financements f WHERE f.projet_id = p.id) AS montant
         FROM data_projets_consolides.projets p ${LABELS_JOIN}
-        WHERE p.collectivite_responsable_siren = ANY(${textArray(sirens)})
+        WHERE p.collectivite_responsable_siren = ANY(${textArray(sirens)}) AND ${acces}
       ), groupes AS (
         -- labels are shared by all the lines of a group
         SELECT siren, groupe, thematiques, sum(montant) AS montant
@@ -484,12 +526,13 @@ export class ConsultationService {
 
   private async financementsParCollectivite(
     sirens: string[],
+    acces: SQL,
   ): Promise<Map<string, { nbFinancements: number; montantAttribue: number }>> {
     const rows = await this.query<{ siren: string; nb: number; montant: string | null }>(sql`
       SELECT p.collectivite_responsable_siren AS siren, count(*)::int AS nb, ${SOMME_ATTRIBUEE} AS montant
       FROM data_projets_consolides.financements f
       JOIN data_projets_consolides.projets p ON p.id = f.projet_id
-      WHERE p.collectivite_responsable_siren = ANY(${textArray(sirens)})
+      WHERE p.collectivite_responsable_siren = ANY(${textArray(sirens)}) AND ${acces}
       GROUP BY 1`);
     return new Map(rows.map((r) => [r.siren, { nbFinancements: r.nb, montantAttribue: Number(r.montant ?? 0) }]));
   }

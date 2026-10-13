@@ -1,9 +1,11 @@
 import { BadRequestException } from "@nestjs/common";
+import { Request } from "express";
 import { ApiKeyGuard } from "@/auth/api-key-guard";
 import { ConsultationController } from "./consultation.controller";
 import { ConsultationService } from "./consultation.service";
 
 describe("ConsultationController", () => {
+  const REQ = { serviceType: "Turgot" } as Request;
   let controller: ConsultationController;
   let service: { projets: jest.Mock; projetsCollectivite: jest.Mock; synthese: jest.Mock; collectivites: jest.Mock };
 
@@ -35,27 +37,30 @@ describe("ConsultationController", () => {
 
   describe("bulk projets", () => {
     it("defaults to pages of 200", async () => {
-      await controller.projets({});
+      await controller.projets({}, REQ);
       expect(firstArg(service.projets).limit).toBe(200);
     });
 
     it("caps limit at 1000 and floors it at 1", async () => {
-      await controller.projets({ limit: "5000" });
+      await controller.projets({ limit: "5000" }, REQ);
       expect(firstArg(service.projets).limit).toBe(1000);
 
       service.projets.mockClear();
-      await controller.projets({ limit: "0" });
+      await controller.projets({ limit: "0" }, REQ);
       expect(firstArg(service.projets).limit).toBe(1);
     });
 
     it("passes the filters and the cursor through, ignoring blanks", async () => {
-      await controller.projets({
-        provenance: "dgcl",
-        nature: " ",
-        thematique: "Cours d'eau",
-        millesime: "2024",
-        cursor: "abc",
-      });
+      await controller.projets(
+        {
+          provenance: "dgcl",
+          nature: " ",
+          thematique: "Cours d'eau",
+          millesime: "2024",
+          cursor: "abc",
+        },
+        REQ,
+      );
       expect(firstArg(service.projets)).toEqual({
         provenance: "dgcl",
         nature: undefined,
@@ -67,37 +72,51 @@ describe("ConsultationController", () => {
     });
 
     it("takes the first value of a repeated param", async () => {
-      await controller.projets({ provenance: ["dgcl", "decp"] });
+      await controller.projets({ provenance: ["dgcl", "decp"] }, REQ);
       expect(firstArg(service.projets).provenance).toBe("dgcl");
     });
 
     it("rejects an invalid millesime with a 400 before reaching the service", () => {
-      expect(() => controller.projets({ millesime: "24" })).toThrow(BadRequestException);
+      expect(() => controller.projets({ millesime: "24" }, REQ)).toThrow(BadRequestException);
       expect(service.projets).not.toHaveBeenCalled();
     });
   });
 
   describe("projets of a collectivity", () => {
     it("defaults to pages of 50, capped at 200", async () => {
-      await controller.projetsCollectivite("217500016", {});
+      await controller.projetsCollectivite("217500016", {}, REQ);
       expect((service.projetsCollectivite.mock.calls as unknown[][])[0][0]).toBe("217500016");
       expect(firstArg(service.projetsCollectivite, 1).limit).toBe(50);
 
       service.projetsCollectivite.mockClear();
-      await controller.projetsCollectivite("217500016", { limit: "1000" });
+      await controller.projetsCollectivite("217500016", { limit: "1000" }, REQ);
       expect(firstArg(service.projetsCollectivite, 1).limit).toBe(200);
     });
   });
 
   describe("collectivites", () => {
     it("passes the territory and bounds the limit", async () => {
-      await controller.collectivites({ departement: "59", limit: "999", cursor: "200000172" });
+      await controller.collectivites({ departement: "59", limit: "999", cursor: "200000172" }, REQ);
       expect(firstArg(service.collectivites)).toEqual({
         departement: "59",
         region: undefined,
         limit: 200,
         cursor: "200000172",
       });
+    });
+  });
+
+  describe("data access", () => {
+    it("passes the caller service, resolved by the API key guard, to every read", async () => {
+      await controller.projets({}, REQ);
+      await controller.projetsCollectivite("217500016", {}, REQ);
+      await controller.synthese("217500016", REQ);
+      await controller.collectivites({ departement: "59" }, REQ);
+
+      expect(service.projets).toHaveBeenCalledWith(expect.anything(), "Turgot");
+      expect(service.projetsCollectivite).toHaveBeenCalledWith("217500016", expect.anything(), "Turgot");
+      expect(service.synthese).toHaveBeenCalledWith("217500016", "Turgot");
+      expect(service.collectivites).toHaveBeenCalledWith(expect.anything(), "Turgot");
     });
   });
 });
