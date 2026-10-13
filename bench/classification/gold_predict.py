@@ -138,8 +138,9 @@ def predit_sonnet(cas, state, systeme, modele, thematiques, natures):
     with urllib.request.urlopen(req, timeout=120) as r:
         resp = json.loads(r.read())
     texte = resp["choices"][0]["message"]["content"]
-    m = re.search(r"\{.*\}", texte, re.S)
-    sortie = json.loads(m.group(0)) if m else {}
+    debut = texte.find("{")
+    # raw_decode : ignore un éventuel texte après l'objet JSON
+    sortie = json.JSONDecoder().raw_decode(texte[debut:])[0] if debut >= 0 else {}
     th = [t for t in sortie.get("thematiques", []) if t in thematiques]
     hors = [t for t in sortie.get("thematiques", []) if t not in thematiques]
     nature = sortie.get("nature") if sortie.get("nature") in natures else None
