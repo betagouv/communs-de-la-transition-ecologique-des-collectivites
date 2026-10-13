@@ -1,8 +1,9 @@
 # Doctrine d'accès aux données — v0
 
 > Statut : **v0, à relire** (Livio, rentrée). Objet : « qui voit quoi » sur l'API Collectivités.
-> Le mécanisme est **installé avant la donnée** : aucune donnée restreinte n'est en base
-> aujourd'hui, le registre des sources restreintes est **vide**, aucun accès n'est donc filtré.
+> Le mécanisme est **installé avant la donnée** : pour `/territoires`, le registre des sources
+> restreintes est **vide**, aucun accès n'y est filtré. Pour `/consultation/v1` (base consolidée),
+> un registre distinct est **actif depuis octobre 2026** (voir « Base consolidée » ci-dessous).
 
 ## Pourquoi
 
@@ -62,6 +63,31 @@ L'octroi d'un scope vaut **accès en lecture pour l'usage métier du service**, 
 **rediffusion**. Un service habilité s'engage à ne pas republier ni exposer à des tiers les données
 d'une source restreinte au-delà de son périmètre d'usage convenu. Cet engagement conditionne
 l'octroi et figure dans la convention d'accès du service.
+
+## Base consolidée (`/consultation/v1`)
+
+Même mécanisme, autre table et **registre distinct** : `CONSOLIDATED_RESTRICTED_SOURCES`
+(`api/src/security/restricted-sources.ts`), indexé sur `data_projets_consolides.projets_sources.source`.
+Distinct de `RESTRICTED_SOURCES` pour ne pas masquer à `/territoires` (TeT) ses propres fiches.
+
+- **Critère** : l'accord du propriétaire de chaque source (relation source × destinataire), pas le
+  drapeau `ouverture`. `ouverture` (`ouvert` / `public_sans_licence` / `interne`) est **exposé** dans
+  chaque projet comme indication de republication, il ne filtre rien.
+- **Règle anti-fuite** : une ligne est exclue dès qu'**une** de ses traces vient d'une source restreinte
+  pour l'appelant (une ligne fusionnée porte des champs de chacune de ses traces). Le filtre s'applique
+  avant le regroupement des doublons et la pagination, et à tous les agrégats (`/synthese`,
+  `/collectivites`).
+- **Registre V0 (13/10/2026)** :
+
+  | Source                                          | Scope requis              | Statut                  |
+  | ----------------------------------------------- | ------------------------- | ----------------------- |
+  | `fiches-projets`                                | `tet`                     | TeT : refusé            |
+  | `communs-pvd`, `communs-acv`, `villages-avenir` | `anct_contractualisation` | ANCT : à négocier, gelé |
+  | `communs-vivier-cop`                            | `cop`                     | COP : gelé              |
+
+  Tout le reste est servi aux services de l'État, CRTE et Fonds Vert compris. Un accord obtenu se
+  traduit par le retrait de la source du registre (tous les appelants) ou par l'octroi du scope à un
+  service (procédure ci-dessus).
 
 ## Retrait
 
