@@ -256,7 +256,8 @@ describe("ConsultationService (integration)", () => {
           VALUES (1, ${code}, ${famille}, ${label})`);
       }
       await insertLabels(ECOLE, { 1: 93, 10: 80, 20: 88, 30: 90 }, [ECOLE, ECOLE_DOUBLON, ECOLE_TET]);
-      await insertLabels(STATION, { 2: 90, 1: 60, 10: 70 }, [STATION]);
+      // both thématiques above the 0.7 read threshold
+      await insertLabels(STATION, { 2: 90, 1: 75, 10: 70 }, [STATION]);
       await insertLabels(PISTE, { 3: 95, 11: 60 }, [PISTE]);
       await insertLabels(MARE, { 2: 70, 10: 90 }, [MARE]);
       await insertLabels(SANS_SIREN, { 3: 80, 10: 90 }, [SANS_SIREN]);
