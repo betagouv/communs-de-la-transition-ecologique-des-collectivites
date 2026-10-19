@@ -1,5 +1,7 @@
 import {
   refCommunes,
+  refDepartements,
+  refRegions,
   refGroupements,
   refPerimetres,
   refCompetenceCategories,
@@ -90,6 +92,18 @@ export function makeGroupementCompetence(overrides: Partial<typeof refGroupement
  * - Groupement-competence assignments
  */
 export const FIXTURES = {
+  regions: [
+    { code: "84", nom: "Auvergne-Rhône-Alpes", siren: "200053767" },
+    { code: "94", nom: "Corse", siren: "200076958" },
+  ] satisfies (typeof refRegions.$inferInsert)[],
+
+  departements: [
+    { code: "01", nom: "Ain", codeRegion: "84", siren: "220100018" },
+    { code: "69", nom: "Rhône", codeRegion: "84", siren: "226900017" },
+    // merged into the Collectivité de Corse: no SIREN of its own
+    { code: "2A", nom: "Corse-du-Sud", codeRegion: "94", siren: null },
+  ] satisfies (typeof refDepartements.$inferInsert)[],
+
   categories: [
     makeCompetenceCategorie({ code: "10", nom: "Développement économique" }),
     makeCompetenceCategorie({ code: "20", nom: "Aménagement de l'espace" }),
@@ -185,6 +199,8 @@ export const FIXTURES = {
  * Insert the complete FIXTURES set into the database in FK-safe order.
  */
 export async function seedReferentielFixtures(db: DatabaseService["database"]) {
+  await db.insert(refRegions).values(FIXTURES.regions);
+  await db.insert(refDepartements).values(FIXTURES.departements);
   await db.insert(refCompetenceCategories).values(FIXTURES.categories);
   await db.insert(refCompetences).values(FIXTURES.competences);
   await db.insert(refGroupements).values(FIXTURES.groupements);

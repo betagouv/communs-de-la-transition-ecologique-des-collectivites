@@ -13,11 +13,13 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
 // Relevant columns in the ZLV CSV (semicolon-delimited)
-interface ZlvRecord {
+export interface ZlvRecord {
   Siren: string;
   Siret: string;
   "Kind-admin": string;
   "Name-source": string;
+  Dep_Code: string; // Python-style list, e.g. "['34']"
+  Reg_Code: string;
 }
 
 // Kind-admin values we want to extract SIRET for
@@ -47,22 +49,78 @@ async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Respo
   throw new Error(`Failed after ${retries} attempts`);
 }
 
+// "['2A', '2B']" -> ["2A", "2B"]
+const parseCodes = (value: string | undefined): string[] =>
+  (value ?? "")
+    .replace(/[[\]']/g, "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter((c) => c !== "");
+
+// Collectivité européenne d'Alsace: exercises the departmental competences of Bas-Rhin and
+// Haut-Rhin since 2021, absent from ZLV.
+const ALSACE = "200094332";
+const SIREN_OVERRIDES: Record<string, string> = { "67": ALSACE, "68": ALSACE };
+
 /**
- * Download the ZLV collectivites territoriales CSV and extract
- * SIREN (9 chars) -> SIRET (14 chars) mapping for communes and EPCIs.
- *
- * The CSV is semicolon-delimited and UTF-8 encoded.
+ * SIREN of the collectivity exercising the competences of each department and region listed in
+ * ZLV (code -> SIREN). A territory merged into a collectivité unique (Corse, Martinique, Guyane,
+ * Mayotte region) has no SIREN of its own and takes the one of that collectivity ("ACT" rows);
+ * Alsace comes from SIREN_OVERRIDES. A territory listed without any of these is left out.
  */
-export async function fetchSiretMapping(): Promise<Map<string, string>> {
-  console.log("[zlv] Downloading collectivites territoriales CSV...");
-  const response = await fetchWithRetry(ZLV_CSV_URL);
+export function collectiviteSirensFromZlv(records: ZlvRecord[]): {
+  departements: Map<string, string>;
+  regions: Map<string, string>;
+} {
+  const departements = new Map<string, string>();
+  const regions = new Map<string, string>();
+  const departementsListes = new Set<string>();
+  const regionsListees = new Set<string>();
+  const isSiren = (siren: string | undefined): siren is string => /^\d{9}$/.test(siren ?? "");
 
-  const csvText = await response.text();
-  console.log(`[zlv] Downloaded ${(csvText.length / 1024).toFixed(0)} KB of CSV data`);
+  for (const r of records) {
+    if (r["Kind-admin"] === "DEP") {
+      const [code] = parseCodes(r.Dep_Code);
+      if (!code) continue;
+      departementsListes.add(code);
+      if (isSiren(r.Siren)) departements.set(code, r.Siren);
+    } else if (r["Kind-admin"] === "REG") {
+      const [code] = parseCodes(r.Reg_Code);
+      if (!code) continue;
+      regionsListees.add(code);
+      if (isSiren(r.Siren)) regions.set(code, r.Siren);
+    }
+  }
+  // Collectivités uniques fill the gaps only: their own SIREN never replaces a department's.
+  for (const r of records) {
+    if (r["Kind-admin"] !== "ACT" || !isSiren(r.Siren)) continue;
+    for (const code of parseCodes(r.Dep_Code)) {
+      if (departementsListes.has(code) && !departements.has(code)) departements.set(code, r.Siren);
+    }
+    for (const code of parseCodes(r.Reg_Code)) {
+      if (regionsListees.has(code) && !regions.has(code)) regions.set(code, r.Siren);
+    }
+  }
+  for (const [code, siren] of Object.entries(SIREN_OVERRIDES)) {
+    if (departementsListes.has(code) && !departements.has(code)) departements.set(code, siren);
+  }
+  return { departements, regions };
+}
 
+/** SIREN (9 chars) -> SIRET (14 chars) for communes and EPCIs (first SIRET kept). */
+function siretMappingFromZlv(records: ZlvRecord[]): Map<string, string> {
   const siretMapping = new Map<string, string>();
+  for (const { "Kind-admin": kind, Siren: siren, Siret: siret } of records) {
+    if (!kind || !siren || !siret || !RELEVANT_KINDS.has(kind)) continue;
+    if (siren.length !== 9 || siret.length !== 14) continue;
+    if (!siretMapping.has(siren)) siretMapping.set(siren, siret);
+  }
+  return siretMapping;
+}
 
-  return new Promise<Map<string, string>>((resolve, reject) => {
+function parseZlvCsv(csvText: string): Promise<ZlvRecord[]> {
+  return new Promise<ZlvRecord[]>((resolve, reject) => {
+    const records: ZlvRecord[] = [];
     const parser = parse({
       columns: true,
       delimiter: ",",
@@ -70,51 +128,36 @@ export async function fetchSiretMapping(): Promise<Map<string, string>> {
       trim: true,
       relaxColumnCount: true,
     });
-
-    let totalRows = 0;
-    let matchedRows = 0;
-
     parser.on("readable", () => {
       let record: ZlvRecord | null;
-      while ((record = parser.read() as ZlvRecord | null) !== null) {
-        totalRows++;
-
-        const kind = record["Kind-admin"];
-        const siren = record.Siren;
-        const siret = record.Siret;
-
-        if (!kind || !siren || !siret) {
-          continue;
-        }
-
-        if (!RELEVANT_KINDS.has(kind)) {
-          continue;
-        }
-
-        // Validate SIREN (9 digits) and SIRET (14 digits)
-        if (siren.length !== 9 || siret.length !== 14) {
-          continue;
-        }
-
-        // Keep first occurrence (some entities may have multiple SIRETs)
-        if (!siretMapping.has(siren)) {
-          siretMapping.set(siren, siret);
-          matchedRows++;
-        }
-      }
+      while ((record = parser.read() as ZlvRecord | null) !== null) records.push(record);
     });
-
-    parser.on("error", (error) => {
-      reject(new Error(`[zlv] CSV parsing error: ${error.message}`));
-    });
-
-    parser.on("end", () => {
-      console.log(`[zlv] Parsed ${totalRows} rows, extracted ${matchedRows} SIREN->SIRET mappings`);
-      resolve(siretMapping);
-    });
-
-    // Feed the downloaded text into the parser
-    const readable = Readable.from(csvText);
-    readable.pipe(parser);
+    parser.on("error", (error) => reject(new Error(`[zlv] CSV parsing error: ${error.message}`)));
+    parser.on("end", () => resolve(records));
+    Readable.from(csvText).pipe(parser);
   });
+}
+
+/**
+ * Download the ZLV collectivites territoriales CSV (comma-delimited, UTF-8) and extract the
+ * SIREN -> SIRET mapping of communes and EPCIs and the SIREN of departments and regions.
+ */
+export async function fetchZlv(): Promise<{
+  siretMapping: Map<string, string>;
+  departementSirens: Map<string, string>;
+  regionSirens: Map<string, string>;
+}> {
+  console.log("[zlv] Downloading collectivites territoriales CSV...");
+  const response = await fetchWithRetry(ZLV_CSV_URL);
+  const csvText = await response.text();
+  console.log(`[zlv] Downloaded ${(csvText.length / 1024).toFixed(0)} KB of CSV data`);
+
+  const records = await parseZlvCsv(csvText);
+  const siretMapping = siretMappingFromZlv(records);
+  const { departements, regions } = collectiviteSirensFromZlv(records);
+  console.log(
+    `[zlv] Parsed ${records.length} rows: ${siretMapping.size} SIREN->SIRET, ` +
+      `${departements.size} department and ${regions.size} region SIRENs`,
+  );
+  return { siretMapping, departementSirens: departements, regionSirens: regions };
 }

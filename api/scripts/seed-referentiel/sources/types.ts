@@ -25,6 +25,19 @@ export interface RawGroupement {
   dateCreation: string | null; // ISO date string
 }
 
+export interface RawRegion {
+  code: string;
+  nom: string;
+  siren: string | null;
+}
+
+export interface RawDepartement {
+  code: string;
+  nom: string;
+  codeRegion: string;
+  siren: string | null;
+}
+
 export interface RawPerimetre {
   sirenGroupement: string;
   codeInseeCommune: string;
@@ -48,6 +61,8 @@ export interface RawGroupementCompetence {
 }
 
 export interface SeedData {
+  regions: RawRegion[];
+  departements: RawDepartement[];
   communes: RawCommune[];
   groupements: RawGroupement[];
   perimetres: RawPerimetre[];
@@ -57,6 +72,8 @@ export interface SeedData {
 }
 
 export interface SeedStats {
+  regions: number;
+  departements: number;
   communes: number;
   groupements: number;
   perimetres: number;

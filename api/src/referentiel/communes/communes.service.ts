@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { sql, eq } from "drizzle-orm";
 import { DatabaseService } from "@database/database.service";
-import { refCommunes, refPerimetres, refGroupements } from "@database/schema";
+import { refCommunes, refDepartements, refPerimetres, refGroupements, refRegions } from "@database/schema";
 import { CommuneQueryDto } from "./dto/commune-query.dto";
 import { CommuneResponse, CommuneDetailResponse, GroupementSummaryWithCompetences } from "./dto/commune.response";
 import { CompetenceAvecGroupementResponse } from "../competences/dto/competence.response";
@@ -52,6 +52,14 @@ export class CommunesService {
       .innerJoin(refGroupements, eq(refPerimetres.sirenGroupement, refGroupements.siren))
       .where(eq(refPerimetres.codeInseeCommune, codeInsee));
 
+    const [noms] = await this.dbService.database
+      .select({ nomEpci: refGroupements.nom, nomDepartement: refDepartements.nom, nomRegion: refRegions.nom })
+      .from(refCommunes)
+      .leftJoin(refGroupements, eq(refGroupements.siren, refCommunes.codeEpci))
+      .leftJoin(refDepartements, eq(refDepartements.code, refCommunes.codeDepartement))
+      .leftJoin(refRegions, eq(refRegions.code, refCommunes.codeRegion))
+      .where(eq(refCommunes.codeInsee, codeInsee));
+
     // Always include competences
     const sirens = groupements.map((g) => g.siren);
     const competencesBySiren = await this.groupementsService.fetchCompetences(sirens);
@@ -66,8 +74,11 @@ export class CommunesService {
       nom: commune.nom,
       siren: commune.siren,
       codeEpci: commune.codeEpci ?? null,
+      nomEpci: noms?.nomEpci ?? null,
       codeDepartement: commune.codeDepartement ?? "",
+      nomDepartement: noms?.nomDepartement ?? null,
       codeRegion: commune.codeRegion ?? "",
+      nomRegion: noms?.nomRegion ?? null,
       population: commune.population ?? null,
       codesPostaux: commune.codesPostaux ?? null,
       groupements: groupementsResult,
