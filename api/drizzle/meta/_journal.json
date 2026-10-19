@@ -414,6 +414,13 @@
       "when": 1790064968293,
       "tag": "0058_labels_seuil_0_7",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1790064968294,
+      "tag": "0059_referentiel_departements_regions",
+      "breakpoints": true
     }
   ]
 }

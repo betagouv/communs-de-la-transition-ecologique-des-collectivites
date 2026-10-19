@@ -2,6 +2,12 @@
 
 import type { RawCommune } from "./types";
 
+export interface GeoApiTerritoire {
+  code: string;
+  nom: string;
+  codeRegion?: string;
+}
+
 const GEO_API_BASE_URL = "https://geo.api.gouv.fr";
 
 const MAX_RETRIES = 3;
@@ -109,4 +115,22 @@ export async function fetchEpciNames(): Promise<Map<string, string>> {
   }
 
   return epciNames;
+}
+
+/** Departments (code, name, region code) from geo.api.gouv.fr. */
+export async function fetchDepartements(): Promise<GeoApiTerritoire[]> {
+  console.log("[geo-api] Fetching departements...");
+  const response = await fetchWithRetry(`${GEO_API_BASE_URL}/departements?fields=nom,code,codeRegion`);
+  const data = (await response.json()) as GeoApiTerritoire[];
+  console.log(`[geo-api] Received ${data.length} departements`);
+  return data;
+}
+
+/** Regions (code, name) from geo.api.gouv.fr. */
+export async function fetchRegions(): Promise<GeoApiTerritoire[]> {
+  console.log("[geo-api] Fetching regions...");
+  const response = await fetchWithRetry(`${GEO_API_BASE_URL}/regions?fields=nom,code`);
+  const data = (await response.json()) as GeoApiTerritoire[];
+  console.log(`[geo-api] Received ${data.length} regions`);
+  return data;
 }

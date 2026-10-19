@@ -31,6 +31,28 @@ export const refCommunes = apiReferentielSchema.table(
   ],
 );
 
+export const refRegions = apiReferentielSchema.table("regions", {
+  code: varchar("code", { length: 3 }).primaryKey(),
+  nom: text("nom").notNull(),
+  // SIREN of the collectivity exercising the regional competences (collectivité unique included).
+  siren: varchar("siren", { length: 9 }),
+});
+
+export const refDepartements = apiReferentielSchema.table(
+  "departements",
+  {
+    code: varchar("code", { length: 3 }).primaryKey(),
+    nom: text("nom").notNull(),
+    codeRegion: varchar("code_region", { length: 3 })
+      .notNull()
+      .references(() => refRegions.code),
+    // SIREN of the collectivity exercising the departmental competences: the collectivité unique
+    // for Corse, Martinique, Guyane, Mayotte; the Collectivité européenne d'Alsace for 67 and 68.
+    siren: varchar("siren", { length: 9 }),
+  },
+  (t) => [index("ref_departements_region_idx").on(t.codeRegion)],
+);
+
 export const refGroupements = apiReferentielSchema.table(
   "groupements",
   {
