@@ -52,6 +52,20 @@ export class CommuneResponse {
 
 export class CommuneDetailResponse extends CommuneResponse {
   @ApiProperty({
+    type: String,
+    nullable: true,
+    description: "Nom de l'EPCI de rattachement",
+    example: "Guingamp-Paimpol Agglomération",
+  })
+  nomEpci!: string | null;
+
+  @ApiProperty({ type: String, nullable: true, example: "Côtes-d'Armor" })
+  nomDepartement!: string | null;
+
+  @ApiProperty({ type: String, nullable: true, example: "Bretagne" })
+  nomRegion!: string | null;
+
+  @ApiProperty({
     type: [GroupementSummaryWithCompetences],
     description: "Groupements dont cette commune est membre (avec compétences)",
   })

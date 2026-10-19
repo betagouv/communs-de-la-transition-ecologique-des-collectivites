@@ -2,9 +2,9 @@
 // Fetches data from multiple sources, merges, and imports into the database.
 //
 // Sources:
-//   - geo.api.gouv.fr: communes + EPCI names
+//   - geo.api.gouv.fr: communes, EPCI names, departements, regions
 //   - Banatic: groupements (EPCI, syndicats, PETR), competences, perimetres
-//   - ZLV (data.gouv.fr): SIREN -> SIRET mapping
+//   - ZLV (data.gouv.fr): SIREN -> SIRET mapping, SIREN of departements and regions
 //   - Static CSV: competence reference codes and categories
 
 import "dotenv/config";
@@ -16,10 +16,19 @@ import { join } from "path";
 import { currentEnv } from "@/shared/utils/currentEnv";
 import { DatabaseService } from "@database/database.service";
 import { ImportService } from "./import.service";
-import { fetchCommunes, fetchEpciNames } from "./sources/geo-api.source";
-import { fetchSiretMapping } from "./sources/zlv.source";
+import { fetchCommunes, fetchDepartements, fetchEpciNames, fetchRegions } from "./sources/geo-api.source";
+import { fetchZlv } from "./sources/zlv.source";
 import { loadCompetenceReference, fetchBanaticGroupements, fetchBanaticPerimetres } from "./sources/banatic.source";
-import type { RawCommune, RawGroupement, RawPerimetre, RawGroupementCompetence, SeedData } from "./sources/types";
+import { resolveSyndicatPerimetres, withMemberStats } from "./groupement-stats";
+import type {
+  RawDepartement,
+  RawRegion,
+  RawCommune,
+  RawGroupement,
+  RawPerimetre,
+  RawGroupementCompetence,
+  SeedData,
+} from "./sources/types";
 
 @Module({
   imports: [
@@ -46,12 +55,32 @@ async function main() {
 
     // 2. Fetch from sources in parallel
     console.log("Fetching data from sources...");
-    const [communes, epciNames, banaticResult, siretMapping] = await Promise.all([
+    const [communes, epciNames, banaticResult, zlv, geoDepartements, geoRegions] = await Promise.all([
       fetchCommunes(),
       fetchEpciNames(),
       fetchBanaticGroupements(dataDir),
-      fetchSiretMapping(),
+      fetchZlv(),
+      fetchDepartements(),
+      fetchRegions(),
     ]);
+    const { siretMapping } = zlv;
+
+    // Departements and regions: names from geo.api, SIREN of their collectivity from ZLV
+    const regions: RawRegion[] = geoRegions.map((r) => ({
+      code: r.code,
+      nom: r.nom,
+      siren: zlv.regionSirens.get(r.code) ?? null,
+    }));
+    const departements: RawDepartement[] = geoDepartements.map((d) => ({
+      code: d.code,
+      nom: d.nom,
+      codeRegion: d.codeRegion ?? "",
+      siren: zlv.departementSirens.get(d.code) ?? null,
+    }));
+    console.log(
+      `  ${regions.length} regions (${regions.filter((r) => r.siren).length} with SIREN), ` +
+        `${departements.length} departements (${departements.filter((d) => d.siren).length} with SIREN)`,
+    );
 
     // 3. Build SIREN -> codeInsee lookup from communes (needed for syndicat perimetres)
     const sirenToInsee = new Map<string, string>();
@@ -115,32 +144,14 @@ async function main() {
     console.log(`  ${banaticPerimetres.length} raw syndicat perimetres from Banatic`);
 
     // 8. Convert syndicat perimetres: SIREN membre -> code INSEE
-    //    Banatic regional exports list member SIRENs, not INSEE codes.
-    //    We look up the code INSEE using our commune SIREN->INSEE map.
-    let convertedCount = 0;
-    let skippedCount = 0;
+    //    Banatic regional exports list member SIRENs, not INSEE codes: a commune member is looked
+    //    up in our SIREN->INSEE map, an EPCI member is expanded to the communes of the EPCI.
     const perimDedup = new Set<string>(allPerimetres.map((p) => `${p.sirenGroupement}:${p.codeInseeCommune}`));
-
-    for (const bp of banaticPerimetres) {
-      const codeInsee = sirenToInsee.get(bp.sirenMembre);
-      if (!codeInsee) {
-        // Member SIREN not found in our commune list (might be another groupement)
-        skippedCount++;
-        continue;
-      }
-
-      const key = `${bp.sirenGroupement}:${codeInsee}`;
-      if (perimDedup.has(key)) continue;
-      perimDedup.add(key);
-
-      allPerimetres.push({
-        sirenGroupement: bp.sirenGroupement,
-        codeInseeCommune: codeInsee,
-        categorieMembre: bp.categorieMembre,
-      });
-      convertedCount++;
-    }
-    console.log(`  ${convertedCount} syndicat perimetres converted, ${skippedCount} skipped (not communes)`);
+    const syndicatPerimetres = resolveSyndicatPerimetres(banaticPerimetres, sirenToInsee, epciPerimetres).filter(
+      (p) => !perimDedup.has(`${p.sirenGroupement}:${p.codeInseeCommune}`),
+    );
+    allPerimetres.push(...syndicatPerimetres);
+    console.log(`  ${syndicatPerimetres.length} syndicat perimetres converted`);
     console.log(`  ${allPerimetres.length} total perimetres after merge`);
 
     // 9. Filter perimetres to only include known groupements and communes
@@ -163,9 +174,14 @@ async function main() {
     console.log(`  ${validGroupementCompetences.length} valid groupement-competence links`);
 
     // 11. Build the SeedData object
+    // Population and number of communes from the member communes (Banatic's are not reliable)
+    const groupementsWithStats = withMemberStats(enrichedGroupements, validPerimetres, enrichedCommunes);
+
     const seedData: SeedData = {
+      regions,
+      departements,
       communes: enrichedCommunes,
-      groupements: enrichedGroupements,
+      groupements: groupementsWithStats,
       perimetres: validPerimetres,
       competenceCategories: categories,
       competences,

@@ -34,6 +34,8 @@ export class TestDatabaseService extends DatabaseService {
       "api_referentiel.communes",
       "api_referentiel.competences",
       "api_referentiel.competence_categories",
+      "api_referentiel.departements",
+      "api_referentiel.regions",
       // Journal des décisions humaines (schéma dédié, hors cycle de rebuild de l'ETL)
       "decisions_humaines.decisions",
       // Core tables (public schema)

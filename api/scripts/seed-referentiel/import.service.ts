@@ -6,6 +6,8 @@ import { DatabaseService } from "@database/database.service";
 import { sql } from "drizzle-orm";
 import {
   refCommunes,
+  refDepartements,
+  refRegions,
   refGroupements,
   refPerimetres,
   refCompetenceCategories,
@@ -16,6 +18,8 @@ import type { SeedData, SeedStats } from "./sources/types";
 
 // Drizzle table type for the batch insert helper
 type DrizzleTable =
+  | typeof refRegions
+  | typeof refDepartements
   | typeof refCommunes
   | typeof refGroupements
   | typeof refPerimetres
@@ -40,6 +44,8 @@ export class ImportService {
       await tx.execute(sql`TRUNCATE api_referentiel.communes CASCADE`);
       await tx.execute(sql`TRUNCATE api_referentiel.competences CASCADE`);
       await tx.execute(sql`TRUNCATE api_referentiel.competence_categories CASCADE`);
+      await tx.execute(sql`TRUNCATE api_referentiel.departements CASCADE`);
+      await tx.execute(sql`TRUNCATE api_referentiel.regions CASCADE`);
       console.log(`  Truncation done in ${Date.now() - truncateStart}ms`);
 
       // 2. Insert in FK-safe order (parents first)
@@ -69,6 +75,25 @@ export class ImportService {
         })),
         1000,
         "competences",
+      );
+      console.log(`  Done in ${Date.now() - stepStart}ms`);
+
+      // 2b'. Regions (18) and departements (101)
+      stepStart = Date.now();
+      console.log("Inserting regions and departements...");
+      await this.batchInsert(
+        tx,
+        refRegions,
+        data.regions.map((r) => ({ code: r.code, nom: r.nom, siren: r.siren })),
+        1000,
+        "regions",
+      );
+      await this.batchInsert(
+        tx,
+        refDepartements,
+        data.departements.map((d) => ({ code: d.code, nom: d.nom, codeRegion: d.codeRegion, siren: d.siren })),
+        1000,
+        "departements",
       );
       console.log(`  Done in ${Date.now() - stepStart}ms`);
 
@@ -149,6 +174,8 @@ export class ImportService {
       console.log(`  Done in ${Date.now() - stepStart}ms`);
 
       return {
+        regions: data.regions.length,
+        departements: data.departements.length,
         communes: data.communes.length,
         groupements: data.groupements.length,
         perimetres: data.perimetres.length,

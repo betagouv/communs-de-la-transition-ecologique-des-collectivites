@@ -7,11 +7,16 @@ export function setupReferentielDoc(app: INestApplication) {
     .setTitle("API Référentiel Collectivités")
     .setDescription(
       "API de référence sur les collectivités territoriales, groupements " +
-        "et compétences. Données issues de Banatic (DGCL), ZLV et geo.api.gouv.fr.",
+        "et compétences. Données issues de Banatic (DGCL), ZLV et geo.api.gouv.fr. " +
+        "Population et nombre de communes des groupements calculés à partir de leurs communes membres.",
     )
     .setVersion("1.0")
     .addTag("Référentiel - Communes", "Communes françaises (34 875 entités)")
     .addTag("Référentiel - Groupements", "EPCI, syndicats, PETR (9 345 entités)")
+    .addTag(
+      "Référentiel - Départements et régions",
+      "101 départements et 18 régions, avec le SIREN de leur collectivité",
+    )
     .addTag("Référentiel - Compétences", "123 compétences Banatic en 10 catégories")
     .addTag("Référentiel - Recherche", "Recherche transversale par nom")
     .addTag(

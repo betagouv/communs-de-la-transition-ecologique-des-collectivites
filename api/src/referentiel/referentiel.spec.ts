@@ -7,6 +7,7 @@ import { CommunesService } from "./communes/communes.service";
 import { GroupementsService } from "./groupements/groupements.service";
 import { CompetencesService } from "./competences/competences.service";
 import { RechercheService } from "./recherche/recherche.service";
+import { DepartementsRegionsService } from "./departements-regions/departements-regions.service";
 
 describe("Referentiel", () => {
   let module: TestingModule;
@@ -15,6 +16,7 @@ describe("Referentiel", () => {
   let groupementsService: GroupementsService;
   let competencesService: CompetencesService;
   let rechercheService: RechercheService;
+  let departementsRegionsService: DepartementsRegionsService;
 
   beforeAll(async () => {
     const result = await testModule();
@@ -24,6 +26,7 @@ describe("Referentiel", () => {
     groupementsService = module.get<GroupementsService>(GroupementsService);
     competencesService = module.get<CompetencesService>(CompetencesService);
     rechercheService = module.get<RechercheService>(RechercheService);
+    departementsRegionsService = module.get<DepartementsRegionsService>(DepartementsRegionsService);
   });
 
   afterAll(async () => {
@@ -144,6 +147,23 @@ describe("Referentiel", () => {
         const competenceCodes = ccDombes.competences.map((c) => c.code);
         expect(competenceCodes).toContain("10-100");
         expect(competenceCodes).toContain("20-100");
+      });
+
+      it("names the EPCI, the department and the region of the commune", async () => {
+        const detail = await communesService.findOne("01001");
+        expect(detail).toMatchObject({
+          codeEpci: "200069193",
+          nomEpci: "CC de la Dombes",
+          codeDepartement: "01",
+          nomDepartement: "Ain",
+          codeRegion: "84",
+          nomRegion: "Auvergne-Rhône-Alpes",
+        });
+      });
+
+      it("leaves nomEpci null for a commune without EPCI", async () => {
+        const detail = await communesService.findOne("69123");
+        expect(detail).toMatchObject({ nomEpci: null, nomDepartement: "Rhône", nomRegion: "Auvergne-Rhône-Alpes" });
       });
 
       it("should throw NotFoundException for unknown commune", async () => {
@@ -319,6 +339,50 @@ describe("Referentiel", () => {
   // ============================================================
   // CompetencesService
   // ============================================================
+  describe("DepartementsRegionsService", () => {
+    it("lists the departments by code, with their region and the SIREN of their collectivity", async () => {
+      const departements = await departementsRegionsService.departements({});
+      expect(departements.map((d) => d.code)).toEqual(["01", "2A", "69"]);
+      expect(departements[0]).toEqual({
+        code: "01",
+        nom: "Ain",
+        siren: "220100018",
+        codeRegion: "84",
+        nomRegion: "Auvergne-Rhône-Alpes",
+      });
+    });
+
+    it("filters the departments of a region", async () => {
+      const departements = await departementsRegionsService.departements({ codeRegion: "94" });
+      expect(departements).toEqual([
+        { code: "2A", nom: "Corse-du-Sud", siren: null, codeRegion: "94", nomRegion: "Corse" },
+      ]);
+    });
+
+    it("returns one department, 404 when unknown", async () => {
+      await expect(departementsRegionsService.departement("69")).resolves.toMatchObject({ nom: "Rhône" });
+      await expect(departementsRegionsService.departement("99")).rejects.toThrow(NotFoundException);
+    });
+
+    it("lists the regions by code", async () => {
+      const regions = await departementsRegionsService.regions();
+      expect(regions).toEqual([
+        { code: "84", nom: "Auvergne-Rhône-Alpes", siren: "200053767" },
+        { code: "94", nom: "Corse", siren: "200076958" },
+      ]);
+    });
+
+    it("returns one region with its departments, 404 when unknown", async () => {
+      const region = await departementsRegionsService.region("84");
+      expect(region).toMatchObject({ code: "84", nom: "Auvergne-Rhône-Alpes", siren: "200053767" });
+      expect(region.departements).toEqual([
+        { code: "01", nom: "Ain", siren: "220100018" },
+        { code: "69", nom: "Rhône", siren: "226900017" },
+      ]);
+      await expect(departementsRegionsService.region("99")).rejects.toThrow(NotFoundException);
+    });
+  });
+
   describe("CompetencesService", () => {
     describe("findAll", () => {
       it("should return all competences with categories", async () => {

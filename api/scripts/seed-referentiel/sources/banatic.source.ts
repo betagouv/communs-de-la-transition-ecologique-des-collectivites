@@ -18,7 +18,8 @@ import type { RawGroupement, RawGroupementCompetence, RawCompetenceCategorie, Ra
 // Constants
 // ---------------------------------------------------------------------------
 
-const BANATIC_BASE_URL = "https://www.banatic.interieur.gouv.fr/api/export/pregenere/telecharger";
+// Moved under /consultation in 2026 (the former path answers 404).
+const BANATIC_BASE_URL = "https://www.banatic.interieur.gouv.fr/consultation/api/export/pregenere/telecharger";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 2000;
