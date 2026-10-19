@@ -162,6 +162,11 @@ describe("toProjetConsultation", () => {
 
     expect(toProjetConsultation(baseRow({ territoire_departement: null })).territoireDepartements).toEqual([]);
   });
+
+  it("splits communes some sources store joined by commas in a single element (CRTE)", () => {
+    const projet = toProjetConsultation(baseRow({ territoire_communes: ["62001,62002, 62003", "62004", ""] }));
+    expect(projet.territoireCommunes).toEqual(["62001", "62002", "62003", "62004"]);
+  });
 });
 
 describe("cursor", () => {

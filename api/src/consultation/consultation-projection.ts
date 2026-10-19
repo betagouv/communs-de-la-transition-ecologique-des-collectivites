@@ -106,7 +106,11 @@ export function toProjetConsultation(row: ProjetRow): ProjetConsultationDto {
     collectiviteResponsableSiren: row.collectivite_responsable_siren,
     porteurOperationnelSiret: row.porteur_operationnel_siret,
     porteurNom: row.porteur_nom,
-    territoireCommunes: row.territoire_communes ?? [],
+    // Some sources (CRTE) store the whole list joined by commas in a single element.
+    territoireCommunes: (row.territoire_communes ?? [])
+      .flatMap((c) => c.split(","))
+      .map((c) => c.trim())
+      .filter((c) => c !== ""),
     // Stored pipe-separated when a project spans several departments ("13|83|84").
     territoireDepartements: row.territoire_departement ? row.territoire_departement.split("|") : [],
     localisationLatitude: row.localisation_latitude,
