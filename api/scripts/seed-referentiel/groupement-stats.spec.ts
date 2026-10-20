@@ -1,4 +1,4 @@
-import { mergePerimetres, resolveSyndicatPerimetres, withMemberStats } from "./groupement-stats";
+import { epciFromBanatic, mergePerimetres, resolveMemberPerimetres, withMemberStats } from "./groupement-stats";
 import type { RawCommune, RawGroupement, RawPerimetre } from "./sources/types";
 
 const commune = (codeInsee: string, siren: string, population: number | null): RawCommune => ({
@@ -33,7 +33,7 @@ const perimetre = (sirenGroupement: string, codeInseeCommune: string): RawPerime
   categorieMembre: null,
 });
 
-describe("resolveSyndicatPerimetres", () => {
+describe("resolveMemberPerimetres", () => {
   const sirenToInsee = new Map([
     ["210100012", "01001"],
     ["210100020", "01002"],
@@ -42,8 +42,8 @@ describe("resolveSyndicatPerimetres", () => {
   const epciPerimetres = new Map([["200069193", new Set(["01001", "01002"])]]);
 
   it("maps a commune member to its INSEE code", () => {
-    const result = resolveSyndicatPerimetres(
-      [{ sirenGroupement: "250100001", sirenMembre: "210100038", categorieMembre: "commune" }],
+    const result = resolveMemberPerimetres(
+      [{ sirenGroupement: "250100001", sirenMembre: "210100038", categorieMembre: "commune", type: "SIVU" }],
       sirenToInsee,
       epciPerimetres,
     );
@@ -51,8 +51,8 @@ describe("resolveSyndicatPerimetres", () => {
   });
 
   it("expands an EPCI member to the communes of the EPCI", () => {
-    const result = resolveSyndicatPerimetres(
-      [{ sirenGroupement: "250100001", sirenMembre: "200069193", categorieMembre: "groupement" }],
+    const result = resolveMemberPerimetres(
+      [{ sirenGroupement: "250100001", sirenMembre: "200069193", categorieMembre: "groupement", type: "SMF" }],
       sirenToInsee,
       epciPerimetres,
     );
@@ -61,11 +61,11 @@ describe("resolveSyndicatPerimetres", () => {
   });
 
   it("deduplicates a commune reached both directly and through its EPCI, and skips unknown members", () => {
-    const result = resolveSyndicatPerimetres(
+    const result = resolveMemberPerimetres(
       [
-        { sirenGroupement: "250100001", sirenMembre: "210100012", categorieMembre: "commune" },
-        { sirenGroupement: "250100001", sirenMembre: "200069193", categorieMembre: "groupement" },
-        { sirenGroupement: "250100001", sirenMembre: "999999999", categorieMembre: "autre" },
+        { sirenGroupement: "250100001", sirenMembre: "210100012", categorieMembre: "commune", type: "SMF" },
+        { sirenGroupement: "250100001", sirenMembre: "200069193", categorieMembre: "groupement", type: "SMF" },
+        { sirenGroupement: "250100001", sirenMembre: "999999999", categorieMembre: "autre", type: "SMF" },
       ],
       sirenToInsee,
       epciPerimetres,
@@ -116,5 +116,47 @@ describe("mergePerimetres", () => {
   it("handles production volumes (~400 000 perimetres) without overflowing the call stack", () => {
     const syndicats = Array.from({ length: 400_000 }, (_, i) => perimetre(`s${i % 5000}`, String(i)));
     expect(mergePerimetres([], syndicats)).toHaveLength(400_000);
+  });
+});
+
+describe("epciFromBanatic", () => {
+  const sirenToInsee = new Map([
+    ["210100012", "01001"],
+    ["210100020", "01002"],
+    ["217500016", "75056"],
+  ]);
+  const membre = (sirenGroupement: string, sirenMembre: string, type: string) => ({
+    sirenGroupement,
+    sirenMembre,
+    categorieMembre: "commune",
+    type,
+  });
+
+  it("gives each commune the EPCI à fiscalité propre it is a member of", () => {
+    const epci = epciFromBanatic(
+      [membre("992367730", "210100012", "CA"), membre("994579670", "210100020", "CC")],
+      sirenToInsee,
+    );
+    expect(Object.fromEntries(epci)).toEqual({ "01001": "992367730", "01002": "994579670" });
+  });
+
+  it("ignores syndicats and EPT: a Grand Paris commune keeps the Métropole as its EPCI", () => {
+    const epci = epciFromBanatic(
+      [
+        membre("200054781", "217500016", "METRO"),
+        membre("200058014", "217500016", "EPT"),
+        membre("250100001", "217500016", "SMF"),
+      ],
+      sirenToInsee,
+    );
+    expect(Object.fromEntries(epci)).toEqual({ "75056": "200054781" });
+  });
+
+  it("leaves out a commune Banatic puts in several EPCI à fiscalité propre (left to geo.api)", () => {
+    const epci = epciFromBanatic(
+      [membre("200069193", "210100012", "CC"), membre("200066587", "210100012", "CA")],
+      sirenToInsee,
+    );
+    expect(epci.has("01001")).toBe(false);
   });
 });

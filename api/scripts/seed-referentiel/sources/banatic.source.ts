@@ -47,8 +47,6 @@ const REGION_CODES = [
 ] as const;
 
 // Syndicat types — these need regional exports for member→commune relationships
-const SYNDICAT_TYPES = new Set(["SIVU", "SIVOM", "SMF", "SMO", "PETR", "POLEM"]);
-
 // Types that represent Métropole variants, normalized to 'MET'
 const METROPOLE_VARIANTS = new Set(["MET", "MET69", "MET70", "MET75"]);
 
@@ -61,6 +59,7 @@ export interface BanaticRawPerimetre {
   sirenGroupement: string;
   sirenMembre: string;
   categorieMembre: string | null;
+  type: string; // normalized nature juridique of the groupement (CC, CA, EPT, SIVU…)
 }
 
 /** Column positions detected from the XLSX header row */
@@ -795,16 +794,14 @@ export async function fetchBanaticGroupements(dataDir: string): Promise<{
 }
 
 // ---------------------------------------------------------------------------
-// Perimetres: regional exports → syndicat member lists
+// Perimetres: regional exports → member lists
 // ---------------------------------------------------------------------------
 
 /**
- * Download and parse all 18 regional Banatic exports to extract
- * syndicat → commune member relationships.
- *
- * For syndicats (SIVU, SIVOM, SMF, SMO, PETR, POLEM), the member
- * relationships are only available in regional exports, not in the
- * France-level export.
+ * Download and parse all 18 regional Banatic exports to extract the
+ * groupement → member relationships of every groupement (EPCI, EPT,
+ * syndicats). Member relationships are only available in regional exports,
+ * not in the France-level export.
  *
  * Returns members with `sirenMembre` (not codeInseeCommune). The import
  * service is responsible for converting SIREN → INSEE using the communes
@@ -823,7 +820,7 @@ export async function fetchBanaticPerimetres(): Promise<BanaticRawPerimetre[]> {
     try {
       const perimetres = await fetchRegionalPerimetres(regionCode);
       allPerimetres.push(...perimetres);
-      console.log(`[banatic]   → ${perimetres.length} syndicat member records`);
+      console.log(`[banatic]   → ${perimetres.length} member records`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(`[banatic] Error processing region ${regionCode}: ${message}`);
@@ -831,14 +828,14 @@ export async function fetchBanaticPerimetres(): Promise<BanaticRawPerimetre[]> {
     }
   }
 
-  console.log(`[banatic] Total syndicat perimetres: ${allPerimetres.length}`);
+  console.log(`[banatic] Total member records: ${allPerimetres.length}`);
 
   return allPerimetres;
 }
 
 /**
  * Download and parse a single regional Banatic export to extract
- * syndicat member records.
+ * member records.
  */
 async function fetchRegionalPerimetres(regionCode: string): Promise<BanaticRawPerimetre[]> {
   const tmpPath = `/tmp/banatic-region-${regionCode}.xlsx`;
@@ -863,11 +860,9 @@ async function fetchRegionalPerimetres(regionCode: string): Promise<BanaticRawPe
         return;
       }
 
-      const rawType = getCellValue(row, columns.type);
-      const type = normalizeType(rawType);
-      if (!SYNDICAT_TYPES.has(type)) {
-        return;
-      }
+      // Members of every kind of groupement: syndicats, but also EPCI and EPT, whose membership
+      // geo.api only knows as of the previous 1st January (and not at all for EPT).
+      const type = normalizeType(getCellValue(row, columns.type));
 
       const sirenMembre = columns.sirenMembre >= 0 ? getCellValue(row, columns.sirenMembre).trim() : "";
       if (!sirenMembre || sirenMembre.length < 9) {
@@ -881,6 +876,7 @@ async function fetchRegionalPerimetres(regionCode: string): Promise<BanaticRawPe
         sirenGroupement,
         sirenMembre,
         categorieMembre,
+        type,
       });
     });
 
