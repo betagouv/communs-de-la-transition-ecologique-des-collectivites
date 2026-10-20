@@ -19,7 +19,7 @@ import { ImportService } from "./import.service";
 import { fetchCommunes, fetchDepartements, fetchEpciNames, fetchRegions } from "./sources/geo-api.source";
 import { fetchZlv } from "./sources/zlv.source";
 import { loadCompetenceReference, fetchBanaticGroupements, fetchBanaticPerimetres } from "./sources/banatic.source";
-import { mergePerimetres, resolveSyndicatPerimetres, withMemberStats } from "./groupement-stats";
+import { epciFromBanatic, mergePerimetres, resolveMemberPerimetres, withMemberStats } from "./groupement-stats";
 import type {
   RawDepartement,
   RawRegion,
@@ -82,23 +82,34 @@ async function main() {
         `${departements.length} departements (${departements.filter((d) => d.siren).length} with SIREN)`,
     );
 
-    // 3. Build SIREN -> codeInsee lookup from communes (needed for syndicat perimetres)
+    // 3. Build SIREN -> codeInsee lookup from communes (needed for Banatic member records)
     const sirenToInsee = new Map<string, string>();
     for (const commune of communes) {
       sirenToInsee.set(commune.siren, commune.codeInsee);
     }
 
-    // 4. Enrich communes with SIRET from ZLV
-    console.log("\nEnriching communes with SIRET data...");
+    // 4. Members of every groupement from Banatic regional exports (slow: 18 downloads)
+    console.log("\nFetching Banatic regional perimetres...");
+    const banaticPerimetres = await fetchBanaticPerimetres();
+    console.log(`  ${banaticPerimetres.length} raw member records from Banatic`);
+
+    // 5. Enrich communes: SIRET from ZLV, EPCI from Banatic (geo.api lags a year: it keeps the
+    //    composition of the previous 1st January), geo.api's EPCI as a fallback.
+    console.log("\nEnriching communes with SIRET and EPCI...");
+    const banaticEpci = epciFromBanatic(banaticPerimetres, sirenToInsee);
     let siretEnriched = 0;
+    let epciChanged = 0;
     const enrichedCommunes: RawCommune[] = communes.map((c) => {
       const siret = siretMapping.get(c.siren) ?? null;
       if (siret) siretEnriched++;
-      return { ...c, siret };
+      const codeEpci = banaticEpci.get(c.codeInsee) ?? c.codeEpci;
+      if (codeEpci !== c.codeEpci) epciChanged++;
+      return { ...c, siret, codeEpci };
     });
     console.log(`  ${siretEnriched}/${enrichedCommunes.length} communes enriched with SIRET`);
+    console.log(`  ${banaticEpci.size} communes with their EPCI from Banatic, ${epciChanged} differing from geo.api`);
 
-    // 5. Enrich groupements: Banatic provides all groupement types.
+    // 6. Enrich groupements: Banatic provides all groupement types.
     //    For EPCIs, prefer geo.api name if available (often cleaner).
     //    Also enrich EPCI SIRET from ZLV.
     console.log("\nBuilding groupements...");
@@ -113,7 +124,7 @@ async function main() {
     });
     console.log(`  ${enrichedGroupements.length} groupements from Banatic`);
 
-    // 6. Build EPCI perimetres from commune data
+    // 7. Build EPCI perimetres from commune data
     console.log("\nBuilding EPCI perimetres from commune data...");
     const epciPerimetres = new Map<string, Set<string>>();
     for (const commune of enrichedCommunes) {
@@ -138,17 +149,12 @@ async function main() {
     }
     console.log(`  ${allPerimetres.length} EPCI->commune perimetres`);
 
-    // 7. Fetch syndicat perimetres from Banatic regional exports (slow: 18 downloads)
-    console.log("\nFetching Banatic regional perimetres...");
-    const banaticPerimetres = await fetchBanaticPerimetres();
-    console.log(`  ${banaticPerimetres.length} raw syndicat perimetres from Banatic`);
-
-    // 8. Convert syndicat perimetres: SIREN membre -> code INSEE
-    //    Banatic regional exports list member SIRENs, not INSEE codes: a commune member is looked
-    //    up in our SIREN->INSEE map, an EPCI member is expanded to the communes of the EPCI.
-    const syndicatPerimetres = resolveSyndicatPerimetres(banaticPerimetres, sirenToInsee, epciPerimetres);
-    const mergedPerimetres = mergePerimetres(allPerimetres, syndicatPerimetres);
-    console.log(`  ${mergedPerimetres.length - allPerimetres.length} syndicat perimetres converted`);
+    // 8. Convert Banatic member records (EPT, syndicats, EPCI): SIREN membre -> code INSEE.
+    //    A commune member is looked up in our SIREN->INSEE map, an EPCI member is expanded to the
+    //    communes of the EPCI.
+    const memberPerimetres = resolveMemberPerimetres(banaticPerimetres, sirenToInsee, epciPerimetres);
+    const mergedPerimetres = mergePerimetres(allPerimetres, memberPerimetres);
+    console.log(`  ${mergedPerimetres.length - allPerimetres.length} perimetres added from Banatic members`);
     console.log(`  ${mergedPerimetres.length} total perimetres after merge`);
 
     // 9. Filter perimetres to only include known groupements and communes
