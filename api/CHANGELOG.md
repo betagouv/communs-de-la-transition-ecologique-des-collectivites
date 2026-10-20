@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.19](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.18...v0.2.19) (2026-10-20)
+
+
+### Features
+
+* **referentiel:** départements, régions et noms dans la fiche commune ([f966407](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/f966407a48bf296da126720b2af260e003be9429))
+
+
+### Bug Fixes
+
+* **consultation:** découpe les communes stockées en une seule chaîne à virgules ([acb4399](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/acb43992ac2f235bbebea45dd7528a19ae7cb057))
+
 ## [0.2.18](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.17...v0.2.18) (2026-10-13)
 
 
