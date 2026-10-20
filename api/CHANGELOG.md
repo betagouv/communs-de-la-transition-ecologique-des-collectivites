@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.21](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.20...v0.2.21) (2026-10-20)
+
+
+### Features
+
+* **referentiel:** membres des EPT et EPCI à jour depuis Banatic ([cd14304](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/cd143048f6739fa92474c0b3cac8e1e8782916e9))
+
 ## [0.2.20](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.19...v0.2.20) (2026-10-20)
 
 
