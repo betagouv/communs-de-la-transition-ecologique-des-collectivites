@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.20](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.19...v0.2.20) (2026-10-20)
+
+
+### Bug Fixes
+
+* **referentiel:** fusion des périmètres sans débordement de pile ([4508298](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/450829843111c862fdef3c1218ad0d11129cee56))
+
 ## [0.2.19](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.18...v0.2.19) (2026-10-20)
 
 
