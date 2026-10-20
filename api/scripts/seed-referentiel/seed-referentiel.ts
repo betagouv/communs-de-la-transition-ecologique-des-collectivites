@@ -19,7 +19,7 @@ import { ImportService } from "./import.service";
 import { fetchCommunes, fetchDepartements, fetchEpciNames, fetchRegions } from "./sources/geo-api.source";
 import { fetchZlv } from "./sources/zlv.source";
 import { loadCompetenceReference, fetchBanaticGroupements, fetchBanaticPerimetres } from "./sources/banatic.source";
-import { resolveSyndicatPerimetres, withMemberStats } from "./groupement-stats";
+import { mergePerimetres, resolveSyndicatPerimetres, withMemberStats } from "./groupement-stats";
 import type {
   RawDepartement,
   RawRegion,
@@ -146,23 +146,20 @@ async function main() {
     // 8. Convert syndicat perimetres: SIREN membre -> code INSEE
     //    Banatic regional exports list member SIRENs, not INSEE codes: a commune member is looked
     //    up in our SIREN->INSEE map, an EPCI member is expanded to the communes of the EPCI.
-    const perimDedup = new Set<string>(allPerimetres.map((p) => `${p.sirenGroupement}:${p.codeInseeCommune}`));
-    const syndicatPerimetres = resolveSyndicatPerimetres(banaticPerimetres, sirenToInsee, epciPerimetres).filter(
-      (p) => !perimDedup.has(`${p.sirenGroupement}:${p.codeInseeCommune}`),
-    );
-    allPerimetres.push(...syndicatPerimetres);
-    console.log(`  ${syndicatPerimetres.length} syndicat perimetres converted`);
-    console.log(`  ${allPerimetres.length} total perimetres after merge`);
+    const syndicatPerimetres = resolveSyndicatPerimetres(banaticPerimetres, sirenToInsee, epciPerimetres);
+    const mergedPerimetres = mergePerimetres(allPerimetres, syndicatPerimetres);
+    console.log(`  ${mergedPerimetres.length - allPerimetres.length} syndicat perimetres converted`);
+    console.log(`  ${mergedPerimetres.length} total perimetres after merge`);
 
     // 9. Filter perimetres to only include known groupements and communes
     const groupementSirens = new Set(enrichedGroupements.map((g) => g.siren));
     const communeInsees = new Set(enrichedCommunes.map((c) => c.codeInsee));
-    const validPerimetres = allPerimetres.filter((p) => {
+    const validPerimetres = mergedPerimetres.filter((p) => {
       return groupementSirens.has(p.sirenGroupement) && communeInsees.has(p.codeInseeCommune);
     });
-    if (validPerimetres.length < allPerimetres.length) {
+    if (validPerimetres.length < mergedPerimetres.length) {
       console.log(
-        `  Filtered to ${validPerimetres.length} valid perimetres (removed ${allPerimetres.length - validPerimetres.length} with unknown groupement/commune)`,
+        `  Filtered to ${validPerimetres.length} valid perimetres (removed ${mergedPerimetres.length - validPerimetres.length} with unknown groupement/commune)`,
       );
     }
 
