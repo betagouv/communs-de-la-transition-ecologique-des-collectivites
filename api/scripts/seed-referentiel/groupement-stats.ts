@@ -58,3 +58,19 @@ export function withMemberStats(
     return { ...g, population: s?.population ?? null, nbCommunes: s?.nbCommunes ?? null };
   });
 }
+
+/**
+ * EPCI perimetres followed by the syndicat perimetres they do not already contain. Built by a
+ * loop: spreading ~400 000 items into a single push() overflows the call stack.
+ */
+export function mergePerimetres(epciPerimetres: RawPerimetre[], syndicatPerimetres: RawPerimetre[]): RawPerimetre[] {
+  const merged = [...epciPerimetres];
+  const keys = new Set(merged.map((p) => `${p.sirenGroupement}:${p.codeInseeCommune}`));
+  for (const p of syndicatPerimetres) {
+    const key = `${p.sirenGroupement}:${p.codeInseeCommune}`;
+    if (keys.has(key)) continue;
+    keys.add(key);
+    merged.push(p);
+  }
+  return merged;
+}

@@ -1,4 +1,4 @@
-import { resolveSyndicatPerimetres, withMemberStats } from "./groupement-stats";
+import { mergePerimetres, resolveSyndicatPerimetres, withMemberStats } from "./groupement-stats";
 import type { RawCommune, RawGroupement, RawPerimetre } from "./sources/types";
 
 const commune = (codeInsee: string, siren: string, population: number | null): RawCommune => ({
@@ -98,5 +98,23 @@ describe("withMemberStats", () => {
   it("leaves both null for a groupement without known member commune", () => {
     const [g] = withMemberStats([groupement("g")], [], communes);
     expect(g).toMatchObject({ population: null, nbCommunes: null });
+  });
+});
+
+describe("mergePerimetres", () => {
+  it("adds the syndicat perimetres not already known from the EPCI", () => {
+    const merged = mergePerimetres(
+      [perimetre("200069193", "01001")],
+      [perimetre("200069193", "01001"), perimetre("250100001", "01001")],
+    );
+    expect(merged.map((p) => `${p.sirenGroupement}:${p.codeInseeCommune}`)).toEqual([
+      "200069193:01001",
+      "250100001:01001",
+    ]);
+  });
+
+  it("handles production volumes (~400 000 perimetres) without overflowing the call stack", () => {
+    const syndicats = Array.from({ length: 400_000 }, (_, i) => perimetre(`s${i % 5000}`, String(i)));
+    expect(mergePerimetres([], syndicats)).toHaveLength(400_000);
   });
 });
