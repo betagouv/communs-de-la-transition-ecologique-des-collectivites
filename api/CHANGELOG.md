@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.22](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.21...v0.2.22) (2026-10-22)
+
+
+### Features
+
+* **referentiel:** import hebdomadaire avec garde-fou de volume et notification mattermost ([eaf8230](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/eaf8230cc2dcf68e4e7396726ac0022dffcbcd36))
+
 ## [0.2.21](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.20...v0.2.21) (2026-10-20)
 
 
