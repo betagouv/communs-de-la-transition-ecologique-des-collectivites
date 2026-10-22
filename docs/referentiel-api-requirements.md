@@ -374,14 +374,14 @@ pnpm seed:referentiel
 
 ### Import hebdomadaire
 
-Le Scheduler Scalingo (`cron.json` à la racine du repo) lance l'import chaque dimanche à 04:00 UTC, une heure après l'import TC opendata. Il tourne dans un conteneur one-off de taille M, séparé du conteneur web : son pic mémoire ne pèse pas sur l'API.
+Le Scheduler Scalingo (`cron.json` à la racine du repo) lance l'import chaque dimanche à 04:00 UTC, une heure après l'import TC opendata. Il tourne dans un conteneur one-off de taille L (1 Go, `node --max-old-space-size=768`), séparé du conteneur web : son pic mémoire ne pèse pas sur l'API. En taille M, Node limite son tas à ~256 Mo et la lecture de l'export France Banatic (76 Mo) le dépasse.
 
 | Variable | Rôle |
 |---|---|
 | `REFERENTIEL_IMPORT_ENABLED` | `true` pour activer l'import planifié ; sans elle, la tâche se termine sans rien faire |
 | `REFERENTIEL_IMPORT_MATTERMOST_WEBHOOK` | Webhook de notification (optionnel) ; à défaut, celui de l'import TC (`TC_IMPORT_MATTERMOST_WEBHOOK`) |
 
-Chaque exécution poste le résultat sur Mattermost (terminé, refusé ou échoué) et pointe le moniteur Sentry `referentiel-import`. Pas de nouvel essai automatique : en cas d'échec, relancer à la main (`scalingo --app <app> run "cd api && node dist/scripts/seed-referentiel/seed-referentiel.js"`).
+Chaque exécution poste le résultat sur Mattermost (terminé, refusé ou échoué) et pointe le moniteur Sentry `referentiel-import`. Pas de nouvel essai automatique : en cas d'échec, relancer à la main (`scalingo --app <app> run --detached --size L "cd api && node --max-old-space-size=768 dist/scripts/seed-referentiel/seed-referentiel.js"`).
 
 ### Garde-fou de volume
 
