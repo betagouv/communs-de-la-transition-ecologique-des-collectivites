@@ -12,6 +12,10 @@
       {
         "include": "questionnaires/content/**/*.json",
         "outDir": "dist/src"
+      },
+      {
+        "include": "referentiel/seed/data/*.csv",
+        "outDir": "dist/src"
       }
     ],
     "watchAssets": true

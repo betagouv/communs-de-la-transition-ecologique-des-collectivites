@@ -28,7 +28,7 @@ type DrizzleTable =
   | typeof refGroupementCompetences;
 
 @Injectable()
-export class ImportService {
+export class ReferentielImportService {
   constructor(private readonly dbService: DatabaseService) {}
 
   async importAll(data: SeedData): Promise<SeedStats> {
@@ -207,7 +207,7 @@ export class ImportService {
 
     for (let i = 0; i < rows.length; i += batchSize) {
       const batch = rows.slice(i, i + batchSize);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- one helper for a union of Drizzle tables
       await (tx.insert(table) as any).values(batch);
       console.log(`  ${label}: ${Math.min(i + batchSize, rows.length)}/${rows.length}`);
     }

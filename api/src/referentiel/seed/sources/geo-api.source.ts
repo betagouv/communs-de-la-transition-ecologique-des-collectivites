@@ -61,7 +61,7 @@ export async function fetchCommunes(): Promise<RawCommune[]> {
 
   console.log("[geo-api] Fetching communes...");
   const response = await fetchWithRetry(url);
-  const data: GeoApiCommune[] = await response.json();
+  const data = (await response.json()) as GeoApiCommune[];
   console.log(`[geo-api] Received ${data.length} communes from API`);
 
   const communes: RawCommune[] = [];
@@ -106,7 +106,7 @@ export async function fetchEpciNames(): Promise<Map<string, string>> {
 
   console.log("[geo-api] Fetching EPCI names...");
   const response = await fetchWithRetry(url);
-  const data: GeoApiEpci[] = await response.json();
+  const data = (await response.json()) as GeoApiEpci[];
   console.log(`[geo-api] Received ${data.length} EPCIs from API`);
 
   const epciNames = new Map<string, string>();

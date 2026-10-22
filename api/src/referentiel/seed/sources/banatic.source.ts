@@ -238,7 +238,7 @@ async function streamWorksheet(
  * Parse a single `<row ...>...</row>` XML block into a ParsedRow.
  */
 function parseSingleRow(rowXml: string, sharedStrings: string[]): ParsedRow | null {
-  const rowAttrMatch = rowXml.match(/<row[^>]*\s+r="(\d+)"/);
+  const rowAttrMatch = /<row[^>]*\s+r="(\d+)"/.exec(rowXml);
   if (!rowAttrMatch) return null;
 
   const rowNumber = parseInt(rowAttrMatch[1], 10);
@@ -251,24 +251,24 @@ function parseSingleRow(rowXml: string, sharedStrings: string[]): ParsedRow | nu
     const fullTag = cellTagMatch[0];
     const attrs = cellTagMatch[1] || cellTagMatch[2] || "";
 
-    const refMatch = attrs.match(/r="([A-Z]+\d+)"/);
+    const refMatch = /r="([A-Z]+\d+)"/.exec(attrs);
     if (!refMatch) continue;
 
     const colIndex = cellRefToColumnIndex(refMatch[1]);
 
-    const typeMatch = attrs.match(/t="([^"]*)"/);
+    const typeMatch = /t="([^"]*)"/.exec(attrs);
     const cellType = typeMatch ? typeMatch[1] : "";
 
     let value: string;
 
     if (cellType === "inlineStr") {
       // Inline string: <c t="inlineStr"><is><t>value</t></is></c>
-      const isMatch = fullTag.match(/<is>\s*<t[^>]*>([\s\S]*?)<\/t>\s*<\/is>/);
+      const isMatch = /<is>\s*<t[^>]*>([\s\S]*?)<\/t>\s*<\/is>/.exec(fullTag);
       if (!isMatch) continue;
       value = decodeXmlEntities(isMatch[1]);
     } else {
       // Shared string or plain value: <c ...><v>value</v></c>
-      const vMatch = fullTag.match(/<v>([^<]*)<\/v>/);
+      const vMatch = /<v>([^<]*)<\/v>/.exec(fullTag);
       if (!vMatch) continue;
       const rawValue = vMatch[1];
       if (cellType === "s") {
@@ -326,8 +326,8 @@ function decodeXmlEntities(text: string): string {
   // Decode numeric entities (&#039; &#x27; etc.) first, then named entities.
   // &amp; must be replaced LAST to avoid double-unescaping.
   return text
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec: string) => String.fromCharCode(parseInt(dec, 10)))
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
@@ -443,7 +443,7 @@ function detectColumns(headerRow: ParsedRow): ColumnMap {
   }
 
   // Validate that all required columns were found
-  const requiredCols: Array<[keyof Omit<ColumnMap, "competenceColumns">, string]> = [
+  const requiredCols: [keyof Omit<ColumnMap, "competenceColumns">, string][] = [
     ["siren", "N° SIREN"],
     ["nom", "Nom du groupement"],
     ["type", "Nature juridique"],
@@ -488,7 +488,7 @@ function parseDateToIso(dateStr: string): string | null {
   const trimmed = dateStr.trim();
 
   // Try DD/MM/YYYY format
-  const ddmmyyyy = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  const ddmmyyyy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(trimmed);
   if (ddmmyyyy) {
     const day = ddmmyyyy[1].padStart(2, "0");
     const month = ddmmyyyy[2].padStart(2, "0");
@@ -557,13 +557,13 @@ export async function loadCompetenceReference(dataDir: string): Promise<{
 
   // Read category CSV
   const categoriesPath = path.join(dataDir, "banatic-categorie-competences.csv");
-  const categoriesContent = fs.readFileSync(categoriesPath, "utf-8");
-  const categoriesRows: Array<{ Code: string; Nom: string }> = csvParse(categoriesContent, {
+  const categoriesContent = await fs.promises.readFile(categoriesPath, "utf-8");
+  const categoriesRows = csvParse(categoriesContent, {
     delimiter: ";",
     columns: true,
     skip_empty_lines: true,
     trim: true,
-  });
+  }) as { Code: string; Nom: string }[];
 
   const categories: RawCompetenceCategorie[] = categoriesRows.map((row) => ({
     code: row.Code,
@@ -572,18 +572,14 @@ export async function loadCompetenceReference(dataDir: string): Promise<{
 
   // Read competences CSV
   const competencesPath = path.join(dataDir, "banatic-codes-competences.csv");
-  const competencesContent = fs.readFileSync(competencesPath, "utf-8");
-  const competencesRows: Array<{
-    Code: string;
-    Nom: string;
-    Categorie: string;
-  }> = csvParse(competencesContent, {
+  const competencesContent = await fs.promises.readFile(competencesPath, "utf-8");
+  const competencesRows = csvParse(competencesContent, {
     delimiter: ";",
     columns: true,
     skip_empty_lines: true,
     trim: true,
     relax_column_count: true, // The CSV has trailing semicolons
-  });
+  }) as { Code: string; Nom: string; Categorie: string }[];
 
   const competences: RawCompetence[] = competencesRows.map((row) => ({
     code: row.Code,

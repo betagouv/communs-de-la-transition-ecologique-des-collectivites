@@ -53,8 +53,7 @@ Fournir une API REST ouverte de référence sur les collectivités territoriales
 
 ### Stratégie de mise à jour
 
-V1 : import initial via seed command (`pnpm seed:referentiel`).
-V2 : refresh périodique (cron mensuel ou trimestriel), à faire évoluer avec les acteurs des différentes API existantes.
+Import hebdomadaire automatique (dimanche 04:00 UTC), relançable à la main avec `pnpm seed:referentiel`. Voir section 7.
 
 ## 4. Modèle de données
 
@@ -373,6 +372,21 @@ Recherche sur toutes les familles d'entités.
 pnpm seed:referentiel
 ```
 
+### Import hebdomadaire
+
+Le Scheduler Scalingo (`cron.json` à la racine du repo) lance l'import chaque dimanche à 04:00 UTC, une heure après l'import TC opendata. Il tourne dans un conteneur one-off de taille M, séparé du conteneur web : son pic mémoire ne pèse pas sur l'API.
+
+| Variable | Rôle |
+|---|---|
+| `REFERENTIEL_IMPORT_ENABLED` | `true` pour activer l'import planifié ; sans elle, la tâche se termine sans rien faire |
+| `REFERENTIEL_IMPORT_MATTERMOST_WEBHOOK` | Webhook de notification (optionnel) ; à défaut, celui de l'import TC (`TC_IMPORT_MATTERMOST_WEBHOOK`) |
+
+Chaque exécution poste le résultat sur Mattermost (terminé, refusé ou échoué) et pointe le moniteur Sentry `referentiel-import`. Pas de nouvel essai automatique : en cas d'échec, relancer à la main (`scalingo --app <app> run "cd api && node dist/scripts/seed-referentiel/seed-referentiel.js"`).
+
+### Garde-fou de volume
+
+L'import remplace toutes les tables du référentiel. Avant d'écrire, il vérifie les volumes construits depuis les sources (`api/src/referentiel/seed/volume-guard.ts`) : régions, départements et leur SIREN, communes, communes avec SIRET, communes dont l'EPCI vient de Banatic, groupements, périmètres, compétences des groupements. Sous un minimum, l'import est refusé et les données actuelles sont conservées. Cela couvre une source qui répond partiellement, par exemple un export régional Banatic en échec (ignoré par le téléchargement) ou Banatic en maintenance.
+
 ### Pipeline
 
 1. **geo.api.gouv.fr** → communes (code, nom, siren, population, codesPostaux, codeDepartement, codeRegion, codeEpci) + EPCI (code/siren, nom, type)
@@ -384,7 +398,7 @@ pnpm seed:referentiel
 
 ### Idempotence
 
-Le seed est idempotent (upsert sur les PK). Peut être relancé sans risque.
+Le seed vide puis remplit les tables `api_referentiel` dans une seule transaction : il peut être relancé sans risque, et un échec en cours d'import laisse les données précédentes intactes.
 
 ## 8. Architecture technique
 
