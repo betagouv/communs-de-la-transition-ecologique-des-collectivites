@@ -1,0 +1,8 @@
+{
+  "jobs": [
+    {
+      "command": "0 4 * * 0 cd api && node dist/scripts/seed-referentiel/seed-referentiel.js --scheduled",
+      "size": "M"
+    }
+  ]
+}
