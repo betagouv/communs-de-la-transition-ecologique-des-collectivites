@@ -1,11 +1,11 @@
 {
   "jobs": [
     {
-      "command": "0 4 * * 0 cd api && node dist/scripts/seed-referentiel/seed-referentiel.js --scheduled",
-      "size": "M"
+      "command": "0 4 * * 0 cd api && node --max-old-space-size=768 dist/scripts/seed-referentiel/seed-referentiel.js --scheduled",
+      "size": "L"
     },
     {
-      "command": "0 3 * * * cd api && node dist/scripts/export-consultation/export-consultation.js --scheduled",
+      "command": "0 3 * * * cd api && node --max-old-space-size=448 dist/scripts/export-consultation/export-consultation.js --scheduled",
       "size": "M"
     }
   ]
