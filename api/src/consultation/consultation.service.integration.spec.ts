@@ -440,6 +440,49 @@ describe("ConsultationService (integration)", () => {
       });
     });
 
+    describe("export profiles", () => {
+      const walkExport = (profil: "interne_etat" | "opendata") =>
+        walk((cursor) => service.projetsExport(profil, { limit: 2, cursor }));
+
+      it("builds the interne_etat export exactly as Turgot's bulk read", async () => {
+        const turgot = await walk((cursor) => service.projets({ limit: 3, cursor }, TURGOT));
+        expect(await walkExport("interne_etat")).toEqual(turgot);
+      });
+
+      it("builds the opendata export from open lines only, restricted sources excluded", async () => {
+        const all = await walkExport("opendata");
+        expect(all.map((p) => p.nom)).toEqual([
+          "Piste cyclable",
+          "Restauration de la mare",
+          "Rénovation de l'école",
+          "x",
+          "Projet sans collectivité",
+        ]);
+        expect(new Set(all.map((p) => p.ouverture))).toEqual(new Set(["ouvert"]));
+        const ecole = all.find((p) => p.nom === "Rénovation de l'école")!;
+        expect(ecole.nbLignesRegroupees).toBe(1);
+        expect(ecole.provenances.map((x) => x.provenance)).toEqual(["dgcl"]);
+      });
+
+      it("gives a caller the interne_etat export only with the interne_etat scope", async () => {
+        await testDbService.database.insert(services).values({
+          name: "TeT",
+          description: "Territoires en Transitions",
+          sousTitre: "TeT",
+          logoUrl: "https://example.org/logo.png",
+          redirectionUrl: "https://example.org",
+          dataScopes: ["tet"],
+        });
+        try {
+          await expect(service.profilExport(TURGOT)).resolves.toBe("interne_etat");
+          await expect(service.profilExport("TeT")).resolves.toBe("opendata");
+          await expect(service.profilExport(SANS_SCOPE)).resolves.toBe("opendata");
+        } finally {
+          await testDbService.database.delete(services).where(eq(services.name, "TeT"));
+        }
+      });
+    });
+
     describe("projetsCollectivite", () => {
       it("groups exact duplicates at read time without losing their provenance", async () => {
         const result = await service.projetsCollectivite(PARIS, { limit: 50 }, TURGOT);

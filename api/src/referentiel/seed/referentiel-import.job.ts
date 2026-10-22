@@ -8,6 +8,7 @@ import { REFERENTIEL_IMPORT_CRON, REFERENTIEL_IMPORT_MONITOR_SLUG } from "./refe
 import { ReferentielSeedService } from "./referentiel-seed.service";
 import { ReferentielImportService } from "./import.service";
 import { insufficientVolumes } from "./volume-guard";
+import { notifyMattermost } from "@/shared/utils/notify-mattermost";
 import type { SeedStats } from "./sources/types";
 
 class InsufficientVolumesError extends Error {
@@ -90,19 +91,7 @@ export class ReferentielImportJob {
     }
   }
 
-  private async notifyMattermost(text: string): Promise<void> {
-    if (!this.webhookUrl) return;
-
-    try {
-      await fetch(this.webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-    } catch (error) {
-      this.logger.warn("Failed to send Mattermost notification", {
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
+  private notifyMattermost(text: string): Promise<void> {
+    return notifyMattermost(this.webhookUrl, text, this.logger);
   }
 }

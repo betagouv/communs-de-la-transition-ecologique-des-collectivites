@@ -3,6 +3,10 @@
     {
       "command": "0 4 * * 0 cd api && node dist/scripts/seed-referentiel/seed-referentiel.js --scheduled",
       "size": "M"
+    },
+    {
+      "command": "0 3 * * * cd api && node dist/scripts/export-consultation/export-consultation.js --scheduled",
+      "size": "M"
     }
   ]
 }

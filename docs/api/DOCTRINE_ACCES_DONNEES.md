@@ -98,6 +98,35 @@ Deux verrous indépendants, tous deux **fail-closed** (sans ligne `services`, au
   traduit par le retrait de la source du registre (tous les appelants) ou par l'octroi du scope à un
   service (procédure ci-dessus).
 
+### Export complet (`/consultation/v1/export`)
+
+Chaque nuit à **03:00 UTC** (04:00 à Paris en hiver, 05:00 en été), le Scheduler Scalingo
+(`cron.json`, conteneur one-off séparé du web) écrit deux fichiers JSON Lines gzippés dans le bucket
+Cellar `communs`, sous `exports/` uniquement (le bucket porte aussi les logos des services) :
+
+| Fichier                          | Profil         | Contenu                                                                                   |
+| -------------------------------- | -------------- | ----------------------------------------------------------------------------------------- |
+| `projets-interne_etat.ndjson.gz` | `interne_etat` | ce que lit par l'API un porteur du seul scope `interne_etat` (lignes `interne` comprises) |
+| `projets-opendata.ndjson.gz`     | `opendata`     | lignes `ouvert` seules : celles qui peuvent être republiées                               |
+
+- Les deux excluent toutes les sources du registre : le fichier servi à un appelant est toujours un
+  sous-ensemble de ce que l'API lui sert. `interne_etat` va aux porteurs de ce scope, `opendata` à tous
+  les autres.
+- `GET /consultation/v1/export` redirige vers un lien signé valable 15 minutes ;
+  `GET /consultation/v1/export/description` donne date de génération, nombre de projets, taille et
+  SHA-256 (lus dans `exports/manifest.json`).
+- **Pour l'ETL** : la base consolidée doit être reconstruite avant 03:00 UTC pour être dans l'export
+  du jour.
+- **Garde-fou** : chaque fichier est écrit en objet temporaire, et ne remplace le fichier publié que si
+  aucun profil n'est vide ni n'a perdu plus de la moitié de ses projets ; sinon l'export précédent est
+  conservé et Mattermost prévenu. Après vérification, `--force` publie un export légitimement réduit.
+- **Coût** : noms fixes, chaque génération écrase la précédente ; les envois multipart interrompus
+  sont annulés au début de chaque run. Pas d'historique dans le bucket.
+- Variables : `CELLAR_ADDON_HOST`, `CELLAR_ADDON_KEY_ID`, `CELLAR_ADDON_KEY_SECRET`,
+  `CELLAR_EXPORT_BUCKET` (prod uniquement : sur staging l'export écraserait celui de la prod),
+  `CONSULTATION_EXPORT_ENABLED=true` pour le run planifié, `CONSULTATION_EXPORT_MATTERMOST_WEBHOOK`
+  (à défaut, celui de l'import TC).
+
 ## Retrait
 
 Le retrait est **immédiat et réversible** : retirer le scope de `data_scopes` de la ligne `services`
