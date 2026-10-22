@@ -61,6 +61,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",
+    "@aws-sdk/client-s3": "3.1147.0",
+    "@aws-sdk/lib-storage": "3.1147.0",
+    "@aws-sdk/s3-request-presigner": "3.1147.0",
     "@bull-board/api": "^6.9.6",
     "@bull-board/express": "^6.9.6",
     "@bull-board/nestjs": "^6.9.6",

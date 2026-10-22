@@ -1,7 +1,12 @@
 import { BadRequestException, Injectable, ServiceUnavailableException } from "@nestjs/common";
 import { DatabaseService } from "@database/database.service";
 import { services } from "@database/schema";
-import { CONSOLIDATED_RESTRICTED_SOURCES, forbiddenSourcesFor, seesInternalLines } from "@/security/restricted-sources";
+import {
+  CONSOLIDATED_INTERNAL_SCOPE,
+  CONSOLIDATED_RESTRICTED_SOURCES,
+  forbiddenSourcesFor,
+  seesInternalLines,
+} from "@/security/restricted-sources";
 import { eq, sql, SQL } from "drizzle-orm";
 import {
   CursorPosition,
@@ -34,6 +39,14 @@ export interface ProjetsParams extends ProjetsFilters {
   limit: number;
   cursor?: string;
 }
+
+/**
+ * Profiles of the nightly export files. `interne_etat` is what a holder of that scope alone reads
+ * through the API; `opendata` keeps only `ouvert` lines, the ones that may be republished. Both
+ * exclude every restricted source, so a caller always gets a subset of what the API serves them.
+ */
+export const EXPORT_PROFILES = ["interne_etat", "opendata"] as const;
+export type ExportProfile = (typeof EXPORT_PROFILES)[number];
 
 export interface CollectivitesParams {
   departement?: string;
@@ -99,7 +112,25 @@ export class ConsultationService {
   /** Bulk read of the whole base, deduplicated at read time, by stable cursor. */
   async projets(params: ProjetsParams, serviceType: string): Promise<ProjetsConsultationResponse> {
     await this.assertBaseDisponible();
-    const acces = await this.accesCondition(serviceType);
+    return this.projetsSelonAcces(params, await this.accesCondition(serviceType));
+  }
+
+  /** Bulk read of an export profile, by the same cursor walk as `projets`. */
+  async projetsExport(profil: ExportProfile, params: ProjetsParams): Promise<ProjetsConsultationResponse> {
+    await this.assertBaseDisponible();
+    const acces =
+      profil === "interne_etat"
+        ? this.accesPourScopes([CONSOLIDATED_INTERNAL_SCOPE])
+        : sql`${this.accesPourScopes([])} AND p.ouverture = 'ouvert'`;
+    return this.projetsSelonAcces(params, acces);
+  }
+
+  /** Export file served to a caller: the internal one only to a holder of the internal scope. */
+  async profilExport(serviceType: string): Promise<ExportProfile> {
+    return seesInternalLines(await this.serviceScopes(serviceType)) ? "interne_etat" : "opendata";
+  }
+
+  private async projetsSelonAcces(params: ProjetsParams, acces: SQL): Promise<ProjetsConsultationResponse> {
     const { limit } = params;
     const position: CursorPosition = params.cursor ? decodeCursor(params.cursor) : { siren: "", id: UUID_ZERO };
 
@@ -344,7 +375,10 @@ export class ConsultationService {
    * `interne` lines are kept only for a caller holding the internal scope.
    */
   private async accesCondition(serviceType: string): Promise<SQL> {
-    const scopes = await this.serviceScopes(serviceType);
+    return this.accesPourScopes(await this.serviceScopes(serviceType));
+  }
+
+  private accesPourScopes(scopes: readonly string[]): SQL {
     const conditions: SQL[] = [];
     if (!seesInternalLines(scopes)) conditions.push(sql`p.ouverture <> 'interne'`);
     const interdites = forbiddenSourcesFor(scopes, CONSOLIDATED_RESTRICTED_SOURCES);
