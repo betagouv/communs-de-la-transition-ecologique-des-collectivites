@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.23](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.22...v0.2.23) (2026-10-22)
+
+
+### Features
+
+* **consultation:** export complet nocturne par profil d'accès sur cellar ([7c111fc](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/7c111fcdd2b12fd95f39f104c1c66c6169a45911))
+
 ## [0.2.22](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.21...v0.2.22) (2026-10-22)
 
 
