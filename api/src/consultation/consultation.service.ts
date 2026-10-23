@@ -13,8 +13,10 @@ import {
   decodeCursor,
   encodeCursor,
   LABELS_METHODE,
+  nomFinanceur,
   ProjetRow,
   SIREN_REGEX,
+  STATUTS_ATTRIBUES,
   toProjetConsultation,
 } from "./consultation-projection";
 import { ProjetsCollectiviteResponse, ProjetsConsultationResponse } from "./dto/projet-consultation.dto";
@@ -54,9 +56,6 @@ export interface CollectivitesParams {
   limit: number;
   cursor?: string;
 }
-
-// Financing statuses whose `montant_attribue` is an actual grant (not a request, forecast or refusal).
-const STATUTS_ATTRIBUES = ["Obtenu", "Payé"] as const;
 
 // Aligned with territoires / dashboard-te: budgets above this are data errors, kept out of the ratio.
 const BUDGET_MAX = 100_000_000;
@@ -235,6 +234,9 @@ export class ConsultationService {
           WHERE p.collectivite_responsable_siren = ${siren} AND ${acces}
             AND p.budget_previsionnel > 0 AND p.budget_previsionnel <= ${BUDGET_MAX}
           GROUP BY p.id, p.budget_previsionnel
+          -- a single grant above the cost means the cost is wrong (see toProjetConsultation)
+          HAVING coalesce(max(f.montant_attribue) FILTER (WHERE f.statut = ANY(${textArray(STATUTS_ATTRIBUES)})), 0)
+                 <= p.budget_previsionnel
         ) l
         WHERE l.montant > 0`),
       this.query<{ nom: string }>(sql`
@@ -245,7 +247,7 @@ export class ConsultationService {
     ]);
 
     const financementsParSourceEtAnnee: FinancementsSourceAnneeDto[] = cellules.map((c) => ({
-      source: c.source,
+      source: nomFinanceur(c.source),
       annee: c.annee,
       nbFinancements: c.nb,
       montantAttribue: Number(c.montant ?? 0),
@@ -253,11 +255,12 @@ export class ConsultationService {
 
     const parSource = new Map<string, { nb: number; nbMontant: number; nbDate: number }>();
     for (const c of cellules) {
-      const cumul = parSource.get(c.source) ?? { nb: 0, nbMontant: 0, nbDate: 0 };
+      const source = nomFinanceur(c.source);
+      const cumul = parSource.get(source) ?? { nb: 0, nbMontant: 0, nbDate: 0 };
       cumul.nb += c.nb;
       cumul.nbMontant += c.nb_montant;
       cumul.nbDate += c.nb_date;
-      parSource.set(c.source, cumul);
+      parSource.set(source, cumul);
     }
     const completudeParSource: CompletudeSourceDto[] = [...parSource.entries()].map(([source, c]) => ({
       source,

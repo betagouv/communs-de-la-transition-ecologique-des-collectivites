@@ -689,6 +689,42 @@ describe("ConsultationService (integration)", () => {
         });
       });
 
+      it("leaves out of the rate a project whose cost is below one of its grants, and shortens financer names", async () => {
+        const RENNES = "213502388";
+        const PATAUGEOIRE = uuid(90);
+        const GYMNASE = uuid(91);
+        await insertProjet(PATAUGEOIRE, "Rénovation de la pataugeoire", RENNES, "agences-eau", { budget: 2134 });
+        await insertFinancement(PATAUGEOIRE, "Agence de l'eau", "2024-07-10", 30100, "Obtenu");
+        await insertProjet(GYMNASE, "Gymnase", RENNES, "budget-participatif", { budget: 100000 });
+        await insertFinancement(
+          GYMNASE,
+          "Budget participatif écologique et solidaire de la Région Île-de-France",
+          "2025-09-25",
+          20000,
+          "Obtenu",
+        );
+        try {
+          const synthese = await service.synthese(RENNES, TURGOT);
+          expect(synthese.tauxFinancement).toEqual({
+            nbProjetsComparables: 1,
+            montantAttribue: 20000,
+            budgetPrevisionnel: 100000,
+            taux: 0.2,
+          });
+          // the grant itself still counts in the totals
+          expect(synthese.montantAttribueTotal).toBe(50100);
+          expect(synthese.financementsParSourceEtAnnee.map((c) => c.source)).toEqual([
+            "Agence de l'eau",
+            "Budget participatif IDF",
+          ]);
+          expect(synthese.completudeParSource.map((c) => c.source)).toContain("Budget participatif IDF");
+        } finally {
+          await testDbService.database.execute(
+            sql`DELETE FROM data_projets_consolides.projets WHERE id IN (${PATAUGEOIRE}, ${GYMNASE})`,
+          );
+        }
+      });
+
       it("returns an empty synthesis for an unknown collectivity", async () => {
         const synthese = await service.synthese("999999999", TURGOT);
         expect(synthese).toMatchObject({
