@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.24](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.23...v0.2.24) (2026-10-23)
+
+
+### Bug Fixes
+
+* **referentiel:** mémoire suffisante pour l'import planifié ([ca7b58b](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ca7b58b7c6a59634d5969e062b45ca2cbe9c432e))
+
 ## [0.2.23](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.22...v0.2.23) (2026-10-22)
 
 
