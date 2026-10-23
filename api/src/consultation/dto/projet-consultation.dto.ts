@@ -146,7 +146,13 @@ export class ProjetConsultationDto {
   @ApiPropertyOptional({ type: String, nullable: true })
   description!: string | null;
 
-  @ApiPropertyOptional({ type: Number, nullable: true })
+  @ApiPropertyOptional({
+    type: Number,
+    nullable: true,
+    description:
+      "Coût prévisionnel en euros. Null quand il est inférieur à l'un des financements attribués du projet : " +
+      "le coût est alors erroné (montant d'un seul marché public rattaché au projet, saisie en milliers…).",
+  })
   budgetPrevisionnel!: number | null;
 
   @ApiPropertyOptional({ type: String, nullable: true, format: "date" })

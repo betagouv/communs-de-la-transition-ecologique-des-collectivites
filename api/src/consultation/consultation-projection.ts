@@ -55,6 +55,33 @@ export interface ProjetRow {
   bv_biodiversite_cotation: string | null;
 }
 
+// Financing statuses whose `montant_attribue` is an actual grant (not a request, forecast or refusal).
+export const STATUTS_ATTRIBUES = ["Obtenu", "Payé"] as const;
+
+// Short display names for financers whose source label is a full sentence (DETR, DSIL, Fonds Vert
+// are already short). Applied at read time: the base keeps the source's own label.
+const NOMS_COURTS_FINANCEURS: Record<string, string> = {
+  "Budget participatif écologique et solidaire de la Région Île-de-France": "Budget participatif IDF",
+};
+
+export const nomFinanceur = (source: string): string => NOMS_COURTS_FINANCEURS[source] ?? source;
+
+const estAttribue = (f: FinancementConsultationDto): boolean =>
+  (STATUTS_ATTRIBUES as readonly (string | null)[]).includes(f.statut);
+
+const toFinancement = (f: FinancementConsultationDto): FinancementConsultationDto => ({
+  ...f,
+  source: nomFinanceur(f.source),
+  // the participatory budget export wraps its file numbers in double quotes ("18-102")
+  referenceExterne: f.referenceExterne?.replace(/^"(.*)"$/, "$1") ?? null,
+});
+
+// A single grant above the project cost means the cost is wrong (typically the amount of one
+// procurement contract absorbed into the project, or a cost typed in thousands): dropped rather
+// than served as a rate above 100 %.
+const budgetPlausible = (budget: number | null, financements: FinancementConsultationDto[]): number | null =>
+  budget != null && financements.some((f) => estAttribue(f) && Number(f.montantAttribue ?? 0) > budget) ? null : budget;
+
 // Scores are stored as `real`: 0.93 comes back as 0.9300000071525574.
 const score = (value: number | null): number | null => (value == null ? null : Math.round(value * 100) / 100);
 
@@ -93,12 +120,16 @@ const toLabels = (row: ProjetRow): LabelsConsultationDto | null => {
  * it is regenerated at each rebuild, the reference is the `provenances` block.
  */
 export function toProjetConsultation(row: ProjetRow): ProjetConsultationDto {
+  const financements = row.financements ?? [];
   return {
     provenances: row.sources ?? [],
     nbLignesRegroupees: Number(row.nb_lignes),
     nom: row.nom,
     description: row.description,
-    budgetPrevisionnel: row.budget_previsionnel == null ? null : Number(row.budget_previsionnel),
+    budgetPrevisionnel: budgetPlausible(
+      row.budget_previsionnel == null ? null : Number(row.budget_previsionnel),
+      financements,
+    ),
     dateDebut: row.date_debut,
     dateFin: row.date_fin,
     phase: row.phase,
@@ -121,7 +152,7 @@ export function toProjetConsultation(row: ProjetRow): ProjetConsultationDto {
     programmesRattachement: row.programmes_rattachement ?? [],
     ouverture: row.ouverture,
     labels: toLabels(row),
-    financements: row.financements ?? [],
+    financements: financements.map(toFinancement),
   };
 }
 
