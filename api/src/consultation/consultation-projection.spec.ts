@@ -1,8 +1,10 @@
 import { BadRequestException } from "@nestjs/common";
+import { FinancementConsultationDto } from "./dto/projet-consultation.dto";
 import {
   decodeCursor,
   encodeCursor,
   LABELS_METHODE,
+  nomFinanceur,
   parseMillesime,
   ProjetRow,
   toProjetConsultation,
@@ -143,6 +145,57 @@ describe("toProjetConsultation", () => {
       },
     ]);
     expect(projet.financements[0]).not.toHaveProperty("montantPaye");
+  });
+
+  describe("financing data quality", () => {
+    const financement = (overrides: Partial<FinancementConsultationDto> = {}): FinancementConsultationDto => ({
+      source: "Agence de l'eau",
+      referenceExterne: "AELB 240231401",
+      dateAttribution: "2024-07-10",
+      montantDemande: null,
+      montantAttribue: 30100,
+      statut: "Obtenu",
+      ...overrides,
+    });
+
+    it("drops a budget lower than a single granted financing: the cost is wrong, not the grant", () => {
+      const projet = toProjetConsultation(baseRow({ budget_previsionnel: "2134", financements: [financement()] }));
+      expect(projet.budgetPrevisionnel).toBeNull();
+      expect(projet.financements[0].montantAttribue).toBe(30100);
+    });
+
+    it("keeps the budget when only a request, forecast or refusal exceeds it", () => {
+      for (const statut of ["Demandé", "Prévisionnel", "Refusé", null]) {
+        const projet = toProjetConsultation(
+          baseRow({ budget_previsionnel: "2134", financements: [financement({ statut })] }),
+        );
+        expect(projet.budgetPrevisionnel).toBe(2134);
+      }
+    });
+
+    it("keeps a budget equal to the grant (fully funded project)", () => {
+      const projet = toProjetConsultation(
+        baseRow({ budget_previsionnel: "30100", financements: [financement({ statut: "Payé" })] }),
+      );
+      expect(projet.budgetPrevisionnel).toBe(30100);
+    });
+
+    it("strips the double quotes some sources leave around the financer reference", () => {
+      const projet = toProjetConsultation(baseRow({ financements: [financement({ referenceExterne: '"18-102"' })] }));
+      expect(projet.financements[0].referenceExterne).toBe("18-102");
+    });
+
+    it("gives the Île-de-France participatory budget a short financer name", () => {
+      const projet = toProjetConsultation(
+        baseRow({
+          financements: [
+            financement({ source: "Budget participatif écologique et solidaire de la Région Île-de-France" }),
+          ],
+        }),
+      );
+      expect(projet.financements[0].source).toBe("Budget participatif IDF");
+      expect(nomFinanceur("DSIL")).toBe("DSIL");
+    });
   });
 
   it("defaults missing aggregates and arrays to empty lists", () => {

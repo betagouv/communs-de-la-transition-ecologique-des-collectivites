@@ -49,7 +49,9 @@ export class ThematiqueIndicateurDto {
 
 export class TauxFinancementDto {
   @ApiProperty({
-    description: "Nombre de lignes de projet disposant à la fois d'un budget prévisionnel et d'un montant attribué.",
+    description:
+      "Nombre de lignes de projet disposant à la fois d'un budget prévisionnel et d'un montant attribué. " +
+      "Un projet dont un financement attribué dépasse le budget est écarté (budget erroné).",
   })
   nbProjetsComparables!: number;
 
