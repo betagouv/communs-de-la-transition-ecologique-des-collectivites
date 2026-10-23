@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.25](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.24...v0.2.25) (2026-10-23)
+
+
+### Bug Fixes
+
+* **consultation:** budget incohérent écarté et financements du budget participatif IDF ([4179699](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/4179699815efe6f4aa4b0b4fc9851c1b76efc2b1))
+
 ## [0.2.24](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.23...v0.2.24) (2026-10-23)
 
 
