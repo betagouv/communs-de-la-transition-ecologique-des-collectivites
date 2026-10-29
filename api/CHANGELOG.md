@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.26](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.25...v0.2.26) (2026-10-29)
+
+
+### Features
+
+* **consultation:** accès du SGPE à la base consolidée avec le scope interne_etat ([ee0c86c](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/commit/ee0c86c9fde1c711c1140211ce412ef1072dfbda))
+
 ## [0.2.25](https://github.com/betagouv/communs-de-la-transition-ecologique-des-collectivites/compare/v0.2.24...v0.2.25) (2026-10-23)
 
 
