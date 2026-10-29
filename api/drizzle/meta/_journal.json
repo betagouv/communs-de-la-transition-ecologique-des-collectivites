@@ -421,6 +421,13 @@
       "when": 1790064968294,
       "tag": "0059_referentiel_departements_regions",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1790064968295,
+      "tag": "0060_sgpe_interne_etat",
+      "breakpoints": true
     }
   ]
 }

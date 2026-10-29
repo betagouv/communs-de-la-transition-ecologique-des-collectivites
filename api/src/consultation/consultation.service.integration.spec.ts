@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { TestingModule } from "@nestjs/testing";
 import { BadRequestException, ServiceUnavailableException } from "@nestjs/common";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { teardownTestModule, testModule } from "@test/helpers/test-module";
 import { TestDatabaseService } from "@test/helpers/test-database.service";
 import { refCommunes, refGroupements, refPerimetres, services } from "@database/schema";
@@ -62,9 +62,11 @@ const COMMUNE_AIN = "210100012";
 const LYON = "216901231";
 const SIREN_VIVIER = "219999990";
 const TURGOT = "Turgot"; // holds the interne_etat scope, granted by migration 0057 (applied below)
+const SGPE = "SGPE"; // holds the interne_etat scope, granted by migration 0060 (applied below)
 const SANS_SCOPE = "Recoco"; // no `services` row: no data scope
 
 const GRANT_TURGOT = readFileSync(join(__dirname, "../../drizzle/0057_turgot_interne_etat.sql"), "utf8");
+const GRANT_SGPE = readFileSync(join(__dirname, "../../drizzle/0060_sgpe_interne_etat.sql"), "utf8");
 
 const uuid = (n: number) => `00000000-0000-5000-8000-${String(n).padStart(12, "0")}`;
 const ECOLE = uuid(1); // Paris, dgcl, DETR 2023
@@ -190,7 +192,7 @@ describe("ConsultationService (integration)", () => {
     await db.delete(refPerimetres);
     await db.delete(refCommunes);
     await db.delete(refGroupements);
-    await db.delete(services).where(eq(services.name, TURGOT));
+    await db.delete(services).where(inArray(services.name, [TURGOT, SGPE]));
     await teardownTestModule(testDbService, module);
   }, 30000);
 
@@ -287,8 +289,9 @@ describe("ConsultationService (integration)", () => {
         { codeInsee: "75056", siren: PARIS, nom: "Paris", codeDepartement: "75", codeRegion: "11" },
       ]);
       await db.insert(refPerimetres).values({ sirenGroupement: EPCI, codeInseeCommune: "01001" });
-      // other suites empty `services`: re-apply the migration rather than rely on the run order
+      // other suites empty `services`: re-apply the migrations rather than rely on the run order
       await db.execute(sql.raw(GRANT_TURGOT));
+      await db.execute(sql.raw(GRANT_SGPE));
 
       service = new ConsultationService(testDbService);
     });
@@ -378,27 +381,30 @@ describe("ConsultationService (integration)", () => {
     });
 
     describe("data access by ouverture", () => {
-      const turgotRow = async () => {
-        const [row] = await testDbService.database.select().from(services).where(eq(services.name, TURGOT));
+      const serviceRow = async (name: string) => {
+        const [row] = await testDbService.database.select().from(services).where(eq(services.name, name));
         return row;
       };
 
-      it("migration 0057 grants Turgot interne_etat on an unlisted row, keeping its other scopes", async () => {
+      it.each([
+        ["0057", TURGOT, GRANT_TURGOT],
+        ["0060", SGPE, GRANT_SGPE],
+      ])("migration %s grants %s interne_etat on an unlisted row, keeping its other scopes", async (_, name, grant) => {
         const db = testDbService.database;
-        expect(await turgotRow()).toMatchObject({ dataScopes: ["interne_etat"], isListed: false });
+        expect(await serviceRow(name)).toMatchObject({ dataScopes: ["interne_etat"], isListed: false });
 
         await db
           .update(services)
           .set({ dataScopes: ["tet"] })
-          .where(eq(services.name, TURGOT));
-        await db.execute(sql.raw(GRANT_TURGOT));
-        await db.execute(sql.raw(GRANT_TURGOT));
-        expect((await turgotRow()).dataScopes).toEqual(["interne_etat", "tet"]);
+          .where(eq(services.name, name));
+        await db.execute(sql.raw(grant));
+        await db.execute(sql.raw(grant));
+        expect((await serviceRow(name)).dataScopes).toEqual(["interne_etat", "tet"]);
 
         await db
           .update(services)
           .set({ dataScopes: ["interne_etat"] })
-          .where(eq(services.name, TURGOT));
+          .where(eq(services.name, name));
       });
 
       it("serves a caller without scope only open and public-without-licence lines, in bulk", async () => {
@@ -475,6 +481,7 @@ describe("ConsultationService (integration)", () => {
         });
         try {
           await expect(service.profilExport(TURGOT)).resolves.toBe("interne_etat");
+          await expect(service.profilExport(SGPE)).resolves.toBe("interne_etat");
           await expect(service.profilExport("TeT")).resolves.toBe("opendata");
           await expect(service.profilExport(SANS_SCOPE)).resolves.toBe("opendata");
         } finally {
