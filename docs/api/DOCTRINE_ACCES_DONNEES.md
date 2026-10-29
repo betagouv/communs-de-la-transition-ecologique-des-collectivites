@@ -28,7 +28,7 @@ pour pouvoir affirmer — quand la donnée arrivera — que « le contrôle d'ac
 
 Un service connecté est un partenaire authentifié par **clé API** (en variable d'environnement),
 identifié par un `serviceType` : `MEC`, `TeT`, `DashboardTE`, `Recoco`, `UrbanVitaliz`, `SosPonts`,
-`FondVert`. L'attribution du statut « service de l'État » habilité à voir une source restreinte est
+`FondVert`, `Turgot`, `SGPE`. L'attribution du statut « service de l'État » habilité à voir une source restreinte est
 une **décision d'administration** (pas un acquis technique) : elle se matérialise par l'ajout du
 scope correspondant au service (ci-dessous).
 
@@ -83,8 +83,9 @@ Deux verrous indépendants, tous deux **fail-closed** (sans ligne `services`, au
   porte des champs de chacune de ses traces). Le filtre s'applique avant le regroupement des doublons et
   la pagination, et à tous les agrégats (`/synthese`, `/collectivites`) : une ligne exclue ne prête à son
   groupe ni comptage, ni provenance, ni financement.
-- **Habilitations (13/10/2026)** : `Turgot` porte `interne_etat` (migration `0057_turgot_interne_etat`,
-  ligne `services` non listée dans le widget). Aucun autre service ne le porte.
+- **Habilitations** : portent `interne_etat`, chacun sur une ligne `services` non listée dans le widget,
+  `Turgot` (13/10/2026, migration `0057_turgot_interne_etat`) et `SGPE` (29/10/2026, migration
+  `0060_sgpe_interne_etat`, tableau de bord comparable à celui de Turgot). Aucun autre service ne le porte.
 - **Registre V0 (13/10/2026)** :
 
   | Source                                          | Scope requis              | Statut                  |

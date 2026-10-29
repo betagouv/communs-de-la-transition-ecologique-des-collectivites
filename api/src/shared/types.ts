@@ -9,7 +9,8 @@ export type ServiceType =
   | "SosPonts"
   | "FondVert"
   | "DashboardTE"
-  | "Turgot";
+  | "Turgot"
+  | "SGPE";
 export type ServiceTypeIds = "mecId" | "tetId" | "recocoId" | "urbanVitalizId" | "sosPontsId" | "fondVertId";
 
 export type CompetenceCode = (typeof competenceCodes)[number];
