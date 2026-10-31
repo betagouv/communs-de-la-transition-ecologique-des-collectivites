@@ -57,9 +57,11 @@ export class RequestLoggingInterceptor implements NestInterceptor {
 
           if (shouldTrackApiUsage) {
             try {
+              const endpoint = (request.route as { path?: string } | undefined)?.path ?? originalUrl.split("?")[0];
+
               void this.apiUsageService.recordRequest({
                 method,
-                endpoint: this.normalizeEndpoint(originalUrl),
+                endpoint,
                 fullUrl: originalUrl,
                 statusCode,
                 responseTimeInMs: duration,
@@ -72,9 +74,5 @@ export class RequestLoggingInterceptor implements NestInterceptor {
         },
       }),
     );
-  }
-  private normalizeEndpoint(url: string): string {
-    // Convert /projets/123e4567-e89b-12d3-a456-426614174000 to /projets/:id - we use uuid v7 in the db
-    return url.replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id").split("?")[0]; // Remove query params
   }
 }
