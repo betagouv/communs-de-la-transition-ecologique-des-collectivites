@@ -5,6 +5,7 @@ import { CreateServiceContextRequest, CreateServiceContextResponse } from "./dto
 import { Public } from "@/auth/public.decorator";
 import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { ApiEndpointResponses } from "@/shared/decorator/api-response.decorator";
+import { TrackApiUsage } from "@/shared/decorator/track-api-usage.decorator";
 import { CreateServiceRequest, CreateServiceResponse } from "@/services/dto/create-service.dto";
 import { ServiceApiKeyGuard } from "@/auth/service-api-key-guard";
 import { GetServicesByContextQuery, ServicesByProjectIdResponse } from "@/services/dto/service.dto";
@@ -33,6 +34,7 @@ export class ServicesController {
   }
 
   @Public()
+  @TrackApiUsage()
   @ApiOperation({ summary: "Get all services corresponding to a project" })
   @ApiEndpointResponses({
     successStatus: 200,
@@ -54,6 +56,7 @@ export class ServicesController {
   }
 
   @Public()
+  @TrackApiUsage()
   @ApiOperation({ summary: "Get all services corresponding to a context" })
   @ApiEndpointResponses({
     successStatus: 200,
@@ -97,6 +100,7 @@ export class ServicesController {
   }
 
   @ApiBearerAuth()
+  @TrackApiUsage()
   @ApiOperation({ summary: "Create a new service" })
   @Post()
   @ApiEndpointResponses({
@@ -110,6 +114,7 @@ export class ServicesController {
 
   @ApiBearerAuth()
   @Post("contexts/:id")
+  @TrackApiUsage()
   @ApiOperation({ summary: "Create a new service context for a specific service to match some projects " })
   @ApiEndpointResponses({
     successStatus: 201,
