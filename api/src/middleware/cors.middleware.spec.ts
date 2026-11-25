@@ -1,6 +1,9 @@
 import { CorsMiddleware, isOriginAllowed } from "./cors.middleware";
 import { Request, Response } from "express";
 import { ForbiddenException } from "@nestjs/common";
+import * as Sentry from "@sentry/node";
+
+jest.mock("@sentry/node", () => ({ captureMessage: jest.fn() }));
 
 describe("CorsMiddleware", () => {
   let middleware: CorsMiddleware;
@@ -34,6 +37,13 @@ describe("CorsMiddleware", () => {
     expect(error).toBeInstanceOf(ForbiddenException);
     expect((error as ForbiddenException).getStatus()).toBe(403);
     expect((error as ForbiddenException).message).toBe(`${origin} not allowed by CORS`);
+    // HttpExceptions are not sent to Sentry: a dedicated warning keeps a forgotten partner
+    // domain visible, one issue per origin.
+    expect(Sentry.captureMessage).toHaveBeenNthCalledWith(callNumber, `CORS origin rejected: ${origin}`, {
+      level: "warning",
+      tags: { origin },
+      fingerprint: ["cors-origin-rejected", origin],
+    });
   };
 
   // in all test when nextFunction is called this means the route was not blocked by CORS middleware
@@ -64,6 +74,7 @@ describe("CorsMiddleware", () => {
 
         expect(nextFunction).toHaveBeenCalledWith();
       });
+      expect(Sentry.captureMessage).not.toHaveBeenCalled();
     });
 
     it("should allow matching domains and subdomains", () => {
