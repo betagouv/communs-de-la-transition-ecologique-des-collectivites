@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, NestMiddleware } from "@nestjs/common";
 import { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import * as Sentry from "@sentry/node";
 import { match } from "path-to-regexp";
 
 const extractDomain = (origin: string): string => {
@@ -63,6 +64,13 @@ export class CorsMiddleware implements NestMiddleware {
           if (isOriginAllowed(origin)) {
             callback(null, true);
           } else {
+            // HttpExceptions are not sent to Sentry: this warning keeps a partner domain missing
+            // from CORS_ALLOWED_DOMAINS visible (one issue per origin, so a new one raises an alert).
+            Sentry.captureMessage(`CORS origin rejected: ${origin}`, {
+              level: "warning",
+              tags: { origin },
+              fingerprint: ["cors-origin-rejected", origin],
+            });
             // An HttpException so the global filter answers 403 instead of a misleading 500.
             callback(new ForbiddenException(`${origin} not allowed by CORS`));
           }
