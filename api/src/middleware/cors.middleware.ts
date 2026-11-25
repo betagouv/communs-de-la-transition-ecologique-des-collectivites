@@ -1,4 +1,4 @@
-import { Injectable, NestMiddleware } from "@nestjs/common";
+import { ForbiddenException, Injectable, NestMiddleware } from "@nestjs/common";
 import { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { match } from "path-to-regexp";
@@ -63,7 +63,8 @@ export class CorsMiddleware implements NestMiddleware {
           if (isOriginAllowed(origin)) {
             callback(null, true);
           } else {
-            callback(new Error(`${origin} not allowed by CORS`));
+            // An HttpException so the global filter answers 403 instead of a misleading 500.
+            callback(new ForbiddenException(`${origin} not allowed by CORS`));
           }
         },
         methods: ["GET", "POST"],
