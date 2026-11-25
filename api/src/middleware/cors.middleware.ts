@@ -68,7 +68,8 @@ export class CorsMiddleware implements NestMiddleware {
             // from CORS_ALLOWED_DOMAINS visible (one issue per origin, so a new one raises an alert).
             Sentry.captureMessage(`CORS origin rejected: ${origin}`, {
               level: "warning",
-              tags: { origin },
+              // Sentry drops tag values over 200 characters, and Origin is caller-controlled.
+              tags: { origin: origin.slice(0, 200) },
               fingerprint: ["cors-origin-rejected", origin],
             });
             // An HttpException so the global filter answers 403 instead of a misleading 500.
