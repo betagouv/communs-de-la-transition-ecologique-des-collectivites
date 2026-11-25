@@ -156,6 +156,19 @@ describe("CorsMiddleware", () => {
 
       expect(nextFunction).toHaveBeenCalledWith();
     });
+
+    it("should cap the Sentry origin tag to the 200 characters Sentry accepts", () => {
+      process.env.CORS_ALLOWED_DOMAINS = "example.com";
+      const origin = `https://${"a".repeat(300)}.com`;
+
+      mockRequest.headers = { origin };
+      middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+        `CORS origin rejected: ${origin}`,
+        expect.objectContaining({ tags: { origin: origin.slice(0, 200) } }),
+      );
+    });
   });
 
   describe("isOriginAllowed", () => {
