@@ -1,5 +1,6 @@
 import { CorsMiddleware, isOriginAllowed } from "./cors.middleware";
 import { Request, Response } from "express";
+import { ForbiddenException } from "@nestjs/common";
 
 describe("CorsMiddleware", () => {
   let middleware: CorsMiddleware;
@@ -24,6 +25,16 @@ describe("CorsMiddleware", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
+
+  // A rejected origin must surface as a 403 (handled by the global exception filter),
+  // not as a bare Error that the filter turns into a 500 "Unhandled Exception".
+  const expectOriginRejected = (callNumber: number, origin: string) => {
+    expect(nextFunction).toHaveBeenCalledTimes(callNumber);
+    const [error] = nextFunction.mock.calls[callNumber - 1] as [unknown];
+    expect(error).toBeInstanceOf(ForbiddenException);
+    expect((error as ForbiddenException).getStatus()).toBe(403);
+    expect((error as ForbiddenException).message).toBe(`${origin} not allowed by CORS`);
+  };
 
   // in all test when nextFunction is called this means the route was not blocked by CORS middleware
   // either because the route is not CORS enabled or because the origin is allowed
@@ -77,7 +88,7 @@ describe("CorsMiddleware", () => {
         mockRequest.headers = { origin };
         middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
 
-        expect(nextFunction).toHaveBeenNthCalledWith(index + 1, new Error(`${origin} not allowed by CORS`));
+        expectOriginRejected(index + 1, origin);
       });
     });
 
@@ -99,7 +110,7 @@ describe("CorsMiddleware", () => {
       mockRequest.headers = { origin: "invalid-url" };
       middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalledWith(new Error(`invalid-url not allowed by CORS`));
+      expectOriginRejected(1, "invalid-url");
     });
 
     it("should allow specific full URLs", () => {
@@ -122,7 +133,7 @@ describe("CorsMiddleware", () => {
       testCases.forEach((origin, index) => {
         mockRequest.headers = { origin };
         middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
-        expect(nextFunction).toHaveBeenNthCalledWith(index + 1, new Error(`${origin} not allowed by CORS`));
+        expectOriginRejected(index + 1, origin);
       });
     });
 
