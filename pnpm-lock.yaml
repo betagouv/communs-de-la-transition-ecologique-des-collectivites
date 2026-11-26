@@ -177,9 +177,6 @@ importers:
       openapi-fetch:
         specifier: ^0.15.0
         version: 0.15.0
-      path-to-regexp:
-        specifier: ^8.2.0
-        version: 8.3.0
       pg:
         specifier: ^8.14.1
         version: 8.16.3
