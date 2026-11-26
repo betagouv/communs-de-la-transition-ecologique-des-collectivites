@@ -1,0 +1,103 @@
+name: CI
+
+# Disables all permissions for the GITHUB_TOKEN associated with this workflow. We don't use the github api here, so no need for any permissions.
+permissions: {}
+
+on:
+  push:
+    branches: [main]
+
+  pull_request:
+    branches: [main]
+
+defaults:
+  run:
+    working-directory: api
+
+jobs:
+  lint-test-typecheck: #might split the steps once the tests become heavier
+    runs-on: ubuntu-latest
+
+    # those services are used by unit tests job, the integrated/e2e test have their own docker-compose file
+    # this should be improved for a better isolation either through specific workflow or by having the integrated test having their own
+    # docker compos
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:alpine
+        ports:
+          - "6379:6379"
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Enable Corepack
+        shell: bash
+        run: corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        working-directory: .
+        run: pnpm install
+
+      - name: Setup Git hooks
+        working-directory: .
+        run: pnpm prepare
+
+      - name: Run linter
+        working-directory: .
+        run: pnpm --filter api run lint
+
+      - name: Type check
+        working-directory: .
+        run: pnpm --filter api run type-check
+
+      - name: Build ressources-pages (required for E2E tests)
+        working-directory: .
+        run: pnpm build:ressources-pages
+
+      - name: Run database migrations
+        working-directory: .
+        run: pnpm --filter api run db:migrate:drizzle
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+
+      - name: Unit, Integration, E2E tests
+        working-directory: .
+        run: pnpm --filter api run test:ci
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
+          MEC_API_KEY: ${{ secrets.MEC_API_KEY }}
+          TET_API_KEY: ${{ secrets.TET_API_KEY }}
+          RECOCO_API_KEY: ${{ secrets.RECOCO_API_KEY }}
+          URBAN_VITALIZ_API_KEY: ${{ secrets.URBAN_VITALIZ_API_KEY }}
+          SOS_PONTS_API_KEY: ${{ secrets.SOS_PONTS_API_KEY }}
+          FOND_VERT_API_KEY: ${{ secrets.FOND_VERT_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SERVICE_MANAGEMENT_API_KEY: ${{ secrets.SERVICE_MANAGEMENT_API_KEY }}
+          AT_API_TOKEN: ${{ secrets.AT_API_TOKEN }}
+          DATABASE_URL: postgres://postgres:mypassword@localhost:5433/e2e_test_db
+          REDIS_URL: redis://localhost:6380
+          QUEUE_BOARD_PWD: AdminIsWatchingYou

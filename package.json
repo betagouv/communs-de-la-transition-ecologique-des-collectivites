@@ -56,8 +56,6 @@
     "vite": "^7.2.4"
   },
   "engines": {
-    "npm": "use-pnpm-instead",
-    "yarn": "use-pnpm-instead",
     "pnpm": "10.x",
     "node": "22.x"
   },

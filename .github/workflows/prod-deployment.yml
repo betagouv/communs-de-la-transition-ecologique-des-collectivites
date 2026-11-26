@@ -33,10 +33,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Setup Git hooks
-        run: pnpm prepare
+        run: pnpm install --dev
 
       - name: Configure Git
         run: |
@@ -90,27 +87,6 @@ jobs:
           echo "${{ secrets.SCALINGO_BETA_GOUV_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H -t rsa,ecdsa,ed25519 ssh.osc-fr1.scalingo.com >> ~/.ssh/known_hosts
-
-      - name: Prepare package.json for Scalingo
-        run: |
-          set -e
-          echo "🔧 Patching package.json files for Scalingo buildpack compatibility..."
-
-          # Temporary patch: Remove npm/yarn engine restrictions for Scalingo
-          # Local protection via engine-strict + engines fields is maintained in git
-
-          # Patch root package.json
-          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json')); delete pkg.engines.npm; delete pkg.engines.yarn; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2));"
-
-          # Patch api/package.json (the one Scalingo actually uses)
-          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('api/package.json')); delete pkg.engines.npm; delete pkg.engines.yarn; fs.writeFileSync('api/package.json', JSON.stringify(pkg,null,2));"
-
-          # Commit the patch (will be pushed to Scalingo only, not to GitHub)
-          # HUSKY=0 bypasses pre-commit hooks (no need to format as this is ephemeral)
-          git add package.json api/package.json
-          HUSKY=0 git commit -m "chore(deploy): remove npm/yarn engines for Scalingo buildpack [ci skip]"
-
-          echo "✅ Both package.json files patched for deployment"
 
       - name: Deploy to Scalingo Production
         run: |
