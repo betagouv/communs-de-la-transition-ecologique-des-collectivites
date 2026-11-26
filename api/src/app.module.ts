@@ -10,7 +10,7 @@ import { ThrottlerGuardProvider } from "./security/throttler.provider";
 import { throttlerConfig } from "./security/throttler.config";
 import { ServicesModule } from "./services/services.module";
 import { SentryModule } from "@sentry/nestjs/setup";
-import { CorsMiddleware } from "./middleware/cors.middleware";
+import cors from "cors";
 import { GeoModule } from "@/geo/geo.module";
 import { ProjetsModule } from "@projets/projets.module";
 import { currentEnv } from "@/shared/utils/currentEnv";
@@ -108,6 +108,10 @@ import { AjoutsManuelsModule } from "@/ajouts-manuels/ajouts-manuels.module";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorsMiddleware).forRoutes("*");
+    // Every route answers to any origin, without credentials. Keyless routes are readable by
+    // anyone anyway, keyed routes need a key a third-party site does not have, and no route
+    // relies on cookies: an origin allow-list protected nothing and broke partners whose domain
+    // had been forgotten (incident 25/11/2026). Never enable `credentials` with this setup.
+    consumer.apply(cors()).forRoutes("*");
   }
 }
