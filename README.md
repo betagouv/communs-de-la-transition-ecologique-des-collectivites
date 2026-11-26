@@ -3,7 +3,7 @@
 
 **Les Communs** are a project that has 2 main objectives :
 
-- "dites-le nous une fois" : make sure that a project entered on a platform is available on other platforms. 
+- "dites-le nous une fois" : make sure that a project entered on a platform is available on other platforms.
 - help with service deployment by making services discoverable through the project page on the different platforms
 
 To achieve those objectives, there are 2 main components :
@@ -51,19 +51,10 @@ You can verify hooks are set up by running:
 pnpm check-hooks
 ```
 
-### 🔒 Security: Script Execution Disabled
-
-This project uses `ignore-scripts=true` in `.npmrc` to **prevent automatic execution of dependency scripts** during installation. This protects against supply chain attacks where malicious packages execute code via `preinstall`/`postinstall` scripts.
-
-**What this means:**
-- ✅ **Safer installations**: Dependency scripts don't run automatically
-- ✅ **Supply chain protection**: Malicious preinstall scripts are blocked
-- ⚠️ **Manual Husky setup**: Must run `pnpm prepare` after `pnpm install`
-
 ### Why pnpm?
 
 - **Disk space efficiency**: Shared dependency storage across projects
-- **Security**: Strict dependency resolution and non-flat node_modules
+- **Security**: Strict dependency resolution and non-flat node_modules, and lifecycle scripts of dependencies aren't executed
 - **Performance**: Faster installation and better monorepo support
 - **Reliability**: Lockfile consistency and version enforcement
 
@@ -71,30 +62,22 @@ This project uses `ignore-scripts=true` in `.npmrc` to **prevent automatic execu
 
 The project enforces pnpm-only usage through multiple defensive layers:
 
-1. **Engine version blocking**:
-   - `engines.npm: "use-pnpm-instead"` and `engines.yarn: "use-pnpm-instead"` in package.json
-   - Blocks npm/yarn with engine incompatibility errors
-   - Works regardless of `ignore-scripts` setting (native package manager feature)
-   - Immediate, hard blocking at install time
-
-2. **Pre-commit validation**:
+1. **Pre-commit validation**:
    - Git hooks block npm/yarn lockfiles from being committed
    - Prevents accidental commits of wrong dependencies
 
-3. **Manual verification**:
+2. **Manual verification**:
    ```bash
    pnpm check-package-manager  # Verify no npm/yarn lockfiles exist
    ```
 
-4. **Configuration**:
+3. **Configuration**:
+   - This is only done for sub-projects, since the `package.json` at the root of the project needs to be valid to be deployed to Scalingo.
    - `engine-strict=true` in `.npmrc` enforces version requirements
-   - `ignore-scripts=true` disables dependency scripts for security
+   **Why this works**: The `engines.npm` and `engines.yarn` fields with invalid versions + `engine-strict=true` cause npm/yarn to fail immediately with clear error messages, while pnpm ignores these constraints and works normally.
 
-5. **CI/CD**: GitHub Actions validates pnpm usage
-
-**Why this works**: The `engines.npm` and `engines.yarn` fields with invalid versions + `engine-strict=true` cause npm/yarn to fail immediately with clear error messages, while pnpm ignores these constraints and works normally.
+4. **CI/CD**: GitHub Actions validates pnpm usage
 
 ---
 
 Roadmap is here : (ask for permission to access it if you do not have it yet) https://github.com/orgs/betagouv/projects/129/views/2
-
