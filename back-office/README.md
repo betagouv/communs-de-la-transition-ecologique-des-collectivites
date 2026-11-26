@@ -10,9 +10,9 @@ C'est un **test**. Il est conçu pour être jeté.
 - **Aucune dépendance de l'API vers ce dossier.** Rien dans `api/` ne l'importe, ne le construit,
   ne le sert. `rm -rf back-office/` + retirer la ligne du `pnpm-workspace.yaml` : l'API repart à
   l'identique. C'est la contrainte qui a dicté tout le reste.
-- **Pas de CORS ouvert côté API.** Le serveur de dev Vite relaie `/api/*` vers l'API (voir
-  `vite.config.ts`). Le navigateur ne voit qu'une origine, il n'y a donc rien à autoriser côté
-  serveur — et donc rien à défaire.
+- **Aucune dépendance au CORS de l'API.** Le serveur de dev Vite relaie `/api/*` vers l'API (voir
+  `vite.config.ts`). Le navigateur ne voit qu'une origine : rien à configurer côté serveur pour le
+  back-office — et donc rien à défaire.
 - **Les types sont recopiés**, pas importés (`src/types.ts`). C'est le prix assumé de
   l'indépendance : un fichier à tenir à jour, contre zéro couplage à démêler.
 

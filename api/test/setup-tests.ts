@@ -4,7 +4,6 @@ process.env.NODE_ENV = "test";
 // Set required environment variables for tests
 process.env.DATABASE_URL = process.env.DATABASE_URL ?? "postgres://postgres:mypassword@localhost:5432/testdb";
 process.env.REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379";
-process.env.CORS_ALLOWED_DOMAINS = process.env.CORS_ALLOWED_DOMAINS ?? "http://localhost:5173,http://localhost:5174";
 
 process.env.QUEUE_BOARD_PWD = process.env.QUEUE_BOARD_PWD ?? "test-password";
 process.env.SERVICE_MANAGEMENT_API_KEY = process.env.SERVICE_MANAGEMENT_API_KEY ?? "test-service-management-api-key";
