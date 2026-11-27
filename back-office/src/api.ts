@@ -22,7 +22,7 @@ async function appeler<T>(chemin: string, corps?: unknown, methode?: "GET" | "PO
   const cle = lireCle();
   if (!cle) throw new CleRefusee();
 
-  // EN DEV : le proxy Vite réécrit `/api` → l'API cible (VITE_API_TARGET), donc pas de CORS.
+  // EN DEV : le proxy Vite réécrit `/api` → l'API cible (VITE_API_TARGET).
   // EN PROD : le back-office est servi PAR l'API (même origine), on appelle donc `/admin/…`
   // directement, sans préfixe. `import.meta.env.DEV` distingue les deux sans configuration.
   const base = import.meta.env.DEV ? "/api" : "";
