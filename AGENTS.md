@@ -168,6 +168,11 @@ Seulement si des remarques bloquantes ou significatives ont été corrigées.
   a trouvé), **Après fusion** ou **Après déploiement** (actions manuelles restantes).
 - CI verte avant de demander la revue humaine.
 - **Un agent ne fusionne jamais une PR et ne déclenche jamais le déploiement de prod.**
+- S'il y a des opérations à faire en production et/ou en staging liées à la mise en ligne (par
+  exemple des changements de variable d'environnement), la description de la PR doit les inclure,
+  de préférence en indiquant directement la commande de CLI Scalingo.
+- Une PR fusionnée part en prod au plus tôt (workflow déclenché par le mainteneur) : on
+  n'accumule pas d'écart entre `main` et la prod.
 
 ## 5. Règles non négociables
 
@@ -175,7 +180,9 @@ Seulement si des remarques bloquantes ou significatives ont été corrigées.
 
 - Aucun secret dans le code ni dans les messages ; toute nouvelle variable documentée dans
   `api/.env.template` (ou le `.env.template` du paquet). `gitleaks` tourne au pre-commit.
-- Jamais de données de production en dev, en test ou dans les fixtures : données synthétiques.
+- Jamais de données de production brutes hors de Scalingo : ni dans le dépôt, ni dans les tests
+  ou les fixtures (données synthétiques), ni dans une base locale. Seule exception : le dump
+  expurgé décrit ci-dessous.
 - RGPD : minimisation des données personnelles, aucun traceur tiers non consenti. Jamais de
   vérification TLS désactivée dans le code.
 - Habilitations (`services.data_scopes`) : uniquement par migration ou script d'admin versionné,
@@ -190,9 +197,14 @@ Seulement si des remarques bloquantes ou significatives ont été corrigées.
 - Aucune action qui modifie la prod ou le staging (`scalingo env-set`, restart, scale, deploy,
   écriture en base, script lancé contre la prod) sans l'accord explicite du mainteneur pour
   cette action précise.
-- Lecture de la base de prod seulement sur demande, par tunnel, en transaction en lecture seule
-  (`PGOPTIONS="-c default_transaction_read_only=on"`), `SELECT` uniquement. Copies locales de logs
-  ou d'extractions supprimées après usage.
+- Un agent ne se connecte jamais à une base de prod ou de staging : ni `db-tunnel`, ni
+  `scalingo run`, ni console. Pas seulement par consigne : son outil doit être configuré pour
+  refuser ces commandes (règles de permission).
+- Besoin de données réelles (analyse, répétition d'une migration de données) : le mainteneur
+  fournit un dump expurgé, chargé dans une base locale, jamais versionné, supprimé après usage.
+  Expurgé : sans les lignes `interne` réservées aux services de l'État, et avec les données
+  personnelles (`porteur_referent_email`, contacts) pseudonymisées.
+- Copies locales de logs supprimées après usage.
 
 **Git**
 
@@ -262,9 +274,10 @@ migration.
   protéger la lecture par `to_regclass(...)` et dégrader en 404 ou en liste vide.
 - **Variables d'env Scalingo** : une valeur modifiée (`env-set` ou tableau de bord) n'est prise en
   compte qu'après redémarrage de l'app ; vérifier la date des conteneurs avec `scalingo ps`.
-- **La prod peut avoir des semaines de retard sur `main`** : avant d'analyser un incident,
-  comparer `scalingo deployments` au `git log origin/main`, puis chercher la signature exacte de
-  l'erreur dans les logs avant de l'attribuer à un commit.
+- **Écart entre la prod et `main`** : la prod est déployée à la main et peut ne pas contenir les
+  dernières fusions. Avant d'analyser un incident, comparer `scalingo deployments` au
+  `git log origin/main`, puis chercher la signature exacte de l'erreur dans les logs avant de
+  l'attribuer à un commit.
 - **E2E après un échec** : `test:e2e` ne s'arrête pas proprement quand un test échoue ; relancer
   `pnpm --filter api test:e2e:stop` avant de recommencer, certains tests ne sont pas idempotents
   sur une base réutilisée.
